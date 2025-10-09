@@ -1,6 +1,9 @@
 # Dependencias y archivos de configuración
 node_modules/
+package.json
 package-lock.json
+tsconfig.json
+tsconfig.prod.json
 .env
 dockerfile
 
