@@ -1,0 +1,9 @@
+# Dependencias y archivos de configuración
+node_modules/
+package-lock.json
+.env
+dockerfile
+
+# Archivos compilados y logs
+logs/
+dist/
