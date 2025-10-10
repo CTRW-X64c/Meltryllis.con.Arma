@@ -1,6 +1,7 @@
-import BaseReplacement from "../BaseReplacement";
+// src/remplazadores/Furaffinity.ts
+import Ruler from "../RuleReplacement";
 
-export default class FuraffinityReplacement extends BaseReplacement {
+export default class Furaffinity extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,

@@ -1,15 +1,12 @@
 // src/remplazadores/ApiReplacement.ts
 import { debug, error } from "../logging";
-//import type { Response } from "node-fetch";
 
-// Definimos una interfaz para el tipo de datos que esperamos de la API
 interface EmbedezApiResponse {
     success: boolean;
     data: {
-        shareUrl: string;
-        // Puedes añadir más campos si los necesitas, como 'type', 'key', etc.
+        shareUrl: string;        
     };
-    error?: string; // El error es opcional
+    error?: string; 
 }
 
 export default class ApiReplacement {
@@ -20,24 +17,18 @@ export default class ApiReplacement {
      */
     public async getEmbedUrl(originalUrl: string): Promise<string | null> {
         try {
-            // Importación dinámica de node-fetch
             const fetch = (await import('node-fetch')).default;
 
             const encodedUrl = encodeURIComponent(originalUrl);
             const apiUrl = `https://embedez.com/api/v1/providers/combined?q=${encodedUrl}`;
-
-            const response = await fetch(apiUrl);
-            
-            // Verificamos si la respuesta es exitosa antes de procesar el JSON
+            const response = await fetch(apiUrl);           
             if (!response.ok) {
                 const responseError = await response.text();
                 debug(`API de Embedez devolvió un estado no exitoso: ${response.status} - ${responseError}`, "ApiReplacement");
                 return null;
             }
 
-            // Aserción de tipo para indicarle a TypeScript la estructura de los datos
             const data = (await response.json()) as EmbedezApiResponse;
-
             if (data.success && data.data && data.data.shareUrl) {
                 debug(`API de Embedez exitosa: ${originalUrl} -> ${data.data.shareUrl}`, "ApiReplacement");
                 return data.data.shareUrl;

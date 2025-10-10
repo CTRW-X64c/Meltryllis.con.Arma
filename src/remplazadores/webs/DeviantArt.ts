@@ -1,6 +1,7 @@
-import BaseReplacement from "../BaseReplacement";
+// src/remplazadores/DeviantArt.ts
+import Ruler from "../RuleReplacement";
 
-export default class DeviantArtReplacement extends BaseReplacement {
+export default class DeviantArt extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,

@@ -1,6 +1,7 @@
-import BaseReplacement from "../BaseReplacement";
+// src/remplazadores/Bsky.ts
+import Ruler from "../RuleReplacement";
 
-export default class BskyReplacement extends BaseReplacement {
+export default class Bsky extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,

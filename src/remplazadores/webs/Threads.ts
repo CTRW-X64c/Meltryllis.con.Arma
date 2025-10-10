@@ -1,6 +1,7 @@
-import BaseReplacement from "../BaseReplacement";
+// src/remplazadores/Threads.ts
+import Ruler from "../RuleReplacement";
 
-export default class ThreadsReplacement extends BaseReplacement {
+export default class Threads extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,

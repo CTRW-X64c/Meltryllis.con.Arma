@@ -1,6 +1,7 @@
-import BaseReplacement from "../BaseReplacement";
+// src/remplazadores/Facebook.ts
+import Ruler from "../RuleReplacement";
 
-export default class FacebookReplacement extends BaseReplacement {
+export default class Facebook extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,

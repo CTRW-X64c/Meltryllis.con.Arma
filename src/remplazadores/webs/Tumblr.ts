@@ -1,6 +1,7 @@
-import BaseReplacement from "../BaseReplacement";
+// src/remplazadores/Tumblr.ts
+import Ruler from "../RuleReplacement";
 
-export default class TumblrReplacement extends BaseReplacement {
+export default class Tumblr extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,

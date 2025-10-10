@@ -1,6 +1,7 @@
-import BaseReplacement from "../BaseReplacement";
+// src/remplazadores/Imgur.ts
+import Ruler from "../RuleReplacement";
 
-export default class ImgurReplacement extends BaseReplacement {
+export default class Imgur extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,

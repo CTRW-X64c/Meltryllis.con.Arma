@@ -1,8 +1,8 @@
-// src/remplazadores/RedditReplacement.ts
+// src/remplazadores/Reddit.ts
 import { debug } from "../../logging";
-import BaseReplacement from "../BaseReplacement";
+import Ruler from "../RuleReplacement";
 
-export default class RedditReplacement extends BaseReplacement {
+export default class Reddit extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,

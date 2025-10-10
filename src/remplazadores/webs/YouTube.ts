@@ -1,6 +1,7 @@
-import BaseReplacement from "../BaseReplacement";
+// src/remplazadores/YouTube.ts
+import Ruler from "../RuleReplacement";
 
-export default class YouTubeReplacement extends BaseReplacement {
+export default class YouTube extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,

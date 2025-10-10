@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, Message
 import i18next from "i18next";
 import { error, debug } from "../../logging";
 import { getConfigMap, getGuildReplacementConfig } from "../database";
-import { replacementMetaList} from "../../remplazadores/replacementConfigs";
+import { replacementMetaList} from "../../remplazadores/EmbedingConfig";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 

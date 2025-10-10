@@ -5,7 +5,7 @@ import { ShardingManager } from "discord.js";
 
 dotenv.config();
 
-const manager = new ShardingManager("./dist/client/index.js", {
+const manager = new ShardingManager("./comp/client/index.js", {
   token: process.env.DISCORD_BOT_TOKEN,
 });
 

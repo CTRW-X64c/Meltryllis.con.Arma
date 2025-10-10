@@ -1,6 +1,7 @@
-import BaseReplacement from "../BaseReplacement";
+// src/remplazadores/Twitter.ts
+import Ruler from "../RuleReplacement";
 
-export default class TwitterReplacement extends BaseReplacement {
+export default class Twitter extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,

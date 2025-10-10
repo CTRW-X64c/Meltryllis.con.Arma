@@ -1,6 +1,7 @@
-import BaseReplacement from "../BaseReplacement";
+// src/remplazadores/Twitch.ts
+import Ruler from "../RuleReplacement";
 
-export default class YouTubeReplacement extends BaseReplacement {
+export default class Twitch extends Ruler {
   constructor(newDomain: string) {
     super(
       newDomain,
