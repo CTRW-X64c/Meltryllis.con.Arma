@@ -11,6 +11,7 @@ const manager = new ShardingManager("./dist/client/index.js", {
 
 const environmentMode = getEnvironmentMode();
 initLogger(environmentMode);
+info(`Iniciando en modo: ${environmentMode}`, "startup");
 
 manager.on("shardCreate", (shard) => {
   info(`Launched shard ${shard.id}`);

@@ -8,7 +8,7 @@ export function initLogger(
 ): void {
   const logLevel = environmentMode === "development" ? "debug" : "info";
 
-  const cliFormat = winston.format.cli();
+  const clientFormat = winston.format.cli();
   const fileFormat = winston.format.combine(
     winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
     winston.format.printf(({ timestamp, label, level, message }) => {
@@ -19,30 +19,11 @@ export function initLogger(
   logger = winston.createLogger({
     level: logLevel,
     transports: [
-      new winston.transports.Console({
-        level: logLevel,
-        format: cliFormat,
-      }),
-      new winston.transports.File({
-        level: logLevel,
-        format: fileFormat,
-        filename: `logs/combined.log`,
-      }),
-      new winston.transports.File({
-        level: "error",
-        format: fileFormat,
-        filename: `logs/error.log`,
-      }),
-      new winston.transports.File({
-        level: "info",
-        format: fileFormat,
-        filename: `logs/info.log`,
-      }),
-      new winston.transports.File({
-        level: "debug",
-        format: fileFormat,
-        filename: `logs/debug.log`,
-      }),
+      new winston.transports.Console({level: logLevel,  format: clientFormat,}),
+      new winston.transports.File({level: logLevel, format: fileFormat, filename: `logs/combined.log`,}),
+      new winston.transports.File({level: "error", format: fileFormat, filename: `logs/error.log`,}),
+      new winston.transports.File({level: "info", format: fileFormat, filename: `logs/info.log`,}),
+      new winston.transports.File({level: "debug", format: fileFormat, filename: `logs/debug.log`,}),
     ],
   });
 }

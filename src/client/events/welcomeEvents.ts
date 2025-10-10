@@ -14,7 +14,7 @@ export async function preloadImagesAndFonts(): Promise<void> {
         background = await loadImage(imageUrl);
         debug(`Image preloaded successfully from: ${imageUrl}`, "WelcomeEvents");
 
-        const fontPath = path.resolve(__dirname, '../../adds/fonts/StoryScript-Regular.ttf');
+        const fontPath = path.resolve(__dirname, '../../../adds/fonts/StoryScript-Regular.ttf');
         GlobalFonts.registerFromPath(fontPath, 'StoryScript');
         debug(`Custom font 'StoryScript' registered from: ${fontPath}`, "WelcomeEvents");
 
