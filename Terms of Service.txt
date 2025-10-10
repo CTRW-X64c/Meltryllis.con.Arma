@@ -1,0 +1,4 @@
+Este bot esta destinado en facilitar la visualizacion de contenido digital de redes social o paginas varias con mayor faciliad sin cambiar a otras iterfaces;
+el comportamiento de este bot dentro de los servidores puede ser limitado dependiendo del OWner y Admins haciendo uso de sus comandos como /work para desabilitarlo en canales espesificos
+y /botreply que previene que conteste a otros bots; este bot no puede detectar si el contenido que se envia se NSFW o no quedando esto queda a discrecion de los Admis/Owner del server y sus politicas con ese contenido.
+  
