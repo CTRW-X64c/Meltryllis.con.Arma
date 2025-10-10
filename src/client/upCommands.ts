@@ -10,14 +10,13 @@ import { registerWelcomeCommand, handleWelcomeCommand } from "./commands/welcome
 import { registerReplybotsCommand, handleReplybotsCommand } from "./commands/replybots";
 import { registerRolemojiCommand, handleRolemojiCommand } from "./commands/rolemoji"
 
-// Definir y exportar ChannelConfig aquí
 export interface ChannelConfig {
   enabled: boolean;
   replyBots: boolean;
 }
 
 export async function registerCommands(client: Client) {
-  await initializeDatabase(); // Inicializar la base de datos al registrar comandos
+  await initializeDatabase(); 
 
   const commands = [
     ...(await registerHolaCommand()),

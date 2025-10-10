@@ -10,7 +10,7 @@ const manager = new ShardingManager("./dist/client/index.js", {
 });
 
 const environmentMode = getEnvironmentMode();
-initLogger(environmentMode, "bot");
+initLogger(environmentMode);
 
 manager.on("shardCreate", (shard) => {
   info(`Launched shard ${shard.id}`);

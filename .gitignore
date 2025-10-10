@@ -6,6 +6,7 @@ tsconfig.json
 tsconfig.prod.json
 .env
 dockerfile
+Intirko.txt
 
 # Archivos compilados y logs
 logs/

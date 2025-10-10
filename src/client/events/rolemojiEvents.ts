@@ -5,11 +5,10 @@ import { getRoleAssignments } from "../database";
 
 export function registerRolemojiEvents(client: Client) {
     debug('Event listeners for role assignment are being registered.', "RolemojiEvents");
-
+// Asignador de Roles
     client.on('messageReactionAdd', async (reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) => {
         debug(`Event 'messageReactionAdd' triggered by user ${user.username} for reaction ${reaction.emoji.name}`, "RolemojiEvents");
         
-        // **Añadido:** Ignora las reacciones del propio bot
         if (user.id === client.user!.id) {
             debug('Ignoring reaction: User is the bot itself.', "RolemojiEvents");
             return;
@@ -62,10 +61,10 @@ export function registerRolemojiEvents(client: Client) {
         }
     });
 
+// Removedor de Roles
     client.on('messageReactionRemove', async (reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) => {
         debug(`Event 'messageReactionRemove' triggered by user ${user.username} for reaction ${reaction.emoji.name}`, "RolemojiEvents");
 
-        // **Añadido:** Ignora las reacciones del propio bot
         if (user.id === client.user!.id) {
             debug('Ignoring reaction removal: User is the bot itself.', "RolemojiEvents");
             return;

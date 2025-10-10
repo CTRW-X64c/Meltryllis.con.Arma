@@ -9,12 +9,12 @@ let background: any;
 export async function preloadImagesAndFonts(): Promise<void> {
     debug('Preload started.', "WelcomeEvents");
     try {
-        const imageUrl = process.env.WELCOME_BANNER_URL || 'https://default-banner.com/banner.jpg';
+        const imageUrl = process.env.WELCOME_BANNER_URL || 'https://no-banner.banner/banner.banner';
         debug(`Attempting to load image from URL: ${imageUrl}`, "WelcomeEvents");
         background = await loadImage(imageUrl);
         debug(`Image preloaded successfully from: ${imageUrl}`, "WelcomeEvents");
 
-        const fontPath = path.resolve(__dirname, '../../media/StoryScript-Regular.ttf');
+        const fontPath = path.resolve(__dirname, '../../adds/fonts/StoryScript-Regular.ttf');
         GlobalFonts.registerFromPath(fontPath, 'StoryScript');
         debug(`Custom font 'StoryScript' registered from: ${fontPath}`, "WelcomeEvents");
 
@@ -22,7 +22,7 @@ export async function preloadImagesAndFonts(): Promise<void> {
         error(`Failed to preload assets: ${err}`, "WelcomeEvents");
     }
 }
-
+// Mensaje de bienvenida
 export function registerWelcomeEvents(client: Client) {
     debug('Event listeners for welcome and goodbye are being registered.', "WelcomeEvents");
 
@@ -42,7 +42,7 @@ export function registerWelcomeEvents(client: Client) {
             const canvas = createCanvas(600, 200);
             const context = canvas.getContext('2d');
             if (background) context.drawImage(background, 0, 0, canvas.width, canvas.height);
-            
+            // Diseño de banner Pic
             const avatar = await loadImage(member.user.displayAvatarURL({ extension: 'png', size: 128 }));
             context.save();
             context.beginPath();
@@ -52,7 +52,7 @@ export function registerWelcomeEvents(client: Client) {
             context.drawImage(avatar, canvas.width / 2 - 50, 10, 100, 100);
             context.restore();
             context.strokeRect(0, 0, canvas.width, canvas.height);
-            // Welcome
+            // Texto de bienvenida
             context.font = '40px StoryScript';
             context.fillStyle = '#ffffff';
             context.textAlign = 'center';
@@ -60,7 +60,7 @@ export function registerWelcomeEvents(client: Client) {
             context.fillText(`Se unio al servidor!!`, canvas.width / 2, 185);
           //  context.lineWidth = 3;
          //   context.strokeStyle = '#000000';
-          //  context.strokeText(`Se unio al servidor!!`, canvas.width / 2, 185);
+        //    context.strokeText(`Se unio al servidor!!`, canvas.width / 2, 185);
     
             const attachment = new AttachmentBuilder(canvas.toBuffer('image/jpeg'), { name: 'welcome-banner.jpg' });
             const welcomeEmbed = new EmbedBuilder().setColor('#00FF00').setImage('attachment://welcome-banner.jpg');
@@ -76,7 +76,7 @@ export function registerWelcomeEvents(client: Client) {
             debug(`Sent welcome banner for user ${member.user.username} in guild ${member.guild.name}`, "WelcomeEvents");
         } catch (err) { error(`Failed to send welcome banner: ${err}`, "WelcomeEvents"); }
     });
-
+// Mensaje de salida
     client.on('guildMemberRemove', async (member: GuildMember | PartialGuildMember) => {
         debug(`Event 'guildMemberRemove' triggered for member: ${member.user?.username || 'unknown'}`, "WelcomeEvents");
         if (member.partial) {

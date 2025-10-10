@@ -37,7 +37,7 @@ export const parseStatuses = (statusString: string | undefined): Status[] => {
 
 export const getStatusRotationInterval = (): number => {
   const statusTime = process.env.STATUS_TIME_MINUTOS;
-  const defaultInterval = 1_800_000; // 30 minutes in milliseconds
+  const defaultInterval = 1_800_000; 
 
   if (!statusTime) {
     info("No se definió STATUS_TIME_SEGUNDOS en .env, usando intervalo predeterminado (30 minutos)", "Status.Interval");

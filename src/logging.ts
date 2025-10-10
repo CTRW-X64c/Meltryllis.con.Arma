@@ -5,16 +5,14 @@ let logger: Logger | null = null;
 
 export function initLogger(
   environmentMode: EnvironmentMode,
-  namespace: "bot" | "commands",
 ): void {
   const logLevel = environmentMode === "development" ? "debug" : "info";
 
   const cliFormat = winston.format.cli();
   const fileFormat = winston.format.combine(
-    winston.format.timestamp(),
-    // TODO: Add stacktraces or at the minimum, line number on error
+    winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
     winston.format.printf(({ timestamp, label, level, message }) => {
-      return `[${timestamp}] ${namespace}/${label} - ${level}: ${message}`;
+      return `[${timestamp}] ${label} - ${level}: ${message}`;
     }),
   );
 
@@ -28,22 +26,22 @@ export function initLogger(
       new winston.transports.File({
         level: logLevel,
         format: fileFormat,
-        filename: `logs/${namespace}.combined.log`,
+        filename: `logs/combined.log`,
       }),
       new winston.transports.File({
         level: "error",
         format: fileFormat,
-        filename: `logs/${namespace}.error.log`,
+        filename: `logs/error.log`,
       }),
       new winston.transports.File({
         level: "info",
         format: fileFormat,
-        filename: `logs/${namespace}.info.log`,
+        filename: `logs/info.log`,
       }),
       new winston.transports.File({
         level: "debug",
         format: fileFormat,
-        filename: `logs/${namespace}.debug.log`,
+        filename: `logs/debug.log`,
       }),
     ],
   });

@@ -21,9 +21,7 @@ async function preloadRolemojiMessages(client: Client) {
     debug('Preloading rolemoji messages.', "Core");
     const guilds = client.guilds.cache.values();
     for (const guild of guilds) {
-        const assignments = await getRoleAssignments(guild.id);
-        
-        // Corregido: Convertir el iterador en un array
+        const assignments = await getRoleAssignments(guild.id);        
         const messageIds = new Set(Array.from(assignments.values()).map(a => a.messageId));
         
         for (const messageId of messageIds) {
@@ -37,7 +35,6 @@ async function preloadRolemojiMessages(client: Client) {
                             break;
                         }
                     } catch (err) {
-                        // Ignorar errores si el mensaje no está en este canal
                     }
                 }
             } catch (err) {
@@ -82,8 +79,7 @@ export function createClient(): Client {
             error(`Failed to preload images: ${err}`, "Events.ClientReady");
         }
         
-        await preloadRolemojiMessages(client);
-        
+        await preloadRolemojiMessages(client);        
         registerWelcomeEvents(client);
         registerRolemojiEvents(client);
         registerCommands(client);
@@ -103,7 +99,6 @@ export function createClient(): Client {
 
         const guildId = message.guild?.id;
         const channelId = message.channel.id;
-
         const guildReplacementConfig = guildId ? await getGuildReplacementConfig(guildId) : new Map();
 
         if (guildId) {
@@ -293,7 +288,7 @@ export function createClient(): Client {
 async function main(): Promise<void> {
     try {
         const environmentMode = getEnvironmentMode();
-        initLogger(environmentMode, "bot");
+        initLogger(environmentMode);
         const locale = process.env.LOCALE ?? "es";
         await initI18n(locale);
         const client = createClient();

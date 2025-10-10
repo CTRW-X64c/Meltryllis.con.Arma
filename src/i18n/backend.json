@@ -1,4 +1,4 @@
 {
-  "loadPath": "media/locales/{{lng}}/{{ns}}.json",
-  "addPath": "media/locales/{{lng}}/{{ns}}.missing.json"
+  "loadPath": "adds/langs/{{lng}}/{{ns}}.json",
+  "addPath": "adds/langs/{{lng}}/{{ns}}.missing.json"
 }
