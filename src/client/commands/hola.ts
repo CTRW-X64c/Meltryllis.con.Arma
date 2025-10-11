@@ -24,7 +24,7 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
         },
         {
         name: "Términos de Uso y Privacidad",
-        value: "[Declaración](https://discord.com)",
+        value: "[Declaración](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md)",
         inline: true
         },
         {

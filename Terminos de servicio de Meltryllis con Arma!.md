@@ -5,7 +5,7 @@
 ---
 ## 1. Terminos aceptados:
 
-- [Terminos de Discord](https://discord.com/terms)  // [Lineamintos de Comunidad](https://discord.com/guidelines) // [Terminos de Provacidad de Meltryllis con Arma!](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20Provacidad%20de%20Meltryllis%20con%20Arma!.md)
+- [Terminos de Discord](https://discord.com/terms)  // [Lineamintos de Comunidad](https://discord.com/guidelines) // [Terminos de Provacidad de Meltryllis con Arma!](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20Privacidad%20de%20Meltryllis%20con%20Arma!.md)
 
 ---
 ## 2. Garantias:
