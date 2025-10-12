@@ -18,7 +18,7 @@ const replyToOtherBots = process.env.REPLY_OTHER_BOTS === "true";
 const MAX_EMBEDS = 5;
 
 async function preloadRolemojiMessages(client: Client) {
-    debug('Preloading rolemoji messages.', "Core");
+    debug(i18next.t("Preloading_rolemoji", { ns: "core"}), "Core");
     const guilds = client.guilds.cache.values();
     for (const guild of guilds) {
         const assignments = await getRoleAssignments(guild.id);        
@@ -31,14 +31,14 @@ async function preloadRolemojiMessages(client: Client) {
                     try {
                         const message = await (channel as TextBasedChannel).messages.fetch(messageId as string);
                         if (message) {
-                            debug(`Fetched rolemoji message ${messageId} in guild ${guild.name}`, "Core");
+                            debug(i18next.t("Fetched_rolemoji", {ns: "core", mensjid: messageId, gremio: guild.name }), "Core");
                             break;
                         }
                     } catch (err) {
                     }
                 }
             } catch (err) {
-                error(`Failed to fetch rolemoji message ${messageId} in guild ${guild.name}: ${err}`, "Core");
+                error(i18next.t("error_fetch_role_fail", {ns: "core", messageId: messageId, guild: guild.name, error: err }), "Core");
             }
         }
     }
@@ -56,17 +56,17 @@ export function createClient(): Client {
     });
 
     client.once(Events.ClientReady, async (eventClient) => {
-        info(`Logged in as ${eventClient.user.tag}`, "Events.ClientReady");
+        info(i18next.t("login_success", {ns: "core", userTag: eventClient.user.tag }), "Events.ClientReady");
         const guildCount = eventClient.guilds.cache.size;
-        info(`Present in ${guildCount} ${guildCount === 1 ? "guild" : "guilds"}`, "Events.ClientReady");
+        info(i18next.t("guilds_count", {ns: "core", guildCount: guildCount, pluralGuilds: guildCount === 1 ? "guild" : "guilds"}), "Events.ClientReady");
         const guildNames = eventClient.guilds.cache.map(guild => guild.name).join(", ");
-        info(`Servers: ${guildNames}`, "Events.ClientReady");
-        info(`Responder a otros bots configurado como: ${replyToOtherBots}`, "Events.ClientReady");
+        info(i18next.t("servers_list", {ns: "core", guildNames:guildNames}))
+        info(i18next.t("reply_to_bots_config", {ns: "core", config:replyToOtherBots}))          
 
         try {
             await initializeDatabase();
         } catch (err) {
-            error(`Failed to initialize database in ClientReady: ${err}`, "Events.ClientReady");
+            error(i18next.t("database_init_fail", {ns: "core", error: err}))           
             process.exit(1);
         }
 
@@ -76,7 +76,7 @@ export function createClient(): Client {
         try {
             await preloadImagesAndFonts();
         } catch (err) {
-            error(`Failed to preload images: ${err}`, "Events.ClientReady");
+            error(i18next.t("preload_images_fail", {ns: "core", error:err}));
         }
         
         await preloadRolemojiMessages(client);        
@@ -93,7 +93,7 @@ export function createClient(): Client {
 
     client.on(Events.MessageCreate, async (message) => {
         if (!client.user || message.author.id === client.user.id) {
-            debug(`Ignoring message from bot itself or client.user is null: ${message.author.id}`, "Events.MessageCreate");
+            debug(i18next.t("Ignoring_message", {ns: "core", authorId: message.author.id }), "Events.MessageCreate");
             return;
         }
 
@@ -104,15 +104,15 @@ export function createClient(): Client {
         if (guildId) {
             const channelConfig = (await getConfigMap()).get(guildId)?.get(channelId);
             if (channelConfig?.enabled === false) {
-                debug(`Canal ${channelId} deshabilitado, ignorando mensaje`, "Events.MessageCreate");
+                debug(i18next.t("channel_disabled", {ns: "core", channelId }), "Events.MessageCreate");
                 return;
             }
             if (channelConfig?.replyBots === false && message.author.bot) {
-                debug(`replyBots desactivado en ${channelId}, ignorando mensaje de bot`, "Events.MessageCreate");
+                debug(i18next.t("reply_bots_disabled", {ns: "core", channelId }), "Events.MessageCreate");
                 return;
             }
         } else if (!replyToOtherBots && message.author.bot) {
-            debug(`Fallback replyToOtherBots=false, ignorando mensaje de bot`, "Events.MessageCreate");
+            debug(i18next.t("fallback_reply_bots_disabled", {ns: "core" }), "Events.MessageCreate");
             return;
         }
         
@@ -130,14 +130,14 @@ export function createClient(): Client {
                 const urlObject = new URL(originalUrl);
                 domainSite = urlObject.hostname.replace('www.', '');
             } catch (err) {
-                debug(`Invalid URL: ${originalUrl}`, "Events.MessageCreate");
+                debug(i18next.t("invalid_url", {ns: "core", url: originalUrl }), "Events.MessageCreate");
                 continue;
             }
 
             for (const [key, replaceFunc] of Object.entries(replacements)) {
                 const manualDomainConfig = guildReplacementConfig.get(key);
                 if (manualDomainConfig && manualDomainConfig.enabled === false) {
-                    debug(`Dominio manual ${key} deshabilitado, ignorando enlace`, "Events.MessageCreate");
+                    debug(i18next.t("api_domain_disabled", {ns: "core", domain: key }), "Events.MessageCreate");
                     continue;
                 }
                 
@@ -156,24 +156,24 @@ export function createClient(): Client {
                     if (matchingDomain) {
                         const apiDomainConfig = guildReplacementConfig.get(matchingDomain);
                         if (apiDomainConfig) {
-                            debug(`Configuración para ${matchingDomain} encontrada. Estado habilitado: ${apiDomainConfig.enabled}`, "Events.MessageCreate");
+                            debug(i18next.t("config_found", {ns: "core", domain: matchingDomain, enabled: apiDomainConfig.enabled }), "Events.MessageCreate");
                             if (apiDomainConfig.enabled === false) {
-                                debug(`Dominio de API ${matchingDomain} está deshabilitado, ignorando enlace`, "Events.MessageCreate");
+                                debug(i18next.t("api_domain_disabled", {ns: "core", domain: matchingDomain }), "Events.MessageCreate");
                                 continue;
                             }
                         } else {
-                            debug(`No se encontró configuración para ${matchingDomain}, asumiendo habilitado por defecto.`, "Events.MessageCreate");
+                            debug(i18next.t("config_not_found", {ns: "core", domain: matchingDomain }), "Events.MessageCreate");
                         }
                         
                         replacedUrl = await apiReplacer.getEmbedUrl(originalUrl);
                     }
                 } catch (err) {
-                    debug(`Invalid URL: ${originalUrl}`, "Events.MessageCreate");
+                    debug(i18next.t("invalid_url", {ns: "core", url: originalUrl }), "Events.MessageCreate");
                 }
             }
 
             if (replacedUrl) {
-                const formattedLink = `[Embedding de ${domainSite}](${replacedUrl})`;
+                const formattedLink = i18next.t("format_link", {ns: "core", Site: domainSite, RemUrl: replacedUrl });
                 replacedUrls.push(formattedLink);
             }
         }
@@ -184,16 +184,16 @@ export function createClient(): Client {
                     try {
                         await new Promise((resolve) => setTimeout(resolve, delayMs));
                         await msg.suppressEmbeds(true);
-                        debug(`Embeds suprimidos en intento ${attempt}`, "Events.MessageCreate");
+                        debug(i18next.t("embeds_suppressed", {ns: "core", attempt }), "Events.MessageCreate");
                         return;
                     } catch (err) {
                         const errMsg: string = (err as Error).message;
                         if (errMsg.includes("Missing Permissions")) {
-                            error(`No se pudieron suprimir embeds: Sin permisos`, "Events.MessageCreate");
+                            error(i18next.t("suppress_embeds_fail_permissions", {ns: "core" }), "Events.MessageCreate");
                             return;
                         }
                         if (attempt === maxAttempts) {
-                            error(`No se pudieron suprimir embeds tras ${maxAttempts} intentos: ${errMsg}`, "Events.MessageCreate");
+                            error(i18next.t("suppress_embeds_fail_retries", {ns: "core", maxAttempts, error: errMsg }), "Events.MessageCreate");
                         }
                     }
                 }
@@ -207,7 +207,7 @@ export function createClient(): Client {
                 try {
                     const deleteButton = new ButtonBuilder()
                         .setCustomId("delete_message")
-                        .setLabel(i18next.t("delete_button_label", { ns: "common" }))
+                        .setLabel(i18next.t("delete_button_label", { ns: "core" }))
                         .setStyle(ButtonStyle.Danger);
                     
                     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton);
@@ -241,17 +241,17 @@ export function createClient(): Client {
                             try {
                                 await botMessage.delete();
                                 await interaction.reply({
-                                    content: i18next.t("message_deleted", { ns: "common" }),
+                                    content: i18next.t("message_deleted", { ns: "core" }),
                                     flags: MessageFlags.Ephemeral,
                                 });
-                                debug(`Mensaje borrado`, "Events.MessageCreate");
+                                debug(i18next.t("message_deleted_log", {ns: "core" }), "Events.MessageCreate");
                                 collector.stop();
                             } catch (err) {
                                 const errMsg: string = (err as Error).message;
                                 if (errMsg.includes("Unknown Message") || errMsg.includes("Interaction has already been acknowledged")) {
                                     return;
                                 }
-                                error(`Error al borrar mensaje: ${errMsg}`, "Events.MessageCreate");
+                                error(i18next.t("delete_message_fail", {ns: "core", error: errMsg }), "Events.MessageCreate");
                                 await interaction.reply({
                                     content: i18next.t("message_delete_failed", { ns: "common" }),
                                     flags: MessageFlags.Ephemeral,
@@ -264,11 +264,11 @@ export function createClient(): Client {
                         if (reason === "messageDelete" || reason === "user") return;
                         try {
                             await botMessage.edit({ components: [] });
-                            debug("Botón deshabilitado", "Events.MessageCreate");
+                            debug(i18next.t("button_disabled_log", {ns: "core" }), "Events.MessageCreate");
                         } catch (err) {
                             const errMsg: string = (err as Error).message;
                             if (errMsg.includes("Unknown Message")) return;
-                            error(`Error al deshabilitar botón: ${errMsg}`, "Events.MessageCreate");
+                            error(i18next.t("disable_button_fail", {ns: "core", error: errMsg }), "Events.MessageCreate");
                         }
                     });
                 } catch (err) {
@@ -276,7 +276,7 @@ export function createClient(): Client {
                     if (errMsg.includes("Missing Permissions")) {
                         return;
                     }
-                    error(`Failed to reply: ${errMsg}`, "Events.MessageCreate");
+                    error(i18next.t("reply_fail", {ns: "core", error: errMsg }), "Events.MessageCreate");
                 }
             }
         }
@@ -296,7 +296,7 @@ async function main(): Promise<void> {
     } catch (e) {
         const errorObj = e as Error;
         if (loggerAvailable()) {
-            error(`Exception thrown from main: ${errorObj.name}: ${errorObj.message}`, "Main");
+            error(i18next.t("main_exception", {ns: "core", errorName: errorObj.name, errorMessage: errorObj.message }), "Main");
         } else {
             console.error(`Unhandled exception: ${errorObj.name}: ${errorObj.message}`);
         }
@@ -305,10 +305,11 @@ async function main(): Promise<void> {
 }
 
 main().catch((e: Error) => {
+    const errorObj = e as Error;
     if (loggerAvailable()) {
-        error(`Unhandled exception: ${e.name}: ${e.message}`, "Main");
+        error(i18next.t("main_exception", {ns: "core", errorName: errorObj.name, errorMessage: errorObj.message }), "Main");
     } else {
-        console.error(`Unhandled exception: ${e.name}: ${e.message}`);
+        console.error(`Unhandled exception: ${errorObj.name}: ${errorObj.message}`);
     }
     process.exit(1);
 });

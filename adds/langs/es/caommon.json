@@ -1,8 +1,4 @@
 {
-  "_________________COMENTO0": "TEXTO PARTE BOTON BORRAR!!",
-  "delete_button_label": "🗑️ Borrar",
-  "message_deleted": "Mensaje borrado.",
-  "message_delete_failed": "No pude borrar el mensaje.",
   "_________________COMENTO1": "TEXTO PARTE BOTON INFO!!",
   "bot_description": "Estoy aqui para ayudarte con los Embeds en Discord, porque la verdad muchos apestan!",
   "bot_hello_title": "Hola ser de carne y hueso!!",
@@ -76,5 +72,5 @@
   "command_rolemoji_remove_failed": "El RolEmoji no se pudo borrar o no existe, revisa el ID",
   "command_rolemoji_list_title": "RolEmojis List:",
   "command_rolemoji_list_empty": "La lista esta vacia"
-
+  
 }

@@ -1,0 +1,36 @@
+{
+    "delete_button_label": "🗑️ Borrar",
+    "message_deleted": "Mensaje borrado.",  
+    "format_link": "[Embedding de {{Site}}]({{RemUrl}})",
+    
+    "Preloading_rolemoji": "Precargando mensajes de rolemoji.",
+    "Fetched_rolemoji": "Se obtuvo el mensaje {{mensjid}} de rolemoji en {{gremio}}.",
+    "error_fetch_role_fail": "No se pudo obtener el mensaje de rolemoji {{messageId}} del servidor {{guild}}: {{error}}.",
+    
+    "login_success": "Conectado como {{userTag}}.",
+    "guilds_count": "Presente en {{guildCount}} {{pluralGuilds}}.",
+    "servers_list": "Servidores: {{guildNames}}",
+    "reply_to_bots_config": "Responder a otros bots configurado como: {{config}}",
+    "database_init_fail": "Error al inicializar la base de datos: {{error}}",
+    "preload_images_fail": "No se pudieron precargar las imágenes: {{error}}.",
+
+    "message_delete_failed": "No pude borrar el mensaje.",
+    "message_ignored": "Mensaje ignorado, autor es bot o yo mismo: {{authorId}}.",
+    "channel_disabled": "Canal deshabilitado: {{channelId}}.",
+    "reply_bots_disabled": "Responder a bots está deshabilitado para el canal {{channelId}}.",
+    "fallback_reply_bots_disabled": "Responder a bots está deshabilitado por configuración global.",
+    "invalid_url": "URL inválida: {{url}}.",
+    "api_domain_disabled": "Dominio de API {{domain}} deshabilitado, ignorando enlace.",
+    "config_found": "Configuración encontrada para el dominio {{domain}}: activado: {{enabled}}.",
+    "config_not_found": "No se encontró configuración para el dominio: {{domain}}.",
+    
+    "suppress_embeds_fail_permissions": "Error al ocultar enlaces, faltan permisos.",
+    "suppress_embeds_fail_retries": "No se pudieron ocultar los enlaces después de {{maxAttempts}} intentos: {{error}}.",
+    "embeds_suppressed": "Enlaces ocultos en intento {{attempt}}.",
+    "delete_message_fail": "Error al intentar borrar el mensaje: {{error}}.",
+    "message_deleted_log": "Mensaje de respuesta borrado.",
+    "button_disabled_log": "Botón deshabilitado.",
+    "disable_button_fail": "Error al deshabilitar el botón: {{error}}.",
+    "reply_fail": "Error al responder: {{error}}.",
+    "main_exception": "Excepción en el proceso principal: {{errorName}}: {{errorMessage}}"
+}

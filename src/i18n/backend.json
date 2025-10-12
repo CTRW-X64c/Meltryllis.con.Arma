@@ -1,4 +1,0 @@
-{
-  "loadPath": "adds/langs/{{lng}}/{{ns}}.json",
-  "addPath": "adds/langs/{{lng}}/{{ns}}.missing.json"
-}

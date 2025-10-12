@@ -1,16 +1,23 @@
+// src/i18n.ts
 import i18next from "i18next";
 import I18NexFsBackend from "i18next-fs-backend";
+import path from "path";
 
-import backendOptions from "./backend.json";
+export async function initI18n(translate?: string): Promise<void> {
+  await i18next.use(I18NexFsBackend).init({
+    // Configuración para el backend de archivos
+    backend: {
+      loadPath: path.join(__dirname, "../../adds/langs/{{lng}}/{{ns}}.json"),
+      addPath: path.join(__dirname, "../../adds/langs/{{lng}}/{{ns}}.missing.json"),
+    },
 
-export async function initI18n(traslate?: string): Promise<void> {
-  const backend = new I18NexFsBackend(null, backendOptions);
-
-  await i18next.use(backend).init({
     supportedLngs: ["es"],
     fallbackLng: "es",
-    lng: traslate,
-    ns: "common",
+    lng: translate || "es",
+    ns: [ "sys", "core", "embed", "hola", "replybots", "rolemoji", "test", "welcome", "work", "common"],
     defaultNS: "common",
+    interpolation: {
+      escapeValue: false // Importante para que renderice las variables
+    }
   });
 }
