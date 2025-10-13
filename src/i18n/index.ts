@@ -8,7 +8,7 @@ export async function initI18n(translate?: string): Promise<void> {
     // Se elimina el .json y se añade el patch aqui.
     backend: {
       loadPath: path.join(__dirname, "../../adds/langs/{{lng}}/{{ns}}.json"),
-      addPath: path.join(__dirname, "../../adds/langs/{{lng}}/{{ns}}.missing.json"),
+      addPath: path.join(__dirname, "../../adds/langs/{{lng}}/missing.json"),
     },
 
     supportedLngs: ["es"],

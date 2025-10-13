@@ -14,35 +14,35 @@ export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
 
     const embedCommand = new SlashCommandBuilder()
         .setName("embed")
-        .setDescription(i18next.t("command_embed_description", { ns: "common" }) || "Configure replacement domains for embeds")
+        .setDescription(i18next.t("command_embed_description", { ns: "embed" }))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("configurar")
-                .setDescription("Configura el comportamiento de un embed para un sitio.")
+                .setDescription(i18next.t("command_embed_config", { ns: "embed" }))
                 .addStringOption((option) =>
                     option
                         .setName("sitio")
-                        .setDescription("El sitio que deseas configurar.")
+                        .setDescription(i18next.t("embed_command_site_description", { ns: "embed" }))
                         .setRequired(true)
                         .addChoices(...allSites)
                 )
                 .addStringOption((option) =>
                     option
                         .setName("accion")
-                        .setDescription("La acción que deseas realizar.")
+                        .setDescription(i18next.t("embed_command_action_description", { ns: "embed" })) 
                         .setRequired(true)
                         .addChoices(
-                            { name: "Habilitar", value: "enable" }, // Valor cambiado a "enable"
-                            { name: "Deshabilitar", value: "disable" },
-                            { name: "Personalizar URL", value: "custom" },
-                            { name: "Por defecto", value: "default" } // Nueva opción para el estado por defecto
+                            { name: i18next.t("subcommand_enable", { ns: "embed" }), value: "enable" }, // Valor cambiado a "enable"
+                            { name: i18next.t("subcommand_disable", { ns: "embed" }), value: "disable" },
+                            { name: i18next.t("subcommand_custom", { ns: "embed" }), value: "custom" },
+                            { name: i18next.t("subcommand_default", { ns: "embed" }), value: "default" } // Nueva opción para el estado por defecto
                         )
                 )
                 .addStringOption((option) =>
                     option
                         .setName("url_personalizada")
-                        .setDescription("La URL para personalizar (solo para sitios manuales).")
+                        .setDescription(i18next.t("embed_command_custom_url", { ns: "embed" }))
                         .setRequired(false)
                 )
         );
@@ -62,7 +62,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
         if (!isAdmin) {
             await interaction.reply({
-                content: i18next.t("no_permission", { ns: "common" }) || "You need Manage Server permission or be the server owner to use this command.",
+                content: i18next.t("no_permission", { ns: "embed" }),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -81,7 +81,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         if (action === "default") {
             if (isApiDomain) {
                 await interaction.reply({
-                    content: "❌ Los servicios de API no pueden tener un estado por defecto. Usa 'Habilitar' o 'Deshabilitar'.",
+                    content: i18next.t("Api_default", { ns: "embed" }), 
                     flags: MessageFlags.Ephemeral,
                 });
                 return;
@@ -96,14 +96,14 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         } else if (action === "custom") {
             if (isApiDomain) {
                 await interaction.reply({
-                    content: "❌ Los servicios de API no pueden tener una URL personalizada.",
+                    content: i18next.t("Api_custom", { ns: "embed" }),
                     flags: MessageFlags.Ephemeral,
                 });
                 return;
             }
             if (!customUrlInput) {
                 await interaction.reply({
-                    content: "❌ Para la acción 'Personalizar URL', debes proporcionar una URL.",
+                    content: i18next.t("Api_url_custom", { ns: "embed" }),
                     flags: MessageFlags.Ephemeral,
                 });
                 return;
@@ -116,7 +116,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
                 userId = interaction.user.id;
             } catch (e) {
                 await interaction.reply({
-                    content: "❌ La URL proporcionada no es válida. Por favor, asegúrate de que sea un formato correcto.",
+                    content: i18next.t("Api_url_custom", { ns: "embed" }),
                     flags: MessageFlags.Ephemeral,
                 });
                 return;
@@ -133,22 +133,22 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         let successMessage: string;
 
         if (action === "disable") {
-            successMessage = `${userMention} deshabilitó el embed de: **${site}**!`;
+            successMessage = i18next.t("embed_subcommand_disable_description", { ns: "embed", user: userMention, site: site });
         } else if (action === "enable") {
-            successMessage = `${userMention} habilitó el embed de: **${site}**!`;
+            successMessage = i18next.t("embed_subcommand_enable_description", { ns: "embed", user: userMention, site: site });
         } else if (action === "custom") {
-            successMessage = `${userMention} actualizó el sitio: **${site}** a modo **personalizado** con la siguiente URL: **${customUrlInput}**!`;
+            successMessage = i18next.t("embed_subcommand_custom_description", { ns: "embed", user: userMention, site: site, url: customUrlInput });
         } else { // default
-            successMessage = `${userMention} actualizó el sitio: **${site}** a modo: **por defecto**!`;
+            successMessage = i18next.t("embed_subcommand_default_description", { ns: "embed", user: userMention, site: site });
         }
 
         await interaction.reply({
             content: successMessage,
         });
     } catch (err) {
-        error(`handleEmbedCommand()\tFailed for Guild: ${interaction.guildId}\tUser: ${interaction.user.id}\tError: ${err}`, "EmbedCommand");
+        error(i18next.t("embed_command_log", { ns: "common", guildId: interaction.guildId, userId: interaction.user.id, err: err }));
         await interaction.reply({
-            content: i18next.t("embed_command_failed", { ns: "common" }) || "Failed to update configuration.",
+            content: i18next.t("embed_command_failed", { ns: "common" }),
             flags: MessageFlags.Ephemeral,
         });
     }

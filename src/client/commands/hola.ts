@@ -6,7 +6,7 @@ import { error, debug } from "../../logging";
 export async function registerHolaCommand(): Promise<SlashCommandBuilder[]> {
   const holaCommand = new SlashCommandBuilder()
     .setName("hola")
-    .setDescription(i18next.t("command_hola_description", { ns: "hola" }) || "Muestra una descripción del bot.");
+    .setDescription(i18next.t("command_hola_description", { ns: "hola" }));
 
   return [holaCommand];
 }
@@ -71,11 +71,11 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-    debug(i18next.t("log_command_executed", { ns: "hola" }), "Commands.Hola");
+    debug(i18next.t("log_command_executed", { ns: "hola" }));
   } catch (err) {
     error(i18next.t("error_hola_command", {ns: "hola", error: err}));
     await interaction.reply({
-      content: i18next.t("command_error", { ns: "common" }) || "Ocurrió un error al ejecutar el comando.",
+      content: i18next.t("command_error", { ns: "hola" }),
       flags: MessageFlags.Ephemeral,
     });
   }

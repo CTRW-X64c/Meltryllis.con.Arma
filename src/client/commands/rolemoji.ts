@@ -1,4 +1,3 @@
-// src/client/commands/rolemoji.ts
 import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../logging";
@@ -16,49 +15,49 @@ function getEmojiKey(emojiString: string): string {
 export async function registerRolemojiCommand(): Promise<SlashCommandBuilder[]> {
     const rolemojiCommand = new SlashCommandBuilder()
         .setName("rolemoji")
-        .setDescription(i18next.t("command_rolemoji_description", { ns: "common" }) || "Configura la asignación de roles por reacción.")
+        .setDescription(i18next.t("command_rolemoji_description", { ns: "rolemoji" }))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .addSubcommand(subcommand =>
             subcommand
                 .setName("set")
-                .setDescription(i18next.t("command_rolemoji_assign_description", { ns: "common" }) || "Asigna un rol a un emoji en un mensaje.")
+                .setDescription(i18next.t("command_rolemoji_assign_description", { ns: "rolemoji" }))
                 .addStringOption(option =>
                     option
                         .setName("message_id")
-                        .setDescription(i18next.t("command_rolemoji_message_id_description", { ns: "common" }) || "El ID del mensaje para la asignación de roles.")
+                        .setDescription(i18next.t("command_rolemoji_message_id_description", { ns: "rolemoji" }))
                         .setRequired(true)
                 )
                 .addStringOption(option =>
                     option
                         .setName("emoji")
-                        .setDescription(i18next.t("command_rolemoji_emoji_description", { ns: "common" }) || "El emoji que activará la asignación.")
+                        .setDescription(i18next.t("command_rolemoji_emoji_description", { ns: "rolemoji" }))
                         .setRequired(true)
                 )
                 .addRoleOption(option =>
                     option
                         .setName("role")
-                        .setDescription(i18next.t("command_rolemoji_role_description", { ns: "common" }) || "El rol que se asignará.")
+                        .setDescription(i18next.t("command_rolemoji_role_description", { ns: "rolemoji" }))
                         .setRequired(true)
                 )
         )
         .addSubcommand(subcommand =>
             subcommand
                 .setName("remove")
-                .setDescription(i18next.t("command_rolemoji_remove_description", { ns: "common" }) || "Elimina una asignación de rol.")
+                .setDescription(i18next.t("command_rolemoji_remove_description", { ns: "rolemoji" }))
                 .addIntegerOption(option =>
                     option
                         .setName("id")
-                        .setDescription(i18next.t("command_rolemoji_remove_id_description", { ns: "common" }) || "El ID de la asignación a eliminar.")
+                        .setDescription(i18next.t("command_rolemoji_remove_id_description", { ns: "rolemoji" }))
                         .setRequired(true)
                 )
         )
         .addSubcommand(subcommand =>
             subcommand
                 .setName("list")
-                .setDescription(i18next.t("command_rolemoji_list_description", { ns: "common" }) || "Muestra una lista de todas las asignaciones de roles.")
+                .setDescription(i18next.t("command_rolemoji_list_description", { ns: "rolemoji" }))
         );
 
-    return [rolemojiCommand] as SlashCommandBuilder[];;
+    return [rolemojiCommand] as SlashCommandBuilder[];
 }
 
 export async function handleRolemojiCommand(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -67,7 +66,7 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
         const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
         if (!isAdmin) {
             await interaction.reply({
-                content: i18next.t("command_permission_error", { ns: "common" }) || "Solo los administradores o el propietario pueden usar este comando.",
+                content: i18next.t("command_permission_error", { ns: "common" }),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -75,24 +74,21 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
 
         const guildId = interaction.guildId;
         if (!guildId) {
-            await interaction.reply({ content: i18next.t("command_guild_only", { ns: "common" }) || "Este comando solo se puede usar en un servidor.", ephemeral: true });
+            await interaction.reply({ content: i18next.t("command_guild_only", { ns: "common" }), flags: MessageFlags.Ephemeral });
             return;
         }
 
         const subcommand = interaction.options.getSubcommand();
-        const emoji = interaction.options.getString("emoji", false);
-        const messageId = interaction.options.getString("message_id", false);
 
-        if (subcommand === "assign") {
+        if (subcommand === "set") {
             const role = interaction.options.getRole("role", true);
-            if (!messageId || !emoji) {
-                await interaction.reply({ content: "Faltan opciones requeridas para el subcomando 'assign'.", flags: MessageFlags.Ephemeral });
-                return;
-            }
+            const messageId = interaction.options.getString("message_id", true);
+            const emoji = interaction.options.getString("emoji", true);
+            const channelId = interaction.channelId; // <-- Obtener el ID del canal
 
             const emojiKey = getEmojiKey(emoji);
 
-            await setRoleAssignment(guildId, messageId, emojiKey, role.id);
+            await setRoleAssignment(guildId, messageId, channelId, emojiKey, role.id);
             
             try {
                 const channel = interaction.channel as TextChannel;
@@ -100,13 +96,13 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
                 await message.react(emoji);
                 
                 await interaction.reply({
-                    content: i18next.t("command_rolemoji_assign_success", { ns: "common", role: role.name, emoji }),
+                    content: i18next.t("command_rolemoji_assign_success", { ns: "rolemoji", role: role.name, emoji: emoji }),
                     flags: MessageFlags.Ephemeral
                 });
             } catch (fetchError) {
                 error(`Error fetching or reacting to message: ${fetchError}`, "RolemojiCommand");
                 await interaction.reply({
-                    content: `❌ Error: No se pudo encontrar el mensaje o reaccionar con el emoji. Asegúrate de que el ID sea correcto y que el bot tenga permisos para reaccionar.`,
+                    content: i18next.t("command_rolemoji_fetch_error", { ns: "rolemoji" }),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -116,12 +112,12 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
             
             if (success) {
                 await interaction.reply({
-                    content: i18next.t("command_rolemoji_remove_success", { ns: "common", id }),
+                    content: i18next.t("command_rolemoji_remove_success", { ns: "rolemoji", id: id }),
                     flags: MessageFlags.Ephemeral
                 });
             } else {
                 await interaction.reply({
-                    content: i18next.t("command_rolemoji_remove_failed", { ns: "common", id }) || `No se encontró una asignación de rol con ID ${id} en este servidor.`,
+                    content: i18next.t("command_rolemoji_remove_failed", { ns: "rolemoji", id: id }),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -129,19 +125,30 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
             const assignments = await getRoleAssignments(guildId);
             const embed = new EmbedBuilder()
                 .setColor("#0099ff")
-                .setTitle(i18next.t("command_rolemoji_list_title", { ns: "common" }) || "Asignaciones de Roles por Reacción");
+                .setTitle(i18next.t("command_rolemoji_list_title", { ns: "rolemoji" }));
 
             if (assignments.size === 0) {
-                embed.setDescription(i18next.t("command_rolemoji_list_empty", { ns: "common" }) || "No hay asignaciones de roles configuradas.");
+                embed.setDescription(i18next.t("command_rolemoji_list_empty", { ns: "rolemoji" }));
             } else {
                 let description = "";
                 for (const assignment of assignments.values()) {
                     const guild = interaction.guild!;
                     const role = guild.roles.cache.get(assignment.roleId);
-                    const roleName = role ? role.name : "Rol no encontrado";
+                    const roleName = role ? role.name : i18next.t("role_not_found", { ns: "rolemoji" });
                     const emojiDisplay = guild.emojis.cache.get(assignment.emoji) || assignment.emoji;
-                    const messageUrl = `https://discord.com/channels/${guildId}/${interaction.channelId}/${assignment.messageId}`;
-                    description += `\n**ID:** ${assignment.id}\n**Emoji:** ${emojiDisplay}\n**Rol:** <@&${assignment.roleId}> (${roleName})\n**Mensaje ID:** [${assignment.messageId}](${messageUrl})\n\n`;
+                    
+                    // Aquí se usa el channelId de la base de datos
+                    const messageUrl = `https://discord.com/channels/${guildId}/${assignment.channelId}/${assignment.messageId}`;
+                    
+                    description += i18next.t("command_rolemoji_list_entry", {
+                        ns: "rolemoji",
+                        id: assignment.id,
+                        emoji: emojiDisplay,
+                        roleId: assignment.roleId,
+                        roleName: roleName,
+                        messageId: assignment.messageId,
+                        messageUrl: messageUrl
+                    });
                 }
                 embed.setDescription(description);
             }
@@ -149,9 +156,9 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
             await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         }
         
-        debug(`Command /rolemoji executed in guild ${guildId}`, "RolemojiCommand");
+        debug(i18next.t("rolemoji_execute", { ns: "rolemoji", error: guildId }), "RolemojiCommand");
     } catch (err) {
-        error(`Error al ejecutar comando /rolemoji: ${err}`, "RolemojiCommand");
+        debug(i18next.t("rolemoji_execute_error", { ns: "rolemoji", error: err }), "RolemojiCommand");        
         await interaction.reply({ content: i18next.t("command_error", { ns: "common" }) || "Ocurrió un error al ejecutar el comando.", flags: MessageFlags.Ephemeral });
     }
 }

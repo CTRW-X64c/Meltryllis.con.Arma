@@ -96,7 +96,16 @@ export function registerRolemojiEvents(client: Client) {
 
         if (assignment) {
             debug(`Assignment found in DB for emoji ${emojiKey}. Attempting to remove role...`, "RolemojiEvents");
-            const member = reaction.message.guild!.members.cache.get(user.id) as GuildMember;
+            
+            // Obtener el miembro por su ID si no está en caché
+            let member: GuildMember | null = null;
+            try {
+                member = await reaction.message.guild!.members.fetch(user.id);
+            } catch (err) {
+                debug(`Member ${user.username} not found in guild cache.`, "RolemojiEvents");
+                return;
+            }
+            
             if (member) {
                 try {
                     const role = reaction.message.guild!.roles.cache.get(assignment.roleId);
@@ -109,8 +118,6 @@ export function registerRolemojiEvents(client: Client) {
                 } catch (err) {
                     error(`Failed to remove role via reaction. Check bot permissions and role hierarchy. Error: ${err}`, "RolemojiEvents");
                 }
-            } else {
-                debug(`Member ${user.username} not found in guild cache.`, "RolemojiEvents");
             }
         } else {
             debug(`No assignment found in DB for emoji ${emojiKey}.`, "RolemojiEvents");

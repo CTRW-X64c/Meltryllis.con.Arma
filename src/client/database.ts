@@ -19,9 +19,10 @@ interface WelcomeConfig {
   customMessage: string | null;
 }
 
-interface RoleAssignment {
+export interface RoleAssignment {
   id: number;
   messageId: string;
+  channelId: string;
   emoji: string;
   roleId: string;
 }
@@ -46,8 +47,9 @@ export async function initializeDatabase(): Promise<void> {
 
     const connection = await pool.getConnection();
     await connection.ping();
+    connection.release();
 
-    await connection.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS channel_configs (
         guild_id VARCHAR(30) NOT NULL,
         channel_id VARCHAR(30) NOT NULL,
@@ -57,7 +59,7 @@ export async function initializeDatabase(): Promise<void> {
       )
     `);
 
-    await connection.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS guild_replacements (
         guild_id VARCHAR(30) NOT NULL,
         replacement_type VARCHAR(50) NOT NULL,
@@ -68,7 +70,7 @@ export async function initializeDatabase(): Promise<void> {
       )
     `);
 
-    await connection.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS welcome_configs (
         guild_id VARCHAR(30) NOT NULL,
         channel_id VARCHAR(30),
@@ -78,11 +80,12 @@ export async function initializeDatabase(): Promise<void> {
       )
     `);
 
-    await connection.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS role_assignments (
         id INT AUTO_INCREMENT,
         guild_id VARCHAR(30) NOT NULL,
         message_id VARCHAR(30) NOT NULL,
+        channel_id VARCHAR(30) NOT NULL,
         emoji VARCHAR(50) NOT NULL,
         role_id VARCHAR(30) NOT NULL,
         PRIMARY KEY (id),
@@ -90,10 +93,8 @@ export async function initializeDatabase(): Promise<void> {
       )
     `);
 
-    connection.release();
-    
-    debug("Database pool initialized successfully", "Database");
     info(`Connected to database: ${process.env.DB_DATABASE || "meltryllis_bot"}`, "Database");
+    debug("Database pool initialized successfully", "Database");
   } catch (err) {
     error(`Failed to initialize database: ${err}`, "Database");
     throw new Error(`Database initialization failed: ${err}`);
@@ -250,12 +251,12 @@ export async function getRoleAssignments(guildId: string): Promise<Map<string, R
     if (!pool) throw new Error("Database pool not initialized");
 
     try {
-        const [rows] = await pool.query("SELECT id, message_id, emoji, role_id FROM role_assignments WHERE guild_id = ?", [guildId]);
+        const [rows] = await pool.query("SELECT id, message_id, channel_id, emoji, role_id FROM role_assignments WHERE guild_id = ?", [guildId]);
         const assignmentMap = new Map<string, RoleAssignment>();
 
         for (const row of rows as any[]) {
             const key = `${row.message_id}:${row.emoji}`;
-            assignmentMap.set(key, { id: row.id, messageId: row.message_id, emoji: row.emoji, roleId: row.role_id });
+            assignmentMap.set(key, { id: row.id, messageId: row.message_id, channelId: row.channel_id, emoji: row.emoji, roleId: row.role_id });
         }
 
         roleAssignmentCache.set(guildId, assignmentMap);
@@ -267,23 +268,31 @@ export async function getRoleAssignments(guildId: string): Promise<Map<string, R
     }
 }
 
-export async function setRoleAssignment(guildId: string, messageId: string, emoji: string, roleId: string): Promise<void> {
+export async function setRoleAssignment(guildId: string, messageId: string, channelId: string, emoji: string, roleId: string): Promise<void> {
     if (!pool) throw new Error("Database pool not initialized");
 
     try {
-        const result = await pool.query(
-            "INSERT INTO role_assignments (guild_id, message_id, emoji, role_id) VALUES (?, ?, ?, ?)",
-            [guildId, messageId, emoji, roleId]
+        const [result] = await pool.query(
+            "INSERT INTO role_assignments (guild_id, message_id, channel_id, emoji, role_id) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE role_id = VALUES(role_id), channel_id = VALUES(channel_id), guild_id = VALUES(guild_id)",
+            [guildId, messageId, channelId, emoji, roleId]
         );
-        
-        const insertId = (result[0] as any).insertId;
 
+        const header = result as ResultSetHeader;
+        let assignmentId = header.insertId;
+
+        if (header.affectedRows === 2) {
+            const [rows] = await pool.query("SELECT id FROM role_assignments WHERE guild_id = ? AND message_id = ? AND emoji = ?", [guildId, messageId, emoji]);
+            if ((rows as any[]).length > 0) {
+                assignmentId = (rows as any[])[0].id;
+            }
+        }
+        
         const key = `${messageId}:${emoji}`;
         if (!roleAssignmentCache.has(guildId)) {
             roleAssignmentCache.set(guildId, new Map());
         }
-        roleAssignmentCache.get(guildId)!.set(key, { id: insertId, messageId, emoji, roleId });
-        debug(`Updated role assignment for guild ${guildId}, message ${messageId}, emoji ${emoji} with ID ${insertId}`, "Database");
+        roleAssignmentCache.get(guildId)!.set(key, { id: assignmentId, messageId, channelId, emoji, roleId });
+        debug(`Updated role assignment for guild ${guildId}, message ${messageId}, emoji ${emoji} with ID ${assignmentId}`, "Database");
     } catch (err) {
         error(`Failed to set role assignment for guild ${guildId}, message ${messageId}, emoji ${emoji}: ${err}`, "Database");
         throw err;

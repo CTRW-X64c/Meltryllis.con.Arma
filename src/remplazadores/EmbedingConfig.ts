@@ -72,7 +72,7 @@ export const replacementMetaList: ReplacementMeta[] = [
     name: "Intagram",
     envVar: "INSTAGRAM_FIX_URL",
     Class: Instagram,
-    regexKeys: ["\\/\\/(\\w+\\.)?instagram.com\\/(p|reel|stories)\\/"],
+    regexKeys: ["\\/\\/(\\w+\\.)?instagram.com\\/(p|reels?|stories)\\/"],
     takesUrl: true,
   },
   {

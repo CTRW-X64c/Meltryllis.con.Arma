@@ -12,11 +12,11 @@ export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
   const testCommand = new SlashCommandBuilder()
     .setName("test")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-    .setDescription(i18next.t("command_test_description", { ns: "common" }) || "Verifica si el bot tiene los permisos necesarios para funcionar.")
+    .setDescription(i18next.t("command_test_description", { ns: "test" }))
     .addStringOption((option) =>
       option
         .setName("mode")
-        .setDescription(i18next.t("test_command_mode_description", { ns: "common" }) || "Modo: 'null' (canal), 'guild' (servidor), 'embed' (embeds).")
+        .setDescription(i18next.t("test_command_mode_description", { ns: "test" }))
         .setRequired(false)
         .addChoices(
           { name: "Canal Actual", value: "null" },
@@ -35,7 +35,7 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
     const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
     if (!isAdmin) {
       await interaction.reply({
-        content: i18next.t("command_permission_error", { ns: "common" }) || "Solo los administradores o el propietario pueden usar este comando.",
+        content: i18next.t("command_permission_error", { ns: "test" }),
         flags: MessageFlags.Ephemeral,
       });
       return;
@@ -43,30 +43,30 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
 
     const mode = interaction.options.getString("mode") ?? "null";
     const requiredPermissions = [
-      { name: i18next.t("permission_send_messages", { ns: "common" }) || "Enviar Mensajes", bit: PermissionsBitField.Flags.SendMessages },
-      { name: i18next.t("permission_embed_links", { ns: "common" }) || "Insertar Enlaces", bit: PermissionsBitField.Flags.EmbedLinks },
-      { name: i18next.t("permission_manage_messages", { ns: "common" }) || "Gestionar Mensajes", bit: PermissionsBitField.Flags.ManageMessages },
-      { name: i18next.t("permission_read_message_history", { ns: "common" }) || "Leer Historial de Mensajes", bit: PermissionsBitField.Flags.ReadMessageHistory },
+      { name: i18next.t("permission_send_messages", { ns: "test" }), bit: PermissionsBitField.Flags.SendMessages },
+      { name: i18next.t("permission_embed_links", { ns: "test" }), bit: PermissionsBitField.Flags.EmbedLinks },
+      { name: i18next.t("permission_manage_messages", { ns: "test" }), bit: PermissionsBitField.Flags.ManageMessages },
+      { name: i18next.t("permission_read_message_history", { ns: "test" }), bit: PermissionsBitField.Flags.ReadMessageHistory },
     ];
 
     const configMap = await getConfigMap();
     let embed = new EmbedBuilder()
-      .setTitle(i18next.t("test_command_title", { ns: "common" }) || "Verificación de Permisos");
+      .setTitle(i18next.t("test_command_title", { ns: "test" }));
 
     if (mode === "null") {
       const channel = interaction.channel as TextChannel;
-      if (!channel || !("permissionsFor" in channel)) {
-        throw new Error("No se pudo obtener el canal o sus permisos.");
+      if (!channel || !("permissionsFor" in channel)) {        
+        throw new Error(i18next.t("test_error_permission", { ns: "test" }));
       }
 
       const botMember = interaction.guild?.members.me;
       if (!botMember) {
-        throw new Error("No se pudo obtener el miembro del bot en el servidor.");
+        throw new Error(i18next.t("test_error_permission_user", { ns: "test" }));
       }
 
       const permissions = channel.permissionsFor(botMember);
       if (!permissions) {
-        throw new Error("No se pudieron verificar los permisos del bot.");
+        throw new Error(i18next.t("test_error_verify_permission", { ns: "test" }));
       }
 
       const guildId = interaction.guild?.id;
@@ -75,22 +75,22 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
       const channelConfig = guildConfig?.get(channelId) ?? { enabled: true, replyBots: true };
 
       embed
-        .setDescription(i18next.t("test_command_channel_description", { ns: "common" }) || `Verificación de permisos para el canal: #${channel.name}`)
+        .setDescription(i18next.t("test_command_channel_description", { ns: "test", canal: channel.name }))
         .addFields(
           requiredPermissions.map((perm) => ({
-            name: perm.name,
-            value: permissions.has(perm.bit) ? "✅ Permitido" : "❌ Faltante",
+            name: i18next.t("permission_name", { ns: "test", name: perm.name }),
+            value: permissions.has(perm.bit) ? i18next.t("status_allowed", { ns: "test" }) : i18next.t("status_missing", { ns: "test" }),
             inline: true,
           }))
         )
         .addFields(
           {
-            name: i18next.t("test_command_working_here", { ns: "common" }) || "Trabajando aquí",
+            name: i18next.t("test_command_working_here", { ns: "test" }),
             value: channelConfig.enabled ? "✅" : "❌",
             inline: true,
           },
           {
-            name: i18next.t("test_command_reply_bots", { ns: "common" }) || "Hablar con otros bots",
+            name: i18next.t("test_command_reply_bots", { ns: "test" }),
             value: channelConfig.replyBots ? "✅" : "❌",
             inline: true,
           }
@@ -98,13 +98,13 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
     } else if (mode === "guild") {
       const guild = interaction.guild;
       if (!guild) {
-        throw new Error("No se pudo obtener el servidor.");
+        throw new Error(i18next.t("dont_gg", { ns: "test" }));
       }
 
       const channels = guild.channels.cache.filter(channel => channel.type === 0); // Excluye hilos
       let allPermissionsOk = true;
 
-      embed.setDescription(i18next.t("test_command_guild_description", { ns: "common" }) || "Verificación de permisos en todos los canales del servidor:");
+      embed.setDescription(i18next.t("test_command_guild_description", { ns: "test" })); //
 
       channels.forEach(channel => {
         const botMember = guild.members.me;
@@ -121,9 +121,9 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
 
           embed.addFields({
             name: `Canal: #${channel.name}`,
-            value: (hasAllPermissions ? "✅ Todos los permisos OK" : "❌ Faltan permisos") +
-              `\n${i18next.t("test_command_working_here", { ns: "common" }) || "Trabajando aquí"}: ${channelConfig.enabled ? "✅" : "❌"}` +
-              `\n${i18next.t("test_command_reply_bots", { ns: "common" }) || "Hablar con otros bots"}: ${channelConfig.replyBots ? "✅" : "❌"}`,
+            value: (hasAllPermissions ? i18next.t("all_status_allowed", { ns: "test" }) : i18next.t("missing_any_status", { ns: "test" })) +
+              `\n${i18next.t("test_command_working_here", { ns: "test" })}: ${channelConfig.enabled ? "✅" : "❌"}` +
+              `\n${i18next.t("test_command_reply_bots", { ns: "test" })}: ${channelConfig.replyBots ? "✅" : "❌"}`,
             inline: false,
           });
         }
@@ -133,11 +133,11 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
     } else if (mode === "embed") {
       const guildId = interaction.guild?.id;
       if (!guildId) {
-        throw new Error("No se pudo obtener el servidor.");
+        throw new Error(i18next.t("dont_gg", { ns: "test" }));
       }
 
       const replacementConfig = await getGuildReplacementConfig(guildId);
-      embed.setDescription("Configuraciones de reemplazo de este servidor:");
+      embed.setDescription(i18next.t("not_replacement", { ns: "test" }));
 
       // Sección para los reemplazos manuales
       replacementMetaList.forEach(meta => {
@@ -145,14 +145,14 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
         let status: string;
         
         if (config === undefined) {
-          status = "Default";
+          status = i18next.t("rem_list_1", { ns: "test" });
         } else if (!config.enabled) {
-          status = "Deshabilitado";
+          status = i18next.t("rem_list_2", { ns: "test" });
         } else if (config.custom_url) {
-          const userMention = config.user_id ? `<@${config.user_id}>` : 'usuario desconocido';
-          status = `Customizado con: **${config.custom_url}** (por ${userMention})`;
+          const userMention = config.user_id ? `<@${config.user_id}>` :  i18next.t("unknown_user", { ns: "test" }); 
+          status = i18next.t("rem_list_3", { ns: "test", custom_url: config.custom_url, userMention }); 
         } else {
-          status = "Default";
+          status = i18next.t("rem_list_1", { ns: "test" });
         }
 
         embed.addFields({
@@ -163,11 +163,11 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
       });
       
       // Sección para los reemplazos por API
-      embed.addFields({ name: "Gestionados por EmbedEZ ", value: "Solo se pueden deshabilitar o habilitar." });
+      embed.addFields({ name: i18next.t("field_add_api", { ns: "test" }), value: i18next.t("field_add_api_value", { ns: "test" })});
 
       apiReplacementDomainsEnv.forEach(domain => {
           const config = replacementConfig.get(domain);
-          const status = (config === undefined || config.enabled) ? "✅ Habilitado" : "❌ Deshabilitado";
+          const status = (config === undefined || config.enabled) ? i18next.t("field_api_enabled", { ns: "test" }) : i18next.t("field_api_disabled", { ns: "test" });
 
           embed.addFields({
               name: domain,
@@ -178,16 +178,16 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
 
       embed.setColor("#0099ff");
     } else {
-      embed.setDescription(i18next.t("test_command_invalid_mode", { ns: "common" }) || "Modo no reconocido. Usa 'null' (por defecto), 'guild', o 'embed'.");
+      embed.setDescription(i18next.t("test_command_invalid_mode", { ns: "common" }));
       embed.setColor("#ff0000");
     }
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-    debug(`Comando /test ejecutado con modo ${mode}`, "Commands.Test");
+    debug(i18next.t("test_command_executed", { ns: "test", mode: mode }));
   } catch (err) {
-    error(`Error al ejecutar comando /test: ${err}`, "Commands.Test");
+    error(i18next.t(`test_command_error`, { ns: "test", err: err }));
     await interaction.reply({
-      content: i18next.t("command_error", { ns: "common" }) || "Ocurrió un error al ejecutar el comando.",
+      content: i18next.t("command_error", { ns: "test" }),
       flags: MessageFlags.Ephemeral,
     });
   }

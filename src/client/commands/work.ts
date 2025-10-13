@@ -9,9 +9,9 @@ export async function registerWorkCommand(): Promise<SlashCommandBuilder[]> {
   const workCommand = new SlashCommandBuilder()
     .setName("work")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-    .setDescription(i18next.t("work_command_description", { ns: "common" }) || "Activa o desactiva el bot en este canal.")
+    .setDescription(i18next.t("work_command_description", { ns: "work" }))
     .addStringOption((option) =>
-      option.setName("state").setDescription(i18next.t("work_command_state_description", { ns: "common" }) || "Estado del bot: on o off")
+      option.setName("state").setDescription(i18next.t("work_command_state_description", { ns: "work" }))
         .setRequired(true).addChoices({ name: "On", value: "on" }, { name: "Off", value: "off" })
     );
   return [workCommand] as SlashCommandBuilder[];
@@ -24,7 +24,7 @@ export async function handleWorkCommand(interaction: ChatInputCommandInteraction
     const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
     if (!isAdmin) {
       await interaction.reply({
-        content: i18next.t("command_permission_error", { ns: "common" }) || "Solo los administradores o el propietario pueden usar este comando.",
+        content: i18next.t("command_permission_error", { ns: "work" }),
         flags: MessageFlags.Ephemeral,
       });
       return;
@@ -35,7 +35,7 @@ export async function handleWorkCommand(interaction: ChatInputCommandInteraction
     const channelId = interaction.channel?.id;
 
     if (!guildId || !channelId) {
-      throw new Error("No se pudo identificar el servidor o el canal.");
+      throw new Error(i18next.t("error_identifying_channel", { ns: "work" }));
     }
 
     const configMap = await getConfigMap(); // Usar await
@@ -51,17 +51,17 @@ export async function handleWorkCommand(interaction: ChatInputCommandInteraction
 
     if (isEnabled) {
       if (currentConfig?.enabled === true) {
-        response = i18next.t("work_command_already_on", { ns: "common" }) || "¡Ya estoy trabajando en este canal! 😎";
+        response = i18next.t("work_command_already_on", { ns: "work" });
       } else {
         setChannelConfig(guildId, channelId, { enabled: true, replyBots: currentConfig?.replyBots ?? false });
-        response = i18next.t("work_command_on_success", { ns: "common" }) || "Bueno, estoy de regreso 😎";
+        response = i18next.t("work_command_on_success", { ns: "work" }) || "Bueno, estoy de regreso 😎";
       }
     } else {
       if (currentConfig?.enabled === false) {
-        response = i18next.t("work_command_already_off", { ns: "common" }) || "¡Ya estoy desactivado en este canal! 🫶";
+        response = i18next.t("work_command_already_off", { ns: "work" });
       } else {
         setChannelConfig(guildId, channelId, { enabled: false, replyBots: currentConfig?.replyBots ?? false });
-        response = i18next.t("work_command_off_success", { ns: "common" }) || "Bye bye, te veo en otros canales 🫶";
+        response = i18next.t("work_command_off_success", { ns: "work" });
       }
     }
 
@@ -69,11 +69,11 @@ export async function handleWorkCommand(interaction: ChatInputCommandInteraction
       content: response,
       flags: MessageFlags.Ephemeral,
     });
-    debug(`Comando /work ejecutado: ${isEnabled ? "On" : "Off"} en canal ${channelId}`, "Commands.Work");
+    debug(i18next.t("work_debug_log1", { ns: "work", state: isEnabled ? "On" : "Off", chaid: channelId }), "Commands.Work");
   } catch (err) {
-    error(`Error al ejecutar comando /work: ${err}`, "Commands.Work");
+    error(i18next.t("work_error_log1", { ns: "work", err: err }));
     await interaction.reply({
-      content: i18next.t("command_error", { ns: "common" }) || "Ocurrió un error al ejecutar el comando.",
+      content: i18next.t("command_error", { ns: "work" }),
       flags: MessageFlags.Ephemeral,
     });
   }

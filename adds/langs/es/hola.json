@@ -22,5 +22,6 @@
     "field_invite_value": "[Meltryllis con Arma!](https://discord.com/oauth2/authorize?client_id=847989699083632671&scope=bot&permissions=92160)",
     "field_terms_value": "[Declaración](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md)",
     "footer_text": "Las configuraciones se guardan por server.",
-    "log_command_executed": "Comando /hola ejecutado"
+    "log_command_executed": "Comando /hola ejecutado",
+    "command_error": "Ocurrió un error al ejecutar el comando."
 }
