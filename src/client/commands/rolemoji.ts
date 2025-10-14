@@ -135,7 +135,8 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
                     const guild = interaction.guild!;
                     const role = guild.roles.cache.get(assignment.roleId);
                     const roleName = role ? role.name : i18next.t("role_not_found", { ns: "rolemoji" });
-                    const emojiDisplay = guild.emojis.cache.get(assignment.emoji) || assignment.emoji;
+                    const emojiObject = guild.emojis.cache.get(assignment.emoji);
+                    const emojiDisplay = emojiObject ? emojiObject.toString() : assignment.emoji;
                     
                     // Aquí se usa el channelId de la base de datos
                     const messageUrl = `https://discord.com/channels/${guildId}/${assignment.channelId}/${assignment.messageId}`;
