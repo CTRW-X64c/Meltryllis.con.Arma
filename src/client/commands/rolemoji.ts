@@ -93,10 +93,11 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
             try {
                 const channel = interaction.channel as TextChannel;
                 const message = await channel.messages.fetch(messageId);
+                const roleMention = `<@&${role.id}>`;
                 await message.react(emoji);
                 
                 await interaction.reply({
-                    content: i18next.t("command_rolemoji_assign_success", { ns: "rolemoji", role: role.name, emoji: emoji }),
+                    content: i18next.t("command_rolemoji_assign_success", { ns: "rolemoji", role: roleMention, emoji: emoji }),
                     flags: MessageFlags.Ephemeral
                 });
             } catch (fetchError) {
