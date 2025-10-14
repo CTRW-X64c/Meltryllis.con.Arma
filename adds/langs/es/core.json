@@ -24,9 +24,9 @@
     "config_found": "Configuración encontrada para el dominio {{domain}}: activado: {{enabled}}.",
     "config_not_found": "No se encontró configuración para el dominio: {{domain}}.",
     
-    "suppress_embeds_fail_permissions": "Error al ocultar enlaces, faltan permisos.",
-    "suppress_embeds_fail_retries": "No se pudieron ocultar los enlaces después de {{maxAttempts}} intentos: {{error}}.",
-    "embeds_suppressed": "Enlaces ocultos en intento {{attempt}}.",
+    "suppress_embeds_fail_permissions": "Error al borrar los embeds.",
+    "suppress_embeds_fail_retries": "No se pudieron borrar los enlaces después de {{maxAttempts}} intentos: {{error}}.",
+    "embeds_suppressed": "Enlaces borrados en intento {{attempt}}.",
     "delete_message_fail": "Error al intentar borrar el mensaje: {{error}}.",
     "message_deleted_log": "Mensaje de respuesta borrado.",
     "button_disabled_log": "Botón deshabilitado.",
