@@ -15,7 +15,6 @@
 "test_error_permission_user": "No se pudo obtener el usuario en el bot.",
 "test_error_verify_permission": "No se pudieron verificar los permisos del bot.",
 "dont_gg": "No se pudo obtener el servidor.",
-"test_command_guild_description": "Checa los  permisos en todos los canales del server",
 "not_replacement": "Configuraciones de reemplazo de este servidor:",
 "rem_list_1": "✅ | Predeterminado",
 "rem_list_2": "❌ | Deshabilitado",
@@ -25,7 +24,6 @@
 "field_add_api_value": "Solo se pueden deshabilitar o habilitar.",
 "test_command_invalid_mode": "Modo inválido, revisa los inputs del comando.",
 
-"test_command_channel_description": "Verificación de permisos para el canal: #{{canal}}",
 "status_allowed": "✅ Permitido",
 "status_missing": "❌ Faltante",
 "required_permission": "Permiso Requerido: {{permission_status}}",
@@ -37,6 +35,10 @@
 
 "test_command_executed": "Comando /test ejecutado en modo: {{mode}}",
 "test_command_error": "Error al ejecutar comando /test: {{err}}",
-"command_error": "Ocurrió un error al ejecutar el comando."
+"command_error": "Ocurrió un error al ejecutar el comando.",
+
+"test_command_mode_description": "Modo de chequeo",
+"test_command_guild_description": "**Estado de todos los canales:**",
+"test_command_channel_description": "Revisando, revisando, revisando..."
 
 }
