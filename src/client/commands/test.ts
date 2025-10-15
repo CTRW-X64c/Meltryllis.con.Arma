@@ -75,7 +75,7 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
       const channelConfig = guildConfig?.get(channelId) ?? { enabled: true, replyBots: true };
 
       embed
-        .setDescription(i18next.t("test_command_channel_description", { ns: "test", canal: channel.name }))
+        .setDescription(i18next.t("test_command_channel_description", { ns: "test" }))
         .addFields(
           requiredPermissions.map((perm) => ({
             name: i18next.t("permission_name", { ns: "test", name: perm.name }),

@@ -1,18 +1,16 @@
 {
-"command_embed_description": "Configure replacement domains for embeds",
-"embed_command_mode_description": "Configuration mode: Default, Custom, or Disable",
-"embed_command_url_description": "Establece una nueva URL embed.",
-"no_permission": "Necesitas permisos de Adminnistracion!!",
-"embed_url_required": "Cambia el URL embed.",
+"command_embed_description": "Configuración de dominios/urls para embeds",
+"embed_command_mode_description": "Configuraciones: Default, Custom o Habilitar/Deshabilitar",
+"embed_command_url_description": "Establece un nuevo Dominio/URL.",
+"no_permission": " ⛔⛔ Necesitas permisos de Adminnistracion!! ⛔⛔",
+"embed_url_required": "Nuevo Dominio/URL.",
 "embed_invalid_site": "Sitio invalido.",
 "embed_command_failed": "No se pudo actualizar la configuracion.",
-"test_command_mode_description": "Modo de trabajo",
-"test_command_guild_description": "**Estado de todos los canales:**",
-"test_command_channel_description": "Revisando, revisando, revisando...",
+
 
 "command_embed_config": "Establece configuraciones para embed.",
 "embed_command_site_description": "Escoge el sitio a configurar.",
-"embed_command_action_description": "La acción que deseas realizar.",
+"embed_command_action_description": "Configurar:",
 
 "subcommand_enable": "Habilitar",
 "subcommand_disable": "Deshabilitar",
