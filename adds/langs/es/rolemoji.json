@@ -1,7 +1,7 @@
 {
 "command_rolemoji_description": "Vincula un rol a un emoji en un mensaje para que puedan obtener el rol reaccionando.",
 "command_rolemoji_assign_description": "Roles en emojis, Roles en emojis",
-"command_rolemoji_message_id_description": "Id del mensaje, (Clic en ... de tu mensaje y \"copiar id de mensaje\"; si no ves la opción: Clic en ⚙️ > Avanzado > Modo desarrollador)",
+"command_rolemoji_message_id_description": "Id del mensaje, (Clic en ... de tu mensaje y copiar id de mensaje)",
 "command_rolemoji_emoji_description": "Escoge tu emoji para el Rol",
 "command_rolemoji_role_description": "Escoge el Rol que se asociara al Emoji",
 "command_rolemoji_remove_description": "Elimina un RolEmoji",
