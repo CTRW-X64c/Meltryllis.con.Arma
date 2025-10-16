@@ -292,7 +292,11 @@ async function main(): Promise<void> {
         const locale = process.env.LOCALE ?? "es";
         await initI18n(locale);
         const client = createClient();
-        await client.login(process.env.DISCORD_BOT_TOKEN);
+        await client.login(process.env.DISCORD_BOT_TOKEN)
+            .catch(error => {
+                console.error('Error al iniciar sesión con el bot:', error);
+                process.exit(1);
+        });     
     } catch (e) {
         const errorObj = e as Error;
         if (loggerAvailable()) {
