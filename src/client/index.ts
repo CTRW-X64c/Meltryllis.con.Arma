@@ -11,6 +11,7 @@ import { Client, Events, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRo
 import ApiReplacement from "../remplazadores/ApiReplacement";
 import { registerWelcomeEvents, preloadImagesAndFonts } from "./events/welcomeEvents";
 import { registerRolemojiEvents } from "./events/rolemojiEvents";
+import { validateAllTranslations } from "./commandLangValidation";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
@@ -284,26 +285,53 @@ export function createClient(): Client {
 
     return client;
 }
-
+//Nuevo sistema de arranque y manejo de errores
 async function main(): Promise<void> {
     try {
-        const environmentMode = getEnvironmentMode();
-        initLogger(environmentMode);
-        const locale = process.env.LOCALE ?? "es";
+        if (!process.env.DISCORD_BOT_TOKEN) {
+            throw new Error("DISCORD_BOT_TOKEN no está definido");
+        }
+        initLogger(getEnvironmentMode());
+        const locale = (process.env.LOCALE ?? "es");
         await initI18n(locale);
         const client = createClient();
-        await client.login(process.env.DISCORD_BOT_TOKEN)
-            .catch(error => {
-                console.error('Error al iniciar sesión con el bot:', error);
-                process.exit(1);
-        });     
-    } catch (e) {
-        const errorObj = e as Error;
-        if (loggerAvailable()) {
-            error(i18next.t("main_exception", {ns: "core", errorName: errorObj.name, errorMessage: errorObj.message }), "Main");
+        await client.login(process.env.DISCORD_BOT_TOKEN);
+        await validateAllTranslations();
+        logInfo(i18next.t("bot_success_init", {ns: "core" }));
+
+    } catch (error) {
+        logFatalError(error);
+        process.exit(1);
+    }
+}
+
+function logInfo(message: string): void {
+    if (loggerAvailable()) {
+        info(message, "Main");
+    } else {
+        console.log(`[INFO] ${message}`);
+    }
+}
+
+function logFatalError(error: unknown): void {
+    const errorObj = error instanceof Error ? error : new Error(String(error));
+    const message = `Error fatal: ${errorObj.name}: ${errorObj.message}`;
+    
+    if (loggerAvailable()) {
+        if (typeof error === 'function') {
+            error(message, "Main");
         } else {
-            console.error(`Unhandled exception: ${errorObj.name}: ${errorObj.message}`);
+            console.error(message);
         }
+    } else {
+        console.error(message);
+        if (errorObj.stack) {
+            console.error(errorObj.stack);
+        }
+    }
+    if (getEnvironmentMode() === "development") {
+        setTimeout(() => process.exit(1), 100);
+    } else {
         process.exit(1);
     }
 }
