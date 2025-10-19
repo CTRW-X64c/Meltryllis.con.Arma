@@ -1,13 +1,14 @@
 {
     "replybots_command_description": "Activa o desactiva el contestar a otros bots",
     "replybots_command_state_description": "Responder a bots:",
-    "command_permission_error": "⛔⛔ Solo los administradores o el propietario pueden usar este comando ⛔⛔",
+
     "replybots_command_already_on": "¡Ya estoy respondiendo a bots en este canal! 😊🤖",
     "replybots_command_already_off": "¡No responderé a bots en este canal! 😊",
     "replybots_command_on_success": "Contestando a bots 😊🤖",
     "replybots_command_off_success": "Ya no contestaré a bots 😊",
 
     "error_identifying_server": "No se pudo identificar el servidor o el canal.",
+    "command_permission_error": "⛔⛔ Solo los administradores o el propietario pueden usar este comando ⛔⛔",
 
     "executed_replybots_command": "Comando /replybots ejecutado: Estado: {{state}} en canal {{channelId}}",
     "error_replybots_command": "Error al ejecutar comando /replybots: {{error}}",

@@ -1,0 +1,8 @@
+{
+    "command_welcome_description": "Establece un mensaje de Bienvenida y Banner", 
+    "command_welcome_config_description": "Establece un canal para la Bienvenida",
+    "command_welcome_channel_description": "Establece canal para mostrar el mensaje de Bienvenida/salida",
+    "command_welcome_enabled_description": "Activa/Desactiva la funcion Welcome",
+    "command_welcome_message_description": "Escribe tu mensaje de Bienvenida, usa <user> para mencionar, tambien pudes usar #canal",
+    "command_welcome_config_set": "Se establecio la configuracion"
+}
