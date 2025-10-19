@@ -11,7 +11,7 @@ import { Client, Events, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRo
 import ApiReplacement from "../remplazadores/ApiReplacement";
 import { registerWelcomeEvents, preloadImagesAndFonts } from "./events/welcomeEvents";
 import { registerRolemojiEvents } from "./events/rolemojiEvents";
-import { validateAllTranslations } from "./commandLangValidation";
+import { validateAllTranslations } from "../i18n/langCmndVal";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
@@ -294,9 +294,9 @@ async function main(): Promise<void> {
         initLogger(getEnvironmentMode());
         const locale = (process.env.LOCALE ?? "es");
         await initI18n(locale);
-        const client = createClient();
-        await client.login(process.env.DISCORD_BOT_TOKEN);
         await validateAllTranslations();
+        const client = createClient();
+        await client.login(process.env.DISCORD_BOT_TOKEN);        
         logInfo(i18next.t("bot_success_init", {ns: "core" }));
 
     } catch (error) {

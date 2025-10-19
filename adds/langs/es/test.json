@@ -1,5 +1,7 @@
 {
 "command_test_description": "Revisar por permisos",
+"test_command_mode_description": "Modo de chequeo",
+
 "test_command_title": "Pasando lista de permisos",
 "test_command_all_permissions": "¡Todo en regla para funcionar!",
 "test_command_missing_permissions": "Faltan permisos. No puedo hacer mi chamba correctamente 😔; Recuerda, en canales privados ocupo que me asignen un Rol con los permisos para funcionar!!",
@@ -37,7 +39,6 @@
 "test_command_error": "Error al ejecutar comando /test: {{err}}",
 "command_error": "Ocurrió un error al ejecutar el comando.",
 
-"test_command_mode_description": "Modo de chequeo",
 "test_command_guild_description": "**Estado de todos los canales:**",
 "test_command_channel_description": "Revisando, revisando, revisando..."
 

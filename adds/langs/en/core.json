@@ -1,7 +1,7 @@
 {
-    "delete_button_label": "🗑️ Borrar",
+    "delete_button_label": "🗑️ Delete",
     "message_deleted": "Mensaje borrado.",  
-    "format_link": "[Embedding de {{Site}}]({{RemUrl}})",
+    "format_link": "[Embedding from {{Site}}]({{RemUrl}})",
     
     "Preloading_rolemoji": "Recargando cache de rolemoji 🕗",
     "Fetched_rolemoji": "Se obtuvo el mensaje {{mensjid}} de rolemoji en {{gremio}} 📝.",

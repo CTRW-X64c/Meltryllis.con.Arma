@@ -1,5 +1,6 @@
 {
-    "command_hola_description": "Muestra una descripción del bot.",
+    "command_hola_description": "Informacion de los comandos.",
+
     "error_hola_command": "Error al ejecutar comando /hola: {{error}}",
     "embed_title": "¡Hola!",
     "embed_description": "Estoy aquí para ayudarte con los Embeds en Discord, ¡porque la verdad muchos apestan!",

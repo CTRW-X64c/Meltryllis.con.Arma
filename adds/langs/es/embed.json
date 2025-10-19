@@ -1,22 +1,20 @@
 {
 "command_embed_description": "Configuración de dominios/urls para embeds",
+"command_embed_config": "Establece configuraciones para embed.",
 "embed_command_mode_description": "Configuraciones: Default, Custom o Habilitar/Deshabilitar",
 "embed_command_url_description": "Establece un nuevo Dominio/URL.",
-"no_permission": " ⛔⛔ Necesitas permisos de Adminnistracion!! ⛔⛔",
-"embed_url_required": "Nuevo Dominio/URL.",
-"embed_invalid_site": "Sitio invalido.",
-"embed_command_failed": "No se pudo actualizar la configuracion.",
-
-
-"command_embed_config": "Establece configuraciones para embed.",
-"embed_command_site_description": "Escoge el sitio a configurar.",
-"embed_command_action_description": "Configurar:",
-
 "subcommand_enable": "Habilitar",
 "subcommand_disable": "Deshabilitar",
 "subcommand_custom": "Personalizar",
 "subcommand_default": "Por defecto",
-"embed_command_custom_url": "Nuevo Dominio/URL, (solo para sitios manuales).",
+"embed_command_custom_url": "Nuevo Dominio/URL, Solo sitios con NOMBRE, no url.",
+
+"no_permission": " ⛔⛔ Necesitas permisos de Adminnistracion!! ⛔⛔",
+"embed_url_required": "Nuevo Dominio/URL.",
+"embed_invalid_site": "Sitio invalido.",
+"embed_command_failed": "No se pudo actualizar la configuracion.",
+"embed_command_site_description": "Escoge el sitio a configurar.",
+"embed_command_action_description": "Configurar:",
 
 "Api_default": "❌ Las Web de URL completa, (ej. www.tiktok.com), no tienen un estado por defecto, Solo 'Habilitar'/'Deshabilitar'.",
 "Api_custom": "❌ Las Web de URL completa, (ej. www.tiktok.com), no pueden tener una URL personalizada.",
