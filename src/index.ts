@@ -5,38 +5,51 @@ import { ShardingManager, Client } from "discord.js";
 
 dotenv.config();
 
-const environmentMode = getEnvironmentMode();
-initLogger(environmentMode);
+async function start() {
+    const environmentMode = getEnvironmentMode();
+    initLogger(environmentMode);
 
-const token = process.env.DISCORD_BOT_TOKEN;
-if (!token) {
-  error("❌ Falta \"DISCORD_BOT_TOKEN\" checa tu .env o docker-compose", "startup");
-  process.exit(1);
-}
+    const token = process.env.DISCORD_BOT_TOKEN;
+    if (!token) {
+        error("❌ Falta Token en \"DISCORD_BOT_TOKEN=\", checa tu archivo .env o docker-compose > environment:", "startup");
+        process.exit(1);
+    }
 
-info("🔐 Validando token...", "startup");
+    try {
+        info("🔐 Validando token...", "startup");
+        const testClient = new Client({ intents: [] });
+        await testClient.login(token);
+        await testClient.destroy();
+        info("✅ Token válido.", "startup");
 
-const testClient = new Client({ intents: [] });
+    } catch (err: unknown) {
+        const errMessage = err instanceof Error ? err.message : String(err);
+        if (errMessage.includes("An invalid token was provided")) {
+            error("❌ EL TOKEN PROPORCIONADO ES INVÁLIDO!!", "startup");
+            error("📋 \"Revisa https://discord.com/developers/applications/ > App > Bot: Token\" Revisa o Genera un nuevo Token", "startup");
+        } else if (errMessage.includes("Privileged Gateway Intents")) {
+            error("❌ LOS 'PRIVILEGED GATEWAY INTENTS' NO ESTÁN HABILITADOS!!", "startup");
+            error("📋 \"Revisa https://discord.com/developers/applications/ > App > Bot: Presence Intent\" Habilita los 'Privileged Gateway Intents'.", "startup");
+        } else {
+            error(`❌ HUBO UN PROBLEMA CON EL TOKEN!! ERROR CODE: ${errMessage}`, "startup");
+        }
+        process.exit(1);
+    }
 
-testClient.login(token)
-  .then(() => {
-    testClient.destroy();
-    info("✅ Token válido", "startup");
-        info(`🚀 Iniciando bot en modo: ${environmentMode}`, "startup");
-    
+    info(`🚀 Iniciando bot en modo: ${environmentMode}`, "startup");   
     const manager = new ShardingManager("./comp/client/index.js", {
-      token: token,
+        token: token,
     });
 
     manager.on("shardCreate", (shard) => {
-      info(`Shard ${shard.id} lanzado`, "sharding");
+        info(`Shard ${shard.id} lanzado`, "sharding");
     });
 
-    void manager.spawn();
-  })
-  .catch((err) => {
-    error(`❌ Token inválido: "${err.message}"`, "startup");
-    error(`Revisa en https://discord.com/developers/applications/ > App > Bot > Token `, "startup");
-
-    process.exit(1);
-  });
+    try {
+        await manager.spawn();
+    } catch (spawnError) {
+        error("💥 Error al intentar iniciar los shards.", "startup");
+        process.exit(1);
+    }
+}
+start();

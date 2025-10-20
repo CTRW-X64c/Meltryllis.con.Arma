@@ -292,6 +292,7 @@ async function main(): Promise<void> {
             throw new Error("DISCORD_BOT_TOKEN no está definido");
         }
         initLogger(getEnvironmentMode());
+        await initializeDatabase();
         const locale = (process.env.LOCALE ?? "es");
         await initI18n(locale);
         await validateAllTranslations();
