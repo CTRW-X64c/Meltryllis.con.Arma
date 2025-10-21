@@ -36,7 +36,10 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_rolemoji_role_description",
         "command_rolemoji_remove_description",
         "command_rolemoji_remove_id_description",
-        "command_rolemoji_list_description"
+        "command_rolemoji_list_description",
+        "command_rolemoji_help_title",
+        "command_rolemoji_help_description"
+
     ],
     "test":[
         "command_test_description",
@@ -58,7 +61,7 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
 };
 
 export async function validateAllTranslations(): Promise<void> {
-    info("🔍 Validando traducciones por idioma...");
+    info("🔍 Validando las traducciones de los comandos...");
     
     let totalErrors = 0;
     const missingTranslations: string[] = [];

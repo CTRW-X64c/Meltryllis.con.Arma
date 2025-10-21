@@ -8,6 +8,16 @@
 "command_rolemoji_remove_id_description": "Usa el ID del RolEmoji que quieras eliminar, usa /rolemoji list para ver el ID",
 "command_rolemoji_list_description": "Muestra los RolEmoji",
 
+"command_rolemoji_help_title": "Ayuda de Rolemoji",
+"command_rolemoji_help_description": "No funciona?, sigue estos pasos:",
+"embed_rolemoji_paso_1": "1.- Permisos:",
+"embed_rolemoji_fix_1": "Asegúrate de que el bot tenga permisos para gestionar roles y reaccionar a mensajes.\n\n *Por default el bot no tiene estos permisos, puedes modificar su rol o asginarle uno que tenga estos permisos.*\n",
+"embed_rolemoji_paso_2": "2.- ID de mensaje:",
+"embed_rolemoji_fix_2": "Si no ves \"copiar id del mensaje\" tienes desactivado el modo desarrollador.\n\n *Esto esta en Ajustes de Usuario ⚙️ > Avanzado > Modo Desarrollador.*\n",
+"embed_rolemoji_paso_3": "3.- No asigna roles?:",
+"embed_rolemoji_fix_3": "Discord maneja una jerarquía de roles por posición, solo puede asignar roles que esten por debajo de su rol.\n\n Teniendo en cuanta que su rol es \"Meltryllis con Arma!\" aquí una ilustracion de cuales puede y no asignar. \n*En caso de tener mas de un rol se basar en el que esta mas arriba en la lista*.\n",
+"command_rolemoji_help_footer": "Reacciona y obtén tu rol!",
+
 "command_rolemoji_assign_success": "El Rol: {{role}} fue assignado correctamente al Emoji: {{emoji}}",
 "command_rolemoji_remove_failed": "No se encontró ningún RolEmoji con el ID:{{id}}.",
 "command_rolemoji_remove_success": "El RolEmoji con ID:{{id}} fue eliminado correctamente.",
