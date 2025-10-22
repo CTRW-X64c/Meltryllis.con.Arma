@@ -159,6 +159,7 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
                 }
                 embed.setDescription(description);
             }
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         } else if (subcommand === "help") {
                 const embed = new EmbedBuilder()
                     .setColor("#0099ff")
