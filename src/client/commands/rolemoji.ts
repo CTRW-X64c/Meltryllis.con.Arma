@@ -55,8 +55,13 @@ export async function registerRolemojiCommand(): Promise<SlashCommandBuilder[]> 
             subcommand
                 .setName("list")
                 .setDescription(i18next.t("command_rolemoji_list_description", { ns: "rolemoji" }))
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("help")
+                .setDescription(i18next.t("command_rolemoji_help_description", { ns: "rolemoji" }))
         );
-
+        
     return [rolemojiCommand] as SlashCommandBuilder[];
 }
 
@@ -93,10 +98,11 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
             try {
                 const channel = interaction.channel as TextChannel;
                 const message = await channel.messages.fetch(messageId);
+                const roleMention = `<@&${role.id}>`;
                 await message.react(emoji);
                 
                 await interaction.reply({
-                    content: i18next.t("command_rolemoji_assign_success", { ns: "rolemoji", role: role.name, emoji: emoji }),
+                    content: i18next.t("command_rolemoji_assign_success", { ns: "rolemoji", role: roleMention, emoji: emoji }),
                     flags: MessageFlags.Ephemeral
                 });
             } catch (fetchError) {
@@ -135,7 +141,8 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
                     const guild = interaction.guild!;
                     const role = guild.roles.cache.get(assignment.roleId);
                     const roleName = role ? role.name : i18next.t("role_not_found", { ns: "rolemoji" });
-                    const emojiDisplay = guild.emojis.cache.get(assignment.emoji) || assignment.emoji;
+                    const emojiObject = guild.emojis.cache.get(assignment.emoji);
+                    const emojiDisplay = emojiObject ? emojiObject.toString() : assignment.emoji;
                     
                     // Aquí se usa el channelId de la base de datos
                     const messageUrl = `https://discord.com/channels/${guildId}/${assignment.channelId}/${assignment.messageId}`;
@@ -152,7 +159,25 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
                 }
                 embed.setDescription(description);
             }
-            
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+        } else if (subcommand === "help") {
+                const embed = new EmbedBuilder()
+                    .setColor("#0099ff")
+                    .setTitle(i18next.t("command_rolemoji_help_title", { ns: "rolemoji" }))
+                    .setDescription(i18next.t("command_rolemoji_help_description", { ns: "rolemoji" }))
+                    .addFields({
+                        name: i18next.t("embed_rolemoji_paso_1", { ns: "rolemoji" }),
+                        value: i18next.t("embed_rolemoji_fix_1", { ns: "rolemoji" }),
+                    }, {
+                        name: i18next.t("embed_rolemoji_paso_2", { ns: "rolemoji" }),
+                        value: i18next.t("embed_rolemoji_fix_2", { ns: "rolemoji" }),
+                    }, {
+                        name: i18next.t("embed_rolemoji_paso_3", { ns: "rolemoji" }),
+                        value: i18next.t("embed_rolemoji_fix_3", { ns: "rolemoji" }),
+                    },)
+                    .setFooter({ text: i18next.t("command_rolemoji_help_footer", { ns: "rolemoji" }) })
+                    .setImage("https://i.imgur.com/KmGckRk.jpeg")
+                    .setTimestamp();                    
             await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         }
         

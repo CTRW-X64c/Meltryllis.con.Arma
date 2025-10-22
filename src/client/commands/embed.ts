@@ -146,9 +146,9 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
             content: successMessage,
         });
     } catch (err) {
-        error(i18next.t("embed_command_log", { ns: "common", guildId: interaction.guildId, userId: interaction.user.id, err: err }));
+        error(i18next.t("embed_command_log", { ns: "embed", guildId: interaction.guildId, userId: interaction.user.id, err: err }));
         await interaction.reply({
-            content: i18next.t("embed_command_failed", { ns: "common" }),
+            content: i18next.t("embed_command_failed", { ns: "embed" }),
             flags: MessageFlags.Ephemeral,
         });
     }

@@ -15,7 +15,7 @@
 "embed_rolemoji_paso_2": "2.- ID de mensaje:",
 "embed_rolemoji_fix_2": "Si no ves \"copiar id del mensaje\" tienes desactivado el modo desarrollador.\n\n *Esto esta en Ajustes de Usuario ⚙️ > Avanzado > Modo Desarrollador.*\n",
 "embed_rolemoji_paso_3": "3.- No asigna roles?:",
-"embed_rolemoji_fix_3": "Discord maneja una jerarquía de roles por posición, solo puede asignar roles que esten por debajo de su rol.\n\n Teniendo en cuanta que su rol es \"Meltryllis con Arma!\" aquí una ilustracion de cuales puede y no asignar. \n*En caso de tener mas de un rol se basara en el que esta mas arriba en la lista*.\n",
+"embed_rolemoji_fix_3": "Discord maneja una jerarquía de roles por posición, solo puede asignar roles que esten por debajo de su rol.\n\n Teniendo en cuanta que su rol es \"Meltryllis con Arma!\" aquí una ilustracion de cuales puede y no asignar.",
 "command_rolemoji_help_footer": "Reacciona y obtén tu rol!",
 
 "command_rolemoji_assign_success": "El Rol: {{role}} fue assignado correctamente al Emoji: {{emoji}}",

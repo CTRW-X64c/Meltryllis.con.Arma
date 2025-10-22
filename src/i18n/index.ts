@@ -3,7 +3,8 @@ import i18next from "i18next";
 import I18NexFsBackend from "i18next-fs-backend";
 import path from "path";
 
-export async function initI18n(translate?: string): Promise<void> {
+export const SUPPORTED_LANGUAGES = process.env.LANGS_SUPPORTED?.split(",").map(lang => lang.trim()) || [];
+export async function initI18n(locale?: string): Promise<void> {
   await i18next.use(I18NexFsBackend).init({
     // Se elimina el .json y se añade el patch aqui.
     backend: {
@@ -11,9 +12,9 @@ export async function initI18n(translate?: string): Promise<void> {
       addPath: path.join(__dirname, "../../adds/langs/{{lng}}/missing.json"),
     },
 
-    supportedLngs: ["es"],
+    supportedLngs: SUPPORTED_LANGUAGES,
     fallbackLng: "es",
-    lng: translate || "es",
+    lng: locale || "es",
     ns: [ "sys", "core", "embed", "hola", "replybots", "rolemoji", "test", "welcome", "work", "common"],
     defaultNS: "common",
     interpolation: {

@@ -1,5 +1,6 @@
 #Bot Token & Configuraciones
 DISCORD_BOT_TOKEN=
+LANGS_SUPPORTED=
 LOCALE=
 REPLY_OTHER_BOTS=
 DEBUG_MODE=
@@ -33,5 +34,5 @@ DB_USER=
 DB_PASSWORD=
 DB_DATABASE=
 
-#Estado Bot 
+#Estado Bot  Formato: Emoji | Mensaje | Tipo de actividad; ejmplo: "🍆|Boku no Piko|Watching" evita usar ":"
 BOT_STATUSES=

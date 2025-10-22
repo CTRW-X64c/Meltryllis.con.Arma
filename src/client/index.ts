@@ -11,6 +11,7 @@ import { Client, Events, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRo
 import ApiReplacement from "../remplazadores/ApiReplacement";
 import { registerWelcomeEvents, preloadImagesAndFonts } from "./events/welcomeEvents";
 import { registerRolemojiEvents } from "./events/rolemojiEvents";
+import { validateAllTranslations } from "../i18n/langCmndVal";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
@@ -284,22 +285,54 @@ export function createClient(): Client {
 
     return client;
 }
-
+//Nuevo sistema de arranque y manejo de errores
 async function main(): Promise<void> {
     try {
-        const environmentMode = getEnvironmentMode();
-        initLogger(environmentMode);
-        const locale = process.env.LOCALE ?? "es";
-        await initI18n(locale);
-        const client = createClient();
-        await client.login(process.env.DISCORD_BOT_TOKEN);
-    } catch (e) {
-        const errorObj = e as Error;
-        if (loggerAvailable()) {
-            error(i18next.t("main_exception", {ns: "core", errorName: errorObj.name, errorMessage: errorObj.message }), "Main");
-        } else {
-            console.error(`Unhandled exception: ${errorObj.name}: ${errorObj.message}`);
+        if (!process.env.DISCORD_BOT_TOKEN) {
+            throw new Error("DISCORD_BOT_TOKEN no está definido");
         }
+        initLogger(getEnvironmentMode());
+        await initializeDatabase();
+        const locale = (process.env.LOCALE ?? "es");
+        await initI18n(locale);
+        await validateAllTranslations();
+        const client = createClient();
+        await client.login(process.env.DISCORD_BOT_TOKEN);        
+        logInfo(i18next.t("bot_success_init", {ns: "core" }));
+
+    } catch (error) {
+        logFatalError(error);
+        process.exit(1);
+    }
+}
+
+function logInfo(message: string): void {
+    if (loggerAvailable()) {
+        info(message, "Main");
+    } else {
+        console.log(`[INFO] ${message}`);
+    }
+}
+
+function logFatalError(error: unknown): void {
+    const errorObj = error instanceof Error ? error : new Error(String(error));
+    const message = `Error fatal: ${errorObj.name}: ${errorObj.message}`;
+    
+    if (loggerAvailable()) {
+        if (typeof error === 'function') {
+            error(message, "Main");
+        } else {
+            console.error(message);
+        }
+    } else {
+        console.error(message);
+        if (errorObj.stack) {
+            console.error(errorObj.stack);
+        }
+    }
+    if (getEnvironmentMode() === "development") {
+        setTimeout(() => process.exit(1), 100);
+    } else {
         process.exit(1);
     }
 }

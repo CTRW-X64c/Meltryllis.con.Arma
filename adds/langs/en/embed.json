@@ -1,0 +1,29 @@
+{
+"command_embed_description": "Set domain/urls for embeds",
+"command_embed_config": "set configs for embed.",
+"embed_command_mode_description": "Default, Custom o Enable/Disable",
+"embed_command_url_description": "Set a new domain/URL.",
+"subcommand_enable": "Enable",
+"subcommand_disable": "Disable",
+"subcommand_custom": "Cunstom",
+"subcommand_default": "Default",
+"embed_command_custom_url": "Set Domain/URL, (Only manual sites).",
+
+"no_permission": " ⛔⛔ Deny, u need admin permission!! ⛔⛔",
+"embed_url_required": "New Domain/URL.",
+"embed_invalid_site": "Invalid site/url.",
+"embed_command_failed": "Error set new config",
+"embed_command_site_description": "Set new site.",
+"embed_command_action_description": "config:",
+
+"Api_default": "❌ The url sites cant set default mode, only Enable/Disable",
+"Api_custom": "❌ Url site cant set custom url.",
+"Api_url_custom": "❌ Check the URL Exmple: https://www.example.com | sub.example.com | sample.com",
+
+"embed_subcommand_disable_description": "{{user}} disable **{{site}}**!",
+"embed_subcommand_enable_description": "{{user}} enable **{{site}}**!",
+"embed_subcommand_custom_description": "{{user}} put new url on the site: **{{site}}** New URL: **{{url}}**!",
+"embed_subcommand_default_description": "{{user}} set the **{{site}}** in **default** mode",
+
+"embed_command_log":"handleEmbedCommand()\t fall fo Guild: {{guildId}}\t User: {{userId}}\t Error: {{err}}"
+}
