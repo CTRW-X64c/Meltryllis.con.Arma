@@ -332,8 +332,11 @@ export async function setRoleAssignment(guildId: string, messageId: string, chan
 
     if (header.affectedRows === 2) {
       const [rows] = await pool.query("SELECT id FROM role_assignments WHERE guild_id = ? AND message_id = ? AND emoji = ?", [guildId, messageId, emoji]);
-      if ((rows as any[]).length > 0) {
-        assignmentId = (rows as any[])[0].id;
+    
+      const assignedRows = rows as any[]; 
+      
+      if (assignedRows.length > 0) {
+        assignmentId = assignedRows[0].id;
       }
     }
     
