@@ -221,7 +221,6 @@ export function createClient(): Client {
                     } else {
                         continue;
                     }
-                    
                     try {
                         await botMessage.react('❌'); 
                         debug("Reaction ❌ added to bot message.", "Events.MessageCreate");
@@ -239,15 +238,6 @@ export function createClient(): Client {
                         try {
                             await botMessage.delete();
                             debug("Bot message deleted successfully via reaction.", "Events.MessageCreate");
-
-                            const confirmationMessage = await message.channel.send(i18next.t("message_deleted", { ns: "core" }) || "Mensaje borrado.");
-                            setTimeout(() => {
-                                confirmationMessage.delete().catch((e: Error) => {
-                                    if (e.message.includes("Unknown Message")) return;
-                                    debug(`Could not delete follow-up message: ${e.message}`, "Events.MessageCreate");
-                                });
-                            }, 5000);
-                            
                         } catch (err) {
                             const errMsg: string = (err as Error).message;
                             error(`Failed to delete message via reaction: ${errMsg}`, "Events.MessageCreate");
