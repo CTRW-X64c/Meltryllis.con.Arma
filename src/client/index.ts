@@ -241,7 +241,7 @@ export function createClient(): Client {
                         } catch (err) {
                             const errMsg: string = (err as Error).message;
                             error(`Failed to delete message via reaction: ${errMsg}`, "Events.MessageCreate");
-                            const failureMessage = await message.channel.send(i18next.t("message_delete_failed", { ns: "core" }) || "No pude borrar el mensaje.");
+                            const failureMessage = await message.channel.send(i18next.t("message_delete_failed", { ns: "core" }));
                             setTimeout(() => {
                                 failureMessage.delete().catch((e: Error) => {
                                     if (e.message.includes("Unknown Message")) return;

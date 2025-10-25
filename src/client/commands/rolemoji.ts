@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel, PermissionsBitField } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../logging";
 import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../database";
@@ -160,7 +160,24 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
                 embed.setDescription(description);
             }
             await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            
         } else if (subcommand === "help") {
+            const channel = interaction.channel;
+            const guild = interaction.guild;
+            if (!guild || !channel || !('permissionsFor' in channel)) {
+                await interaction.reply({ content: i18next.t("command_gtest_error_permissionuild_only", { ns: "common" }), flags: MessageFlags.Ephemeral });
+                return;
+            }
+            const botMember = guild.members.me;
+            if (!botMember) {
+                await interaction.reply({
+                    content: i18next.t("test_error_permission_user", { ns: "test" }), flags: MessageFlags.Ephemeral});
+                return;
+            }
+            const channelPermissions = channel.permissionsFor(botMember);
+            const ManageRoles = botMember.permissions.has(PermissionsBitField.Flags.ManageRoles);
+            const AddReactions = channelPermissions.has(PermissionsBitField.Flags.AddReactions);
+            const ExternalEmojis = channelPermissions.has(PermissionsBitField.Flags.UseExternalEmojis);               
                 const embed = new EmbedBuilder()
                     .setColor("#0099ff")
                     .setTitle(i18next.t("command_rolemoji_help_title", { ns: "rolemoji" }))
@@ -168,16 +185,36 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
                     .addFields({
                         name: i18next.t("embed_rolemoji_paso_1", { ns: "rolemoji" }),
                         value: i18next.t("embed_rolemoji_fix_1", { ns: "rolemoji" }),
-                    }, {
+                    }, 
+                    {
+                        name: i18next.t("manage_roles_permission", { ns: "rolemoji" }),
+                        value: ManageRoles ? i18next.t("allowed_permission", { ns: "rolemoji" }) : i18next.t("missing_permission", { ns: "rolemoji" }),
+                        inline: true,
+                    },
+                    {
+                        name: i18next.t("add_reactions_permission", { ns: "rolemoji" }),
+                        value: AddReactions ? i18next.t("allowed_permission", { ns: "rolemoji" }) : i18next.t("missing_permission", { ns: "rolemoji" }),
+                        inline: true,
+                    },
+                    {
+                        name: i18next.t("use_external_emojis_permission", { ns: "rolemoji" }),
+                        value: ExternalEmojis ? i18next.t("allowed_permission", { ns: "rolemoji" }) : i18next.t("missing_permission", { ns: "rolemoji" }),
+                        inline: true,
+                    },
+                    {
                         name: i18next.t("embed_rolemoji_paso_2", { ns: "rolemoji" }),
                         value: i18next.t("embed_rolemoji_fix_2", { ns: "rolemoji" }),
-                    }, {
+                        inline: false,
+                    }, 
+                    {
                         name: i18next.t("embed_rolemoji_paso_3", { ns: "rolemoji" }),
                         value: i18next.t("embed_rolemoji_fix_3", { ns: "rolemoji" }),
+                        inline: false,
                     },)
                     .setFooter({ text: i18next.t("command_rolemoji_help_footer", { ns: "rolemoji" }) })
                     .setImage("https://i.imgur.com/KmGckRk.jpeg")
                     .setTimestamp();                    
+                    
             await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         }
         

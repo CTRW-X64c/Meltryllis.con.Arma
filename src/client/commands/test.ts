@@ -47,6 +47,7 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
       { name: i18next.t("permission_embed_links", { ns: "test" }), bit: PermissionsBitField.Flags.EmbedLinks },
       { name: i18next.t("permission_manage_messages", { ns: "test" }), bit: PermissionsBitField.Flags.ManageMessages },
       { name: i18next.t("permission_read_message_history", { ns: "test" }), bit: PermissionsBitField.Flags.ReadMessageHistory },
+      { name: i18next.t("permission_add_reactions", { ns: "test" }), bit: PermissionsBitField.Flags.AddReactions },    
     ];
 
     const configMap = await getConfigMap();
