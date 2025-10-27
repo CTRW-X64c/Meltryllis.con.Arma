@@ -1,6 +1,7 @@
 # Dependencias y archivos de configuración
 node_modules/
 beta/
+Pict/
 package.json
 package-lock.json
 tsconfig.json
