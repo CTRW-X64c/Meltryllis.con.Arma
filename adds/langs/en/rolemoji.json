@@ -30,6 +30,12 @@
 "role_not_found": "Rol no encontrado",
 "error_fetching_message": "Error al reaccionar al mensaje: {{error}}",
 "rolemoji_execute": "Comando /rolemoji ejecutado en el servidor {{error}}",
-"rolemoji_execute_error": "Error al ejecutar el comando /rolemoji: {{error}}"
+"rolemoji_execute_error": "Error al ejecutar el comando /rolemoji: {{error}}",
+
+"manage_roles_permission": "🛠️ Gestionar roles:",
+"add_reactions_permission": "➕ Agregar reacciones:",
+"use_external_emojis_permission": "Usar emojis externos:",
+"allowed_permission": "✅ Permitido",
+"missing_permission": "❌ Faltante"
 }
 

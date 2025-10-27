@@ -7,7 +7,7 @@ import { buildReplacements } from "../remplazadores/index";
 import { registerCommands, handleCommandInteraction } from "./upCommands";
 import { initializeDatabase, getConfigMap, getGuildReplacementConfig, getRoleAssignments } from "./database";
 import { parseStatuses, setupStatusRotation } from "./setStatus";
-import { Client, Events, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, Interaction, Message, MessageFlags, TextBasedChannel, ButtonInteraction } from "discord.js";
+import { Client, Events, GatewayIntentBits, Interaction, Message, TextBasedChannel, MessageReaction, User } from "discord.js";
 import ApiReplacement from "../remplazadores/ApiReplacement";
 import { registerWelcomeEvents, preloadImagesAndFonts } from "./events/welcomeEvents";
 import { registerRolemojiEvents } from "./events/rolemojiEvents";
@@ -101,6 +101,7 @@ export function createClient(): Client {
         const guildId = message.guild?.id;
         const channelId = message.channel.id;
         const guildReplacementConfig = guildId ? await getGuildReplacementConfig(guildId) : new Map();
+        const originalAuthorId = message.author.id; 
 
         if (guildId) {
             const channelConfig = (await getConfigMap()).get(guildId)?.get(channelId);
@@ -204,72 +205,65 @@ export function createClient(): Client {
             for (let i = 0; i < replacedUrls.length; i += MAX_EMBEDS) {
                 const currentBatch = replacedUrls.slice(i, i + MAX_EMBEDS);
                 const replyContent = currentBatch.join('\n');
-
+// Cambio de boton a reacción para borrar mensajes
                 try {
-                    const deleteButton = new ButtonBuilder()
-                        .setCustomId("delete_message")
-                        .setLabel(i18next.t("delete_button_label", { ns: "core" }))
-                        .setStyle(ButtonStyle.Danger);
-                    
-                    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton);
-                    
-                    let botMessage: Message;
+                   let botMessage: Message;
 
                     if (i === 0) {
                         botMessage = await message.reply({
                             content: replyContent,
-                            components: [row],
                             allowedMentions: { repliedUser: false },
                         });
                     } else if (message.channel && message.channel.isTextBased()) {
                         botMessage = await message.channel.send({
                             content: replyContent,
-                            components: [row],
                         });
                     } else {
                         continue;
                     }
+                    try {
+                        await botMessage.react('❌'); 
+                        debug("Reaction ❌ added to bot message.", "Events.MessageCreate");
+                    } catch (err) {
+                        error(`Failed to react with ❌ on bot message: ${err}`, "Events.MessageCreate");
+                    }
+                    const filter = (reaction: MessageReaction, user: User) => {
+                        return reaction.emoji.name === '❌' && user.id === originalAuthorId;
+                    };
 
-                    const collector = botMessage.createMessageComponentCollector({
-                        filter: (interaction: Interaction) => {
-                            return interaction.isButton() && interaction.user.id === message.author.id;
-                        },
-                        time: 20_000,
-                    });
-                
-                    collector.on("collect", async (interaction: ButtonInteraction) => {
-                        if (interaction.isButton() && interaction.customId === "delete_message") {
-                            try {
-                                await botMessage.delete();
-                                await interaction.reply({
-                                    content: i18next.t("message_deleted", { ns: "core" }),
-                                    flags: MessageFlags.Ephemeral,
-                                });
-                                debug(i18next.t("message_deleted_log", {ns: "core" }), "Events.MessageCreate");
-                                collector.stop();
-                            } catch (err) {
-                                const errMsg: string = (err as Error).message;
-                                if (errMsg.includes("Unknown Message") || errMsg.includes("Interaction has already been acknowledged")) {
-                                    return;
-                                }
-                                error(i18next.t("delete_message_fail", {ns: "core", error: errMsg }), "Events.MessageCreate");
-                                await interaction.reply({
-                                    content: i18next.t("message_delete_failed", { ns: "common" }),
-                                    flags: MessageFlags.Ephemeral,
-                                });
-                            }
-                        }
-                    });
-                
-                    collector.on("end", async (reason: string) => {
-                        if (reason === "messageDelete" || reason === "user") return;
+                    const collector = botMessage.createReactionCollector({ filter, max: 1, time: 20000 });
+
+                    collector.on('collect', async (_reaction: MessageReaction) => {
+                        debug(`Reaction ❌ collected. Deleting message...`, "Events.MessageCreate");
                         try {
-                            await botMessage.edit({ components: [] });
-                            debug(i18next.t("button_disabled_log", {ns: "core" }), "Events.MessageCreate");
+                            await botMessage.delete();
+                            debug("Bot message deleted successfully via reaction.", "Events.MessageCreate");
                         } catch (err) {
                             const errMsg: string = (err as Error).message;
-                            if (errMsg.includes("Unknown Message")) return;
-                            error(i18next.t("disable_button_fail", {ns: "core", error: errMsg }), "Events.MessageCreate");
+                            error(`Failed to delete message via reaction: ${errMsg}`, "Events.MessageCreate");
+                            const failureMessage = await message.channel.send(i18next.t("message_delete_failed", { ns: "core" }));
+                            setTimeout(() => {
+                                failureMessage.delete().catch((e: Error) => {
+                                    if (e.message.includes("Unknown Message")) return;
+                                    debug(`Could not delete follow-up failure message: ${e.message}`, "Events.MessageCreate");
+                                });
+                            }, 5000);
+                        }
+                    });
+
+                    collector.on('end', async (_collected, reason) => {
+                        if (reason === 'time') { 
+                            try {
+                                const reactionToRemove = botMessage.reactions.cache.get('❌');
+                                if (reactionToRemove) {
+                                    await reactionToRemove.remove(); 
+                                    debug("❌ reaction removed after 20s timeout.", "Events.MessageCreate");
+                                }
+                            } catch (err) {
+                                const errMsg: string = (err as Error).message;
+                                if (errMsg.includes("Unknown Message")) return;
+                                error(`Error al remover reacción ❌: ${errMsg}`, "Events.MessageCreate");
+                            }
                         }
                     });
                 } catch (err) {

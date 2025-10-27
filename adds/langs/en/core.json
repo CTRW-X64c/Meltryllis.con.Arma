@@ -1,5 +1,6 @@
 {
     "delete_button_label": "🗑️ Delete",
+    "message_delete_failed_button": "❌ No se pudo borrar el mensaje.",
     "message_deleted": "Mensaje borrado.",  
     "format_link": "[Embedding from {{Site}}]({{RemUrl}})",
     
