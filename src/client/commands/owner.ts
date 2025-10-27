@@ -1,11 +1,11 @@
 // src/client/commands/leaveserver.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction } from "discord.js";
 import { debug, error } from "../../logging";
 import { Buffer } from 'node:buffer';
 
-export async function registerLeaveServerCommand(): Promise<SlashCommandBuilder[]> {
+export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()
-        .setName("leaveserver")
+        .setName("owner")
         .setDescription("Comando exclusivo del dueño para gestionar servidores del bot.")
         .addSubcommand(subcommand =>
             subcommand
@@ -26,10 +26,10 @@ export async function registerLeaveServerCommand(): Promise<SlashCommandBuilder[
     return [leaveServerCommand] as SlashCommandBuilder[];
 }
 
-export async function handleLeaveServerCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+export async function handleOwnerCommands(interaction: ChatInputCommandInteraction): Promise<void> {
     if (interaction.user.id !== process.env.OWNER_BOT_ID) {
         await interaction.reply({
-            content: "Este comando es de uso exclusivo del desarrollador del bot.",
+            content: "Este comando es de uso exclusivo del desarrollador.",
             flags: MessageFlags.Ephemeral
         });
         return;
@@ -103,7 +103,7 @@ async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<vo
     }
 
     try {
-        const guild = await interaction.client.guilds.fetch(serverId);
+        const guild = await interaction.client.guilds.fetch(serverId).catch(() => null);
 
         if (!guild) {
             await interaction.reply({
@@ -113,46 +113,90 @@ async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<vo
             return;
         }
 
+        const guildName = guild.name;
         const guildInfo = {
             name: guild.name,
             id: guild.id,
             memberCount: guild.memberCount,
-            ownerId: guild.ownerId,
+            ownerId: (guild as any).ownerId,
         };
 
         if (guildInfo.memberCount > 100) {
-            await interaction.reply({
-                content: `⚠️ **¿Estás seguro?**\nVas a hacer que el bot abandone:\n**${guildInfo.name}**\n👥 ${guildInfo.memberCount} miembros\n🆔 ${guildInfo.id}\n\n**Responde con** \`/leaveserver leave ${serverId}\` **de nuevo para confirmar.**`,
-                flags: MessageFlags.Ephemeral
+            const confirmButton = new ButtonBuilder()
+                .setCustomId('confirm_leave')
+                .setLabel('Confirmar Salida')
+                .setStyle(ButtonStyle.Danger);
+
+            const cancelButton = new ButtonBuilder()
+                .setCustomId('cancel_leave')
+                .setLabel('Cancelar Salida')
+                .setStyle(ButtonStyle.Secondary);
+
+            const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirmButton, cancelButton);
+            const confirmationMessage = await interaction.reply({
+                content: `⚠️ **¿Estás seguro?**\nVas a hacer que el bot abandone un servidor grande:\n**${guild.name}** (${guild.id})\n👥 ${guild.memberCount} miembros`,
+                components: [row],
+                flags: MessageFlags.Ephemeral,
+                fetchReply: true
             });
+
+            try {
+                const confirmation = await (confirmationMessage as any).awaitMessageComponent({
+                    filter: (i: ButtonInteraction) => i.user.id === interaction.user.id,
+                    componentType: ComponentType.Button,
+                    time: 60_000
+                });
+
+                if (confirmation.customId === 'confirm_leave') {
+                    await guild.leave();
+                    await confirmation.update({ content: `✅ He abandonado **${guildName}** exitosamente.`, components: [] });
+                } else {
+                    await confirmation.update({ content: '❌ Salida cancelada.', components: [] });
+                }
+            } catch (err: any) {
+                if (err?.message?.includes("time") || err?.message?.includes("collector")) {
+                    try {
+                        await interaction.followUp({ content: '⌛ Tiempo de confirmación agotado. Operación cancelada.', flags: MessageFlags.Ephemeral });
+                    } catch { /* ignore follow-up errors */ }
+                } else {
+                    throw err;
+                }
+            }
+
             return;
         }
 
         await guild.leave();
-
         await interaction.reply({
-            content: `✅ **He abandonado el servidor exitosamente**\n📛 **Nombre:** ${guildInfo.name}\n🆔 **ID:** ${guildInfo.id}\n👥 **Miembros:** ${guildInfo.memberCount}\n`,
+            content: `✅ He abandonado **${guildName}** exitosamente.`,
             flags: MessageFlags.Ephemeral
         });
-
-        debug(`Bot forzado a abandonar el servidor ${guildInfo.name} (${guildInfo.id}) por el dueño. Miembros: ${guildInfo.memberCount}`, "LeaveServerCommand");
-
+        debug(`Bot forzado a abandonar el servidor ${guild.name} (${guild.id}) por el dueño.`, "LeaveServerCommand");
     } catch (err: any) {
         error(`Error al intentar abandonar el servidor ${serverId}: ${err}`, "LeaveServerCommand");
         
         let errorMessage = `❌ Error al intentar abandonar el servidor con ID \`${serverId}\`.`;
         
-        if (err.code === 10004) { // Unknown Guild
+        if (err?.code === 10004) { // Unknown Guild
             errorMessage += "\n⚠️ El bot no está en este servidor o el ID es incorrecto.";
-        } else if (err.code === 50001) { // Missing Access
+        } else if (err?.code === 50001) { // Missing Access
             errorMessage += "\n⚠️ No tengo permisos para abandonar este servidor.";
-        } else if (err.message?.includes("Missing Access")) {
+        } else if (err?.message?.includes("Missing Access")) {
             errorMessage += "\n⚠️ No tengo permisos para acceder a este servidor.";
         }
 
-        await interaction.reply({
-            content: errorMessage,
-            flags: MessageFlags.Ephemeral
-        });
+        try {
+            await interaction.reply({
+                content: errorMessage,
+                flags: MessageFlags.Ephemeral
+            });
+        } catch {
+            try {
+                await interaction.followUp({
+                    content: errorMessage,
+                    flags: MessageFlags.Ephemeral
+                });
+            } catch {  }
+        }
     }
 }
