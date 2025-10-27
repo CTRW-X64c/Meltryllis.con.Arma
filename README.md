@@ -18,11 +18,14 @@ Meltryllis inicialmente fue pensada para embendig de Link y poco a poco se le fu
 &nbsp; __Twitter:__ &nbsp;fixvx.com<br>
 &nbsp; __YouTube:__ &nbsp;youtu.be<br>
 Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok. <br><br>
-Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en caso de problemas o desacuerdo en el que se usa se puede usar el comando /embed para cambiar el replazador de dominio o directamente desactivarlo
+*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar usando el comando **/embed** para cambiar el replazador de dominio o directamente desactivarlo*
 
 
 ---
 ## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
+
+![Docker](Pict/DockerHub.JPG)
+
 <summary>🐳 Configuracion docker-compose.yml:</summary><br>
 
 ```yaml
