@@ -20,6 +20,7 @@
 "test_error_permission_user": "No se pudo obtener el usuario en el bot.",
 "test_error_verify_permission": "No se pudieron verificar los permisos del bot.",
 "test_command_rolemojis_description": "Recuerda Gestionar Roles no es permiso por defecto.",
+"command_permission_error": "No tienes permiso para usar este comando.",
 
 "permission_name": "{{name}}",
 "dont_gg": "No se pudo obtener el servidor.",
