@@ -10,7 +10,7 @@ import Iwara from "./webs/Iwara";
 import Pixiv from "./webs/Pixiv";
 import Reddit from "./webs/Reddit";
 import Threads from "./webs/Threads";
-//import TikTok from "./webs/TikTok";
+import TikTok from "./webs/TikTok";
 import Tumblr from "./webs/Tumblr";
 import Twitch from "./webs/Twitch";
 import Twitter from "./webs/Twitter";
@@ -106,14 +106,13 @@ export const replacementMetaList: ReplacementMeta[] = [
     regexKeys: ["(\\/\\/|\\.)?threads\\.com/"],
     takesUrl: true,
   },
-/**   {
+  {
     name: "Tiktok",
     envVar: "TIKTOK_FIX_URL",
     Class: TikTok,
     regexKeys: ["\\/\\/(\\w+\\.)?tiktok.com\\/((t\\/)?\\w+|@[^\\s]+\\/video)"],
     takesUrl: true,
-  },
-  */
+  },  
   {
     name: "Tumblr",
     envVar: "TUMBLR_FIX_URL",
