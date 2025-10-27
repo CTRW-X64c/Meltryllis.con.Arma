@@ -138,22 +138,22 @@ Meltryllis con Arma/
 │   │   └── RuleReplacement.ts
 │   ├── environment.ts
 │   ├── index.ts
-│   ├── logging.ts
-│   ├── .env
-│   ├── Dockerfile
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── tsconfig.prod.json
-└── add/
-    ├── /langs/
-    │   └── locales/
-    │       ├── es/
-    │       │   └── *.json
-    │       └── en/
-    │           └── *.json
-    └── /fonts/
-        ├── Bitcount.ttf
-        └── StoryScript-Regular.ttf
+│   └── logging.ts
+├── add/
+│   ├── /langs/
+│   │   └── locales/
+│   │       ├── es/
+│   │       │   └── *.json
+│   │       └── en/
+│   │           └── *.json
+│   └── /fonts/
+│       ├── Bitcount.ttf
+│       └── StoryScript-Regular.ttf/
+│           └── .env
+├── Dockerfile
+├── package-lock.json
+├── package.json
+├── tsconfig.json
+└── tsconfig.prod.json
    
  ```
