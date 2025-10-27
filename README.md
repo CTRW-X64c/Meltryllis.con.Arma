@@ -1,8 +1,29 @@
 # Meltryllis con Arma!
-BotDiscord
+Meltryllis inicialmente fue pensada para embendig de Link y poco a poco se le fue añadiendo funciones y con el tiempo seguira teniendo mas, pero principalmente se centra en el Embeding. <br>
+ ## Embedigs que usamos:<br>
+&nbsp; __Bilibili:__ &nbsp;vxbilibili.com<br>
+&nbsp; __Bsky:__ &nbsp;bskyx.app<br>
+&nbsp; __DeviantArt:__ &nbsp;fixdeviantart.com<br>
+&nbsp; __Facebook:__ &nbsp;facebed.com<br>
+&nbsp; __Furaffinity:__ &nbsp;fxfuraffinity.net<br>
+&nbsp; __Imgur:__ &nbsp;imgurez.com<br>
+&nbsp; __Instagram:__ &nbsp;fxinstagram.com<br>
+&nbsp; __Iwara:__ &nbsp;fxiwara.seria.moe<br>
+&nbsp; __Pixiv:__ &nbsp;phixiv.net<br>
+&nbsp; __Reddit:__ &nbsp;rxddit.com<br>
+&nbsp; __Threads:__ &nbsp;threadsez.com<br>
+&nbsp; __TikTok:__ &nbsp; tiktokez.com<br>
+&nbsp; __Tumblr:__ &nbsp;txtumblr.com<br>
+&nbsp; __Twitch:__ &nbsp;fxtwitch.seria.moe<br>
+&nbsp; __Twitter:__ &nbsp;fixvx.com<br>
+&nbsp; __YouTube:__ &nbsp;youtu.be<br>
+Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok. <br><br>
+Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en caso de problemas o desacuerdo en el que se usa se puede usar el comando /embed para cambiar el replazador de dominio o directamente desactivarlo
+
 
 ---
-Configuracion docker-compose:
+## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
+<summary>🐳 Configuracion docker-compose.yml:</summary><br>
 
 ```yaml
 # docker-compose.yml
@@ -65,9 +86,11 @@ services:
     volumes:
       - ./db:/var/lib/mysql
 ```
-[hub.docker.com](https://hub.docker.com/r/nowaru124/meltryllis)
+
 ---
-Archivos en el Proyecto:
+<details>
+🌳 Archivos en el Proyecto:<br><br>
+
 ```
 Meltryllis con Arma/
 ├── src/
@@ -133,5 +156,4 @@ Meltryllis con Arma/
         ├── Bitcount.ttf
         └── StoryScript-Regular.ttf
    
-    
  ```
