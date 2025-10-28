@@ -18,10 +18,25 @@ Meltryllis inicialmente fue pensada para embendig de Link y poco a poco se le fu
 &nbsp; __Twitter:__ &nbsp;fixvx.com<br>
 &nbsp; __YouTube:__ &nbsp;youtu.be<br>
 Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok. <br><br>
-*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar o desactivar usando el comando **/embed**!
-
+*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar o desactivar usando el comando **/embed***!
 
 ---
+
+## Comandos: 
+ - /hola = Info del bot y ayuda sobre los comandos.
+ - /embed configurar = Desactivar & Cambiar Dominio.
+ - /rolemoji 
+    - help = Informacion y muetra si cuenta con los permisos necesarios para funcionar.
+    - set = Establecer Emojis para reaccionar y recibir rol asociado. 
+    - list = Muestra todo los "Rolemoji" hechos.
+    - remove = Remover el "Rolemojis".
+ - /welcome = Establece un mensaje de bienvenida, puedes usar <user> para mencionar al que se une.
+ - /test 
+    - Channel/Guild = Revisa por canal o todo el server, (max 24 canales), donde funciona el bot.
+    - Embed = para ver las configuraciones de los embeddings. 
+ - /work = Activa/Desactiva el funcionar en un canal.
+ - /replybots = Activa/Desactiva el responder a otros bots, por default esta activo. 
+
 ## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
 
 ![Docker](Pict/DockerHub.JPG)
