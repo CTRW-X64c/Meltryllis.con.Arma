@@ -1,4 +1,4 @@
-// src/client/modules/work.ts
+// src/client/commands/work.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, PermissionFlagsBits } from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../logging";
@@ -69,9 +69,9 @@ export async function handleWorkCommand(interaction: ChatInputCommandInteraction
       content: response,
       flags: MessageFlags.Ephemeral,
     });
-    debug(i18next.t("work_debug_log1", { ns: "work", state: isEnabled ? "On" : "Off", chaid: channelId }), "Commands.Work");
+    debug(`Comando /work ejecutado. Estado: ${isEnabled ? "On" : "Off"}, Canal: ${channelId}`, "Commands.Work"); //<=
   } catch (err) {
-    error(i18next.t("work_error_log1", { ns: "work", err: err }));
+    error(`Error al ejecutar comando /work: ${err}`); //<=
     await interaction.reply({
       content: i18next.t("command_error", { ns: "work" }),
       flags: MessageFlags.Ephemeral,

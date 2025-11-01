@@ -1,15 +1,14 @@
   {
-    "work_command_description": "Activa o desactiva el bot en este canal",
-    "work_command_state_description": "Estado del bot: on o off",
-
-    "work_command_on_success": "Bueno, estoy de regreso 😎",
-    "work_command_off_success": "Bye bye, te veo en otros canales 🫶",
-    "work_command_already_on": "¡Ya estoy trabajando en este canal! 😎",
-    "work_command_already_off": "¡Ya estoy desactivado en este canal! 🫶",
-    "command_permission_error": "Solo los administradores o el propietario pueden usar este comando.",
-    "error_identifying_channel": "No se pudo identificar el servidor o el canal.",
-    "command_error": "Ocurrió un error al ejecutar el comando.",
-    "work_error_log1": "Error al ejecutar comando /work: {{err}}",
-    "work_debug_log1": "Comando /work ejecutado: {{state}} en canal {{chaid}}"
-
+    "ATS1": "Command Builder",
+        "work_command_description": "Enable or disable the bot in this channel",
+        "work_command_state_description": "Bot state: on or off",
+        
+    "ATS2": "Command Responses & Errors",
+        "work_command_on_success": "Well, I'm back 😎",
+        "work_command_off_success": "Bye bye, see you in other channels 🫶",
+        "work_command_already_on": "I'm already working on this channel! 😎",
+        "work_command_already_off": "I'm already disabled in this channel! 🫶",
+        "command_permission_error": "Only administrators or the owner can use this command.",
+        "error_identifying_channel": "Could not identify the server or channel.",
+        "command_error": "An error occurred while executing the command."
 }

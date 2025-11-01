@@ -10,6 +10,7 @@ import { registerWelcomeCommand, handleWelcomeCommand } from "./commands/welcome
 import { registerReplybotsCommand, handleReplybotsCommand } from "./commands/replybots";
 import { registerRolemojiCommand, handleRolemojiCommand } from "./commands/rolemoji"
 import { registerOwnerCommands, handleOwnerCommands } from "./commands/owner";
+import { registerYouTubeCommand, handleYouTubeCommand } from "./commands/youtube";
 
 export interface ChannelConfig {
   enabled: boolean;
@@ -28,10 +29,11 @@ export async function registerCommands(client: Client) {
     ...(await registerWelcomeCommand()),
     ...(await registerRolemojiCommand()),
     ...(await registerOwnerCommands()),
+    ...(await registerYouTubeCommand()),
   ];
 
   client.application?.commands.set(commands)
-    .then(() => info("Comandos /hola, /test, /embeds, /work, /welcome, /replybots, /rolemoji y /owner registrados con éxito", "Commands.Register"))
+    .then(() => info("Comandos /hola, /test, /embeds, /work, /welcome, /replybots, /rolemoji, /owner y /youtube registrados con éxito", "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 
@@ -52,5 +54,7 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
     await handleRolemojiCommand(interaction);
   } else if (interaction.commandName === "owner") {
     await handleOwnerCommands(interaction);
+  } else if (interaction.commandName === "youtube") {
+    await handleYouTubeCommand(interaction);
   }
 }

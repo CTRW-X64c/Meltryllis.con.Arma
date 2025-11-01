@@ -1,3 +1,4 @@
+// src/client/commands/rolemoji.ts
 import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel, PermissionsBitField } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../logging";
@@ -111,9 +112,9 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
                 break;
         }
         // Termino de seccion switch para subcomandos
-        debug(i18next.t("rolemoji_execute", { ns: "rolemoji", error: guildId }));
+        debug(`Comando /rolemoji ejecutado en Guild: ${guildId}`); //<=
     } catch (err) {
-        debug(i18next.t("rolemoji_execute_error", { ns: "rolemoji", error: err }));
+        error(`Error al ejecutar comando /rolemoji: ${err}`); //<=
         await interaction.reply({
             content: i18next.t("command_error", { ns: "rolemoji" }),
             flags: MessageFlags.Ephemeral
@@ -212,7 +213,7 @@ async function ComHelp(interaction: ChatInputCommandInteraction): Promise<void> 
     
     if (!guild || !channel || !('permissionsFor' in channel)) {
         await interaction.reply({ 
-            content: i18next.t("command_guild_only", { ns: "common" }), 
+            content: i18next.t("command_guild_only_error", { ns: "rolemoji" }), 
             flags: MessageFlags.Ephemeral 
         });
         return;
@@ -268,7 +269,7 @@ async function ComHelp(interaction: ChatInputCommandInteraction): Promise<void> 
             }
         )
         .setFooter({ text: i18next.t("command_rolemoji_help_footer", { ns: "rolemoji" }) })
-        .setImage("https://i.imgur.com/KmGckRk.jpeg")
+        .setImage("https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/RolemojiHelp.png")
         .setTimestamp();
         
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

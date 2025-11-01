@@ -1,4 +1,4 @@
-// src/client/modules/replybots.ts
+// src/client/commands/replybots.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, PermissionFlagsBits } from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../logging";
@@ -69,9 +69,9 @@ export async function handleReplybotsCommand(interaction: ChatInputCommandIntera
       content: response,
       flags: MessageFlags.Ephemeral,
     });
-    debug(i18next.t("executed_replybots_command", {ns: "replybots", state: isReplyBots ? "On" : "Off", channelId: channelId}));
+    debug(`Comando /replybots ejecutado. Estado: ${isReplyBots ? "On" : "Off"}, Canal: ${channelId}`); //<=
   } catch (err) {
-    error(i18next.t("error_replybots_command", {ns: "replybots", error: err}));
+    error(`Error al ejecutar comando /replybots: ${err}`); //<=
     await interaction.reply({
       content: i18next.t("command_error", { ns: "replybots" }),
       flags: MessageFlags.Ephemeral,

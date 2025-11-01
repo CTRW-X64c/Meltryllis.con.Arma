@@ -51,22 +51,27 @@ services:
     container_name:    
     restart: "recomendado como: on-failure:2"
     environment:
-      - DISCORD_BOT_TOKEN= "Token"
-      - OWNER_BOT_ID= "User ID owner"
-      - LANGS_SUPPORTED= "Idiomas soportados"
-      - LOCALE= "Lenguaje main" 
-      - REPLY_OTHER_BOTS= "true/false"
-      - DEBUG_MODE= "0 Debug/ >0 produccion"
-      - STATUS_TIME_MINUTOS= "tiempo"
-      - WELCOME_BANNER_URL= "banner recomendado 200x600"     
-      - PUID= 
-      - PGID= 
-      - TZ=       
-      - DB_HOST= 
+      #Cosas del Owner
+      - DISCORD_BOT_TOKEN=
+      - OWNER_BOT_ID=
+      #Idiomas
+      - LANGS_SUPPORTED=
+      - LOCALE=
+      #Configuraciones
+      - DEBUG_MODE=
+      - YT_RSSCHECK_TIME=
+      - REPLY_OTHER_BOTS=
+      - WELCOME_BANNER_URL= 
+      - PUID=
+      - PGID=
+      - TZ=
+      #Base de datos    
+      - DB_HOST=
       - DB_USER=
       - DB_PASSWORD=
-      - DB_DATABASE=         
-      - INSTAGRAM_FIX_URL=.
+      - DB_DATABASE=
+      #Dominios remplazadores         
+      - INSTAGRAM_FIX_URL=
       - PIXIV_FIX_URL=
       - REDDIT_FIX_URL=
       - TIKTOK_FIX_URL=
@@ -81,8 +86,10 @@ services:
       - FURAFF_FIX_URL=
       - IMGUR_FIX_URL=
       - IWARA_FIX_URL=
-      - API_REPLACEMENT_DOMAINS= "Sitios soportados por https://embedez.com/"
-      - BOT_STATUSES= "emoji | nombre | tipo de actividad"      
+      - API_REPLACEMENT_DOMAINS=
+      #Configuraciones Bot 
+      - BOT_STATUSES=
+      - STATUS_TIME_MINUTOS=
     volumes:
       - ./bot:/app/logs
     depends_on:
@@ -96,7 +103,7 @@ services:
       - 3306:3306
     environment:
       - MYSQL_ROOT_PASSWORD=
-      - MYSQL_USER=     
+      - MYSQL_USER=
       - MYSQL_PASSWORD=
       - MYSQL_DATABASE=
       - PGID=
@@ -104,10 +111,41 @@ services:
     volumes:
       - ./db:/var/lib/mysql
 ```
+<details> <summary>🐳 Valores para variables</summary>
+ 
+| Variable Bot | Valores |
+| --- | --- |
+| `DISCORD_BOT_TOKEN` | TOKEN de tu bot |
+| `OWNER_BOT_ID`  | Tu ID de Usuario de discord  |
+| `LANGS_SUPPORTED` | Idiomas que soporta tu bot |
+| `LOCALE` | Idioma por default que tendra el bot |
+| `REPLY_OTHER_BOTS` | "true \| false" Responder a Bots |
+| `DEBUG_MODE` | "Debug mode *0* \| Produccion *>0*" |
+| `YT_RSSCHECK_TIME` | Tiempo para Ejecutar RSS en Min. Minimo 5 |
+| `WELCOME_BANNER_URL` | URL para el Banner, 200x600|
+| `PUID & PGID` | Usuario ID/Grupo para escribir datos |
+| `TZ` | Zona Horaria "America/New_York" |
+| `DB_HOST` | IP o Dominio |
+| `DB_USER` | Usuario BD \| MYSQL_USER |
+| `DB_PASSWORD` | Password BD \| MYSQL_PASSWORD |
+| `DB_DATABASE` | Nombre BD \| MYSQL_DATABASE |
+| `"Sitio"_FIX_URL` | Dominio a remplazar |
+| `API_REPLACEMENT_DOMAINS` | Sitios soportados por [Embedez](https://embedez.com/) |
+| `BOT_STATUSES` | emoji \| nombre \| tipo de actividad |
+| `STATUS_TIME_MINUTOS` | Tiempo de Rotacion de *BOT_STATUSES* |
 
+| Variable BD  | Valores |
+| --- | --- |
+| `MYSQL_ROOT_PASSWORD` | Establece contraseña Admin |
+| `MYSQL_USER` | Usuario de la Base de Datos |
+| `MYSQL_PASSWORD` | Contraseña de Base de datos |
+| `MYSQL_DATABASE` | Nombre de Base de datos |
+| `PUID & PGID` | Usuario ID/Grupo para escribir datos |
+
+</details>
 ---
-<details>
-🌳 Archivos en el Proyecto:<br><br>
+
+<details> <summary>🌳 Archivos en el Proyecto</summary>
 
 ```
 Meltryllis con Arma/
@@ -121,9 +159,11 @@ Meltryllis con Arma/
 │   │   │   ├── rolemoji.ts
 │   │   │   ├── test.ts
 │   │   │   ├── welcome.ts
-│   │   │   └── work.ts
+│   │   │   ├── work.ts
+│   │   │   └── youtube.ts
 │   │   ├── events/
 │   │   │   ├── rolemojiEvents.ts
+│   │   │   ├── rssChek-YT.ts
 │   │   │   └── welcomeEvents.ts
 │   │   ├── database.ts
 │   │   ├── index.ts
@@ -175,3 +215,4 @@ Meltryllis con Arma/
 └── tsconfig.prod.json
    
  ```
+</details>

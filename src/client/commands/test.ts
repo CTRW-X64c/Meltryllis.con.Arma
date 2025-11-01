@@ -1,4 +1,4 @@
-// src/client/modules/test.ts
+// src/client/commands/test.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, TextChannel, PermissionFlagsBits} from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../logging";
@@ -73,9 +73,9 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
     }
      // Termino de seccion switch para subcomandos
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-    debug(i18next.t("test_command_executed", { ns: "test", mode: mode }));
+    debug(`Comando /test ejecutado en modo: ${mode}`); //<=
   } catch (err) {
-    error(i18next.t(`test_command_error`, { ns: "test", err: err }));
+    error(`Error al ejecutar comando /test: ${err}`); //<=
     await interaction.reply({
       content: i18next.t("command_error", { ns: "test" }),
       flags: MessageFlags.Ephemeral,

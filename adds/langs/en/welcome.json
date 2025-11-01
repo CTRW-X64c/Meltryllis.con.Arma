@@ -1,8 +1,13 @@
 {
-    "command_welcome_description": "Establece un mensaje de Bienvenida y Banner", 
-    "command_welcome_config_description": "Establece un canal para la Bienvenida",
-    "command_welcome_channel_description": "Establece canal para mostrar el mensaje de Bienvenida/salida",
-    "command_welcome_enabled_description": "Activa/Desactiva la funcion Welcome",
-    "command_welcome_message_description": "Escribe tu mensaje de Bienvenida, usa <user> para mencionar, tambien pudes usar #canal",
-    "command_welcome_config_set": "Se establecio la configuracion"
+    "ATS1": "Command Builder",
+        "command_welcome_description": "Set a Welcome message and Banner",
+        "command_welcome_config_description": "Set a channel for the Welcome message",
+        "command_welcome_channel_description": "Set the channel to display the Welcome/leave message",
+        "command_welcome_enabled_description": "Enable/Disable the Welcome function",
+        "command_welcome_message_description": "Write your Welcome message, use <user> to mention, you can also use #channel",
+        
+    "ATS2": "Command Responses & Errors",
+        "command_welcome_config_set": "Configuration has been set",
+        "command_permission_error": "You do not have permission to use this command.",
+        "command_error": "An error occurred while executing the command."
 }

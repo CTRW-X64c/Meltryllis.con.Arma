@@ -55,7 +55,19 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
     "work":[
         "work_command_description",
         "work_command_state_description"
-    ]
+    ],
+    "youtube":[
+        "command_youtube",
+        "command_youtube_descripcion",
+        "command_youtube_seguir",
+        "command_youtube_canal",
+        "command_youtube_lista",
+        "command_youtube_dejar",
+        "command_youtube_id_canal",
+        "command_youtube_test",
+        "command_youtube_test_id_canal",
+        "command_youtube_help"
+    ],
 
     // Agrega más namespaces según necesites
 };

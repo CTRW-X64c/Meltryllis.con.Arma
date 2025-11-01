@@ -1,4 +1,4 @@
-// src/client/modules/embed.ts
+// src/client/commands/embed.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from "discord.js";
 import i18next from "i18next";
 import { setGuildReplacementConfig } from "../database";
@@ -146,7 +146,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
             content: successMessage,
         });
     } catch (err) {
-        error(i18next.t("embed_command_log", { ns: "embed", guildId: interaction.guildId, userId: interaction.user.id, err: err }));
+        error(`handleEmbedCommand()\tFallo para Guild: ${interaction.guildId}\tUsuario: ${interaction.user.id}\tError: ${err}`);
         await interaction.reply({
             content: i18next.t("embed_command_failed", { ns: "embed" }),
             flags: MessageFlags.Ephemeral,

@@ -1,4 +1,4 @@
-// src/client/modules/welcome.ts
+// src/client/commands/welcome.ts
 import { SlashCommandBuilder, MessageFlags, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType } from "discord.js";
 import i18next from "i18next";
 import { error } from "../../logging";
@@ -42,7 +42,7 @@ export async function handleWelcomeCommand(interaction: ChatInputCommandInteract
         const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
         if (!isAdmin) {
             await interaction.reply({
-                content: i18next.t("command_permission_error", { ns: "common" }) || "Solo los administradores o el propietario pueden usar este comando.",
+                content: i18next.t("command_permission_error", { ns: "rolemoji" }),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -73,7 +73,7 @@ export async function handleWelcomeCommand(interaction: ChatInputCommandInteract
     } catch (err) {
         error(`Error al ejecutar comando /welcome: ${err}`, "WelcomeCommand");
         await interaction.reply({
-            content: i18next.t("command_error", { ns: "common" }) || "Ocurrió un error al ejecutar el comando.",
+            content: i18next.t("command_error", { ns: "welcome" }),
             flags: MessageFlags.Ephemeral,
         });
     }

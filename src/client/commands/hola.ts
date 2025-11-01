@@ -1,4 +1,4 @@
-// src/client/modules/hola.ts
+// src/client/commands/hola.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags } from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../logging";
@@ -71,9 +71,9 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-    debug(i18next.t("log_command_executed", { ns: "hola" }));
+    debug("Comando /hola ejecutado");
   } catch (err) {
-    error(i18next.t("error_hola_command", {ns: "hola", error: err}));
+    error(`Error al ejecutar comando /hola: ${err}`);
     await interaction.reply({
       content: i18next.t("command_error", { ns: "hola" }),
       flags: MessageFlags.Ephemeral,

@@ -1,3 +1,4 @@
+// src/client/events/welcomeEvents.ts
 import { Client, GuildMember, AttachmentBuilder, TextChannel, EmbedBuilder, PartialGuildMember } from "discord.js";
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
 import { debug, error } from "../../logging";

@@ -27,6 +27,17 @@ export interface RoleAssignment {
   roleId: string;
 }
 
+export interface YouTubeFeed {
+  id: number;
+  guild_id: string;
+  channel_id: string;
+  youtube_channel_id: string;
+  youtube_channel_name: string;
+  rss_url: string;
+  last_video_id: string | null;
+  created_at: Date;
+}
+
 let pool: Pool | null = null;
 let isInitialized = false; 
 let initializationPromise: Promise<void> | null = null;
@@ -35,6 +46,7 @@ const configMapCache = new Map<string, Map<string, ChannelConfig>>();
 const guildReplacementCache = new Map<string, Map<string, GuildReplacementConfig>>();
 const welcomeConfigCache = new Map<string, WelcomeConfig>();
 const roleAssignmentCache = new Map<string, Map<string, RoleAssignment>>();
+const youtubeFeedCache = new Map<string, YouTubeFeed[]>();
 
 export async function initializeDatabase(): Promise<void> {
   if (isInitialized) {
@@ -108,6 +120,20 @@ export async function initializeDatabase(): Promise<void> {
             role_id VARCHAR(30) NOT NULL,
             PRIMARY KEY (id),
             UNIQUE KEY unique_assignment (guild_id, message_id, emoji)
+          )
+        `);
+
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS youtube_feeds (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          guild_id VARCHAR(30) NOT NULL,
+          channel_id VARCHAR(30) NOT NULL,
+          youtube_channel_id VARCHAR(50) NOT NULL,
+          youtube_channel_name VARCHAR(100) NOT NULL,
+          rss_url VARCHAR(255) NOT NULL,
+          last_video_id VARCHAR(50),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE KEY unique_guild_youtube (guild_id, youtube_channel_id)
           )
         `);
 
@@ -375,6 +401,115 @@ export async function removeRoleAssignment(guildId: string, id: number): Promise
     return false;
   } catch (err) {
     error(`Failed to remove role assignment with ID ${id}: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function getYouTubeFeeds(guildId: string): Promise<YouTubeFeed[]> {
+  if (youtubeFeedCache.has(guildId)) {
+    return youtubeFeedCache.get(guildId)!;
+  }
+
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, guild_id, channel_id, youtube_channel_id, youtube_channel_name, rss_url, last_video_id, created_at FROM youtube_feeds WHERE guild_id = ?",
+      [guildId]
+    );
+
+    const feeds = (rows as any[]).map(row => ({
+      id: row.id,
+      guild_id: row.guild_id,
+      channel_id: row.channel_id,
+      youtube_channel_id: row.youtube_channel_id,
+      youtube_channel_name: row.youtube_channel_name,
+      rss_url: row.rss_url,
+      last_video_id: row.last_video_id,
+      created_at: new Date(row.created_at)
+    }));
+
+    youtubeFeedCache.set(guildId, feeds);
+    return feeds;
+  } catch (err) {
+    error(`Failed to fetch YouTube feeds for guild ${guildId}: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function addYouTubeFeed(feed: Omit<YouTubeFeed, 'id' | 'created_at'>): Promise<number> {
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    const [result] = await pool.query(
+      "INSERT INTO youtube_feeds (guild_id, channel_id, youtube_channel_id, youtube_channel_name, rss_url, last_video_id) VALUES (?, ?, ?, ?, ?, ?)",
+      [feed.guild_id, feed.channel_id, feed.youtube_channel_id, feed.youtube_channel_name, feed.rss_url, feed.last_video_id]
+    );
+
+    const header = result as ResultSetHeader;
+    youtubeFeedCache.delete(feed.guild_id); // Invalidar cache
+    return header.insertId;
+  } catch (err) {
+    error(`Failed to add YouTube feed: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function updateYouTubeFeedLastVideo(id: number, lastVideoId: string): Promise<void> {
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    await pool.query(
+      "UPDATE youtube_feeds SET last_video_id = ? WHERE id = ?",
+      [lastVideoId, id]
+    );
+
+    // Invalidar cache para forzar refresco
+    youtubeFeedCache.clear();
+  } catch (err) {
+    error(`Failed to update YouTube feed last video: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function removeYouTubeFeed(guildId: string, youtubeChannelId: string): Promise<boolean> {
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    const [result] = await pool.query(
+      "DELETE FROM youtube_feeds WHERE guild_id = ? AND youtube_channel_id = ?",
+      [guildId, youtubeChannelId]
+    );
+
+    const header = result as ResultSetHeader;
+    youtubeFeedCache.delete(guildId);
+    return header.affectedRows > 0;
+  } catch (err) {
+    error(`Failed to remove YouTube feed: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function getAllYouTubeFeeds(): Promise<YouTubeFeed[]> {
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, guild_id, channel_id, youtube_channel_id, youtube_channel_name, rss_url, last_video_id, created_at FROM youtube_feeds"
+    );
+
+    return (rows as any[]).map(row => ({
+      id: row.id,
+      guild_id: row.guild_id,
+      channel_id: row.channel_id,
+      youtube_channel_id: row.youtube_channel_id,
+      youtube_channel_name: row.youtube_channel_name,
+      rss_url: row.rss_url,
+      last_video_id: row.last_video_id,
+      created_at: new Date(row.created_at)
+    }));
+  } catch (err) {
+    error(`Failed to fetch all YouTube feeds: ${err}`, "Database");
     throw err;
   }
 }

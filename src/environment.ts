@@ -1,3 +1,4 @@
+// src/environment.ts
 export type EnvironmentMode = "production" | "development";
 
 export function getEnvironmentMode(): EnvironmentMode {

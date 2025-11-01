@@ -9,14 +9,15 @@ export async function initI18n(locale?: string): Promise<void> {
     // Se elimina el .json y se añade el patch aqui.
     backend: {
       loadPath: path.join(__dirname, "../../adds/langs/{{lng}}/{{ns}}.json"),
-      addPath: path.join(__dirname, "../../adds/langs/{{lng}}/missing.json"),
+      addPath: path.join(__dirname, "../../adds/missing/{{lng}}_{{ns}}.json"),
     },
 
     supportedLngs: SUPPORTED_LANGUAGES,
     fallbackLng: "es",
     lng: locale || "es",
-    ns: [ "sys", "core", "embed", "hola", "replybots", "rolemoji", "test", "welcome", "work", "common"],
+    ns: [ "core", "embed", "hola", "replybots", "rolemoji", "test", "welcome", "work", "youtube", "common"],
     defaultNS: "common",
+    saveMissing: true,
     interpolation: {
       escapeValue: false
     }
