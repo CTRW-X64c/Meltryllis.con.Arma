@@ -1,41 +1,42 @@
 # Meltryllis con Arma!
-Meltryllis inicialmente fue pensada para embendig de Link y poco a poco se le fue añadiendo funciones y con el tiempo seguira teniendo mas, pero principalmente se centra en el Embeding. <br>
- ## Embedigs que usamos:<br>
-&nbsp; __Bilibili:__ &nbsp;vxbilibili.com<br>
-&nbsp; __Bsky:__ &nbsp;bskyx.app<br>
-&nbsp; __DeviantArt:__ &nbsp;fixdeviantart.com<br>
-&nbsp; __Facebook:__ &nbsp;facebed.com<br>
-&nbsp; __Furaffinity:__ &nbsp;fxfuraffinity.net<br>
-&nbsp; __Imgur:__ &nbsp;imgurez.com<br>
-&nbsp; __Instagram:__ &nbsp;fxinstagram.com<br>
-&nbsp; __Iwara:__ &nbsp;fxiwara.seria.moe<br>
-&nbsp; __Pixiv:__ &nbsp;phixiv.net<br>
-&nbsp; __Reddit:__ &nbsp;rxddit.com<br>
-&nbsp; __Threads:__ &nbsp;threadsez.com<br>
-&nbsp; __TikTok:__ &nbsp; tiktokez.com<br>
-&nbsp; __Tumblr:__ &nbsp;txtumblr.com<br>
-&nbsp; __Twitch:__ &nbsp;fxtwitch.seria.moe<br>
-&nbsp; __Twitter:__ &nbsp;fixvx.com<br>
-&nbsp; __YouTube:__ &nbsp;youtu.be<br>
-Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok. <br><br>
-*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar o desactivar usando el comando **/embed***!
+Meltryllis inicialmente fue pensada para embedding de Link y poco a poco se le fue añadiendo funciones; con el tiempo estaremos teniendo mas funciones. <br>
+ ## Dominios que usamos en los Embedigs:<br>
+ |  |  |
+ | ---- | ----- |
+| &nbsp; __Bilibili:__ &nbsp;vxbilibili.com<br> | &nbsp; __Bsky:__ &nbsp;bskyx.app<br> |
+| &nbsp; __DeviantArt:__ &nbsp;fixdeviantart.com<br> | &nbsp; __Facebook:__ &nbsp;facebed.com<br> |
+| &nbsp; __Furaffinity:__ &nbsp;fxfuraffinity.net<br> | &nbsp; __Imgur:__ &nbsp;imgurez.com<br> |
+| &nbsp; __Instagram:__ &nbsp;fxinstagram.com<br> | &nbsp; __Iwara:__ &nbsp;fxiwara.seria.moe<br> |
+| &nbsp; __Pixiv:__ &nbsp;phixiv.net<br> | &nbsp; __Reddit:__ &nbsp;rxddit.com<br> |
+| &nbsp; __Threads:__ &nbsp;threadsez.com<br> | &nbsp; __TikTok:__ &nbsp; tiktokez.com<br> |
+| &nbsp; __Tumblr:__ &nbsp;txtumblr.com<br> | &nbsp; __Twitch:__ &nbsp;fxtwitch.seria.moe<br> |
+| &nbsp; __Twitter:__ &nbsp;fixvx.com<br> | &nbsp; __YouTube:__ &nbsp;youtu.be<br> |
+
+Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok, Imgur & Threads. <br>
+__*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar o desactivar usando el comando **/embed***!__
 
 ---
 
 ## Comandos: 
  - /hola = Info del bot y ayuda sobre los comandos.
  - /embed configurar = Desactivar & Cambiar Dominio.
- - /rolemoji 
+ - /rolemoji: 
     - help = Informacion y muetra si cuenta con los permisos necesarios para funcionar.
     - set = Establecer Emojis para reaccionar y recibir rol asociado. 
     - list = Muestra todo los "Rolemoji" hechos.
     - remove = Remover el "Rolemojis".
  - /welcome = Establece un mensaje de bienvenida, puedes usar <user> para mencionar al que se une.
- - /test 
+ - /test: 
     - Channel/Guild = Revisa por canal o todo el server, (max 24 canales), donde funciona el bot.
     - Embed = para ver las configuraciones de los embeddings. 
  - /work = Activa/Desactiva el funcionar en un canal.
- - /replybots = Activa/Desactiva el responder a otros bots, por default esta activo. 
+ - /replybots = Activa/Desactiva el responder a otros bots, por default esta activo.
+ - /youtube:
+    - help = Proporciona ayuda sobre sobre los comandos.
+    - lista = Muestra todos los canales que se suiguen en el server.
+    - seguir = Sigue el canal de youtube.
+    - dejar = Dejas de seguir el canal de youtube.
+    - test = Piblica el ultimo video del canal seleccionado. 
 
 ## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
 
@@ -121,7 +122,7 @@ services:
 | `LOCALE` | Idioma por default que tendra el bot |
 | `REPLY_OTHER_BOTS` | "true \| false" Responder a Bots |
 | `DEBUG_MODE` | "Debug mode *0* \| Produccion *>0*" |
-| `YT_RSSCHECK_TIME` | Tiempo para Ejecutar RSS en Min. Minimo 5 |
+| `YT_RSSCHECK_TIME` | Tiempo entre revisiones. Def:10m Min:5m |
 | `WELCOME_BANNER_URL` | URL para el Banner, 200x600|
 | `PUID & PGID` | Usuario ID/Grupo para escribir datos |
 | `TZ` | Zona Horaria "America/New_York" |
@@ -143,7 +144,7 @@ services:
 | `PUID & PGID` | Usuario ID/Grupo para escribir datos |
 
 </details>
----
+
 
 <details> <summary>🌳 Archivos en el Proyecto</summary>
 
