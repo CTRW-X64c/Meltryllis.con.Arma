@@ -1,8 +1,8 @@
-// src/client/events/welcomeEvents.ts
+// src/client/coreCommands/welcomeEvents.ts
 import { Client, GuildMember, AttachmentBuilder, TextChannel, EmbedBuilder, PartialGuildMember } from "discord.js";
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
-import { debug, error } from "../../logging";
-import { getWelcomeConfig } from "../database";
+import { debug, error } from "../../sys/logging";
+import { getWelcomeConfig } from "../../sys/database";
 import path from 'path';
 
 let background: any;

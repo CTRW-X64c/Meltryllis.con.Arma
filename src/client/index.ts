@@ -1,18 +1,18 @@
 // src/client/core.ts
-import { error, info, debug, initLogger, loggerAvailable } from "../logging";
-import { getEnvironmentMode } from "../environment";
+import { error, info, debug, initLogger, loggerAvailable } from "../sys/logging";
+import { getEnvironmentMode } from "../sys/environment";
 import { initI18n } from "../i18n";
 import i18next from "i18next";
 import { buildReplacements } from "../remplazadores/index";
-import { registerCommands, handleCommandInteraction } from "./upCommands";
-import { initializeDatabase, getConfigMap, getGuildReplacementConfig, getRoleAssignments } from "./database";
-import { parseStatuses, setupStatusRotation } from "./setStatus";
+import { registerCommands, handleCommandInteraction } from "./coreCommands/upCommands";
+import { initializeDatabase, getConfigMap, getGuildReplacementConfig, getRoleAssignments } from "../sys/database";
+import { parseStatuses, setupStatusRotation } from "../sys/setStatus";
 import { Client, Events, GatewayIntentBits, Interaction, Message, TextBasedChannel, MessageReaction, User } from "discord.js";
 import ApiReplacement from "../remplazadores/ApiReplacement";
-import { registerWelcomeEvents, preloadImagesAndFonts } from "./events/welcomeEvents";
-import { registerRolemojiEvents } from "./events/rolemojiEvents";
+import { registerWelcomeEvents, preloadImagesAndFonts } from "./coreCommands/welcomeEvents";
+import { registerRolemojiEvents } from "./coreCommands/rolemojiEvents";
 import { validateAllTranslations } from "../i18n/langCmndVal";
-import { YTRssService } from "./events/rssChek-YT";
+import { YTRssService } from "./coreCommands/rssChek-YT";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;

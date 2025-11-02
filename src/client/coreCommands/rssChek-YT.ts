@@ -1,7 +1,7 @@
-// src/client/events/rssChek-YT.ts
+// src/client/coreCommands/rssChek-YT.ts
 import Parser from 'rss-parser';
-import { error, debug, info } from '../../logging';
-import { YouTubeFeed, getYouTubeFeeds, updateYouTubeFeedLastVideo } from '../database';
+import { error, debug, info } from '../../sys/logging';
+import { YouTubeFeed, getYouTubeFeeds, updateYouTubeFeedLastVideo } from '../../sys/database';
 import { Client, TextChannel } from 'discord.js';
 import i18next from 'i18next';
 

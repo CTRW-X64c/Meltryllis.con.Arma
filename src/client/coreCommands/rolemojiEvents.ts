@@ -1,7 +1,7 @@
-// src/client/events/rolemojiEvents.ts
+// src/client/coreCommands/rolemojiEvents.ts
 import { Client, MessageReaction, User, PartialMessageReaction, PartialUser, GuildMember } from "discord.js";
-import { debug, error } from "../../logging";
-import { getRoleAssignments } from "../database";
+import { debug, error } from "../../sys/logging";
+import { getRoleAssignments } from "../../sys/database";
 
 export function registerRolemojiEvents(client: Client) {
     debug('Event listeners for role assignment are being registered.', "RolemojiEvents");

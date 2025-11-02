@@ -1,7 +1,7 @@
 // src/client/commands/youtube.ts
 import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
-import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../database";
-import { error, info, debug } from "../../logging";
+import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/database";
+import { error, info, debug } from "../../sys/logging";
 import i18next from "i18next" 
 
 export async function registerYouTubeCommand() {

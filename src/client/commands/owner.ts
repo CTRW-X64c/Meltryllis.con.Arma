@@ -1,6 +1,6 @@
 // src/client/commands/owner.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction } from "discord.js";
-import { debug, error } from "../../logging";
+import { debug, error } from "../../sys/logging";
 import { Buffer } from 'node:buffer';
 
 export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {

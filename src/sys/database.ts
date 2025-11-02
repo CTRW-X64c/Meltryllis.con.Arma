@@ -1,6 +1,6 @@
-// src/client/database.ts
+// src/sys/database.ts
 import { createPool, Pool, ResultSetHeader } from "mysql2/promise";
-import { error, debug, info } from "../logging";
+import { error, debug, info } from "./logging";
 
 interface ChannelConfig {
   enabled: boolean;

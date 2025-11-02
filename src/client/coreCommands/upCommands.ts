@@ -1,16 +1,16 @@
-// src/client/upCommands.ts
+// src/client/coreCommands/upCommands.ts
 import { Client, ChatInputCommandInteraction } from "discord.js";
-import { error, info } from "../logging";
-import { initializeDatabase } from "./database";
-import { registerTestCommand, handleTestCommand } from "./commands/test";
-import { registerHolaCommand, handleHolaCommand } from "./commands/hola";
-import { registerWorkCommand, handleWorkCommand } from "./commands/work";
-import { registerEmbedCommand, handleEmbedCommand } from "./commands/embed";
-import { registerWelcomeCommand, handleWelcomeCommand } from "./commands/welcome";
-import { registerReplybotsCommand, handleReplybotsCommand } from "./commands/replybots";
-import { registerRolemojiCommand, handleRolemojiCommand } from "./commands/rolemoji"
-import { registerOwnerCommands, handleOwnerCommands } from "./commands/owner";
-import { registerYouTubeCommand, handleYouTubeCommand } from "./commands/youtube";
+import { error, info } from "../../sys/logging";
+import { initializeDatabase } from "../../sys/database";
+import { registerTestCommand, handleTestCommand } from "../commands/test";
+import { registerHolaCommand, handleHolaCommand } from "../commands/hola";
+import { registerWorkCommand, handleWorkCommand } from "../commands/work";
+import { registerEmbedCommand, handleEmbedCommand } from "../commands/embed";
+import { registerWelcomeCommand, handleWelcomeCommand } from "../commands/welcome";
+import { registerReplybotsCommand, handleReplybotsCommand } from "../commands/replybots";
+import { registerRolemojiCommand, handleRolemojiCommand } from "../commands/rolemoji"
+import { registerOwnerCommands, handleOwnerCommands } from "../commands/owner";
+import { registerYouTubeCommand, handleYouTubeCommand } from "../commands/youtube";
 
 export interface ChannelConfig {
   enabled: boolean;

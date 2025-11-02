@@ -1,8 +1,8 @@
 // src/client/commands/test.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, TextChannel, PermissionFlagsBits} from "discord.js";
 import i18next from "i18next";
-import { error, debug } from "../../logging";
-import { getConfigMap, getGuildReplacementConfig } from "../database";
+import { error, debug } from "../../sys/logging";
+import { getConfigMap, getGuildReplacementConfig } from "../../sys/database";
 import { replacementMetaList} from "../../remplazadores/EmbedingConfig";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];

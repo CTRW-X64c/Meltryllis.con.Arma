@@ -162,17 +162,15 @@ Meltryllis con Arma/
 │   │   │   ├── welcome.ts
 │   │   │   ├── work.ts
 │   │   │   └── youtube.ts
-│   │   ├── events/
+│   │   ├── coreCommands/
 │   │   │   ├── rolemojiEvents.ts
 │   │   │   ├── rssChek-YT.ts
-│   │   │   └── welcomeEvents.ts
-│   │   ├── database.ts
-│   │   ├── index.ts
-│   │   ├── setStatus.ts
-│   │   └── upCommands.ts
+│   │   │   ├── upCommands.ts
+│   │   |   └── welcomeEvents.ts
+|   |   └── index.ts
 │   ├── i18n/
 │   │   ├── index.ts
-│   │   └── langCmndVal.ts 
+│   │   └── langCmndVal.ts
 │   ├── remplazadores/
 │   │   ├── webs/
 │   │   │   ├── Bilibili.ts
@@ -195,9 +193,12 @@ Meltryllis con Arma/
 │   │   ├── EmbedingConfig.ts   
 │   │   ├── index.ts
 │   │   └── RuleReplacement.ts
-│   ├── environment.ts
-│   ├── index.ts
-│   └── logging.ts
+│   ├── sys/
+│   │   ├── database.ts
+│   │   ├── setStatus.ts
+│   │   ├── environment.ts
+|   |   └── logging.ts
+│   └── index.ts
 ├── add/
 │   ├── /langs/
 │   │   └── locales/
@@ -208,7 +209,7 @@ Meltryllis con Arma/
 │   └── /fonts/
 │       ├── Bitcount.ttf
 │       └── StoryScript-Regular.ttf/
-│           └── .env
+├── .env
 ├── Dockerfile
 ├── package-lock.json
 ├── package.json
