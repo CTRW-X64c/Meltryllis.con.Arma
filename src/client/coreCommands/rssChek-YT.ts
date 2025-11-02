@@ -73,7 +73,7 @@ export class YTRssService {
         await this.NewVideo(feed, latestVideo, videoId);
       }
       
-      await updateYouTubeFeedLastVideo(feed.id, videoId);
+      await updateYouTubeFeedLastVideo(feed.id, videoId, feed.guild_id);
       debug(`Ultimo video de ${feed.youtube_channel_name}: ${videoId}`);
     }
   }
