@@ -1,4 +1,4 @@
-// src/sys/database.ts
+// src/client/database.ts
 import { createPool, Pool, ResultSetHeader } from "mysql2/promise";
 import { error, debug, info } from "./logging";
 
@@ -19,7 +19,7 @@ interface WelcomeConfig {
   customMessage: string | null;
 }
 
-export interface RoleAssignment {
+interface RoleAssignment {
   id: number;
   messageId: string;
   channelId: string;
@@ -58,6 +58,17 @@ const welcomeConfigCache = new Map<string, WelcomeConfig>();
 const roleAssignmentCache = new Map<string, Map<string, RoleAssignment>>();
 const youtubeFeedCache = new Map<string, YouTubeFeed[]>();
 const redditFeedCache = new Map<string, RedditFeed[]>();
+
+// Función helper para invalidar cache específica de un guild
+export function invalidateGuildCache(guildId: string): void {
+  configMapCache.delete(guildId);
+  guildReplacementCache.delete(guildId);
+  welcomeConfigCache.delete(guildId);
+  roleAssignmentCache.delete(guildId);
+  youtubeFeedCache.delete(guildId);
+  redditFeedCache.delete(guildId);
+  debug(`Invalidated all cache for guild ${guildId}`, "Database");
+}
 
 export async function initializeDatabase(): Promise<void> {
   if (isInitialized) {
@@ -202,12 +213,12 @@ export function getDatabasePool(): Pool | null {
   return pool;
 }
 
-//Replybots [BD]
+// ==================== CHANNEL CONFIGS ====================
 
 export async function getConfigMap(): Promise<Map<string, Map<string, ChannelConfig>>> {
   if (configMapCache.size > 0) {
     debug("Returning cached configMap", "Database");
-    return configMapCache;
+    return new Map(configMapCache);
   }
 
   if (!pool) throw new Error("Database pool not initialized");
@@ -259,12 +270,12 @@ export async function setChannelConfig(guildId: string, channelId: string, confi
   }
 }
 
-//Embed [BD]
+// ==================== GUILD REPLACEMENTS ====================
 
 export async function getGuildReplacementConfig(guildId: string): Promise<Map<string, GuildReplacementConfig>> {
   if (guildReplacementCache.has(guildId)) {
     debug(`Returning cached guildReplacementConfig for guild ${guildId}`, "Database");
-    return guildReplacementCache.get(guildId)!;
+    return new Map(guildReplacementCache.get(guildId)!);
   }
 
   if (!pool) throw new Error("Database pool not initialized");
@@ -306,12 +317,18 @@ export async function setGuildReplacementConfig(guildId: string, replacementType
   }
 }
 
-// Welcome [BD]
+// ==================== WELCOME CONFIGS ====================
 
 export async function getWelcomeConfig(guildId: string): Promise<WelcomeConfig> {
   if (welcomeConfigCache.has(guildId)) {
     debug(`Returning cached welcomeConfig for guild ${guildId}`, "Database");
-    return welcomeConfigCache.get(guildId)!;
+    
+    const cached = welcomeConfigCache.get(guildId)!;
+    return {
+      channelId: cached.channelId,
+      enabled: cached.enabled,
+      customMessage: cached.customMessage
+    };
   }
 
   if (!pool) throw new Error("Database pool not initialized");
@@ -323,8 +340,8 @@ export async function getWelcomeConfig(guildId: string): Promise<WelcomeConfig> 
     const config: WelcomeConfig = row ? { channelId: row.channel_id, enabled: row.enabled === 1, customMessage: row.custom_message } : { channelId: null, enabled: false, customMessage: null };
 
     welcomeConfigCache.set(guildId, config);
-    debug(`Fetched and cached welcomeConfig for guild ${guildId}`, "Database");
-    return config;
+    debug(`Fetched and cached welcomeConfig for guild ${guildId}`, "Database");   
+    return { ...config };
   } catch (err) {
     error(`Failed to fetch welcomeConfig for guild ${guildId}: ${err}`, "Database");
     throw err;
@@ -348,12 +365,12 @@ export async function setWelcomeConfig(guildId: string, config: WelcomeConfig): 
   }
 }
 
-// Rolemoji [BD]
+// ==================== ROLE ASSIGNMENTS ====================
 
 export async function getRoleAssignments(guildId: string): Promise<Map<string, RoleAssignment>> {
   if (roleAssignmentCache.has(guildId)) {
     debug(`Returning cached role assignments for guild ${guildId}`, "Database");
-    return roleAssignmentCache.get(guildId)!;
+    return new Map(roleAssignmentCache.get(guildId)!);
   }
 
   if (!pool) throw new Error("Database pool not initialized");
@@ -390,15 +407,13 @@ export async function setRoleAssignment(guildId: string, messageId: string, chan
 
     if (header.affectedRows === 2) {
       const [rows] = await pool.query("SELECT id FROM role_assignments WHERE guild_id = ? AND message_id = ? AND emoji = ?", [guildId, messageId, emoji]);
-    
-      const assignedRows = rows as any[]; 
-      
+      const assignedRows = rows as any[];
       if (assignedRows.length > 0) {
         assignmentId = assignedRows[0].id;
       }
     }
-    
-    const key = `${messageId}:${emoji}`;
+
+    const key = `${messageId}:${emoji}`;    
     if (!roleAssignmentCache.has(guildId)) {
       roleAssignmentCache.set(guildId, new Map());
     }
@@ -415,7 +430,6 @@ export async function removeRoleAssignment(guildId: string, id: number): Promise
 
   try {
     const [result] = await pool.query("DELETE FROM role_assignments WHERE id = ? AND guild_id = ?", [id, guildId]);
-    
     const header = result as ResultSetHeader;
 
     if (header.affectedRows > 0) {
@@ -437,11 +451,12 @@ export async function removeRoleAssignment(guildId: string, id: number): Promise
   }
 }
 
-//Youtube [BD]
+// ==================== YOUTUBE FEEDS ====================
 
 export async function getYouTubeFeeds(guildId: string): Promise<YouTubeFeed[]> {
   if (youtubeFeedCache.has(guildId)) {
-    return youtubeFeedCache.get(guildId)!;
+    debug(`Returning cached YouTube feeds for guild ${guildId}`, "Database");
+    return [...youtubeFeedCache.get(guildId)!];
   }
 
   if (!pool) throw new Error("Database pool not initialized");
@@ -464,6 +479,7 @@ export async function getYouTubeFeeds(guildId: string): Promise<YouTubeFeed[]> {
     }));
 
     youtubeFeedCache.set(guildId, feeds);
+    debug(`Fetched and cached YouTube feeds for guild ${guildId}`, "Database");
     return feeds;
   } catch (err) {
     error(`Failed to fetch YouTube feeds for guild ${guildId}: ${err}`, "Database");
@@ -500,6 +516,7 @@ export async function updateYouTubeFeedLastVideo(id: number, lastVideoId: string
 
     // Invalidar cache para forzar refresco
     youtubeFeedCache.delete(guildId);
+    debug(`Updated YouTube feed last video for guild ${guildId}, invalidated cache`, "Database");
   } catch (err) {
     error(`Failed to update YouTube feed last video: ${err}`, "Database");
     throw err;
@@ -517,6 +534,7 @@ export async function removeYouTubeFeed(guildId: string, youtubeChannelId: strin
 
     const header = result as ResultSetHeader;
     youtubeFeedCache.delete(guildId);
+    debug(`Removed YouTube feed for guild ${guildId}, invalidated cache`, "Database");
     return header.affectedRows > 0;
   } catch (err) {
     error(`Failed to remove YouTube feed: ${err}`, "Database");
@@ -548,11 +566,12 @@ export async function getAllYouTubeFeeds(): Promise<YouTubeFeed[]> {
   }
 }
 
-// Reddit [BD]
+// ==================== REDDIT FEEDS ====================
 
 export async function getRedditFeeds(guildId: string): Promise<RedditFeed[]> {
   if (redditFeedCache.has(guildId)) {
-    return redditFeedCache.get(guildId)!;
+    debug(`Returning cached Reddit feeds for guild ${guildId}`, "Database");
+    return [...redditFeedCache.get(guildId)!];
   }
 
   if (!pool) throw new Error("Database pool not initialized");
@@ -574,6 +593,7 @@ export async function getRedditFeeds(guildId: string): Promise<RedditFeed[]> {
     }));
 
     redditFeedCache.set(guildId, feeds);
+    debug(`Fetched and cached Reddit feeds for guild ${guildId}`, "Database");
     return feeds;
   } catch (err) {
     error(`Failed to fetch Reddit feeds for guild ${guildId}: ${err}`, "Database");
@@ -582,7 +602,7 @@ export async function getRedditFeeds(guildId: string): Promise<RedditFeed[]> {
 }
 
 export async function addRedditFeed(feed: Omit<RedditFeed, 'id' | 'created_at'>): Promise<number> {
-  if (!pool) throw new Error("Database pool no iniciada");
+  if (!pool) throw new Error("Database pool not initialized");
 
   try {
     const [result] = await pool.query(
@@ -591,7 +611,9 @@ export async function addRedditFeed(feed: Omit<RedditFeed, 'id' | 'created_at'>)
     );
 
     const header = result as ResultSetHeader;
-    redditFeedCache.delete(feed.guild_id); 
+    
+    redditFeedCache.delete(feed.guild_id);
+    debug(`Added Reddit feed for guild ${feed.guild_id}, invalidated cache`, "Database");
     return header.insertId;
   } catch (err) {
     error(`Failed to add Reddit feed: ${err}`, "Database");
@@ -610,8 +632,9 @@ export async function updateRedditFeedLastPost(feedId: number, lastPostId: strin
 
     // Invalidar cache para forzar refresco
     redditFeedCache.delete(guildId);
+    debug(`Updated Reddit feed last post for guild ${guildId}, invalidated cache`, "Database");
   } catch (err) {
-    error(`Failed to update Reddit feed last video: ${err}`, "Database");
+    error(`Failed to update Reddit feed last post: ${err}`, "Database");
     throw err;
   }
 }
@@ -626,7 +649,9 @@ export async function removeRedditFeed(guildId: string, subredditName: string): 
     );
 
     const header = result as ResultSetHeader;
+    
     redditFeedCache.delete(guildId);
+    debug(`Removed Reddit feed for guild ${guildId}, invalidated cache`, "Database");
     return header.affectedRows > 0;
   } catch (err) {
     error(`Failed to remove Reddit feed: ${err}`, "Database");
@@ -657,4 +682,4 @@ export async function getAllRedditFeeds(): Promise<RedditFeed[]> {
   }
 }
 
-// LIMITE [BD]
+// ==================== ESPACIO PARA NUEVA BD ====================
