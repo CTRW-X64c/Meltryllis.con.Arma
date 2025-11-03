@@ -13,6 +13,7 @@ import { registerWelcomeEvents, preloadImagesAndFonts } from "./coreCommands/wel
 import { registerRolemojiEvents } from "./coreCommands/rolemojiEvents";
 import { validateAllTranslations } from "../i18n/langCmndVal";
 import { YTRssService } from "./coreCommands/rssChek-YT";
+import { startRedditChecker } from "./coreCommands/redditCheck";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
@@ -315,6 +316,7 @@ async function main(): Promise<void> {
         const client = createClient();
         await client.login(process.env.DISCORD_BOT_TOKEN);        
         logInfo(i18next.t("bot_success_init", {ns: "core" }));
+        startRedditChecker(client);
 
     } catch (error) {
         logFatalError(error);
