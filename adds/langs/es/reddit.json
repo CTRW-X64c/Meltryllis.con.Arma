@@ -55,5 +55,5 @@
         "command_reddit_HelpEmb_Field_Value_4":"Publica el último post de un subreddit usando su URL o r/subreddit para probar.",
 
     "ATS6":"Embed Builder Help",
-        "Reduit_pioste":"Último post de r/{{a1}}:**\n**POST**: [{{a2}}]({{a3}})"
+        "Reduit_pioste":"Último post en r/{{a1}}:\n**POST:** [{{a2}}]({{a3}})"
  }

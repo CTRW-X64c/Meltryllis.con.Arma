@@ -12,7 +12,7 @@ import ApiReplacement from "../remplazadores/ApiReplacement";
 import { registerWelcomeEvents, preloadImagesAndFonts } from "./coreCommands/welcomeEvents";
 import { registerRolemojiEvents } from "./coreCommands/rolemojiEvents";
 import { validateAllTranslations } from "../i18n/langCmndVal";
-import { YTRssService } from "./coreCommands/rssChek-YT";
+import { startYTRssService } from "./coreCommands/rssChek-YT";
 import { startRedditChecker } from "./coreCommands/redditCheck";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
@@ -87,27 +87,8 @@ export function createClient(): Client {
         registerRolemojiEvents(client);
         registerCommands(client);
     });
-    // RSS-Yotube
-    const MStoMin = 60000;
-    const DEFAULT_Timmer = 10;
-    const MIN_TIMMER = 5;
-    const rawRssTime = process.env.YT_RSSCHECK_TIME;
-    const parsedMinutes = rawRssTime ? parseInt(rawRssTime, 10) : NaN;
-    const minutes = !isNaN(parsedMinutes) ? Math.max(parsedMinutes, MIN_TIMMER) : DEFAULT_Timmer;
-    const rssCheckTimmer = minutes * MStoMin;
-    info(`RSS Youtube Timmer Establecido en ${minutes} minutos`);
-    const youtubeRssService = new YTRssService(client);
-    setInterval(() => {
-        youtubeRssService.checkAllFeeds().catch(err => {
-            error(`Error in YouTube RSS check: ${err}`);
-        });
-    }, rssCheckTimmer);
-
-    setTimeout(() => {
-        youtubeRssService.checkAllFeeds().catch(err => {
-            error(`Error in initial YouTube RSS check: ${err}`);
-        });
-    }, 30000);
+    
+    // se purgo el inciador de Youtube y solo se importa abajo en el Init
 
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         if (interaction.isChatInputCommand()) {
@@ -316,7 +297,8 @@ async function main(): Promise<void> {
         const client = createClient();
         await client.login(process.env.DISCORD_BOT_TOKEN);        
         logInfo(i18next.t("bot_success_init", {ns: "core" }));
-        startRedditChecker(client);
+        startYTRssService(client); // by nep <= es tonta por eso lo escribio arriba en vez de solo hacerlo init!! 
+        startRedditChecker(client);  // by nowa
 
     } catch (error) {
         logFatalError(error);

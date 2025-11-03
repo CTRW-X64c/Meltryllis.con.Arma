@@ -90,12 +90,16 @@ export class YTRssService {
       debug(`No se encontro el ${feed.channel_id} en ${guild.name}`);
       return;
     }
-
-    const videoUrl = video.link || `https://www.youtube.com/watch?v=${videoId}`;
     
+    // añadido filtro de caracteres y largo de titulo, ya que rompe los hyperlinks [{{a2}}]({{a3}})
+    const videoUrl = video.link || `https://www.youtube.com/watch?v=${videoId}`;
+    const MAX_LENGTH = 50;
+    const originalTitle = video.title ?? "Sin Título";
+    const truncatedTitle = originalTitle.length > MAX_LENGTH ? originalTitle.substring(0, MAX_LENGTH) + "..." : originalTitle;
+    const safeTitle = truncatedTitle.replace(/\[/g, ' ').replace(/\]/g, ' ').replace(/\\/g, ' ').replace(/\|/g, ' ');
     try {
       await channel.send({
-        content: i18next.t("novo_video", {ns: "youtube", a1: feed.youtube_channel_name, a2: video.title, a3: videoUrl}),
+        content: i18next.t("novo_video", {ns: "youtube", a1: feed.youtube_channel_name, a2: safeTitle, a3: videoUrl}),
       });
       
       info(`Aviso a ${guild.name} de nuevo video de ${feed.youtube_channel_name}`);
@@ -122,4 +126,29 @@ export class YTRssService {
     
     return null;
   }
+}
+
+export function startYTRssService(client: Client): void {
+  const MStoMin = 60000;
+  const DEFAULT_Timmer = 10;
+  const MIN_TIMMER = 5;
+  const rawRssTime = process.env.YT_RSSCHECK_TIME;
+  const parsedMinutes = rawRssTime ? parseInt(rawRssTime, 10) : NaN;
+  const minutes = !isNaN(parsedMinutes) ? Math.max(parsedMinutes, MIN_TIMMER) : DEFAULT_Timmer;
+  const rssCheckTimmer = minutes * MStoMin;  
+    info(`[Youtube Checker]: Timmer establecido en ${minutes} minutos`);
+
+  const youtubeRssService = new YTRssService(client);
+
+  setTimeout(() => {
+    youtubeRssService.checkAllFeeds().catch(err => {
+      error(`[Youtube Checker]: Error al inciar, Error: ${err}`);
+      });
+  }, 30000); 
+
+  setInterval(() => {
+    youtubeRssService.checkAllFeeds().catch(err => {
+      error(`[Youtube Checker]: Error en RSS, Error: ${err}`);
+      });
+  }, rssCheckTimmer);
 }

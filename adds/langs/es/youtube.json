@@ -48,5 +48,5 @@
         "YT_HelpEmb_footer":"💡 /youtube dejar id_canal:ID - • - /youtube test id_canal:ID",
  
     "ATS5":"rrsChek-YT",
-        "novo_video":"🎥 **¡Nuevo video de {{a1}}!**\n**VIDEO**: [{{a2}}]({{a3}})"
+        "novo_video":"🎥 **¡Nuevo video de {{a1}}!\n**VIDEO:** [{{a2}}]({{a3}})"
 }
