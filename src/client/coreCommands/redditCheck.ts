@@ -43,7 +43,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
             for (const post of newPosts) {
                 const permalink = new URL(post.link!).pathname;
                 const formattedUrl = `https://www.${redditEmbedDomain}${permalink}`;
-                await textChannel.send(i18next.t("novo_post", {ns: "reddit", a1: feed.subreddit_name, a2: post.title, a3: formattedUrl}));
+                await textChannel.send(i18next.t("Reduit_pioste", {ns: "reddit", a1: feed.subreddit_name, a2: post.title, a3: formattedUrl}));
             }
 
             const latestPostId = newPosts[newPosts.length - 1].id!;

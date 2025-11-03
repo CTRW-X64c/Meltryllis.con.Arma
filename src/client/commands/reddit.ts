@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, TextChannel } from "discord.js";
-import { addRedditFeed, getRedditFeeds, removeRedditFeed } from "../../sys/database";
+import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed} from "../../sys/database";
 import { error, info } from "../../sys/logging";
 import i18next from "i18next";
 import Parser from 'rss-parser';
@@ -7,16 +7,18 @@ import Parser from 'rss-parser';
 const parser = new Parser();
 const redditDomain = process.env.REDDIT_FIX_URL || "rxddit.com";
 
-// --- FUNCIÓN AUXILIAR QUE FALTABA ---
-function getSubredditNameFromUrl(url: string): string | null {
+function getSubredditNameFromUrl(input: string): string | null {
     try {
-        const urlObject = new URL(url);
+        const urlObject = new URL(input);
         const match = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_]+)/);
-        return match ? match[1] : null;
+        if (match) return match[1];
     } catch (e) {
-        const simpleMatch = url.match(/^[a-zA-Z0-9_]+$/);
-        return simpleMatch ? simpleMatch[1] : null;
     }
+    const rSlashMatch = input.match(/^r\/([a-zA-Z0-9_]+)$/);
+    if (rSlashMatch) return rSlashMatch[1];
+    const simpleMatch = input.match(/^[a-zA-Z0-9_]+$/);
+    if (simpleMatch) return simpleMatch[1];
+    return null;
 }
 
 export async function registerRedditCommand() {
@@ -128,9 +130,10 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
         return;
     }
 
-    const rssUrl = `https://www.reddit.com/r/${subredditName}/.rss`;
+    const rssUrl = `https://www.reddit.com/r/${subredditName}/new/.rss`;
 
     try {
+        await parser.parseURL(rssUrl);
         const existingFeeds = await getRedditFeeds(guildId);
         if (existingFeeds.some(feed => feed.subreddit_name.toLowerCase() === subredditName.toLowerCase())) {
             await interaction.editReply({ content: i18next.t("command_reddit_duplicado", { ns: "reddit", a1: subredditName })});
@@ -165,18 +168,32 @@ async function ListaReddit(interaction: ChatInputCommandInteraction, guildId: st
     }
 
     const embed = new EmbedBuilder()
-        .setTitle(`📡 Subreddits seguidos en este servidor (${feeds.length})`)
+        .setTitle(i18next.t("command_reddit_lista_titulo", { ns: "reddit", a1: feeds.length}))
         .setColor(0xFF4500);
 
-    let description = "";
+    const feedsPorCanal = new Map<string, RedditFeed[]>();
+
     for (const feed of feeds) {
-        const channel = interaction.guild?.channels.cache.get(feed.channel_id);
-        description += i18next.t("command_reddit_lista_entry", { ns: "reddit", a1: feed.subreddit_name, a2: channel || `Canal no entrado`,});
+        if (!feedsPorCanal.has(feed.channel_id)) {
+            feedsPorCanal.set(feed.channel_id, []);
+        }
+        feedsPorCanal.get(feed.channel_id)!.push(feed);
     }
 
-    embed.setDescription(description);
-    embed.setFooter({ text: i18next.t("command_reddit_lista_footer", { ns: "reddit" })});
+    for (const [canalId, grupo] of feedsPorCanal) {
+        const canalClickeable = `<#${canalId}>`;
+        const listaSubreddits = grupo.map(feed =>
+        `**r/${feed.subreddit_name}**`
+        ).join('\n');
 
+        embed.addFields({
+        name: i18next.t("command_reddit_lista_name", { ns: "reddit", a1: canalClickeable, a2: grupo.length }),
+        value: listaSubreddits || i18next.t("command_reddit_lista_vacia", { ns: "reddit" }),
+        inline: false,
+        });
+    }
+    
+    embed.setFooter({ text: i18next.t("command_reddit_lista_footer", { ns: "reddit" })});
     await interaction.editReply({ embeds: [embed] });
 }
 
@@ -230,10 +247,10 @@ async function TestReddit(interaction: ChatInputCommandInteraction, guildId: str
             await interaction.editReply({ content: i18next.t("command_reddit_test_noposts", { ns: "reddit" })});
             return;
         }
-
+        const canalClickeable = `<#${feed.channel_id}>`;
         const channel = interaction.guild?.channels.cache.get(feed.channel_id);
         if (!channel || !channel.isTextBased()) {
-            await interaction.editReply({ content: i18next.t("command_reddit_test_noexisteCH", { ns: "reddit", a1: feed.channel_id })});
+            await interaction.editReply({ content: i18next.t("command_reddit_test_noexisteCH", { ns: "reddit", a1: canalClickeable })});
             return;
         }
         
@@ -243,7 +260,7 @@ async function TestReddit(interaction: ChatInputCommandInteraction, guildId: str
         await (channel as TextChannel).send(i18next.t("command_reddit_test_ultimoPost", { ns: "reddit", a1: subredditName, a2: latestPost.title, a3: formattedUrl }));
         
         await interaction.editReply({
-            content: i18next.t("command_reddit_test_pass", { ns: "reddit", a1: channel})
+            content: i18next.t("command_reddit_test_pass", { ns: "reddit", a1: canalClickeable})
         });
 
     } catch (err) {

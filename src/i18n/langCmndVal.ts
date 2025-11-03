@@ -139,7 +139,6 @@ export async function validateAllTranslations(): Promise<void> {
         }
     }
     
-    // Resumen final
     if (totalErrors > 0) {
         error(`💥 RESUMEN: Se encontraron ${totalErrors} errores`);
         

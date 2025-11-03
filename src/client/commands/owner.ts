@@ -34,7 +34,7 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
         });
         return;
     }
-//Testeando switch para subcomandos
+
     const subcommand = interaction.options.getSubcommand();
     try {
         switch (subcommand) {
@@ -177,9 +177,9 @@ async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<vo
         
         let errorMessage = `❌ Error al intentar abandonar el servidor con ID \`${serverId}\`.`;
         
-        if (err?.code === 10004) { // Unknown Guild
+        if (err?.code === 10004) { 
             errorMessage += "\n⚠️ El bot no está en este servidor o el ID es incorrecto.";
-        } else if (err?.code === 50001) { // Missing Access
+        } else if (err?.code === 50001) { 
             errorMessage += "\n⚠️ No tengo permisos para abandonar este servidor.";
         } else if (err?.message?.includes("Missing Access")) {
             errorMessage += "\n⚠️ No tengo permisos para acceder a este servidor.";

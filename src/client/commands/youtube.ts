@@ -187,7 +187,7 @@ async function listaCanales(interaction: any, guildId: string) {
 
     embed.addFields({
       name: i18next.t("YT_embed_list_title", { ns: "youtube", a1: urlchannel, a2: grupo.feeds.length }),
-      value: i18next.t("YT_embed_list_value", { ns: "youtube", a1: listaCanales || '**Sin canales!!**' }),
+      value: listaCanales || i18next.t("YT_embed_list_value", { ns: "youtube"}),
       inline: false
     });
   }
@@ -255,9 +255,9 @@ async function testCanal(interaction: any, guildId: string) {
     await channel.send({
       content: i18next.t("command_youtube_canal_pruebaUltimoVideo", { ns: "youtube", a1: feed.youtube_channel_name, a2: latestVideo.title, a3: videoUrl}),
     });
-
+    const canalClickeable = `<#${feed.channel_id}>`;
     await interaction.editReply({ 
-      content: i18next.t("command_youtube_canal_test_pass", { ns: "youtube", a1: feed.youtube_channel_name, a2: feed.channel_id}), 
+      content: i18next.t("command_youtube_canal_test_pass", { ns: "youtube", a1: feed.youtube_channel_name, a2: canalClickeable}), 
       flags: MessageFlags.Ephemeral 
     });
 
@@ -306,7 +306,7 @@ async function getChannelNameFromRss(rssUrl: string): Promise<string> {
 async function YThelp(interaction: ChatInputCommandInteraction): Promise<void> {
   try {
     const embed = new EmbedBuilder()
-      .setTitle(i18next.t("YT_HelpEmb_titulo", { ns: "youtube" })) // Cambié el título para que sea más específico
+      .setTitle(i18next.t("YT_HelpEmb_titulo", { ns: "youtube" })) 
       .setDescription(i18next.t("YT_HelpEmb_descripcion", { ns: "youtube" }))
       .addFields(
         {
@@ -320,16 +320,16 @@ async function YThelp(interaction: ChatInputCommandInteraction): Promise<void> {
           inline: false
         }
       )
-      .setImage("https://i.imgur.com/hBy4KhT.jpeg")
+      //.setImage("https://i.imgur.com/hBy4KhT.jpeg")
       .setColor("#ff0000")
       .setFooter({
         text: i18next.t("YT_HelpEmb_footer", { ns: "youtube" }),
       })
 
     await interaction.editReply({ embeds: [embed] });
-    debug(`Comando de ayuda de YouTube ejecutado`); //<=
+    debug(`Comando de ayuda de YouTube ejecutado`);
   } catch (err) {
-    error(`Error al ejecutar comando de ayuda de YouTube: ${err}`); //<=
+    error(`Error al ejecutar comando de ayuda de YouTube: ${err}`); 
     await interaction.editReply({
       content: (`Ocurrió un error al mostrar la ayuda.`),
     });

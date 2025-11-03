@@ -6,7 +6,7 @@ import path from "path";
 export const SUPPORTED_LANGUAGES = process.env.LANGS_SUPPORTED?.split(",").map(lang => lang.trim()) || [];
 export async function initI18n(locale?: string): Promise<void> {
   await i18next.use(I18NexFsBackend).init({
-    // Se elimina el .json y se añade el patch aqui.
+    
     backend: {
       loadPath: path.join(__dirname, "../../adds/langs/{{lng}}/{{ns}}.json"),
       addPath: path.join(__dirname, "../../adds/missing/{{lng}}_{{ns}}.json"),

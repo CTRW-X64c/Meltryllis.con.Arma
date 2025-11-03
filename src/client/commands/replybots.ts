@@ -2,7 +2,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, PermissionFlagsBits } from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
-import { getConfigMap, setChannelConfig } from "../../sys/database"; // Eliminamos saveDatabase
+import { getConfigMap, setChannelConfig } from "../../sys/database"; 
 import { ChannelConfig } from "../coreCommands/upCommands";
 
 export async function registerReplybotsCommand(): Promise<SlashCommandBuilder[]> {
@@ -38,11 +38,11 @@ export async function handleReplybotsCommand(interaction: ChatInputCommandIntera
       throw new Error(i18next.t("error_identifying_server", { ns: "replybots" }));
     }
 
-    const configMap = await getConfigMap(); // Usar await
+    const configMap = await getConfigMap(); 
     let guildConfig = configMap.get(guildId);
     if (!guildConfig) {
       guildConfig = new Map<string, ChannelConfig>();
-      configMap.set(guildId, guildConfig); // Esto no será persistente hasta que lo guardes en la DB
+      configMap.set(guildId, guildConfig); 
     }
 
     const isReplyBots = state === "on";
@@ -69,9 +69,9 @@ export async function handleReplybotsCommand(interaction: ChatInputCommandIntera
       content: response,
       flags: MessageFlags.Ephemeral,
     });
-    debug(`Comando /replybots ejecutado. Estado: ${isReplyBots ? "On" : "Off"}, Canal: ${channelId}`); //<=
+    debug(`Comando /replybots ejecutado. Estado: ${isReplyBots ? "On" : "Off"}, Canal: ${channelId}`); 
   } catch (err) {
-    error(`Error al ejecutar comando /replybots: ${err}`); //<=
+    error(`Error al ejecutar comando /replybots: ${err}`); 
     await interaction.reply({
       content: i18next.t("command_error", { ns: "replybots" }),
       flags: MessageFlags.Ephemeral,
