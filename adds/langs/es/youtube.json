@@ -18,13 +18,14 @@
         "command_youtube_rssID_error":"❌ No se pudo extraer el ID del canal de la URL RSS.",
         "command_youtube_ya_sigueindo":"`❌ Ya estás siguiendo el canal **{{a1}}** en este servidor.`",
         "command_youtube_seguir_success": "`✅ ¡Ahora sigo el canal **{{a1}}!\n📺 Las notificaciones de nuevos videos se enviarán a {{a2}}.\n\n🔍 Puedes probar la configuración con: `/youtube test id_canal: {{a2}}`",
+        "command_youtube_seguir_error":"❌ Error al seguir el canal. Verifica que la URL RSS sea correcta y accesible.",
         "command_youtube_lista_vacia":"📺 No estoy siguiendo ningún canal de YouTube en este servidor.",
 
         "command_youtube_canal_test_error":"❌ No se encontró el canal especificado. Usa \"/youtube lista\" para ver los canales que estás siguiendo.",
         "command_youtube_canal_test_buscando": "🔍 Buscando el último video del canal...",
         "command_youtube_canal_test_novideos": "❌ No se encontraron videos en este canal.",
         "command_youtube_canal_test_noexiste":"❌ El canal de notificaciones configurado no existe o no es accesible.",
-        "command_youtube_canal_pruebaUltimoVideo": "🧪 **PRUEBA: Último video de {{a1}}:**\n [{{a2}}]({{a3}})",
+        "command_youtube_canal_pruebaUltimoVideo": "🧪 MODO PRUEBA!!\n🎥 **¡Nuevo video de {{a1}}!**\n**VIDEO**: [{{a2}}]({{a3}})",
         "command_youtube_canal_test_pass": "✅ ¡Prueba exitosa! Se publicó el último video de **{{a1}}** en <#{{a2}}>.",
         "command_youtube_canal_test_nopass":"❌ Error al probar el canal. Verifica que el RSS sea accesible y el canal de notificaciones exista.",
 
@@ -33,7 +34,7 @@
         "YT_embed_descripcion": "**Resumen:** {{a1}} canales en {{a2}} canal{{a3}} de notificación",
         "YT_embed_list_entry": "📺: `{{a1}}` & 🆔: `{{a2}}`",
         "YT_embed_field_name": "`{{a1}} Canales Siguiendo: {{a2}}`",
-        "YT_embed_list_value": "{{a1}} || \"*Sin canales*\"",
+        "YT_embed_list_value": "{{a1}}",
 
     "ATS4":"Embed Builder Help",
         "YT_HelpEmb_titulo":"Ayuda del Comando de YouTube",
@@ -45,5 +46,5 @@
         "YT_HelpEmb_footer":"💡 /youtube dejar id_canal:ID - • - /youtube test id_canal:ID",
  
     "ATS5":"rrsChek-YT",
-        "novo_video":"🎥 **¡Nuevo video de {{a1}}!**\n[{{a2}}]({{a3}})"
+        "novo_video":"🎥 **¡Nuevo video de {{a1}}!**\n**VIDEO**: [{{a2}}]({{a3}})"
 }

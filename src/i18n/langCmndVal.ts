@@ -68,6 +68,17 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_youtube_test_id_canal",
         "command_youtube_help"
     ],
+    "reddit":[
+        "command_reddit",
+        "command_reddit_descripcion",
+        "command_reddit_seguir",
+        "command_reddit_canal",
+        "command_reddit_lista",
+        "command_reddit_id_canal",
+        "command_reddit_dejar",
+        "command_reddit_test",
+        "command_reddit_help"
+    ]
 
     // Agrega más namespaces según necesites
 };

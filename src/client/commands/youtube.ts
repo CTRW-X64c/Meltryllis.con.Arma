@@ -146,7 +146,7 @@ async function seguirCanal(interaction: any, guildId: string) {
     
   } catch (err) {
     error(`Error siguiendo canal: ${err}`, "YouTubeCommand");
-    await interaction.editReply({ content: "❌ Error al seguir el canal. Verifica que la URL RSS sea correcta y accesible.", flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: i18next.t("command_youtube_seguir_error", { ns: "youtube" }), flags: MessageFlags.Ephemeral });
   }
 }
 
@@ -187,7 +187,7 @@ async function listaCanales(interaction: any, guildId: string) {
 
     embed.addFields({
       name: i18next.t("YT_embed_list_title", { ns: "youtube", a1: urlchannel, a2: grupo.feeds.length }),
-      value: i18next.t("YT_embed_list_value", { ns: "youtube", a1: listaCanales }),
+      value: i18next.t("YT_embed_list_value", { ns: "youtube", a1: listaCanales || '**Sin canales!!**' }),
       inline: false
     });
   }
