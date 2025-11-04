@@ -45,7 +45,8 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 const MAX_LENGTH = 50;
                 const originalTitle = post.title ?? "Sin Título";
                 const truncatedTitle = originalTitle.length > MAX_LENGTH ? originalTitle.substring(0, MAX_LENGTH) + "..." : originalTitle;
-                const safeTitle = truncatedTitle.replace(/\[/g, ' ').replace(/\]/g, ' ').replace(/\\/g, ' ').replace(/\|/g, ' ');
+                const emojiRegex = /<a?:[a-zA-Z0-9_]+:\d+>|[\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\p{Emoji_Component}\u{200D}]+/gu;
+                const safeTitle = truncatedTitle.replace(/\[/g, '').replace(/\]/g, '').replace(/\\/g, ' ').replace(/\|/g, ' ').replace(emojiRegex, '');
             await textChannel.send(i18next.t("Reduit_pioste", {ns: "reddit", a1: feed.subreddit_name, a2: safeTitle, a3: formattedUrl}));
             }
 

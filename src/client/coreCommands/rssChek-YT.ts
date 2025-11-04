@@ -96,7 +96,9 @@ export class YTRssService {
     const MAX_LENGTH = 50;
     const originalTitle = video.title ?? "Sin Título";
     const truncatedTitle = originalTitle.length > MAX_LENGTH ? originalTitle.substring(0, MAX_LENGTH) + "..." : originalTitle;
-    const safeTitle = truncatedTitle.replace(/\[/g, ' ').replace(/\]/g, ' ').replace(/\\/g, ' ').replace(/\|/g, ' ');
+    const emojiRegex = /<a?:[a-zA-Z0-9_]+:\d+>|[\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\p{Emoji_Component}\u{200D}]+/gu;
+    const safeTitle = truncatedTitle.replace(/\[/g, '').replace(/\]/g, '').replace(/\\/g, ' ').replace(/\|/g, ' ').replace(emojiRegex, '');
+    
     try {
       await channel.send({
         content: i18next.t("novo_video", {ns: "youtube", a1: feed.youtube_channel_name, a2: safeTitle, a3: videoUrl}),
