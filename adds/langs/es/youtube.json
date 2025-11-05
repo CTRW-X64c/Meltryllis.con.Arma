@@ -31,12 +31,11 @@
 
     "ATS3":"Embed Builder List",
         "YT_embed_titulo": "\"📊 Canales de YouTube Siguiendo\"",
-        "YT_embed_descripcion": "**Resumen:** {{a1}} canal{{a3}} de YouTube repatidos en {{a2}} canal{{a3}} de Discord.",
-        "YT_embed_list_title": "Canales de Youtube Siguiendo: {{a2}} en {{a1}}",
+        "YT_embed_descripcion": "Sigueiendo {{a1}} canal{{a3}} de YouTube en {{a2}} canal{{a3}} de Discord.",
+        "YT_embed_list_title": "El canal {{a1}} tiene {{a2}} subscripciones",
         "YT_embed_list_entry": "📺: `{{a1}}` & 🆔: `{{a2}}`",
-        "YT_embed_field_name": "`{{a1}} Canales Siguiendo: {{a2}}`",
         "YT_embed_list_value": "Lista Vacia",
-        "YT_embed_footer":"💡 /youtube dejar id_canal:ID - • - /youtube test id_canal:ID",
+        "YT_embed_footer":"`💡 /youtube dejar id_canal:ID - • - /youtube test id_canal:ID`",
 
     "ATS4":"Embed Builder Help",
         "YT_HelpEmb_titulo":"Ayuda del Comando de YouTube",
@@ -48,5 +47,5 @@
         "YT_HelpEmb_footer":"💡 /youtube dejar id_canal:ID - • - /youtube test id_canal:ID",
  
     "ATS5":"rrsChek-YT",
-        "novo_video":"🎥 **¡Nuevo video de {{a1}}!\n**VIDEO:** [{{a2}}]({{a3}})"
+        "novo_video":"🎥 ¡Nuevo video de {{a1}}!\n**VIDEO:** [{{a2}}]({{a3}})"
 }

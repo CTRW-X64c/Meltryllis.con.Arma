@@ -46,6 +46,7 @@ export interface RedditFeed {
   subreddit_name: string;
   last_post_id: string | null;
   created_at: Date;
+  filter_mode: 'all' | 'media_only' | 'text_only';  //Añadiendo filtro de tipo contenido
 }
 
 let pool: Pool | null = null;
@@ -148,12 +149,12 @@ export async function initializeDatabase(): Promise<void> {
         await pool.query(`
           CREATE TABLE IF NOT EXISTS youtube_feeds (
           id INT AUTO_INCREMENT PRIMARY KEY,
-          guild_id VARCHAR(30) NOT NULL,
-          channel_id VARCHAR(30) NOT NULL,
-          youtube_channel_id VARCHAR(50) NOT NULL,
-          youtube_channel_name VARCHAR(100) NOT NULL,
+          guild_id VARCHAR(50) NOT NULL,
+          channel_id VARCHAR(50) NOT NULL,
+          youtube_channel_id VARCHAR(250) NOT NULL,
+          youtube_channel_name VARCHAR(250) NOT NULL,
           rss_url VARCHAR(255) NOT NULL,
-          last_video_id VARCHAR(50),
+          last_video_id VARCHAR(100),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           UNIQUE KEY unique_guild_youtube (guild_id, youtube_channel_id)
           )
@@ -162,11 +163,12 @@ export async function initializeDatabase(): Promise<void> {
         await pool.query(`
           CREATE TABLE IF NOT EXISTS reddit_feeds (
           id INT AUTO_INCREMENT PRIMARY KEY,
-          guild_id VARCHAR(30) NOT NULL,
-          channel_id VARCHAR(30) NOT NULL,
-          subreddit_url VARCHAR(50) NOT NULL,
-          subreddit_name VARCHAR(100) NOT NULL,
-          last_post_id VARCHAR(50),
+          guild_id VARCHAR(50) NOT NULL,
+          channel_id VARCHAR(50) NOT NULL,
+          subreddit_url VARCHAR(250) NOT NULL,
+          subreddit_name VARCHAR(250) NOT NULL,
+          last_post_id VARCHAR(100),
+          filter_mode VARCHAR(50) NOT NULL DEFAULT 'all',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           UNIQUE KEY unique_guild_subreddit (guild_id, subreddit_name)
           )
@@ -589,6 +591,7 @@ export async function getRedditFeeds(guildId: string): Promise<RedditFeed[]> {
       subreddit_url: row.subreddit_url,
       subreddit_name: row.subreddit_name,
       last_post_id: row.last_post_id,
+      filter_mode: row.filter_mode,
       created_at: new Date(row.created_at)
     }));
 
@@ -606,8 +609,8 @@ export async function addRedditFeed(feed: Omit<RedditFeed, 'id' | 'created_at'>)
 
   try {
     const [result] = await pool.query(
-      "INSERT INTO reddit_feeds (guild_id, channel_id, subreddit_url, subreddit_name, last_post_id) VALUES (?, ?, ?, ?, ?)",
-      [feed.guild_id, feed.channel_id, feed.subreddit_url, feed.subreddit_name, feed.last_post_id]
+      "INSERT INTO reddit_feeds (guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, filter_mode) VALUES (?, ?, ?, ?, ?, ?)",
+      [feed.guild_id, feed.channel_id, feed.subreddit_url, feed.subreddit_name, feed.last_post_id, feed.filter_mode]
     );
 
     const header = result as ResultSetHeader;
@@ -664,7 +667,7 @@ export async function getAllRedditFeeds(): Promise<RedditFeed[]> {
 
   try {
     const [rows] = await pool.query(
-      "SELECT id, guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, created_at FROM reddit_feeds"
+      "SELECT id, guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, filter_mode, created_at FROM reddit_feeds"
     );
 
     return (rows as any[]).map(row => ({
@@ -674,6 +677,7 @@ export async function getAllRedditFeeds(): Promise<RedditFeed[]> {
       subreddit_url: row.subreddit_url,
       subreddit_name: row.subreddit_name,
       last_post_id: row.last_post_id,
+      filter_mode: row.filter_mode,
       created_at: new Date(row.created_at)
     }));
   } catch (err) {

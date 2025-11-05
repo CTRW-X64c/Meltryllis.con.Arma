@@ -2,9 +2,8 @@ import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlag
 import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed} from "../../sys/database";
 import { error, info } from "../../sys/logging";
 import i18next from "i18next";
-import Parser from 'rss-parser';
+import { RedditApiResponse } from "../coreCommands/redditCheck"
 
-const parser = new Parser();
 const redditDomain = process.env.REDDIT_FIX_URL || "rxddit.com";
 
 function getSubredditNameFromUrl(input: string): string | null {
@@ -40,7 +39,15 @@ export async function registerRedditCommand() {
                         .setDescription(i18next.t("command_reddit_canal", { ns: "reddit" }))
                         .setRequired(true)
                 )
-        )
+                .addStringOption(option =>
+                    option.setName("filtro")
+                        .setDescription(i18next.t("command_reddit_filtro", { ns: "reddit" }))
+                        .setRequired(false)
+                        .addChoices(
+                            { name: i18next.t("command_reddit_sin_filtro", { ns: "reddit" }), value: 'all' },
+                            { name: i18next.t("command_reddit_filtro_multimedia", { ns: "reddit" }), value: 'media_only'},
+                            { name: i18next.t("command_reddit_filtro_texto", { ns: "reddit" }), value: 'text_only'}
+                        )))
         .addSubcommand(subcommand =>
             subcommand
                 .setName("lista")
@@ -54,8 +61,7 @@ export async function registerRedditCommand() {
                     option.setName("url_reddit")
                         .setDescription(i18next.t("command_reddit_id_canal", { ns: "reddit" }))
                         .setRequired(true)
-                )
-        )
+                ))
         .addSubcommand(subcommand =>
             subcommand
                 .setName("test")
@@ -64,13 +70,11 @@ export async function registerRedditCommand() {
                     option.setName("url_reddit")
                         .setDescription(i18next.t("command_reddit_id_canal", { ns: "reddit" }))
                         .setRequired(true)
-                )
-        )
+                ))
         .addSubcommand(subcommand =>
             subcommand
                 .setName("help")
-                .setDescription(i18next.t("command_reddit_help", { ns: "reddit" }))
-        );
+                .setDescription(i18next.t("command_reddit_help", { ns: "reddit" })));
 
     return [reddit] as SlashCommandBuilder[];
 }
@@ -123,17 +127,22 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
         await interaction.editReply({ content: i18next.t("command_reddit_canal_error", { ns: "reddit" })});
         return;
     }
-
+    
     const subredditName = getSubredditNameFromUrl(userInput);
     if (!subredditName) {
         await interaction.editReply({ content: i18next.t("command_reddit_subreddit_error", { ns: "reddit" })});
         return;
     }
+    const filterMode = (interaction.options.getString("filtro") ?? 'all') as 'all' | 'media_only' | 'text_only';
 
-    const rssUrl = `https://www.reddit.com/r/${subredditName}/new/.rss`;
-
+    const jsonUrl = `https://www.reddit.com/r/${subredditName}/new/.json`;
+    
     try {
-        await parser.parseURL(rssUrl);
+        const response = await fetch(jsonUrl, { headers: { 'User-Agent': 'MeltryllisBot/1.0.0' } });
+        if (!response.ok) {
+            throw new Error('Subreddit no encontrado o privado');
+        }
+
         const existingFeeds = await getRedditFeeds(guildId);
         if (existingFeeds.some(feed => feed.subreddit_name.toLowerCase() === subredditName.toLowerCase())) {
             await interaction.editReply({ content: i18next.t("command_reddit_duplicado", { ns: "reddit", a1: subredditName })});
@@ -144,12 +153,18 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
             guild_id: guildId,
             channel_id: discordChannel.id,
             subreddit_name: subredditName,
-            subreddit_url: rssUrl,
-            last_post_id: null
+            subreddit_url: jsonUrl,
+            last_post_id: null,
+            filter_mode: filterMode  // Parche filtrado
         });
 
+       const filterToText = {
+            all: i18next.t("command_reddit_sin_filtro", { ns: "reddit" }),
+            media_only: i18next.t("command_reddit_filtro_multimedia", { ns: "reddit" }),
+            text_only: i18next.t("command_reddit_filtro_texto", { ns: "reddit" })};
+        const filterText = filterToText[filterMode] || i18next.t("command_reddit_sin_filtro", { ns: "reddit" }); 
         await interaction.editReply({
-            content: i18next.t("command_reddit_seguir_success", { ns: "reddit", a1: subredditName, a2: discordChannel.toString() })
+            content: i18next.t("command_reddit_seguir_success", { ns: "reddit", a1: subredditName, a2: discordChannel.toString(), a3: filterText})
         });
         info(`Nuevo subreddit seguido: r/${subredditName} en servidor ${guildId}`);
 
@@ -166,9 +181,10 @@ async function ListaReddit(interaction: ChatInputCommandInteraction, guildId: st
         await interaction.editReply({ content: i18next.t("command_reddit_lista_vacia", { ns: "reddit" })});
         return;
     }
-
+    
+    const guildName = interaction.guild!.name;
     const embed = new EmbedBuilder()
-        .setTitle(i18next.t("command_reddit_lista_titulo", { ns: "reddit", a1: feeds.length}))
+        .setTitle(i18next.t("command_reddit_lista_titulo", { ns: "reddit", a1: feeds.length, a2: guildName }))
         .setColor(0xFF4500);
 
     const feedsPorCanal = new Map<string, RedditFeed[]>();
@@ -188,7 +204,7 @@ async function ListaReddit(interaction: ChatInputCommandInteraction, guildId: st
 
         embed.addFields({
         name: i18next.t("command_reddit_lista_name", { ns: "reddit", a1: canalClickeable, a2: grupo.length }),
-        value: listaSubreddits || i18next.t("command_reddit_lista_vacia", { ns: "reddit" }),
+        value: listaSubreddits || i18next.t("command_reddit_lista_value", { ns: "reddit" }),
         inline: false,
         });
     }
@@ -240,10 +256,12 @@ async function TestReddit(interaction: ChatInputCommandInteraction, guildId: str
     await interaction.editReply({ content: i18next.t("command_reddit_test_buscando", { ns: "reddit" , a1: subredditName })});
 
     try {
-        const rssFeed = await parser.parseURL(feed.subreddit_url);
-        const latestPost = rssFeed.items[0];
+        const response = await fetch(feed.subreddit_url, { headers: { 'User-Agent': 'MeltryllisBot/1.0.0' } });
+        if (!response.ok) throw new Error('No se pudo acceder al JSON');
+        const jsonData = (await response.json()) as RedditApiResponse; 
+        const latestPostData = jsonData.data.children[0]?.data;
 
-        if (!latestPost) {
+        if (!latestPostData) {
             await interaction.editReply({ content: i18next.t("command_reddit_test_noposts", { ns: "reddit" })});
             return;
         }
@@ -254,10 +272,10 @@ async function TestReddit(interaction: ChatInputCommandInteraction, guildId: str
             return;
         }
         
-        const permalink = new URL(latestPost.link!).pathname;
+        const permalink = latestPostData.permalink;
         const formattedUrl = `https://www.${redditDomain}${permalink}`;
 
-        await (channel as TextChannel).send(i18next.t("command_reddit_test_ultimoPost", { ns: "reddit", a1: subredditName, a2: latestPost.title, a3: formattedUrl }));
+        await (channel as TextChannel).send(i18next.t("command_reddit_test_ultimoPost", { ns: "reddit", a1: subredditName, a2: latestPostData.title, a3: formattedUrl }));
         
         await interaction.editReply({
             content: i18next.t("command_reddit_test_pass", { ns: "reddit", a1: canalClickeable})
