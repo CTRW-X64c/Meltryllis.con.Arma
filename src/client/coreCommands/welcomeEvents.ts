@@ -10,7 +10,8 @@ let background: any;
 export async function preloadImagesAndFonts(): Promise<void> {
     debug('Preload started.', "WelcomeEvents");
     try {
-        const imageUrl = process.env.WELCOME_BANNER_URL || 'https://no-banner.banner/banner.banner';
+        const imageUrl = process.env.WELCOME_BANNER_URL || 'https://no-banner.banner/banner.banner'; 
+    //Intente varias formas pero no pude hacer que funcionara con un banner local.
         debug(`Attempting to load image from URL: ${imageUrl}`, "WelcomeEvents");
         background = await loadImage(imageUrl);
         debug(`Image preloaded successfully from: ${imageUrl}`, "WelcomeEvents");
@@ -43,7 +44,7 @@ export function registerWelcomeEvents(client: Client) {
             const canvas = createCanvas(600, 200);
             const context = canvas.getContext('2d');
             if (background) context.drawImage(background, 0, 0, canvas.width, canvas.height);
-            // Diseño de banner Pic
+        // Diseño de banner Pic (imagen de usuario)
             const avatar = await loadImage(member.user.displayAvatarURL({ extension: 'png', size: 128 }));
             context.save();
             context.beginPath();
@@ -53,15 +54,12 @@ export function registerWelcomeEvents(client: Client) {
             context.drawImage(avatar, canvas.width / 2 - 50, 10, 100, 100);
             context.restore();
             context.strokeRect(0, 0, canvas.width, canvas.height);
-            // Texto de bienvenida
+        // Texto de bienvenida
             context.font = '40px StoryScript';
             context.fillStyle = '#ffffff';
             context.textAlign = 'center';
             context.fillText(`@${member.user.username}`, canvas.width / 2, 145);
             context.fillText(`Se unio al servidor!!`, canvas.width / 2, 185);
-          //  context.lineWidth = 3;
-         //   context.strokeStyle = '#000000';
-        //    context.strokeText(`Se unio al servidor!!`, canvas.width / 2, 185);
     
             const attachment = new AttachmentBuilder(canvas.toBuffer('image/jpeg'), { name: 'welcome-banner.jpg' });
             const welcomeEmbed = new EmbedBuilder().setColor('#00FF00').setImage('attachment://welcome-banner.jpg');

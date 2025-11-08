@@ -1,8 +1,9 @@
-// src/client/coreCommands/rssChek-YT.ts
+// src/client/coreCommands/youtubeCheck.ts
 import Parser from 'rss-parser';
 import { error, debug, info } from '../../sys/logging';
 import { YouTubeFeed, getYouTubeFeeds, updateYouTubeFeedLastVideo } from '../../sys/database';
 import { Client, TextChannel } from 'discord.js';
+import { extractVideoId } from './yTools';
 import i18next from 'i18next';
 
 const parser = new Parser();
@@ -61,7 +62,7 @@ export class YTRssService {
     }
 
     const latestVideo = rssFeed.items[0];
-    const videoId = this.extractVideoId(latestVideo);
+    const videoId = extractVideoId(latestVideo);
     
     if (!videoId) {
       debug(`No se pudo extraer el ID del ultimo video de ${feed.youtube_channel_name}`);
@@ -91,13 +92,19 @@ export class YTRssService {
       return;
     }
     
-    // añadido filtro de caracteres y largo de titulo, ya que rompe los hyperlinks [{{a2}}]({{a3}})
+  // añadido filtro de caracteres y largo de titulo, ya que rompe los hyperlinks [{{a2}}]({{a3}})
     const videoUrl = video.link || `https://www.youtube.com/watch?v=${videoId}`;
     const MAX_LENGTH = 50;
     const originalTitle = video.title ?? "Sin Título";
     const truncatedTitle = originalTitle.length > MAX_LENGTH ? originalTitle.substring(0, MAX_LENGTH) + "..." : originalTitle;
     const emojiRegex = /<a?:[a-zA-Z0-9_]+:\d+>|[\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\p{Emoji_Component}\u{200D}]+/gu;
-    const safeTitle = truncatedTitle.replace(/\[/g, '').replace(/\]/g, '').replace(/\\/g, ' ').replace(/\|/g, ' ').replace(emojiRegex, '');
+    const safeTitle = truncatedTitle
+        .replace(/\[/g, '')
+        .replace(/\]/g, '')
+        .replace(/\\/g, '')
+        .replace(/\//g, '')
+        .replace(/\|/g, ' ')
+        .replace(emojiRegex, '');
     
     try {
       await channel.send({
@@ -109,32 +116,14 @@ export class YTRssService {
       error(`Error al notificar a ${guild.name}: ${err}`);
     }
   }
-
-  private extractVideoId(video: any): string | null {
-
-    if (video.id) {
-      return video.id;
-    }
-    
-    if (video.link) {
-      const match = video.link.match(/[?&]v=([^&]+)/);
-      if (match) return match[1];
-    }
-    
-    if (video.guid) {
-      const match = video.guid.match(/video:video\.([^:]+)/);
-      if (match) return match[1];
-    }
-    
-    return null;
-  }
 }
 
-export function startYTRssService(client: Client): void {
+// Inicializador de timer y espera al inicio. 
+export function startYoutubeService(client: Client): void {
   const MStoMin = 60000;
   const DEFAULT_Timmer = 10;
   const MIN_TIMMER = 5;
-  const rawRssTime = process.env.YT_RSSCHECK_TIME;
+  const rawRssTime = process.env.YOUTUBE_CHECK_TIMMER;
   const parsedMinutes = rawRssTime ? parseInt(rawRssTime, 10) : NaN;
   const minutes = !isNaN(parsedMinutes) ? Math.max(parsedMinutes, MIN_TIMMER) : DEFAULT_Timmer;
   const rssCheckTimmer = minutes * MStoMin;  

@@ -12,8 +12,10 @@ import ApiReplacement from "../remplazadores/ApiReplacement";
 import { registerWelcomeEvents, preloadImagesAndFonts } from "./coreCommands/welcomeEvents";
 import { registerRolemojiEvents } from "./coreCommands/rolemojiEvents";
 import { validateAllTranslations } from "../i18n/langCmndVal";
-import { startYTRssService } from "./coreCommands/rssChek-YT";
+import { startYoutubeService } from "./coreCommands/youtubeCheck";
 import { startRedditChecker } from "./coreCommands/redditCheck";
+import { autoCleanupService } from "./coreCommands/yTools";
+
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
@@ -284,6 +286,7 @@ export function createClient(): Client {
     return client;
 }
 //Nuevo sistema de arranque y manejo de errores
+
 async function main(): Promise<void> {
     try {
         if (!process.env.DISCORD_BOT_TOKEN) {
@@ -297,8 +300,9 @@ async function main(): Promise<void> {
         const client = createClient();
         await client.login(process.env.DISCORD_BOT_TOKEN);        
         logInfo(i18next.t("bot_success_init", {ns: "core" }));
-        startYTRssService(client); // by nep <= es tonta por eso lo escribio arriba en vez de solo hacerlo init!! 
+        startYoutubeService(client); // by nep <= es tonta por eso lo escribio arriba en vez de solo hacerlo init!! 
         startRedditChecker(client);  // by nowa
+        autoCleanupService.start();
 
     } catch (error) {
         logFatalError(error);

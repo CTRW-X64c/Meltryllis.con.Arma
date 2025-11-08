@@ -101,7 +101,7 @@ export async function initializeDatabase(): Promise<void> {
         const connection = await pool.getConnection();
         await connection.ping();
         connection.release();
-
+// Tabla de comando /replybots
         await pool.query(`
           CREATE TABLE IF NOT EXISTS channel_configs (
             guild_id VARCHAR(30) NOT NULL,
@@ -111,7 +111,7 @@ export async function initializeDatabase(): Promise<void> {
             PRIMARY KEY (guild_id, channel_id)
           )
         `);
-
+// Tabla de comando /embed
         await pool.query(`
           CREATE TABLE IF NOT EXISTS guild_replacements (
             guild_id VARCHAR(30) NOT NULL,
@@ -122,7 +122,7 @@ export async function initializeDatabase(): Promise<void> {
             PRIMARY KEY (guild_id, replacement_type)
           )
         `);
-
+// Tabla de comandos /welcome
         await pool.query(`
           CREATE TABLE IF NOT EXISTS welcome_configs (
             guild_id VARCHAR(30) NOT NULL,
@@ -132,7 +132,7 @@ export async function initializeDatabase(): Promise<void> {
             PRIMARY KEY (guild_id)
           )
         `);
-
+// Tabla de comandos /rolemoji
         await pool.query(`
           CREATE TABLE IF NOT EXISTS role_assignments (
             id INT AUTO_INCREMENT,
@@ -145,7 +145,7 @@ export async function initializeDatabase(): Promise<void> {
             UNIQUE KEY unique_assignment (guild_id, message_id, emoji)
           )
         `);
-
+// Tabla de comandos /youtube
         await pool.query(`
           CREATE TABLE IF NOT EXISTS youtube_feeds (
           id INT AUTO_INCREMENT PRIMARY KEY,
@@ -159,7 +159,7 @@ export async function initializeDatabase(): Promise<void> {
           UNIQUE KEY unique_guild_youtube (guild_id, youtube_channel_id)
           )
         `);
-
+// Tabla de comandos /reddit
         await pool.query(`
           CREATE TABLE IF NOT EXISTS reddit_feeds (
           id INT AUTO_INCREMENT PRIMARY KEY,

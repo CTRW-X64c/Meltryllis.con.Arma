@@ -19,7 +19,7 @@ interface RedditPost {
     name: string; 
 }
 
-const redditEmbedDomain = process.env.REDDIT_FIX_URL || "rxddit.com";
+const redditEmbedDomain = process.env.REDDIT_FIX_URL || "reddit.com";
 const BATCH_SIZE = 5;
 
 let currentFeedIndex = 0;
@@ -62,7 +62,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 return;
             }
             const textChannel = channel as TextChannel;
-            
+        // Switch filtro
             for (const post of newPosts) { 
                 const hint = post.post_hint;
                 switch (feed.filter_mode) {
@@ -78,15 +78,25 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     default:
                         break;
                 }
-                  
+        // Hyperlink Fix & procesamiento de link          
                 const permalink = post.permalink; 
                 const formattedUrl = `https://www.${redditEmbedDomain}${permalink}`;
                 const MAX_LENGTH = 50;
                 const originalTitle = post.title ?? "Sin Título";
-                const truncatedTitle = originalTitle.length > MAX_LENGTH ? originalTitle.substring(0, MAX_LENGTH) + "..." : originalTitle;
-                const emojiRegex = /<a?:[a-zA-Z0-9_]+:\d+>|[\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\p{Emoji_Component}\u{200D}]+/gu;
-                const safeTitle = truncatedTitle.replace(/\[/g, '').replace(/\]/g, '').replace(/\\/g, ' ').replace(/\|/g, ' ').replace(emojiRegex, '');
-                await textChannel.send(i18next.t("Reduit_pioste", {ns: "reddit", a1: feed.subreddit_name, a2: safeTitle.trim(), a3: formattedUrl}));
+                const truncatedTitle = originalTitle.length > MAX_LENGTH
+                    ? originalTitle.substring(0, MAX_LENGTH)
+                    + "..." : originalTitle;
+                const emojiRegex = /<a?:[a-zA-Z0-9_]+:\d+>|[\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\p{Emoji_Component}\u{200D}]+/gu;  
+                const safeTitle = truncatedTitle
+                    .replace(/\[/g, '')
+                    .replace(/\]/g, '')
+                    .replace(/\\/g, '')
+                    .replace(/\//g, '')
+                    .replace(/\|/g, ' ')
+                    .replace(emojiRegex, '');
+                await textChannel.send(
+                    i18next.t("Reduit_pioste", 
+                        {ns: "reddit", a1: feed.subreddit_name, a2: safeTitle.trim(), a3: formattedUrl}));
             }
 
             const latestPostId = newPosts[newPosts.length - 1].name;
@@ -118,12 +128,12 @@ async function checkRedditFeeds(client: Client) {
     }
 }
 
-// ajustado para que sea como la de YT con su Timeout para no saturar el incio del bot
+// Inicializador de timer y espera al inicio. 
 export function startRedditChecker(client: Client) {
     const MStoMin = 60000;
     const MIN_TIMMER = 3;
     const DEFAULT_Timmer = 10;
-    const rawRssTime = process.env.REDDIT_RSSCHECK_TIME;
+    const rawRssTime = process.env.REDDIT_CHECK_TIMMER;
     const parsedMinutes = rawRssTime ? parseInt(rawRssTime, 10) : NaN;
     const minutes = !isNaN(parsedMinutes) ? Math.max(parsedMinutes, MIN_TIMMER) : DEFAULT_Timmer;
     const rssCheckTimmer = minutes * MStoMin;

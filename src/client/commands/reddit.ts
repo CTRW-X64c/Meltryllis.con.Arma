@@ -4,7 +4,7 @@ import { error, info } from "../../sys/logging";
 import i18next from "i18next";
 import { RedditApiResponse } from "../coreCommands/redditCheck"
 
-const redditDomain = process.env.REDDIT_FIX_URL || "rxddit.com";
+const redditDomain = process.env.REDDIT_FIX_URL || "reddit.com";
 
 function getSubredditNameFromUrl(input: string): string | null {
     try {
@@ -42,7 +42,7 @@ export async function registerRedditCommand() {
                 .addStringOption(option =>
                     option.setName("filtro")
                         .setDescription(i18next.t("command_reddit_filtro", { ns: "reddit" }))
-                        .setRequired(false)
+                        .setRequired(true)
                         .addChoices(
                             { name: i18next.t("command_reddit_sin_filtro", { ns: "reddit" }), value: 'all' },
                             { name: i18next.t("command_reddit_filtro_multimedia", { ns: "reddit" }), value: 'media_only'},
@@ -118,6 +118,7 @@ export async function handleRedditCommand(interaction: ChatInputCommandInteracti
     }
 }
 
+// =============== SubSeguir =============== //
 async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: string) {
     const userInput = interaction.options.getString("url_reddit", true);
     const discordChannelInput = interaction.options.getChannel("canal", true);
@@ -174,6 +175,7 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
     }
 }
 
+// =============== SubList =============== //
 async function ListaReddit(interaction: ChatInputCommandInteraction, guildId: string) {
     const feeds = await getRedditFeeds(guildId);
 
@@ -213,6 +215,7 @@ async function ListaReddit(interaction: ChatInputCommandInteraction, guildId: st
     await interaction.editReply({ embeds: [embed] });
 }
 
+// =============== SubDejar =============== //
 async function DejarReddit(interaction: ChatInputCommandInteraction, guildId: string) {
     const userInput = interaction.options.getString("url_reddit", true);
     const subredditName = getSubredditNameFromUrl(userInput);
@@ -236,6 +239,7 @@ async function DejarReddit(interaction: ChatInputCommandInteraction, guildId: st
     }
 }
 
+// =============== SubTest =============== //
 async function TestReddit(interaction: ChatInputCommandInteraction, guildId: string) {
     const userInput = interaction.options.getString("url_reddit", true);
     const subredditName = getSubredditNameFromUrl(userInput);
@@ -287,6 +291,7 @@ async function TestReddit(interaction: ChatInputCommandInteraction, guildId: str
     }
 }
 
+// =============== SubHelp =============== //
 async function RedditHelp(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
         .setTitle(i18next.t("command_reddit_HelpEmb_titulo", { ns: "reddit" }))

@@ -37,6 +37,14 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
     - seguir = Sigue el canal de youtube.
     - dejar = Dejas de seguir el canal de youtube.
     - test = Piblica el ultimo video del canal seleccionado. 
+ - /reddit:
+    - help = Proporciona ayuda sobre sobre los comandos.
+    - lista = Muestra los subreddits que se suiguen en el server.
+    - seguir = Seguir un Subreddit.
+    - dejar = Deja de seguir un Subreddit.
+    - test = Publica el ultimo pos del subreddit.
+ 
+---    
 
 ## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
 
@@ -60,7 +68,9 @@ services:
       - LOCALE=
       #Configuraciones
       - DEBUG_MODE=
-      - YT_RSSCHECK_TIME=
+      - YOUTUBE_CHECK_TIMMER=
+      - AUTO_CLEAN_YOUTUBE_TIMMER=
+      - REDDIT_CHECK_TIMMER=
       - REPLY_OTHER_BOTS=
       - WELCOME_BANNER_URL= 
       - PUID=
@@ -122,7 +132,9 @@ services:
 | `LOCALE` | Idioma por default que tendra el bot |
 | `REPLY_OTHER_BOTS` | "true \| false" Responder a Bots |
 | `DEBUG_MODE` | "Debug mode *0* \| Produccion *>0*" |
-| `YT_RSSCHECK_TIME` | Tiempo entre revisiones. Def:10m Min:5m |
+| `YOUTUBE_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:5m |
+| `AUTO_CLEAN_YOUTUBE_TIMMER` | Tiempo entre purgas de la BD Youtube |
+| `REDDIT_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:3m |
 | `WELCOME_BANNER_URL` | URL para el Banner, 200x600|
 | `PUID & PGID` | Usuario ID/Grupo para escribir datos |
 | `TZ` | Zona Horaria "America/New_York" |
@@ -134,6 +146,7 @@ services:
 | `API_REPLACEMENT_DOMAINS` | Sitios soportados por [Embedez](https://embedez.com/) |
 | `BOT_STATUSES` | emoji \| nombre \| tipo de actividad |
 | `STATUS_TIME_MINUTOS` | Tiempo de Rotacion de *BOT_STATUSES* |
+##### **_ "YOUTUBE & REDDIT CHECK_TIMMER" cuentan con timmer minimo interno para evitar bloqueos de IP _**
 
 | Variable BD  | Valores |
 | --- | --- |
@@ -156,6 +169,7 @@ Meltryllis con Arma/
 │   │   │   ├── embed.ts
 │   │   │   ├── hola.ts
 │   │   │   ├── owner.ts
+|   |   |   ├── reddit.ts
 │   │   │   ├── replybots.ts
 │   │   │   ├── rolemoji.ts
 │   │   │   ├── test.ts
@@ -163,10 +177,12 @@ Meltryllis con Arma/
 │   │   │   ├── work.ts
 │   │   │   └── youtube.ts
 │   │   ├── coreCommands/
+│   │   │   ├── redditCheck.ts
 │   │   │   ├── rolemojiEvents.ts
-│   │   │   ├── rssChek-YT.ts
 │   │   │   ├── upCommands.ts
-│   │   |   └── welcomeEvents.ts
+│   │   |   ├── welcomeEvents.ts
+|   |   |   ├── youtubeCheck.ts
+|   |   |   └── yTools.ts
 |   |   └── index.ts
 │   ├── i18n/
 │   │   ├── index.ts

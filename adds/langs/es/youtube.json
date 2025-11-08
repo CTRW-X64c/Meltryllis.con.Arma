@@ -12,6 +12,7 @@
         "command_youtube_help": "Ayuda sobre la configuracion",
 
     "ATS2":"ContenidoComandos",
+        "command_permission_error":"❌ No tienes permiso para ejecutar el comando.",
         "command_error":"❌ Ocurrió un error al ejecutar el comando.",
         "command_youtube_canal_error": "❌ Debes seleccionar un canal de texto válido.",
         "command_youtube_rss_error":"❌ URL RSS de YouTube inválida. Debe ser como: `https://www.youtube.com/feeds/videos.xml?channel_id=UC...`",
@@ -46,6 +47,13 @@
         "YT_HelpEmb_Field_Value_2":"`/youtube seguir`: Añade un canal.\n`/youtube lista`: Muestra los canales seguidos.\n`/youtube dejar`: Elimina un canal.\n`/youtube test`: Publica el último video de un canal para probar.",
         "YT_HelpEmb_footer":"💡 /youtube dejar id_canal:ID - • - /youtube test id_canal:ID",
  
-    "ATS5":"rrsChek-YT",
+    "ATS5":"youtubeCheck",
+        "error_404": "Error 404: El canal no existe o la URL es incorrecta",
+        "error_403": "Error 403: Acceso denegado",
+        "error_timeout":"Timeout: El servidor no respondió",
+
+        "erro_verificar_canal":"❌ **No se pudo verificar el canal.**\n**Error:** {{a1}}",
+
         "novo_video":"🎥 ¡Nuevo video de {{a1}}!\n**VIDEO:** [{{a2}}]({{a3}})"
+
 }
