@@ -97,6 +97,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 await textChannel.send(
                     i18next.t("Reduit_pioste", 
                         {ns: "reddit", a1: feed.subreddit_name, a2: safeTitle.trim(), a3: formattedUrl}));
+                await new Promise(resolve => setTimeout(resolve, 1100));
             }
 
             const latestPostId = newPosts[newPosts.length - 1].name;
