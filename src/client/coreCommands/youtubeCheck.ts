@@ -111,7 +111,7 @@ export class YTRssService {
         content: i18next.t("novo_video", {ns: "youtube", a1: feed.youtube_channel_name, a2: safeTitle, a3: videoUrl}),
       });
       
-      info(`Aviso a ${guild.name} de nuevo video de ${feed.youtube_channel_name}`);
+      debug(`Aviso a ${guild.name} de nuevo video de ${feed.youtube_channel_name}`);
     } catch (err) {
       error(`Error al notificar a ${guild.name}: ${err}`);
     }

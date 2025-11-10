@@ -2,7 +2,7 @@
 import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
 import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/database";
 import { extractChannelIdFromRss, extractVideoId, verifyYouTubeRss } from "../coreCommands/yTools";
-import { error, info, debug } from "../../sys/logging";
+import { error, debug } from "../../sys/logging";
 import i18next from "i18next" 
 
 export async function registerYouTubeCommand() {
@@ -162,7 +162,7 @@ async function seguirCanal(interaction: any, guildId: string) {
       flags: MessageFlags.Ephemeral
     });
     
-    info(`Nuevo canal de YouTube seguido: ${vChName} (${channelId}) en servidor ${guildId}`, "YouTubeCommand");
+    debug(`Nuevo canal de YouTube seguido: ${vChName} (${channelId}) en servidor ${guildId}`, "YouTubeCommand");
     
   } catch (err) {
     error(`Error siguiendo canal: ${err}`, "YouTubeCommand");
@@ -232,7 +232,7 @@ async function dejarCanal(interaction: any, guildId: string) {
     
     if (removed) {
       await interaction.editReply({ content: "✅ Canal eliminado correctamente. Ya no recibirás notificaciones de este canal.", flags: MessageFlags.Ephemeral });
-      info(`Canal de YouTube eliminado: ${youtubeChannelId} del servidor ${guildId}`, "YouTubeCommand");
+      debug(`Canal de YouTube eliminado: ${youtubeChannelId} del servidor ${guildId}`, "YouTubeCommand");
     } else {
       await interaction.editReply({ content: "❌ No se encontró el canal especificado. Usa `/youtube lista` para ver los canales que estás siguiendo.", flags: MessageFlags.Ephemeral });
     }
@@ -285,7 +285,7 @@ async function testCanal(interaction: any, guildId: string) {
       flags: MessageFlags.Ephemeral 
     });
 
-    info(`Prueba ejecutada para canal: ${feed.youtube_channel_name} en servidor ${guildId}`, "YouTubeCommand");
+    debug(`Prueba ejecutada para canal: ${feed.youtube_channel_name} en servidor ${guildId}`, "YouTubeCommand");
 
   } catch (err) {
     error(`Error en prueba de canal: ${err}`, "YouTubeCommand");
