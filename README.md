@@ -29,6 +29,7 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
  - /test: 
     - Channel/Guild = Revisa por canal o todo el server, (max 24 canales), donde funciona el bot.
     - Embed = para ver las configuraciones de los embeddings. 
+    - Chekdomainds = Pingea a los dominios de los embeds. (solo los default)
  - /work = Activa/Desactiva el funcionar en un canal.
  - /replybots = Activa/Desactiva el responder a otros bots, por default esta activo.
  - /youtube:
@@ -68,14 +69,17 @@ services:
       - LOCALE=
       #Configuraciones
       - DEBUG_MODE=
-      - YOUTUBE_CHECK_TIMMER=
-      - AUTO_CLEAN_YOUTUBE_TIMMER=
-      - REDDIT_CHECK_TIMMER=
       - REPLY_OTHER_BOTS=
       - WELCOME_BANNER_URL= 
       - PUID=
       - PGID=
       - TZ=
+      #Reddit & Youtube 
+      - YOUTUBE_CHECK_TIMMER=
+      - AUTO_CLEAN_YOUTUBE_TIMMER=
+      - REDDIT_CHECK_TIMMER=
+      - REDDIT_CLIENT_ID=
+      - REDDIT_CLIENT_SECRET=
       #Base de datos    
       - DB_HOST=
       - DB_USER=
@@ -135,6 +139,8 @@ services:
 | `YOUTUBE_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:5m |
 | `AUTO_CLEAN_YOUTUBE_TIMMER` | Tiempo entre purgas de la BD Youtube |
 | `REDDIT_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:3m |
+| `REDDIT_CLIENT_ID`  | [Reddit APPs Client](https://www.reddit.com/prefs/apps) |
+| `REDDIT_CLIENT_SECRET`  | [Reddit APPs Token](https://www.reddit.com/prefs/apps) |
 | `WELCOME_BANNER_URL` | URL para el Banner, 200x600|
 | `PUID & PGID` | Usuario ID/Grupo para escribir datos |
 | `TZ` | Zona Horaria "America/New_York" |
@@ -177,6 +183,7 @@ Meltryllis con Arma/
 │   │   │   ├── work.ts
 │   │   │   └── youtube.ts
 │   │   ├── coreCommands/
+|   |   |   ├── neTools.ts
 │   │   │   ├── redditCheck.ts
 │   │   │   ├── rolemojiEvents.ts
 │   │   │   ├── upCommands.ts
