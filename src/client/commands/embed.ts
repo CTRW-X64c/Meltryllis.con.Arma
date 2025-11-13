@@ -1,9 +1,9 @@
 // src/client/commands/embed.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from "discord.js";
 import i18next from "i18next";
-import { setGuildReplacementConfig } from "../database";
+import { setGuildReplacementConfig } from "../../sys/database";
 import { replacementMetaList } from "../../remplazadores/EmbedingConfig";
-import { error } from "../../logging";
+import { error } from "../../sys/logging";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 
@@ -33,10 +33,10 @@ export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
                         .setDescription(i18next.t("embed_command_action_description", { ns: "embed" })) 
                         .setRequired(true)
                         .addChoices(
-                            { name: i18next.t("subcommand_enable", { ns: "embed" }), value: "enable" }, // Valor cambiado a "enable"
+                            { name: i18next.t("subcommand_enable", { ns: "embed" }), value: "enable" }, 
                             { name: i18next.t("subcommand_disable", { ns: "embed" }), value: "disable" },
                             { name: i18next.t("subcommand_custom", { ns: "embed" }), value: "custom" },
-                            { name: i18next.t("subcommand_default", { ns: "embed" }), value: "default" } // Nueva opción para el estado por defecto
+                            { name: i18next.t("subcommand_default", { ns: "embed" }), value: "default" } 
                         )
                 )
                 .addStringOption((option) =>
@@ -89,7 +89,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
             customUrl = null;
             enabled = true;
             userId = null;
-        } else if (action === "enable") { // Lógica para habilitar
+        } else if (action === "enable") { 
             customUrl = null;
             enabled = true;
             userId = interaction.user.id;
@@ -138,7 +138,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
             successMessage = i18next.t("embed_subcommand_enable_description", { ns: "embed", user: userMention, site: site });
         } else if (action === "custom") {
             successMessage = i18next.t("embed_subcommand_custom_description", { ns: "embed", user: userMention, site: site, url: customUrlInput });
-        } else { // default
+        } else { 
             successMessage = i18next.t("embed_subcommand_default_description", { ns: "embed", user: userMention, site: site });
         }
 

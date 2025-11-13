@@ -29,6 +29,7 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
  - /test: 
     - Channel/Guild = Revisa por canal o todo el server, (max 24 canales), donde funciona el bot.
     - Embed = para ver las configuraciones de los embeddings. 
+    - Chekdomainds = Pingea a los dominios de los embeds. (solo los default)
  - /work = Activa/Desactiva el funcionar en un canal.
  - /replybots = Activa/Desactiva el responder a otros bots, por default esta activo.
  - /youtube:
@@ -37,6 +38,14 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
     - seguir = Sigue el canal de youtube.
     - dejar = Dejas de seguir el canal de youtube.
     - test = Piblica el ultimo video del canal seleccionado. 
+ - /reddit:
+    - help = Proporciona ayuda sobre sobre los comandos.
+    - lista = Muestra los subreddits que se suiguen en el server.
+    - seguir = Seguir un Subreddit.
+    - dejar = Deja de seguir un Subreddit.
+    - test = Publica el ultimo pos del subreddit.
+ 
+---    
 
 ## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
 
@@ -60,12 +69,17 @@ services:
       - LOCALE=
       #Configuraciones
       - DEBUG_MODE=
-      - YT_RSSCHECK_TIME=
       - REPLY_OTHER_BOTS=
       - WELCOME_BANNER_URL= 
       - PUID=
       - PGID=
       - TZ=
+      #Reddit & Youtube 
+      - YOUTUBE_CHECK_TIMMER=
+      - AUTO_CLEAN_YOUTUBE_TIMMER=
+      - REDDIT_CHECK_TIMMER=
+      - REDDIT_CLIENT_ID=
+      - REDDIT_CLIENT_SECRET=
       #Base de datos    
       - DB_HOST=
       - DB_USER=
@@ -122,7 +136,11 @@ services:
 | `LOCALE` | Idioma por default que tendra el bot |
 | `REPLY_OTHER_BOTS` | "true \| false" Responder a Bots |
 | `DEBUG_MODE` | "Debug mode *0* \| Produccion *>0*" |
-| `YT_RSSCHECK_TIME` | Tiempo entre revisiones. Def:10m Min:5m |
+| `YOUTUBE_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:5m |
+| `AUTO_CLEAN_YOUTUBE_TIMMER` | Tiempo entre purgas de la BD Youtube |
+| `REDDIT_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:3m |
+| `REDDIT_CLIENT_ID`  | [Reddit APPs Client](https://www.reddit.com/prefs/apps) |
+| `REDDIT_CLIENT_SECRET`  | [Reddit APPs Token](https://www.reddit.com/prefs/apps) |
 | `WELCOME_BANNER_URL` | URL para el Banner, 200x600|
 | `PUID & PGID` | Usuario ID/Grupo para escribir datos |
 | `TZ` | Zona Horaria "America/New_York" |
@@ -134,6 +152,7 @@ services:
 | `API_REPLACEMENT_DOMAINS` | Sitios soportados por [Embedez](https://embedez.com/) |
 | `BOT_STATUSES` | emoji \| nombre \| tipo de actividad |
 | `STATUS_TIME_MINUTOS` | Tiempo de Rotacion de *BOT_STATUSES* |
+##### **_ "YOUTUBE & REDDIT CHECK_TIMMER" cuentan con timmer minimo interno para evitar bloqueos de IP _**
 
 | Variable BD  | Valores |
 | --- | --- |
@@ -156,23 +175,25 @@ Meltryllis con Arma/
 │   │   │   ├── embed.ts
 │   │   │   ├── hola.ts
 │   │   │   ├── owner.ts
+|   |   |   ├── reddit.ts
 │   │   │   ├── replybots.ts
 │   │   │   ├── rolemoji.ts
 │   │   │   ├── test.ts
 │   │   │   ├── welcome.ts
 │   │   │   ├── work.ts
 │   │   │   └── youtube.ts
-│   │   ├── events/
+│   │   ├── coreCommands/
+|   |   |   ├── neTools.ts
+│   │   │   ├── redditCheck.ts
 │   │   │   ├── rolemojiEvents.ts
-│   │   │   ├── rssChek-YT.ts
-│   │   │   └── welcomeEvents.ts
-│   │   ├── database.ts
-│   │   ├── index.ts
-│   │   ├── setStatus.ts
-│   │   └── upCommands.ts
+│   │   │   ├── upCommands.ts
+│   │   |   ├── welcomeEvents.ts
+|   |   |   ├── youtubeCheck.ts
+|   |   |   └── yTools.ts
+|   |   └── index.ts
 │   ├── i18n/
 │   │   ├── index.ts
-│   │   └── langCmndVal.ts 
+│   │   └── langCmndVal.ts
 │   ├── remplazadores/
 │   │   ├── webs/
 │   │   │   ├── Bilibili.ts
@@ -195,9 +216,12 @@ Meltryllis con Arma/
 │   │   ├── EmbedingConfig.ts   
 │   │   ├── index.ts
 │   │   └── RuleReplacement.ts
-│   ├── environment.ts
-│   ├── index.ts
-│   └── logging.ts
+│   ├── sys/
+│   │   ├── database.ts
+│   │   ├── setStatus.ts
+│   │   ├── environment.ts
+|   |   └── logging.ts
+│   └── index.ts
 ├── add/
 │   ├── /langs/
 │   │   └── locales/
@@ -208,7 +232,7 @@ Meltryllis con Arma/
 │   └── /fonts/
 │       ├── Bitcount.ttf
 │       └── StoryScript-Regular.ttf/
-│           └── .env
+├── .env
 ├── Dockerfile
 ├── package-lock.json
 ├── package.json

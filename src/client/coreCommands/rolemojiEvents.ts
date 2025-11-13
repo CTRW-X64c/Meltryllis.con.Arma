@@ -1,11 +1,10 @@
-// src/client/events/rolemojiEvents.ts
+// src/client/coreCommands/rolemojiEvents.ts
 import { Client, MessageReaction, User, PartialMessageReaction, PartialUser, GuildMember } from "discord.js";
-import { debug, error } from "../../logging";
-import { getRoleAssignments } from "../database";
+import { debug, error } from "../../sys/logging";
+import { getRoleAssignments } from "../../sys/database";
 
 export function registerRolemojiEvents(client: Client) {
     debug('Event listeners for role assignment are being registered.', "RolemojiEvents");
-// Asignador de Roles
     client.on('messageReactionAdd', async (reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) => {
         debug(`Event 'messageReactionAdd' triggered by user ${user.username} for reaction ${reaction.emoji.name}`, "RolemojiEvents");
         
@@ -97,7 +96,6 @@ export function registerRolemojiEvents(client: Client) {
         if (assignment) {
             debug(`Assignment found in DB for emoji ${emojiKey}. Attempting to remove role...`, "RolemojiEvents");
             
-            // Obtener el miembro por su ID si no está en caché
             let member: GuildMember | null = null;
             try {
                 member = await reaction.message.guild!.members.fetch(user.id);

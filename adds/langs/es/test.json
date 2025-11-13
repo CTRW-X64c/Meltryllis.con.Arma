@@ -2,6 +2,10 @@
     "ATS1": "Command Builder",
         "command_test_description": "Revisar por permisos",
         "test_command_mode_description": "Modo de chequeo",
+        "test_command_mode_channel": "Canal",
+        "test_command_mode_guild": "Servidor",
+        "test_command_mode_embed": "Embedding",
+        "test_commands_mode_domainds": "Check Domains",
         
     "ATS2": "Contenido del Embed y Respuestas",
         "test_command_title": "Pasando lista de permisos",
@@ -42,5 +46,13 @@
         "command_permission_error": "No tienes permiso para usar este comando.",
         "dont_gg": "No se pudo obtener el servidor.",
         "test_command_invalid_mode": "Modo inválido, revisa los inputs del comando.",
-        "command_error": "Ocurrió un error al ejecutar el comando."
+        "command_error": "Ocurrió un error al ejecutar el comando.",
+
+    "ATS3": "Contenido del Embed y Respuestas",
+
+        "test_domaind_error": "❌ Este comando tiene un cooldown. Inténtalo de nuevo en {{a1}} minutos.",
+        "test_domaind_verificando": "🔄 Verificando estado de dominios... Esto puede tomar unos segundos.",
+        "command_error_verificando": "❌ Error al verificar dominios: {{a1}}"
+        
+
 }

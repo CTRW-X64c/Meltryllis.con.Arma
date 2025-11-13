@@ -1,18 +1,21 @@
 // src/client/core.ts
-import { error, info, debug, initLogger, loggerAvailable } from "../logging";
-import { getEnvironmentMode } from "../environment";
+import { error, info, debug, initLogger, loggerAvailable } from "../sys/logging";
+import { getEnvironmentMode } from "../sys/environment";
 import { initI18n } from "../i18n";
 import i18next from "i18next";
 import { buildReplacements } from "../remplazadores/index";
-import { registerCommands, handleCommandInteraction } from "./upCommands";
-import { initializeDatabase, getConfigMap, getGuildReplacementConfig, getRoleAssignments } from "./database";
-import { parseStatuses, setupStatusRotation } from "./setStatus";
+import { registerCommands, handleCommandInteraction } from "./coreCommands/upCommands";
+import { initializeDatabase, getConfigMap, getGuildReplacementConfig, getRoleAssignments } from "../sys/database";
+import { parseStatuses, setupStatusRotation } from "../sys/setStatus";
 import { Client, Events, GatewayIntentBits, Interaction, Message, TextBasedChannel, MessageReaction, User } from "discord.js";
 import ApiReplacement from "../remplazadores/ApiReplacement";
-import { registerWelcomeEvents, preloadImagesAndFonts } from "./events/welcomeEvents";
-import { registerRolemojiEvents } from "./events/rolemojiEvents";
+import { registerWelcomeEvents, preloadImagesAndFonts } from "./coreCommands/welcomeEvents";
+import { registerRolemojiEvents } from "./coreCommands/rolemojiEvents";
 import { validateAllTranslations } from "../i18n/langCmndVal";
-import { YTRssService } from "./events/rssChek-YT";
+import { startYoutubeService } from "./coreCommands/youtubeCheck";
+import { startRedditChecker } from "./coreCommands/redditCheck";
+import { autoCleanupService } from "./coreCommands/yTools";
+
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
@@ -86,27 +89,8 @@ export function createClient(): Client {
         registerRolemojiEvents(client);
         registerCommands(client);
     });
-    // RSS-Yotube
-    const MStoMin = 60000;
-    const DEFAULT_Timmer = 10;
-    const MIN_TIMMER = 5;
-    const rawRssTime = process.env.YT_RSSCHECK_TIME;
-    const parsedMinutes = rawRssTime ? parseInt(rawRssTime, 10) : NaN;
-    const minutes = !isNaN(parsedMinutes) ? Math.max(parsedMinutes, MIN_TIMMER) : DEFAULT_Timmer;
-    const rssCheckTimmer = minutes * MStoMin;
-    info(`RSS Youtube Timmer Establecido en ${minutes} minutos`);
-    const youtubeRssService = new YTRssService(client);
-    setInterval(() => {
-        youtubeRssService.checkAllFeeds().catch(err => {
-            error(`Error in YouTube RSS check: ${err}`);
-        });
-    }, rssCheckTimmer);
-
-    setTimeout(() => {
-        youtubeRssService.checkAllFeeds().catch(err => {
-            error(`Error in initial YouTube RSS check: ${err}`);
-        });
-    }, 30000);
+    
+    // se purgo el inciador de Youtube y solo se importa abajo en el Init
 
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         if (interaction.isChatInputCommand()) {
@@ -302,6 +286,7 @@ export function createClient(): Client {
     return client;
 }
 //Nuevo sistema de arranque y manejo de errores
+
 async function main(): Promise<void> {
     try {
         if (!process.env.DISCORD_BOT_TOKEN) {
@@ -315,6 +300,9 @@ async function main(): Promise<void> {
         const client = createClient();
         await client.login(process.env.DISCORD_BOT_TOKEN);        
         logInfo(i18next.t("bot_success_init", {ns: "core" }));
+        startYoutubeService(client); // by nep <= es tonta por eso lo escribio arriba en vez de solo hacerlo init!! 
+        startRedditChecker(client);  // by nowa
+        autoCleanupService.start();
 
     } catch (error) {
         logFatalError(error);

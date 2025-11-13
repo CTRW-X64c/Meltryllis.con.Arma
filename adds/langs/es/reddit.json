@@ -1,0 +1,63 @@
+{
+    "ATS1":"Command Builder",
+        "command_reddit": "Seguimiento de subreddits",
+        "command_reddit_descripcion":"Añade la URL del Subreddit a seguir",
+        "command_reddit_seguir":"URL del Subreddit",
+        "command_reddit_canal": "Canal de Discord donde recibir notificaciones",
+        "command_reddit_filtro": "Tipo de posts",
+        "command_reddit_sin_filtro":"No se filtra nada",
+        "command_reddit_filtro_multimedia":"Solo si tienen contenido Multimedia ,",
+        "command_reddit_filtro_texto":"Post que solo tienen Texto",
+
+        "command_reddit_lista": "Lista los subreddits que estás siguiendo",
+
+        "command_reddit_id_canal": "ID del subreddit a dejar de seguir (usa /reddit lista para ver los IDs)",
+        "command_reddit_dejar": "Dejar de recibir notificaciones de un subreddit",
+        "command_reddit_test": "Publica el último post de un subreddit para probar",
+
+        "command_reddit_help": "Ayuda sobre la configuracion",
+        
+    "ATS2":"Switch",
+        "command_permission_error":"❌ No tienes permiso para ejecutar el comando.",
+        "command_error":"❌ Ocurrió un error al ejecutar el comando.",
+
+    "ATS3":"Commandos",
+        "command_reddit_canal_error":"❌ Debes seleccionar un canal de texto válido.",
+        "command_reddit_subreddit_error":"❌ Pega la URL completa o r/subreddit",
+        "command_reddit_duplicado":"`❌ Subreddir **{{a1}}** duplicado!!",
+        "command_reddit_seguir_success":"✅ ¡Siguiendo **{{a1}}**! en el canal {{a2}} Modo: {{a3}}.",
+        "command_reddit_seguir_error":"❌ Error al seguir, cehca el nombre del subreddit/user.\n Intenta copiar y pegar directamente la URL del navegador.",
+        "command_reddit_url_invalida":"❌ URL o nombre de subreddit no válido.",
+        "command_reddit_dejar_success":"✅ Dejé de seguir **{{a1}}**",
+        "command_reddit_dejar_error":"❌ No se encontró una suscripción para **{{a1}}**. Usa \"/reddit lista\" para ver los subreddits seguidos.",
+        "command_reddit_borrarSubs_error":"❌ Error al eliminar la suscripción.",
+        "command_reddit_test_url_invalida":"❌ URL o nombre de subreddit no válido.",
+        "command_reddit_test_subreddit_error":"❌ No encontré una suscripción para **${subredditName}** para poder probarla.",
+        "command_reddit_test_buscando":"🔍 Buscando el último post en **{{a1}}**...",
+        "command_reddit_test_noposts":"❌ No se encontraron posts en **{{a1}}**.",
+        "command_reddit_test_noexisteCH":"❌ El canal de notificaciones <#{{a1}}> no existe o no es accesible.",
+        "command_reddit_test_ultimoPost":"🧪 MODO PRUEBA!!\n Último post de {{a1}}:**\n**POST**: [{{a2}}]({{a3}})",
+        "command_reddit_test_pass":"✅ ¡Prueba exitosa! Se publicó el último post en {{a1}}",
+        "command_reddit_test_error":"❌ Error al probar el subreddit. Verifica que el subreddit sea público y accesible.",
+
+    "ATS4":"Embed Builder List",
+        "command_reddit_lista_titulo":"📡 Subreddits seguidos en {{a2}}: **{{a1}}**",
+        "command_reddit_lista_name":"📢 **{{a2}}** - Subreddits seguidos en {{a1}}",
+        "command_reddit_lista_value":"No hay subreddits aquí.",
+        "command_reddit_lista_footer":"`Usa \"/reddit dejar\" para eliminar una suscripción.`",
+
+    "ATS5":"Embed Builder Help",
+        "command_reddit_HelpEmb_titulo":"Ayuda del Comando de Reddit",
+        "command_reddit_HelpEmb_descripcion":"Información sobre cómo usar los comandos de Reddit.",
+        "command_reddit_HelpEmb_Field_Name_1":"/reddit seguir",
+        "command_reddit_HelpEmb_Field_Value_1":"Puedes usar la URL completa o nombre del subreddit/user `ej: r/subreddirt|u/username`.",
+        "command_reddit_HelpEmb_Field_Name_2":"/reddit lista",
+        "command_reddit_HelpEmb_Field_Value_2":"Muestra los subreddits/user que estás siguiendo.",
+        "command_reddit_HelpEmb_Field_Name_3":"/reddit dejar",
+        "command_reddit_HelpEmb_Field_Value_3":"Deja de recibir seguir un subreddit/user usando su URL o r/subbreddit|u/username.",
+        "command_reddit_HelpEmb_Field_Name_4":"/reddit test",
+        "command_reddit_HelpEmb_Field_Value_4":"Publica el último post de un subreddit usando su URL o r/subbreddit|u/username.",
+
+    "ATS6":"Embed Builder Help",
+        "Reduit_pioste":"Último post de {{a1}}:\n**POST:** [{{a2}}]({{a3}})"
+ }

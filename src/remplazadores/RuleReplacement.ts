@@ -1,4 +1,5 @@
-import { debug } from "../logging";
+// src/remplazadores/RuleReplacement.ts
+import { debug } from "../sys/logging";
 
 export default class Ruler {
   protected newDomain: string;

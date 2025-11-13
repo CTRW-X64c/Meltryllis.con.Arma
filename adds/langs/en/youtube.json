@@ -33,7 +33,7 @@
         "YT_embed_descripcion": "**Summary:** {{a1}} channels in {{a2}} notification channel{{a3}}",
         "YT_embed_list_entry": "📺: `{{a1}}` & 🆔: `{{a2}}`",
         "YT_embed_field_name": "`{{a1}} Following Channels: {{a2}}`",
-        "YT_embed_list_value": "{{a1}} || \"*No channels*\"",
+        "YT_embed_list_value": "{{a1}}",
 
     "ATS4":"Embed Builder Help",
         "YT_HelpEmb_titulo":"YouTube Command Help",

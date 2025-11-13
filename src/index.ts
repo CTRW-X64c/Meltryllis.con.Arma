@@ -1,7 +1,7 @@
 // src/index.ts 
 import dotenv from "dotenv";
-import { info, initLogger, error } from "./logging";
-import { getEnvironmentMode } from "./environment";
+import { info, initLogger, error } from "./sys/logging";
+import { getEnvironmentMode } from "./sys/environment";
 import { ShardingManager, Client } from "discord.js";
 
 dotenv.config();

@@ -1,8 +1,8 @@
 // src/client/commands/welcome.ts
 import { SlashCommandBuilder, MessageFlags, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType } from "discord.js";
 import i18next from "i18next";
-import { error } from "../../logging";
-import { setWelcomeConfig, getWelcomeConfig } from "../database";
+import { error } from "../../sys/logging";
+import { setWelcomeConfig, getWelcomeConfig } from "../../sys/database";
 
 export async function registerWelcomeCommand(): Promise<SlashCommandBuilder[]> {
     const welcomeCommand = new SlashCommandBuilder()

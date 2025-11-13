@@ -1,8 +1,8 @@
 // src/client/commands/rolemoji.ts
 import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel, PermissionsBitField } from "discord.js";
 import i18next from "i18next";
-import { debug, error } from "../../logging";
-import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../database";
+import { debug, error } from "../../sys/logging";
+import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../../sys/database";
 
 function getEmojiKey(emojiString: string): string {
     const customEmojiRegex = /<a?:[a-zA-Z0-9_]+:(\d+)>$/;

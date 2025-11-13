@@ -1,7 +1,8 @@
 // src/client/commands/youtube.ts
 import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
-import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../database";
-import { error, info, debug } from "../../logging";
+import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/database";
+import { extractChannelIdFromRss, extractVideoId, verifyYouTubeRss } from "../coreCommands/yTools";
+import { error, debug } from "../../sys/logging";
 import i18next from "i18next" 
 
 export async function registerYouTubeCommand() {
@@ -65,7 +66,7 @@ export async function handleYouTubeCommand(interaction: any) {
   const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
     if (!isAdmin) {
       await interaction.editReply({
-        content: "❌ No tienes permiso para ejecutar el comando.",
+        content: i18next.t("command_permission_error", { ns: "rolemoji" }),
         flags: MessageFlags.Ephemeral,
       });
       return;
@@ -98,11 +99,13 @@ export async function handleYouTubeCommand(interaction: any) {
   }
 }
 
+// =============== SubSeguir =============== //
 async function seguirCanal(interaction: any, guildId: string) {
   const rssUrl = interaction.options.getString("rss_url");
-  const discordChannel = interaction.options.getChannel("canal");
+  const discordChannelInput = interaction.options.getChannel("canal");
+  const discordChannel = interaction.guild.channels.cache.get(discordChannelInput.id);
 
-  if (!discordChannel.isTextBased()) {
+  if (!discordChannel || !discordChannel.isTextBased()) {
     await interaction.editReply({ content: i18next.t("command_youtube_canal_error", { ns: "youtube" }), flags: MessageFlags.Ephemeral });
     return;
   }
@@ -119,7 +122,7 @@ async function seguirCanal(interaction: any, guildId: string) {
       return;
     }
 
-    const channelName = await getChannelNameFromRss(rssUrl);
+
     const existingFeeds = await getYouTubeFeeds(guildId);
     const alreadyFollowing = existingFeeds.find(feed => feed.youtube_channel_id === channelId);
     
@@ -127,29 +130,47 @@ async function seguirCanal(interaction: any, guildId: string) {
       await interaction.editReply({ content: i18next.t("command_youtube_ya_sigueindo", { ns: "youtube", a1: alreadyFollowing.youtube_channel_name }), flags: MessageFlags.Ephemeral });
       return;
     }
+  
+    await interaction.editReply({ 
+      content: "🔍 **Verificando el canal de YouTube...**", 
+      ephemeral: true 
+    });
+
+    const verification = await verifyYouTubeRss(rssUrl);
+    
+    if (!verification.isValid) {
+      await interaction.editReply({ 
+        content: i18next.t("erro_verificar_canal", { ns: "youtube", a1: verification.error}),
+        ephemeral: true 
+      });
+      return;
+    }
+
+    const vChName = verification.channelName;
 
     await addYouTubeFeed({
       guild_id: guildId,
       channel_id: discordChannel.id,
       youtube_channel_id: channelId,
-      youtube_channel_name: channelName,
+      youtube_channel_name: vChName,
       rss_url: rssUrl,
       last_video_id: null
     });
 
     await interaction.editReply({ 
-      content: i18next.t("command_youtube_seguir_success", { ns: "youtube", a1: channelName, a2: discordChannel.toString() }),  
+      content: i18next.t("command_youtube_seguir_success", { ns: "youtube", a1: vChName, a2: discordChannel.toString() }),  
       flags: MessageFlags.Ephemeral
     });
     
-    info(`Nuevo canal de YouTube seguido: ${channelName} (${channelId}) en servidor ${guildId}`, "YouTubeCommand");
+    debug(`Nuevo canal de YouTube seguido: ${vChName} (${channelId}) en servidor ${guildId}`, "YouTubeCommand");
     
   } catch (err) {
     error(`Error siguiendo canal: ${err}`, "YouTubeCommand");
-    await interaction.editReply({ content: "❌ Error al seguir el canal. Verifica que la URL RSS sea correcta y accesible.", flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: i18next.t("command_youtube_seguir_error", { ns: "youtube" }), flags: MessageFlags.Ephemeral });
   }
 }
 
+// =============== SubLista =============== //
 async function listaCanales(interaction: any, guildId: string) {
   const feeds = await getYouTubeFeeds(guildId);
 
@@ -157,7 +178,7 @@ async function listaCanales(interaction: any, guildId: string) {
     await interaction.editReply({ content: i18next.t("command_youtube_lista_vacia", { ns: "youtube" }), flags: MessageFlags.Ephemeral});
     return;
   }
-
+  
   const feedsPorCanal = new Map<string, { canal: any, feeds: YouTubeFeed[] }>();
   
   for (const feed of feeds) {
@@ -187,7 +208,7 @@ async function listaCanales(interaction: any, guildId: string) {
 
     embed.addFields({
       name: i18next.t("YT_embed_list_title", { ns: "youtube", a1: urlchannel, a2: grupo.feeds.length }),
-      value: i18next.t("YT_embed_list_value", { ns: "youtube", a1: listaCanales }),
+      value: listaCanales || i18next.t("YT_embed_list_value", { ns: "youtube"}),
       inline: false
     });
   }
@@ -201,6 +222,8 @@ async function listaCanales(interaction: any, guildId: string) {
     ephemeral: true 
   });
 }
+
+// =============== SubDejar =============== //
 async function dejarCanal(interaction: any, guildId: string) {
   const youtubeChannelId = interaction.options.getString("id_canal");
   
@@ -209,7 +232,7 @@ async function dejarCanal(interaction: any, guildId: string) {
     
     if (removed) {
       await interaction.editReply({ content: "✅ Canal eliminado correctamente. Ya no recibirás notificaciones de este canal.", flags: MessageFlags.Ephemeral });
-      info(`Canal de YouTube eliminado: ${youtubeChannelId} del servidor ${guildId}`, "YouTubeCommand");
+      debug(`Canal de YouTube eliminado: ${youtubeChannelId} del servidor ${guildId}`, "YouTubeCommand");
     } else {
       await interaction.editReply({ content: "❌ No se encontró el canal especificado. Usa `/youtube lista` para ver los canales que estás siguiendo.", flags: MessageFlags.Ephemeral });
     }
@@ -219,6 +242,7 @@ async function dejarCanal(interaction: any, guildId: string) {
   }
 }
 
+// =============== SubTest =============== //
 async function testCanal(interaction: any, guildId: string) {
   const youtubeChannelId = interaction.options.getString("id_canal");
   
@@ -255,13 +279,13 @@ async function testCanal(interaction: any, guildId: string) {
     await channel.send({
       content: i18next.t("command_youtube_canal_pruebaUltimoVideo", { ns: "youtube", a1: feed.youtube_channel_name, a2: latestVideo.title, a3: videoUrl}),
     });
-
+    const canalClickeable = `<#${feed.channel_id}>`;
     await interaction.editReply({ 
-      content: i18next.t("command_youtube_canal_test_pass", { ns: "youtube", a1: feed.youtube_channel_name, a2: feed.channel_id}), 
+      content: i18next.t("command_youtube_canal_test_pass", { ns: "youtube", a1: feed.youtube_channel_name, a2: canalClickeable}), 
       flags: MessageFlags.Ephemeral 
     });
 
-    info(`Prueba ejecutada para canal: ${feed.youtube_channel_name} en servidor ${guildId}`, "YouTubeCommand");
+    debug(`Prueba ejecutada para canal: ${feed.youtube_channel_name} en servidor ${guildId}`, "YouTubeCommand");
 
   } catch (err) {
     error(`Error en prueba de canal: ${err}`, "YouTubeCommand");
@@ -269,44 +293,11 @@ async function testCanal(interaction: any, guildId: string) {
   }
 }
 
-function extractChannelIdFromRss(rssUrl: string): string | null {
-  const match = rssUrl.match(/channel_id=([^&]+)/);
-  return match ? match[1] : null;
-}
-
-function extractVideoId(video: any): string | null {
-  if (video.id) {
-    return video.id;
-  }
-  
-  if (video.link) {
-    const match = video.link.match(/[?&]v=([^&]+)/);
-    if (match) return match[1];
-  }
-  
-  if (video.guid) {
-    const match = video.guid.match(/video:video\.([^:]+)/);
-    if (match) return match[1];
-  }
-  
-  return null;
-}
-
-async function getChannelNameFromRss(rssUrl: string): Promise<string> {
-  try {
-    const Parser = (await import("rss-parser")).default;
-    const parser = new Parser();
-    const feed = await parser.parseURL(rssUrl);
-    return feed.title || "Canal de YouTube";
-  } catch (err) {
-    return "Canal de YouTube";
-  }
-}
-
+// =============== SubHelp =============== //
 async function YThelp(interaction: ChatInputCommandInteraction): Promise<void> {
   try {
     const embed = new EmbedBuilder()
-      .setTitle(i18next.t("YT_HelpEmb_titulo", { ns: "youtube" })) // Cambié el título para que sea más específico
+      .setTitle(i18next.t("YT_HelpEmb_titulo", { ns: "youtube" })) 
       .setDescription(i18next.t("YT_HelpEmb_descripcion", { ns: "youtube" }))
       .addFields(
         {
@@ -320,18 +311,21 @@ async function YThelp(interaction: ChatInputCommandInteraction): Promise<void> {
           inline: false
         }
       )
-      .setImage("https://i.imgur.com/hBy4KhT.jpeg")
+      //.setImage("https://i.imgur.com/hBy4KhT.jpeg")
       .setColor("#ff0000")
       .setFooter({
         text: i18next.t("YT_HelpEmb_footer", { ns: "youtube" }),
       })
 
     await interaction.editReply({ embeds: [embed] });
-    debug(`Comando de ayuda de YouTube ejecutado`); //<=
+    debug(`Comando de ayuda de YouTube ejecutado`);
   } catch (err) {
-    error(`Error al ejecutar comando de ayuda de YouTube: ${err}`); //<=
+    error(`Error al ejecutar comando de ayuda de YouTube: ${err}`); 
     await interaction.editReply({
       content: (`Ocurrió un error al mostrar la ayuda.`),
     });
   }
 }
+
+
+// Aqui solo debe tener comandos

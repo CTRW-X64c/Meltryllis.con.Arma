@@ -1,7 +1,7 @@
 // src/client/commands/hola.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags } from "discord.js";
 import i18next from "i18next";
-import { error, debug } from "../../logging";
+import { error, debug } from "../../sys/logging";
 
 export async function registerHolaCommand(): Promise<SlashCommandBuilder[]> {
   const holaCommand = new SlashCommandBuilder()

@@ -1,7 +1,7 @@
 // src/client/langCmndVal.ts
 import i18next from "i18next";
 import { SUPPORTED_LANGUAGES } from "./index";
-import { error, info } from "../logging"
+import { error, info } from "../sys/logging"
 
 type TranslationConfig = {
     [namespace: string]: string[];
@@ -43,7 +43,11 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
     ],
     "test":[
         "command_test_description",
-        "test_command_mode_description"
+        "test_command_mode_description",
+        "test_command_mode_channel",
+        "test_command_mode_guild",
+        "test_command_mode_embed",
+        "test_commands_mode_domainds"
     ],
     "welcome": [
         "command_welcome_description",
@@ -68,6 +72,21 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_youtube_test_id_canal",
         "command_youtube_help"
     ],
+    "reddit":[
+        "command_reddit",
+        "command_reddit_descripcion",
+        "command_reddit_seguir",
+        "command_reddit_canal",
+        "command_reddit_filtro",
+        "command_reddit_sin_filtro",
+        "command_reddit_filtro_multimedia",
+        "command_reddit_filtro_texto",
+        "command_reddit_lista",
+        "command_reddit_id_canal",
+        "command_reddit_dejar",
+        "command_reddit_test",
+        "command_reddit_help"
+    ]
 
     // Agrega más namespaces según necesites
 };
@@ -128,7 +147,6 @@ export async function validateAllTranslations(): Promise<void> {
         }
     }
     
-    // Resumen final
     if (totalErrors > 0) {
         error(`💥 RESUMEN: Se encontraron ${totalErrors} errores`);
         

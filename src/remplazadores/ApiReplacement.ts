@@ -1,5 +1,5 @@
 // src/remplazadores/ApiReplacement.ts
-import { debug, error } from "../logging";
+import { debug, error } from "../sys/logging";
 
 interface EmbedezApiResponse {
     success: boolean;
