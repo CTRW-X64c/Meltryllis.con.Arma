@@ -4,6 +4,7 @@ import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { getConfigMap, getGuildReplacementConfig } from "../../sys/database";
 import { replacementMetaList} from "../../remplazadores/EmbedingConfig";
+import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../coreCommands/neTools";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 
@@ -18,9 +19,10 @@ export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
         .setDescription(i18next.t("test_command_mode_description", { ns: "test" }))
         .setRequired(false)
         .addChoices(
-          { name: "Canal Actual", value: "channel" },
-          { name: "Guild", value: "guild" },
-          { name: "Embed", value: "embed" }
+          { name: i18next.t("test_command_mode_channel", { ns: "test" }), value: "channel" },
+          { name: i18next.t("test_command_mode_guild", { ns: "test" }), value: "guild" },
+          { name: i18next.t("test_command_mode_embed", { ns: "test" }), value: "embed" },
+          { name: i18next.t("test_commands_mode_domainds", { ns: "test" }), value: "chekdimains" }
         )
     ) as SlashCommandBuilder;
 
@@ -65,7 +67,11 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
       case "embed":
         await ComEmbed(interaction, embed);
         break;
-      
+
+      case "chekdimains":
+        await ChekDomainsTest(interaction);
+        return;
+
       default:
         embed.setDescription(i18next.t("test_command_invalid_mode", { ns: "test" }))
              .setColor("#ff0000");
@@ -76,12 +82,16 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
     debug(`Comando /test ejecutado en modo: ${mode}`); //<=
   } catch (err) {
     error(`Error al ejecutar comando /test: ${err}`); //<=
-    await interaction.reply({
-      content: i18next.t("command_error", { ns: "test" }),
-      flags: MessageFlags.Ephemeral,
+      if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({
+        content: i18next.t("command_error", { ns: "test" }),
+        flags: MessageFlags.Ephemeral,
     });
-  }
-}
+  }else if (!interaction.replied) {
+    await interaction.editReply({
+      content: i18next.t("command_error", { ns: "test" }),
+    });
+}}}
 
  // Subcomando "Canal Actual/null"
 async function ComNull(
@@ -240,4 +250,42 @@ async function ComEmbed(
   });
 
   embed.setColor("#0099ff");
+}
+
+export async function ChekDomainsTest(interaction: ChatInputCommandInteraction): Promise<void> {
+    try {
+
+        const cooldown = checkDomainTest();
+        if (cooldown.onCooldown) {
+            await interaction.reply({
+                content: i18next.t("test_domaind_error", { ns: "test" , a1: cooldown.timeLeft }),
+                flags: MessageFlags.Ephemeral
+            });
+            return;
+        }
+
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        
+        const showDetailed = interaction.options.getBoolean("detallado") ?? false;
+        
+        await interaction.editReply({
+            content: i18next.t("test_domaind_verificando", { ns: "test" })
+        });
+
+        startDomainTestCooldown();
+        
+        const domainStatuses = await checkAllDomains();
+        
+        const embed = buildDomainStatusEmbed(domainStatuses, showDetailed);
+        
+        await interaction.editReply({ 
+            content: null, 
+            embeds: [embed] 
+        });
+
+    } catch (err: any) {
+        await interaction.editReply({
+            content: i18next.t("command_error_verificando", { ns: "test", a1: err.message}),
+        });
+    }
 }

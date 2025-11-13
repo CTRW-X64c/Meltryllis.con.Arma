@@ -1,7 +1,8 @@
 // src/client/commands/owner.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction } from "discord.js";
-import { debug, error } from "../../sys/logging";
+import { debug, error, } from "../../sys/logging";
 import { Buffer } from 'node:buffer';
+import { checkAllDomains, buildDomainStatusEmbed } from "../coreCommands/neTools";
 
 export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()
@@ -20,7 +21,17 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
                     option
                         .setName("server_id")
                         .setDescription("ID del servidor que el bot debe abandonar.")
-                        .setRequired(true)
+                        .setRequired(true))
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("checkdomains")
+                .setDescription("Verifica el estado de los dominios de embedding.")
+                .addBooleanOption(option =>
+                    option
+                        .setName("detallado")
+                        .setDescription("Mostrar información detallada de cada dominio")
+                        .setRequired(false)
                 )
         );
     return [leaveServerCommand] as SlashCommandBuilder[];
@@ -45,6 +56,10 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
             case "leave":
                 await LeaveServer(interaction);
                 break;
+
+            case "checkdomains":
+                await ChekDominios(interaction);
+                break;    
             
             default:
                 await interaction.reply({
@@ -197,6 +212,42 @@ async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<vo
                     flags: MessageFlags.Ephemeral
                 });
             } catch {  }
+        }
+    }
+}
+
+export async function ChekDominios(interaction: ChatInputCommandInteraction): Promise<void> {
+    try {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        
+        const showDetailed = interaction.options.getBoolean("detallado") ?? false;
+        
+        await interaction.editReply({
+            content: "🔄 Verificando estado de dominios (Comando Owner)..."
+        });
+        
+        // 2. Llama a la lógica centralizada
+        const domainStatuses = await checkAllDomains();
+        
+        // 3. Llama al constructor de embeds
+        const embed = buildDomainStatusEmbed(domainStatuses, showDetailed);
+        
+        await interaction.editReply({ 
+            content: null, 
+            embeds: [embed] 
+        });
+        
+    } catch (err: any) {
+        error(`Error en comando checkdomains: ${err}`, "CheckDomains");
+
+        if (err.message.includes("No se encontraron variables")) {
+            await interaction.editReply({
+                content: "❌ No se encontraron variables *_FIX_URL en .env",
+            });
+        } else {
+            await interaction.editReply({
+                content: "❌ Ocurrió un error inesperado al procesar el comando.",
+            });
         }
     }
 }

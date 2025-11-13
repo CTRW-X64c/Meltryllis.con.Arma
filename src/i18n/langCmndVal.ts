@@ -43,7 +43,11 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
     ],
     "test":[
         "command_test_description",
-        "test_command_mode_description"
+        "test_command_mode_description",
+        "test_command_mode_channel",
+        "test_command_mode_guild",
+        "test_command_mode_embed",
+        "test_commands_mode_domainds"
     ],
     "welcome": [
         "command_welcome_description",

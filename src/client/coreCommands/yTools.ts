@@ -148,7 +148,7 @@ class AutoCleanupService {
       const allFeeds = await getAllYouTubeFeeds();
       
       if (allFeeds.length === 0) {
-        debug('No hay feeds para limpiar', 'AutoCleanupService');
+        info('No hay feeds para limpiar', 'AutoCleanupService');
         return results;
       }
 
@@ -176,7 +176,7 @@ class AutoCleanupService {
       if (results.cleaned > 0) {
         info(`✅ Limpieza completada: ${results.cleaned} feeds eliminados`, 'AutoCleanupService');
       } else {
-        debug('Limpieza: No se encontraron feeds inválidos', 'AutoCleanupService');
+        info('Limpieza: No se encontraron feeds inválidos', 'AutoCleanupService');
       }
 
       if (results.errors.length > 0) {

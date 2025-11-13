@@ -1,0 +1,16 @@
+{
+    "ATSY1":"neTools",
+        "neTools_embed_title":"🌐 Estado de los  **dominios** de Embedding",
+        "neTools_embed_description": "**{{a1}}/{{a2}} dominios funcionando**",
+        "neTools_embed_operativo": "Funcionando",
+        "neTools_embed_inoperativo": "Caido",
+        "neTools_embed_tiempo": "⏱️ Tiempo: {{a1}}\n",
+        "neTools_embed_error": "⚠️ Error: {{a1}}\n",
+        "neTools_embed_operativos": "✅ Operativos ({{a1}})",
+        "neTools_embed_inoperativos": "❌ Caidos ({{a1}})",
+        "neTools_embed_resumen": "📈 Estadísticas",
+        "neTools_embed_resumen_value_1": "Latencia media: {{a1}}ms\n",
+        "neTools_embed_resumen_value_2": "Funcionando al {{a1}}%"
+
+
+}
