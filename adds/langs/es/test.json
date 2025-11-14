@@ -50,7 +50,7 @@
 
     "ATS3": "Contenido del Embed y Respuestas",
 
-        "test_domaind_error": "❌ Este comando tiene un cooldown. Inténtalo de nuevo en {{a1}} minutos.",
+        "test_domaind_error": "❌ Este comando tiene un cooldown. Inténtalo de nuevo en {{a1}}.",
         "test_domaind_verificando": "🔄 Verificando estado de dominios... Esto puede tomar unos segundos.",
         "command_error_verificando": "❌ Error al verificar dominios: {{a1}}"
         
