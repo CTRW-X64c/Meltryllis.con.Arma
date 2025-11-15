@@ -10,20 +10,20 @@ const redditDomain = process.env.REDDIT_FIX_URL || "reddit.com";
 function getSubredditNameFromUrl(input: string): string | null {
     try {
         const urlObject = new URL(input);
-        const subredditMatch = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_]+)/);
-        const userMatch = urlObject.pathname.match(/\/user\/([a-zA-Z0-9_]+)/);
+        const subredditMatch = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_-]+)/);
+        const userMatch = urlObject.pathname.match(/\/user\/([a-zA-Z0-9_-]+)/);
         
         if (subredditMatch) return subredditMatch[1];
         if (userMatch) return userMatch[1];
     } catch (e) {     
     }
-    const urlMatch = input.match(/(?:reddit\.com\/(?:r|user)\/|^(?:r|u)\/)([a-zA-Z0-9_]+)/);
+    const urlMatch = input.match(/(?:reddit\.com\/(?:r|user)\/|^(?:r|u)\/)([a-zA-Z0-9_-]+)/);
     if (urlMatch) return urlMatch[1];
     
-    const rSlashMatch = input.match(/^(?:r|u)\/([a-zA-Z0-9_]+)$/);
+    const rSlashMatch = input.match(/^(?:r|u)\/([a-zA-Z0-9_-]+)$/);
     if (rSlashMatch) return rSlashMatch[1];
     
-    const simpleMatch = input.match(/^[a-zA-Z0-9_]+$/);
+    const simpleMatch = input.match(/^[a-zA-Z0-9_-]+$/);
     if (simpleMatch) return simpleMatch[0];
     
     return null;
