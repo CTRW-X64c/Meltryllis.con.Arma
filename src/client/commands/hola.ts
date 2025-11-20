@@ -62,8 +62,18 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
           value: i18next.t("field_rolemoji_value", { ns: "hola" }),
           inline: false
         },
+        {
+          name: i18next.t("field_youtube_name", { ns: "hola" }),
+          value: i18next.t("field_youtube_value", { ns: "hola" }),
+          inline: false
+        },
+        {
+          name: i18next.t("field_reddit_name", { ns: "hola" }),
+          value: i18next.t("field_reddit_value", { ns: "hola" }),
+          inline: false
+        },
       )
-      .setImage("https://i.imgur.com/hBy4KhT.jpeg")
+      .setImage("https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Pict/banner-v2.jpg")
       .setColor("#d20fae")
       .setFooter({
         text: i18next.t("footer_text", { ns: "hola" }),
