@@ -73,7 +73,7 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
           inline: false
         },
       )
-      .setImage("https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Pict/banner-v2.jpg")
+      .setImage("https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/banner-v2.jpg")
       .setColor("#d20fae")
       .setFooter({
         text: i18next.t("footer_text", { ns: "hola" }),
