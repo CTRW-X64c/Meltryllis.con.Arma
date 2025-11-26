@@ -1,0 +1,50 @@
+{
+    "AST":"SLASHBUILDER",
+        "command_post_description":"Publica un mensaje como el bot en un canal específico",
+        "command_post_post_msg_description":"Realiza un post enviando un mensaje",
+        "command_post_canal_description":"El canal donde se publicará el anuncio",
+
+        "command_post_copy_description":"Realiza un post desde copiando un mensaje existente",
+        "command_post_mensaje_description":"ID del mesnaje que se va copiar. (canal_origen: solo si el comando se ejecuta en un canal distinto al mensaje)",
+        "command_post_canal_origen_description":"Canal donde esta el mesnaje a copiar; solo si el mensaje y comando estan en distintos canales",
+
+        "command_post_edit_description":"Realiza un post editando un mensaje existente",
+        "command_post_mensaje_edit_description": "ID del mensaje a editar", 
+        "command_post_nuevo_mensaje_description": "Editar mesnaje desde un mensaje ya existente",
+
+    "AST1":"COMMONCOMMANDS",
+
+        "command_post_canal_error": "❌ Debes seleccionar un canal de texto válido.",
+        "command_post_error_mensaje_no_encontrado": "❌ No se pudo encontrar el mensaje con ese ID",
+        "command_post_error_capturador": "❌ Error al iniciar el colector de mensajes.",
+        "command_post_stop": "🛑 Operación cancelada.",
+
+    "AST2":"MSGCOMMANDS",
+        "command_permission_error":"❌ No tienes permiso para usar este comando.",
+        "command_post_mensaje": "📝 **Modo de Redacción**\n\n Escribe **aqui** tu mensaje que sera enviado a {{a1}}.\n\n- Puedes incluir **imágenes, archivos y formato** (negritas, links, etc).\n- Tienes **3 minutos** para enviarlo.\n- Escribe `-cancelar` para detener el proceso.",
+        "command_post_canal_error_permission":"❌ No puedo acceder al canal actual.",
+        "command_post_error_mensaje_vacio":"❌ El mensaje no puede estar vacío.",
+        "command_post_success":"✅ **¡Mensaje publicado exitosamente en {{a1}}!**",
+        "command_post_error_publicar":"❌ Hubo un error al intentar enviar el mensaje al canal destino. Verifica que puedo postear en el.",
+        "command_post_timeout":"⌛ **Se acabó el tiempo.** No se publicó nada.",
+        "command_error_desconocido":"❌ Ocurrió un error inesperado.",
+
+    "AST3":"COPYCOMMANDS",
+
+        "command_post_error_permisos_origen": "❌ No tengo permisos para leer mensajes en el canal origen",
+        "command_post_error_permisos_destino": "❌ No tengo permisos para enviar mensajes en el canal destino", 
+        "command_post_copy_success": "✅ Mensaje copiado exitosamente de {{a1}} a {{a2}}",
+        "command_post_copy_error": "❌ Error al copiar el mensaje",
+
+    "AST4":"EDITCOMMANDS",
+
+        "command_post_error_permisos_edicion": "❌ No tengo permisos para editar mensajes en este canal",
+        "command_post_edit_success_directo": "✅ Mensaje editado exitosamente con el contenido proporcionado",
+        "command_post_error_no_bot_message": "❌ Solo puedo editar mensajes que yo haya enviado",
+        "command_post_edit_modo_interactivo": "✏️ **Modo edición interactivo**\nEnvía el nuevo contenido, embeds, archivos o componentes para este mensaje. Tienes 3 minutos.\n- Escribe `-cancelar` para detener el proceso.",
+        "command_post_edit_success": "✅ Mensaje editado exitosamente",
+        "command_post_edit_error": "❌ Error al editar el mensaje",
+        "command_post_edit_timeout": "⏰ Tiempo agotado para la edición interactiva",
+        "command_post_edit_error_general": "❌ Error general al editar el mensaje"
+    
+}

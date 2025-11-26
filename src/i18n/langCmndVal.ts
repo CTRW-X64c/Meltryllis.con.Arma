@@ -9,7 +9,7 @@ type TranslationConfig = {
 
 const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
 //Agrega todos los i18next.t que esten dentro de la funcion "SlashCommandBuilder"
-    "embed": [
+    "embed":[
         "command_embed_description",
         "command_embed_config",
         "embed_command_site_description",
@@ -20,7 +20,7 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "subcommand_default",
         "embed_command_custom_url"
     ],    
-    "hola": [
+    "hola":[
         "command_hola_description"
     ],
     "replybots":[
@@ -28,7 +28,7 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "replybots_command_state_description",
 
     ],  
-    "rolemoji": [
+    "rolemoji":[
         "command_rolemoji_description",
         "command_rolemoji_assign_description",
         "command_rolemoji_message_id_description", 
@@ -49,7 +49,7 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "test_command_mode_embed",
         "test_commands_mode_domainds"
     ],
-    "welcome": [
+    "welcome":[
         "command_welcome_description",
         "command_welcome_config_description",
         "command_welcome_channel_description",
@@ -86,7 +86,18 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_reddit_dejar",
         "command_reddit_test",
         "command_reddit_help"
-    ]
+    ],
+    "post":[
+        "command_post_description",
+        "command_post_post_msg_description",
+        "command_post_canal_description",
+        "command_post_copy_description",
+        "command_post_mensaje_description",
+        "command_post_canal_origen_description",
+        "command_post_edit_description",
+        "command_post_mensaje_edit_description",
+        "command_post_nuevo_mensaje_description"
+    ],
 
     // Agrega más namespaces según necesites
 };

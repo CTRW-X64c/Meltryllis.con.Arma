@@ -72,6 +72,11 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
           value: i18next.t("field_reddit_value", { ns: "hola" }),
           inline: false
         },
+        {
+          name: i18next.t("field_post_name", { ns: "hola" }),
+          value: i18next.t("field_post_value", { ns: "hola" }),
+          inline: false
+        }
       )
       .setImage("https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/banner-v2.jpg")
       .setColor("#d20fae")

@@ -12,6 +12,7 @@ import { registerRolemojiCommand, handleRolemojiCommand } from "../commands/role
 import { registerOwnerCommands, handleOwnerCommands } from "../commands/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "../commands/youtube";
 import { registerRedditCommand, handleRedditCommand } from "../commands/reddit";
+import { registerPostCommand, handlePostCommand } from "../commands/post";
 
 export interface ChannelConfig {
   enabled: boolean;
@@ -32,10 +33,11 @@ export async function registerCommands(client: Client) {
     ...(await registerOwnerCommands()),
     ...(await registerYouTubeCommand()),
     ...(await registerRedditCommand()),
+    ...(await registerPostCommand()),
   ];
 
   client.application?.commands.set(commands)
-    .then(() => info("Comandos /hola, /test, /embeds, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit y /owner registrados con éxito", "Commands.Register"))
+    .then(() => info("Comandos /hola, /test, /embeds, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post y /owner registrados con éxito", "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 
@@ -60,6 +62,8 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
     await handleYouTubeCommand(interaction);
   } else if (interaction.commandName === "reddit") {
     await handleRedditCommand(interaction);
+  } else if (interaction.commandName === "post") {
+    await handlePostCommand(interaction);
   }
 
 }

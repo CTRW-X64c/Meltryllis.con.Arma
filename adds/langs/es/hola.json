@@ -33,6 +33,9 @@
 
         "field_reddit_name":"Comando /reddit set | remove | list",
         "field_reddit_value":"- Sigue, remueve o lista los subreddits o usuarios de Reddit que sigues en el server.\n - Puedes usar la URL como r/subbreddit o u/username",
+
+        "field_post_name":"Comando /post msg | copy | edit",
+        "field_post_value":"- msg: Publica un mensaje como **yo** mandando un mensaje.\n - copy: Copia un mensaje para publicarlo como **yo** \n - edit: Permite editar mis mensajes publicados",
         
         "field_invite_value": "[Meltryllis con Arma!](https://discord.com/oauth2/authorize?client_id=847989699083632671&scope=bot&permissions=268790848)",
         "field_terms_value": "[Declaración](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md)",
