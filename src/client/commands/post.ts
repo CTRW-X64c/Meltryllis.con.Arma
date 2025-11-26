@@ -18,6 +18,12 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                         .setDescription(i18next.t("command_post_canal_description", { ns: "post" }))
                         .setRequired(true)
                 )
+                .addBooleanOption(option =>
+                    option
+                        .setName("borrar")
+                        .setDescription(i18next.t("command_post_borrar_description", { ns: "post" }))
+                        .setRequired(false)
+                )
         )
         .addSubcommand(subcommand =>
             subcommand
@@ -41,6 +47,12 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                         .setDescription(i18next.t("command_post_canal_origen_description", { ns: "post" }))
                         .setRequired(false)
                 )
+                .addBooleanOption(option =>
+                    option
+                        .setName("borrar")
+                        .setDescription(i18next.t("command_post_borrar_description", { ns: "post" }))
+                        .setRequired(false)
+                )
         )
         .addSubcommand(subcommand =>
             subcommand
@@ -56,6 +68,12 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                     option
                         .setName("canal_mensaje")
                         .setDescription(i18next.t("command_post_nuevo_mensaje_description", { ns: "post" }))
+                        .setRequired(false)
+                )
+                .addBooleanOption(option =>
+                    option
+                        .setName("borrar")
+                        .setDescription(i18next.t("command_post_borrar_description", { ns: "post" }))
                         .setRequired(false)
                 )
         );
@@ -94,10 +112,42 @@ export async function handlePostCommand(interaction: ChatInputCommandInteraction
     }
 }
 
+/////////////////// AUTODELETE ///////////////////
+
+const AUTO_DELETE_CONFIG = {
+    enabled: true, 
+    delay: 0,
+    userMessages: true, 
+    botResponses: false 
+};
+
+async function autoDeleteMessage(message: Message, delay: number = AUTO_DELETE_CONFIG.delay): Promise<void> {
+    if (!AUTO_DELETE_CONFIG.enabled || !message.deletable) return;
+    
+    try {
+        setTimeout(async () => {
+            try {
+                await message.delete();
+                debug(`Mensaje auto-borrado: ${message.id}`, "PostCommand");
+            } catch (deleteErr) {
+                debug(`No se pudo auto-borrar mensaje ${message.id}: ${deleteErr}`, "PostCommand");
+            }
+        }, delay);
+    } catch (err) {
+        debug(`Error en auto-delete: ${err}`, "PostCommand");
+    }
+}
+
+function shouldDelete(interaction: ChatInputCommandInteraction, defaultBehavior: boolean = true): boolean {
+    const deleteOption = interaction.options.getBoolean("borrar");
+    return deleteOption !== null ? deleteOption : defaultBehavior;
+}
+
 /////////////////// MsgPOST ///////////////////
 
 async function PostMsg(interaction: ChatInputCommandInteraction): Promise<void> {
     const targetChannel = interaction.options.getChannel("canal") as TextChannel;
+    const deleteMode = shouldDelete(interaction, true); // Default: true para msg
     
     if (!targetChannel || !targetChannel.isTextBased()) {
         await interaction.reply({
@@ -162,6 +212,11 @@ async function PostMsg(interaction: ChatInputCommandInteraction): Promise<void> 
                 });
                 
                 debug(`Anuncio publicado por ${interaction.user.tag} en #${targetChannel.name}`, "PostCommand");
+                
+                if (deleteMode && AUTO_DELETE_CONFIG.userMessages) {
+                    await autoDeleteMessage(message);
+                }
+                
                 collector.stop("success");
 
             } catch (err) {
@@ -197,6 +252,7 @@ async function PostMsg(interaction: ChatInputCommandInteraction): Promise<void> 
 
 async function PostCopy(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const deleteMode = shouldDelete(interaction, false); // Default: false para copy
 
     try {
         const messageId = interaction.options.getString("mensaje_id", true);
@@ -248,15 +304,21 @@ async function PostCopy(interaction: ChatInputCommandInteraction): Promise<void>
             files: files
         });
 
-        await interaction.editReply({
-            content: i18next.t("command_post_copy_success", { 
-                ns: "post", 
-                a1: sourceChannel.toString(),
-                a2: targetChannel.toString()
-            })
-        });
-
-        debug(`Mensaje ${messageId} copiado por ${interaction.user.tag} de ${sourceChannel.name} a ${targetChannel.name}`, "PostCommand");
+        if (deleteMode && AUTO_DELETE_CONFIG.userMessages && originalMessage.deletable) {
+            await autoDeleteMessage(originalMessage);
+            
+            await interaction.editReply({
+                content: i18next.t("command_post_copy_success_with_delete", { ns: "post", a1: sourceChannel.toString(), a2: targetChannel.toString() })
+            });
+            
+            debug(`Mensaje ${messageId} copiado y ORIGINAL BORRADO por ${interaction.user.tag}`, "PostCommand");
+        } else {
+            await interaction.editReply({
+                content: i18next.t("command_post_copy_success", { ns: "post", a1: sourceChannel.toString(), a2: targetChannel.toString() })
+            });
+            
+            debug(`Mensaje ${messageId} copiado por ${interaction.user.tag} de ${sourceChannel.name} a ${targetChannel.name}`, "PostCommand");
+        }
 
     } catch (err) {
         error(`Error en comando copy: ${err}`, "PostCommand");
@@ -270,6 +332,7 @@ async function PostCopy(interaction: ChatInputCommandInteraction): Promise<void>
 
 async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const deleteMode = shouldDelete(interaction, true); // Default: true para edit
 
     try {
         const messageId = interaction.options.getString("mensaje_id", true);
@@ -354,6 +417,11 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
                 });
 
                 debug(`Mensaje ${messageId} editado por ${interaction.user.tag} en ${targetChannel.name}`, "PostCommand");
+                
+                if (deleteMode && AUTO_DELETE_CONFIG.userMessages) {
+                    await autoDeleteMessage(newMessage);
+                }
+                
                 collector.stop("success");
 
             } catch (editErr) {

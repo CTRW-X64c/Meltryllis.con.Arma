@@ -32,7 +32,8 @@
     "AST3":"COPYCOMMANDS",
 
         "command_post_error_permisos_origen": "❌ No tengo permisos para leer mensajes en el canal origen",
-        "command_post_error_permisos_destino": "❌ No tengo permisos para enviar mensajes en el canal destino", 
+        "command_post_error_permisos_destino": "❌ No tengo permisos para enviar mensajes en el canal destino",
+        "command_post_copy_success_with_delete":"✅ Mensaje copiado exitosamente de {{a1}} a {{a2}} y se borro el original",
         "command_post_copy_success": "✅ Mensaje copiado exitosamente de {{a1}} a {{a2}}",
         "command_post_copy_error": "❌ Error al copiar el mensaje",
 
