@@ -5,8 +5,8 @@
         "command_post_canal_description":"El canal donde se publicará el anuncio",
 
         "command_post_copy_description":"Realiza un post desde copiando un mensaje existente",
-        "command_post_mensaje_description":"ID del mesnaje que se va copiar. (canal_origen: solo si el comando se ejecuta en un canal distinto al mensaje)",
-        "command_post_canal_origen_description":"Canal donde esta el mesnaje a copiar; solo si el mensaje y comando estan en distintos canales",
+        "command_post_mensaje_description":"ID del mesnaje que se va copiar.",
+        "command_post_canal_origen_description":"Canal del mesnaje a copiar; solo si el mensaje y comando estan en distintos canales",
 
         "command_post_edit_description":"Realiza un post editando un mensaje existente",
         "command_post_mensaje_edit_description": "ID del mensaje a editar", 
