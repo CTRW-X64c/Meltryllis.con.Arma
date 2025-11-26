@@ -96,7 +96,8 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_post_canal_origen_description",
         "command_post_edit_description",
         "command_post_mensaje_edit_description",
-        "command_post_nuevo_mensaje_description"
+        "command_post_nuevo_mensaje_description",
+        "command_post_borrar_description"
     ],
 
     // Agrega más namespaces según necesites

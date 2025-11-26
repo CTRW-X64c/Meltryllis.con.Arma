@@ -11,6 +11,7 @@
         "command_post_edit_description":"Realiza un post editando un mensaje existente",
         "command_post_mensaje_edit_description": "ID del mensaje a editar", 
         "command_post_nuevo_mensaje_description": "Editar mesnaje desde un mensaje ya existente",
+        "command_post_borrar_description": "establece si se borrara el mensaje original; por defecto en copy & msg",
 
     "AST1":"COMMONCOMMANDS",
 
