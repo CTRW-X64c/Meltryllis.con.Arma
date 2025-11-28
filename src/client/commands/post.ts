@@ -21,7 +21,7 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                 .addBooleanOption(option =>
                     option
                         .setName("borrar")
-                        .setDescription(i18next.t("command_post_borrar_description", { ns: "post" }))
+                        .setDescription(i18next.t("command_post_borrar_msg_description", { ns: "post" }))
                         .setRequired(false)
                 )
         )
@@ -50,7 +50,7 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                 .addBooleanOption(option =>
                     option
                         .setName("borrar")
-                        .setDescription(i18next.t("command_post_borrar_description", { ns: "post" }))
+                        .setDescription(i18next.t("command_post_borrar_copy_description", { ns: "post" }))
                         .setRequired(false)
                 )
         )
@@ -68,12 +68,41 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                     option
                         .setName("canal_mensaje")
                         .setDescription(i18next.t("command_post_nuevo_mensaje_description", { ns: "post" }))
+                        .setRequired(true)
+                )
+                .addBooleanOption(option =>
+                    option
+                        .setName("borrar")
+                        .setDescription(i18next.t("command_post_borrar_edit_description", { ns: "post" }))
+                        .setRequired(false)
+                )  
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("reply")
+                .setDescription(i18next.t("command_post_reply_description", { ns: "post" }))
+                .addStringOption(option =>
+                    option
+                        .setName("mensaje_id")
+                        .setDescription(i18next.t("command_post_mensaje_reply_description", { ns: "post" }))
+                        .setRequired(true)
+                )
+                .addChannelOption(option =>
+                    option
+                        .setName("canal_mensaje")
+                        .setDescription(i18next.t("command_post_canal_mensaje_reply_description", { ns: "post" }))
+                        .setRequired(true)
+                )
+                .addBooleanOption(option =>
+                    option
+                        .setName("notify")
+                        .setDescription(i18next.t("command_post_canal_notify_description", { ns: "post" }))
                         .setRequired(false)
                 )
                 .addBooleanOption(option =>
                     option
                         .setName("borrar")
-                        .setDescription(i18next.t("command_post_borrar_description", { ns: "post" }))
+                        .setDescription(i18next.t("command_post_borrar_reply_description", { ns: "post" }))
                         .setRequired(false)
                 )
         );
@@ -102,6 +131,9 @@ export async function handlePostCommand(interaction: ChatInputCommandInteraction
             break;
         case "edit":
             await PostEdit(interaction);
+            break;
+        case "reply":
+            await PostReply(interaction);
             break;
         default:
             await interaction.reply({
@@ -446,6 +478,130 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
         error(`Error en comando edit: ${err}`, "PostCommand");
         await interaction.editReply({
             content: i18next.t("command_post_edit_error_general", { ns: "post" })
+        });
+    }
+}
+
+/////////////////// ReplyPOST ///////////////////
+
+async function PostReply(interaction: ChatInputCommandInteraction): Promise<void> {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    
+    const deleteMode = shouldDelete(interaction, false); 
+    const notifyMode = interaction.options.getBoolean("notify") ?? true; 
+
+    try {
+        const messageId = interaction.options.getString("mensaje_id", true);
+        const channelOption = interaction.options.getChannel("canal_mensaje");
+        const messageChannel = (channelOption as TextChannel) || (interaction.channel as TextChannel);
+
+        if (!messageChannel?.isTextBased()) {
+            await interaction.editReply({
+                content: i18next.t("command_post_canal_error", { ns: "post" })
+            });
+            return;
+        }
+
+        if (!messageChannel.permissionsFor(interaction.client.user!)?.has(['ViewChannel', 'ReadMessageHistory', 'SendMessages'])) {
+            await interaction.editReply({
+                content: i18next.t("command_post_error_permisos_reply", { ns: "post" })
+            });
+            return;
+        }
+
+        let originalMessage: Message;
+        try {
+            originalMessage = await messageChannel.messages.fetch(messageId);
+        } catch (err) {
+            await interaction.editReply({
+                content: i18next.t("command_post_error_mensaje_no_encontrado", { ns: "post" })
+            });
+            return;
+        }
+
+        await interaction.editReply({
+            content: i18next.t("command_post_reply_modo_interactivo", { ns: "post" })
+        });
+
+        const filter = (m: Message) => m.author.id === interaction.user.id;
+        const collector = (interaction.channel as TextChannel)?.createMessageCollector({ 
+            filter, 
+            time: 180_000, 
+            max: 1 
+        });
+
+        if (!collector) {
+            await interaction.followUp({ 
+                content: i18next.t("command_post_error_capturador", { ns: "post" }),
+                flags: MessageFlags.Ephemeral 
+            });
+            return;
+        }
+
+        collector.on('collect', async (replyMessage: Message) => {
+            const cleanContent = replyMessage.content ? replyMessage.content.trim().toLowerCase() : "";
+            
+            if (cleanContent === '-cancelar' || cleanContent === '-cancel') {
+                await interaction.followUp({ content: i18next.t("command_post_stop", { ns: "post" }), flags: MessageFlags.Ephemeral });
+                collector.stop("cancelled");
+                return;
+            }
+
+            try {
+                const files = replyMessage.attachments.map(attachment => ({
+                    attachment: attachment.url,
+                    name: attachment.name
+                }));
+
+                if (!replyMessage.content && files.length === 0) {
+                    await interaction.followUp({ content: i18next.t("command_post_error_mensaje_vacio", { ns: "post" }), flags: MessageFlags.Ephemeral });
+                    return;
+                }
+
+                await originalMessage.reply({
+                    content: replyMessage.content || undefined,
+                    files: files.length > 0 ? files : undefined,
+                    allowedMentions: { 
+                        repliedUser: notifyMode
+                    }
+                });
+
+                await interaction.followUp({
+                    content: i18next.t("command_post_reply_success", { 
+                    ns: "post", a1: messageChannel.toString(), a2: notifyMode ? "🔔 Con notificación" : "🔕 Sin notificación" }),
+                    flags: MessageFlags.Ephemeral
+                });
+
+                debug(`${interaction.user.tag} respondió mensaje ${messageId} en ${messageChannel.name}`, "PostCommand");
+
+                if (deleteMode && AUTO_DELETE_CONFIG.userMessages && replyMessage.deletable) {
+                    await autoDeleteMessage(replyMessage);
+                }
+
+                collector.stop("success");
+
+            } catch (err) {
+                error(`Error al enviar la respuesta: ${err}`, "PostCommand");
+                await interaction.followUp({
+                    content: i18next.t("command_post_reply_error", { ns: "post" }),
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+        });
+
+        collector.on('end', (_: any, reason: string) => {
+            if (reason === 'time') {
+                interaction.followUp({
+                    content: i18next.t("command_post_reply_timeout", { ns: "post" }),
+                    flags: MessageFlags.Ephemeral
+                }).catch(() => {});
+            }
+        });
+
+    } catch (err) {
+        error(`Error en comando reply: ${err}`, "PostCommand");
+        await interaction.editReply({
+            content: i18next.t("command_post_reply_error_general", { ns: "post" })
         });
     }
 }

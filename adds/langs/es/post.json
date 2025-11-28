@@ -3,15 +3,23 @@
         "command_post_description":"Publica un mensaje como el bot en un canal específico",
         "command_post_post_msg_description":"Realiza un post enviando un mensaje",
         "command_post_canal_description":"El canal donde se publicará el anuncio",
+        "command_post_borrar_msg_description":"Borrar mensaje. default: true",
 
         "command_post_copy_description":"Realiza un post desde copiando un mensaje existente",
         "command_post_mensaje_description":"ID del mesnaje que se va copiar.",
         "command_post_canal_origen_description":"Canal del mesnaje a copiar; solo si el mensaje y comando estan en distintos canales",
+        "command_post_borrar_copy_description":"Borrar mensaje copiado. default: false",
 
         "command_post_edit_description":"Realiza un post editando un mensaje existente",
-        "command_post_mensaje_edit_description": "ID del mensaje a editar", 
-        "command_post_nuevo_mensaje_description": "Editar mesnaje desde un mensaje ya existente",
-        "command_post_borrar_description": "establece si se borrara el mensaje original; por defecto en copy & msg",
+        "command_post_mensaje_edit_description":"ID del mensaje a editar", 
+        "command_post_nuevo_mensaje_description":"Editar mesnaje desde un mensaje ya existente",
+        "command_post_borrar_edit_description":"Borrar mensaje editado. default: true",
+
+        "command_post_reply_description":"Responde a mensajes",
+        "command_post_mensaje_reply_description":"ID del mensaje a responder",
+        "command_post_canal_mensaje_reply_description":"Canal donde esta el mensaje a responder",
+        "command_post_canal_notify_description":"Noticar a usuario el reply, default: true",
+        "command_post_borrar_reply_description":"Borrar mensaje respondido. default: false",
 
     "AST1":"COMMONCOMMANDS",
 
@@ -22,12 +30,12 @@
 
     "AST2":"MSGCOMMANDS",
         "command_permission_error":"❌ No tienes permiso para usar este comando.",
-        "command_post_mensaje": "📝 **Modo de Redacción**\n\n Escribe **aqui** tu mensaje que sera enviado a {{a1}}.\n\n- Puedes incluir **imágenes, archivos y formato** (negritas, links, etc).\n- Tienes **3 minutos** para enviarlo.\n- Escribe `-cancelar` para detener el proceso.",
+        "command_post_mensaje": "📝 **Modo de Redacción**\n\n Escribe **aqui** tu mensaje que sera enviado a {{a1}}.\n\n- Puedes incluir **imágenes, archivos y formato** (negritas, links, etc).\n- Tienes **3 minutos** para enviarlo.\n- Escribe `-cancelar` para cancelar.",
         "command_post_canal_error_permission":"❌ No puedo acceder al canal actual.",
         "command_post_error_mensaje_vacio":"❌ El mensaje no puede estar vacío.",
         "command_post_success":"✅ **¡Mensaje publicado exitosamente en {{a1}}!**",
         "command_post_error_publicar":"❌ Hubo un error al intentar enviar el mensaje al canal destino. Verifica que puedo postear en el.",
-        "command_post_timeout":"⌛ **Se acabó el tiempo.** No se publicó nada.",
+        "command_post_timeout":"⌛ Tiempo agotado para la publicacion!!",
         "command_error_desconocido":"❌ Ocurrió un error inesperado.",
 
     "AST3":"COPYCOMMANDS",
@@ -43,10 +51,18 @@
         "command_post_error_permisos_edicion": "❌ No tengo permisos para editar mensajes en este canal",
         "command_post_edit_success_directo": "✅ Mensaje editado exitosamente con el contenido proporcionado",
         "command_post_error_no_bot_message": "❌ Solo puedo editar mensajes que yo haya enviado",
-        "command_post_edit_modo_interactivo": "✏️ **Modo edición interactivo**\nEnvía el nuevo contenido, embeds, archivos o componentes para este mensaje. Tienes 3 minutos.\n- Escribe `-cancelar` para detener el proceso.",
+        "command_post_edit_modo_interactivo": "✏️ **Modo edición interactivo**\nEnvía el nuevo contenido, embeds, archivos o componentes para este mensaje. Tienes 3 minutos.\n- Escribe `-cancelar` para cancelar.",
         "command_post_edit_success": "✅ Mensaje editado exitosamente",
         "command_post_edit_error": "❌ Error al editar el mensaje",
-        "command_post_edit_timeout": "⏰ Tiempo agotado para la edición interactiva",
-        "command_post_edit_error_general": "❌ Error general al editar el mensaje"
+        "command_post_edit_timeout": "⌛ Tiempo agotado para la edición!!",
+        "command_post_edit_error_general": "❌ Error general al editar el mensaje",
     
+    "AST5":"REPLYCOMMANDS",
+
+        "command_post_error_permisos_reply":"❌ No tengo permisos para enviar mensajes en este canal",
+        "command_post_reply_modo_interactivo":"↩️ **Modo respuesta interactivo**\n Escribe tu respuesta al mensaje.\n- Tienes **3 minutos** para enviarlo.\n- Escribe `-cancelar` para cancelar.",
+        "command_post_reply_success":"✅ Respuesta enviada en {{a1}} {{a2}}",
+        "command_post_reply_error":"❌ Error al enviar la respuesta",
+        "command_post_reply_timeout":"⌛ Tiempo agotado para la respuesta!!",
+        "command_post_reply_error_general":"❌ Error general al enviar la respuesta"  
 }

@@ -25,8 +25,7 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
     ],
     "replybots":[
         "replybots_command_description",
-        "replybots_command_state_description",
-
+        "replybots_command_state_description"
     ],  
     "rolemoji":[
         "command_rolemoji_description",
@@ -39,7 +38,6 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_rolemoji_list_description",
         "command_rolemoji_help_title",
         "command_rolemoji_help_description"
-
     ],
     "test":[
         "command_test_description",
@@ -97,7 +95,10 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_post_edit_description",
         "command_post_mensaje_edit_description",
         "command_post_nuevo_mensaje_description",
-        "command_post_borrar_description"
+        "command_post_borrar_msg_description",
+        "command_post_borrar_copy_description",
+        "command_post_borrar_edit_description",
+        "command_post_borrar_reply_description"
     ],
 
     // Agrega más namespaces según necesites
