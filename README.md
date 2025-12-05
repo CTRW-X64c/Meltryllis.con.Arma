@@ -175,6 +175,7 @@ Meltryllis con Arma/
 │   │   │   ├── embed.ts
 │   │   │   ├── hola.ts
 │   │   │   ├── owner.ts
+|   |   |   ├── post.ts
 |   |   |   ├── reddit.ts
 │   │   │   ├── replybots.ts
 │   │   │   ├── rolemoji.ts

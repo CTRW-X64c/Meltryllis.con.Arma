@@ -1,0 +1,78 @@
+services:
+  meltryllis:
+    image: nowaru124/meltryllis:latest
+    stop_signal: SIGKILL
+    container_name: meltryllis-bot
+    restart: on-failure:2
+    environment:
+      - DISCORD_BOT_TOKEN=
+      - OWNER_BOT_ID=
+      - DEBUG_MODE=
+      
+      - LANGS_SUPPORTED=
+      - LOCALE=
+      
+      - YT_RSSCHECK_TIME=
+      - AUTO_CLEAN_YOUTUBE_TIMMER=
+      - REDDIT_RSSCHECK_TIME=
+      - REDDIT_CLIENT_ID=
+      - REDDIT_CLIENT_SECRET=
+      
+      - REPLY_OTHER_BOTS=
+      - STATUS_TIME_MINUTOS=
+      - WELCOME_BANNER_URL=
+      - PUID=
+      - PGID=
+      - TZ=
+      
+      - DB_HOST=
+      - DB_USER=
+      - DB_PASSWORD=
+      - DB_DATABASE=
+      
+      - BILILI_FIX_URL=
+      - BSKY_FIX_URL=
+      - DEVIAN_FIX_URL=
+      - FACEBOOK_FIX_URL=
+      - FURAFF_FIX_URL=
+      - IMGUR_FIX_URL=
+      - INSTAGRAM_FIX_URL=
+      - IWARA_FIX_URL=
+      - PIXIV_FIX_URL=
+      - REDDIT_FIX_URL=
+      - THRENDS_FIX_URL=
+      - TIKTOK_FIX_URL=
+      - TUMBLR_FIX_URL=
+      - TWITTER_FIX_URL=
+      - TWITCH_FIX_URL=
+      - YOUTUBE_FIX_URL=
+      
+      - EMBEDEZ_API_FIX_URL=
+      - API_REPLACEMENT_DOMAINS=
+      
+      - BOT_STATUSES=
+
+    depends_on:
+      - mariadb
+
+    volumes:
+      - meltryllis_data/logs:/app/logs
+
+  mariadb:
+    image: mariadb:latest
+    restart: unless-stopped
+    container_name: meltryllis-bd
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_USER=
+      - MYSQL_PASSWORD=
+      - MYSQL_DATABASE=
+      - PGID=
+      - PUID=
+    volumes:
+      - meltryllis_data/db:/var/lib/mysql
+
+volumes:
+  meltryllis_data:
