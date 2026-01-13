@@ -15,7 +15,7 @@ import { validateAllTranslations } from "../i18n/langCmndVal";
 import { startYoutubeService } from "./coreCommands/youtubeCheck";
 import { startRedditChecker } from "./coreCommands/redditCheck";
 import { autoCleanupService } from "./coreCommands/yTools";
-
+import { startVoiceChannelService } from "./coreCommands/voicEvent";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
@@ -57,6 +57,7 @@ export function createClient(): Client {
             GatewayIntentBits.MessageContent,
             GatewayIntentBits.GuildMessageReactions,
             GatewayIntentBits.GuildMembers,
+            GatewayIntentBits.GuildVoiceStates,
         ],
     });
 
@@ -303,6 +304,7 @@ async function main(): Promise<void> {
         startYoutubeService(client); // by nep <= es tonta por eso lo escribio arriba en vez de solo hacerlo init!! 
         startRedditChecker(client);  // by nowa
         autoCleanupService.start();
+        startVoiceChannelService(client);
 
     } catch (error) {
         logFatalError(error);

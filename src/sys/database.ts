@@ -49,6 +49,17 @@ export interface RedditFeed {
   filter_mode: 'all' | 'media_only' | 'text_only';  //Añadiendo filtro de tipo contenido
 }
 
+export interface VoiceConfig {
+  channelId: string;
+  enabled: boolean;
+}
+
+export interface TempVoiceChannel {
+  channelId: string;
+  guildId: string;
+  ownerId: string;
+}
+
 let pool: Pool | null = null;
 let isInitialized = false; 
 let initializationPromise: Promise<void> | null = null;
@@ -59,6 +70,7 @@ const welcomeConfigCache = new Map<string, WelcomeConfig>();
 const roleAssignmentCache = new Map<string, Map<string, RoleAssignment>>();
 const youtubeFeedCache = new Map<string, YouTubeFeed[]>();
 const redditFeedCache = new Map<string, RedditFeed[]>();
+const voiceConfigCache = new Map<string, VoiceConfig>();
 
 // Función helper para invalidar cache específica de un guild
 export function invalidateGuildCache(guildId: string): void {
@@ -68,6 +80,7 @@ export function invalidateGuildCache(guildId: string): void {
   roleAssignmentCache.delete(guildId);
   youtubeFeedCache.delete(guildId);
   redditFeedCache.delete(guildId);
+  voiceConfigCache.delete(guildId);
   debug(`Invalidated all cache for guild ${guildId}`, "Database");
 }
 
@@ -171,6 +184,23 @@ export async function initializeDatabase(): Promise<void> {
           filter_mode VARCHAR(50) NOT NULL DEFAULT 'all',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           UNIQUE KEY unique_guild_subreddit (guild_id, subreddit_name)
+          )
+        `);
+// Tabla de JoinCreate /giveChannel 
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS voice_configs (
+            guild_id VARCHAR(30) PRIMARY KEY,
+            channel_id VARCHAR(30),
+            enabled BOOLEAN DEFAULT TRUE
+          )
+        `);
+// Canales temporales
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS temp_voice_channels (
+            channel_id VARCHAR(30) PRIMARY KEY,
+            guild_id VARCHAR(30) NOT NULL,
+            owner_id VARCHAR(30),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           )
         `);
 
@@ -686,4 +716,119 @@ export async function getAllRedditFeeds(): Promise<RedditFeed[]> {
   }
 }
 
-// ==================== ESPACIO PARA NUEVA BD ====================
+// ==================== VOICE CHANNELS (Join to Create) ====================
+
+export async function getVoiceConfig(guildId: string): Promise<VoiceConfig | null> {
+  if (voiceConfigCache.has(guildId)) {
+    return voiceConfigCache.get(guildId)!;
+  }
+
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT channel_id, enabled FROM voice_configs WHERE guild_id = ?",
+      [guildId]
+    );
+    const row = (rows as any[])[0];
+
+    if (!row) return null;
+
+    const config: VoiceConfig = {
+      channelId: row.channel_id,
+      enabled: row.enabled === 1
+    };
+
+    voiceConfigCache.set(guildId, config);
+    return config;
+  } catch (err) {
+    error(`Failed to fetch voice config for guild ${guildId}: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function setVoiceConfig(guildId: string, channelId: string, enabled: boolean = true): Promise<void> {
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    await pool.query(
+      "INSERT INTO voice_configs (guild_id, channel_id, enabled) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE channel_id = VALUES(channel_id), enabled = VALUES(enabled)",
+      [guildId, channelId, enabled]
+    );
+
+    voiceConfigCache.set(guildId, { channelId, enabled });
+    debug(`Updated voice config for guild ${guildId}`, "Database");
+  } catch (err) {
+    error(`Failed to set voice config for guild ${guildId}: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function addTempVoiceChannel(channelId: string, guildId: string, ownerId: string): Promise<void> {
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    await pool.query(
+      "INSERT INTO temp_voice_channels (channel_id, guild_id, owner_id) VALUES (?, ?, ?)",
+      [channelId, guildId, ownerId]
+    );
+    debug(`Registered temp voice channel ${channelId} for guild ${guildId}`, "Database");
+  } catch (err) {
+    error(`Failed to register temp voice channel: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function removeTempVoiceChannel(channelId: string): Promise<void> {
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    await pool.query("DELETE FROM temp_voice_channels WHERE channel_id = ?", [channelId]);
+    debug(`Removed temp voice channel ${channelId}`, "Database");
+  } catch (err) {
+    error(`Failed to remove temp voice channel: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function isTempVoiceChannel(channelId: string): Promise<boolean> {
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    const [rows] = await pool.query("SELECT 1 FROM temp_voice_channels WHERE channel_id = ?", [channelId]);
+    return (rows as any[]).length > 0;
+  } catch (err) {
+    error(`Failed to check if channel is temp voice: ${err}`, "Database");
+    return false;
+  }
+}
+
+export async function getAllTempVoiceChannels(): Promise<TempVoiceChannel[]> {
+  if (!pool) throw new Error("Database pool not initialized");
+
+  try {
+    const [rows] = await pool.query("SELECT channel_id, guild_id, owner_id FROM temp_voice_channels");
+    
+    return (rows as any[]).map(row => ({
+      channelId: row.channel_id,
+      guildId: row.guild_id,
+      ownerId: row.owner_id
+    }));
+  } catch (err) {
+    error(`Failed to fetch all temp voice channels: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function getGuildTempChannelCount(guildId: string): Promise<number> {
+  if (!pool) throw new Error("Database pool not initialized");
+  
+  try {
+    const [rows] = await pool.query("SELECT COUNT(*) as count FROM temp_voice_channels WHERE guild_id = ?", [guildId]);
+    return (rows as any[])[0].count;
+  } catch (err) {
+    return 0;
+  }
+}
+
+/* ==================== ESPACIO PARA NUEVA BD ==================== */

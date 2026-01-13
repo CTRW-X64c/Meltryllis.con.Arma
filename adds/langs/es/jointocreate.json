@@ -1,0 +1,33 @@
+{
+    "ATS1": "Command Builder",
+        "command_jointocreate_description": "Establece el canal Maestro para crear los nuevos canales",
+        "command_jointocreate_set_description": "Marca ID del canal maestro",
+        "command_jointocreate_canal_description": "ID del canal maestro",
+        "command_jointocreate_disable_description": "Desactiva el sistema de canales",
+        "command_jointocreate_status_description": "Muestra el estatus de /jointocreate",
+        "command_jointocreate_cleanup_description": "Borra canales residuales",
+        "command_jointocreate_forzar_description": "Forza el borrado de los canales",
+        
+    "ATS2": "Mensajes de sys",
+
+        "jointocreate_guild_error": "❌ Error en gremio",
+
+        "command_jointocreate_error_not_voice": "❌ Debe ser un canal de audio",
+        "command_jointocreate_error_bot_permissions": "❌ No tengo los permisos requeridos para hacer esto 🥺​",
+        
+        "command_jointocreate_set_success": "✅ **Canal maestro establecido:** {{a1}}\nLos usuarios que se unan a este canal crearán automáticamente su propia sala temporal.",
+        "command_jointocreate_set_error": "❌ Error al establecer el canal maestro",
+        
+        "command_jointocreate_error_not_configured": "❌ No hay configuracion activa",
+        "command_jointocreate_disable_success": "✅ **/jointocreate desactivado** \nYa no se generaran canales de voz.",
+        "command_jointocreate_disable_error": "❌ Error, no se pudo desactivar /jointocreate",
+                      
+        "command_jointocreate_status_error": "❌ No pude obtener el estatus de /jointocreate",
+        
+        "command_jointocreate_cleanup_confirm": "⚠️ **Se limpiaran todos los canales de voz temporales!! \n 20seg para confirmar****",
+        "command_jointocreate_cleanup_cancelled": "❌ **Cancelado**",
+
+        "command_jointocreate_cleanup_result": "✅ **Limpieza completada**\n• Canales eliminados: {{a1}}\n• Errores: {{a2}}",
+        "command_jointocreate_cleanup_timeout": "❌ **Tiempo de espera agotado**",
+        "command_jointocreate_cleanup_error": "❌ Error al lipiar los canales de voz temporales"
+}

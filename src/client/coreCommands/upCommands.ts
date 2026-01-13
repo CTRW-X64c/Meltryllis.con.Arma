@@ -13,6 +13,8 @@ import { registerOwnerCommands, handleOwnerCommands } from "../commands/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "../commands/youtube";
 import { registerRedditCommand, handleRedditCommand } from "../commands/reddit";
 import { registerPostCommand, handlePostCommand } from "../commands/post";
+import { registerCleanUpCommand, handleCleanUpCommand } from "../commands/cleanup";
+import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "../commands/jointovoice";
 
 export interface ChannelConfig {
   enabled: boolean;
@@ -34,10 +36,12 @@ export async function registerCommands(client: Client) {
     ...(await registerYouTubeCommand()),
     ...(await registerRedditCommand()),
     ...(await registerPostCommand()),
+    ...(await registerCleanUpCommand()),
+    ...(await registerJoinToCreateCommand()),
   ];
 
   client.application?.commands.set(commands)
-    .then(() => info("Comandos /hola, /test, /embeds, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post y /owner registrados con éxito", "Commands.Register"))
+    .then(() => info("Comandos /hola, /test, /embeds, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice y /owner registrados con éxito", "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 
@@ -64,6 +68,9 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
     await handleRedditCommand(interaction);
   } else if (interaction.commandName === "post") {
     await handlePostCommand(interaction);
+  } else if (interaction.commandName === "cleanup") {
+    await handleCleanUpCommand(interaction);
+  }else if (interaction.commandName === "jointovoice") {
+    await handleJoinToCreateCommand(interaction);
   }
-
 }

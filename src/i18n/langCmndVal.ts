@@ -100,6 +100,27 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_post_borrar_edit_description",
         "command_post_borrar_reply_description"
     ],
+    "cleanup":[
+        "command_cleanup_description",
+        "command_cleanup_start_description",
+        "command_cleanup_before_option",
+        "command_cleanup_after_option",
+        "command_cleanup_message_id_description",
+        "command_cleanup_count_description",
+        "command_cleanup_type_description",
+        "command_cleanup_users_option",
+        "command_cleanup_bots_option",
+        "command_cleanup_any_option"
+    ],
+    "jointocreate":[
+        "command_jointocreate_description",
+        "command_jointocreate_set_description",
+        "command_jointocreate_canal_description",
+        "command_jointocreate_disable_description",
+        "command_jointocreate_status_description",
+        "command_jointocreate_cleanup_description",
+        "command_jointocreate_forzar_description"
+    ],
 
     // Agrega más namespaces según necesites
 };

@@ -44,7 +44,18 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
     - seguir = Seguir un Subreddit.
     - dejar = Deja de seguir un Subreddit.
     - test = Publica el ultimo pos del subreddit.
- 
+ - /cleanup:
+    - start: Apartir o anteriores del mesanje.
+    - menssage_id: Id del mensaje del cual see parte.
+    - count: cantidad de mesnjes a borrar, Limitado a 100 porlimitaciones de discord.
+    - type: Solo mesnajes de bots, solo usuarios, todos.
+ - /jointovoice: 
+    - set: Establece el canal maestro de voz
+    - status: Muestra los canales temporales y configuraciones.
+    - disable: Desactiva "/jointovoice"
+    - cleanup: Borra todos los canales temporales activos. 
+
+
 ---    
 
 ## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
@@ -172,8 +183,10 @@ Meltryllis con Arma/
 ├── src/
 │   ├── client/
 │   │   ├── commands/
+│   │   │   ├── cleanup.ts
 │   │   │   ├── embed.ts
 │   │   │   ├── hola.ts
+│   │   │   ├── jointovoice.ts
 │   │   │   ├── owner.ts
 |   |   |   ├── post.ts
 |   |   |   ├── reddit.ts
@@ -188,6 +201,7 @@ Meltryllis con Arma/
 │   │   │   ├── redditCheck.ts
 │   │   │   ├── rolemojiEvents.ts
 │   │   │   ├── upCommands.ts
+|   |   |   ├── voiceEvents.ts
 │   │   |   ├── welcomeEvents.ts
 |   |   |   ├── youtubeCheck.ts
 |   |   |   └── yTools.ts
