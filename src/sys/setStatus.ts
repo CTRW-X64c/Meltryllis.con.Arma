@@ -8,7 +8,7 @@ interface Status {
   type: ActivityType;
 }
 
-export const parseStatuses = (statusString: string | undefined): Status[] => {
+const parseStatuses = (statusString: string | undefined): Status[] => {
   if (!statusString) {
     info("No se definieron estados en BOT_STATUSES, usando estado predeterminado", "Status.Parse");
     return [{ name: "Bot Simulator", type: ActivityType.Playing, emoji: "🤖" }];
@@ -35,7 +35,7 @@ export const parseStatuses = (statusString: string | undefined): Status[] => {
   }
 };
 
-export const getStatusRotationInterval = (): number => {
+  const getStatusRotationInterval = (): number => {
   const statusTime = process.env.STATUS_TIME_MINUTOS;
   const defaultInterval = 1_800_000; 
 
@@ -58,7 +58,7 @@ export const getStatusRotationInterval = (): number => {
   }
 };
 
-export const setupStatusRotation = (client: Client, statusList: Status[]): void => {
+const setupStatusRotation = (client: Client, statusList: Status[]): void => {
   const updateStatus = () => {
     const status = statusList[Math.floor(Math.random() * statusList.length)];
     client.user?.setActivity(`${status.emoji} ${status.name}`, { type: status.type });
@@ -70,3 +70,7 @@ export const setupStatusRotation = (client: Client, statusList: Status[]): void 
   const interval = getStatusRotationInterval();
   setInterval(updateStatus, interval);
 };
+
+export const startStatusRotation = (client: Client): void => {
+  setupStatusRotation(client, parseStatuses(process.env.BOT_STATUSES));
+}

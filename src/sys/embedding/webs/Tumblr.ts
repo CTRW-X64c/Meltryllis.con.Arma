@@ -1,4 +1,4 @@
-// src/remplazadores/Tumblr.ts
+// src/sys/embeding/webs/Tumblr.ts
 import Ruler from "../RuleReplacement";
 
 export default class Tumblr extends Ruler {

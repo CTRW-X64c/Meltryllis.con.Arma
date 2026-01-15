@@ -1,7 +1,7 @@
 // src/client/commands/youtube.ts
 import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
 import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/database";
-import { extractChannelIdFromRss, extractVideoId, verifyYouTubeRss } from "../coreCommands/yTools";
+import { extractChannelIdFromRss, extractVideoId, verifyYouTubeRss } from "../eventGear/youtubeTools";
 import { error, debug } from "../../sys/logging";
 import i18next from "i18next" 
 

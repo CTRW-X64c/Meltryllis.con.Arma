@@ -1,4 +1,4 @@
-// src/remplazadores/index.ts
+// src/sys/embeding/index.ts
 import { replacementMetaList } from "./EmbedingConfig";
 
 export function buildReplacements(guildConfig: Map<string, { custom_url: string | null; enabled: boolean }>): {

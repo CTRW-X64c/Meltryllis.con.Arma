@@ -7,7 +7,7 @@ import path from 'path';
 
 let background: any;
 
-export async function preloadImagesAndFonts(): Promise<void> {
+async function preloadImagesAndFonts(): Promise<void> {
     debug('Preload started.', "WelcomeEvents");
     try {
         const imageUrl = process.env.WELCOME_BANNER_URL || 'https://no-banner.banner/banner.banner'; 
@@ -25,7 +25,7 @@ export async function preloadImagesAndFonts(): Promise<void> {
     }
 }
 // Mensaje de bienvenida
-export function registerWelcomeEvents(client: Client) {
+function registerWelcomeEvents(client: Client) {
     debug('Event listeners for welcome and goodbye are being registered.', "WelcomeEvents");
 
     client.on('guildMemberAdd', async (member: GuildMember | PartialGuildMember) => {
@@ -75,6 +75,7 @@ export function registerWelcomeEvents(client: Client) {
             debug(`Sent welcome banner for user ${member.user.username} in guild ${member.guild.name}`, "WelcomeEvents");
         } catch (err) { error(`Failed to send welcome banner: ${err}`, "WelcomeEvents"); }
     });
+
 // Mensaje de salida
     client.on('guildMemberRemove', async (member: GuildMember | PartialGuildMember) => {
         debug(`Event 'guildMemberRemove' triggered for member: ${member.user?.username || 'unknown'}`, "WelcomeEvents");
@@ -92,4 +93,11 @@ export function registerWelcomeEvents(client: Client) {
         await welcomeChannel.send({ embeds: [embed] });
         debug(`Sent goodbye message for user ${member.user?.username || 'un miembro'} in guild ${member.guild.name}`, "WelcomeEvents");
     });
+}
+
+// Inicializador de Welcome 
+
+export async function startWelcomeEvents(client: Client): Promise<void> {
+    await preloadImagesAndFonts();
+    registerWelcomeEvents(client);
 }

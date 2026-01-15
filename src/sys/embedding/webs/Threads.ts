@@ -1,4 +1,4 @@
-// src/remplazadores/Threads.ts
+// src/sys/embeding/webs/Threads.ts
 import Ruler from "../RuleReplacement";
 
 export default class Threads extends Ruler {

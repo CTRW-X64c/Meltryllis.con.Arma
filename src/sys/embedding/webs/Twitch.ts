@@ -1,4 +1,4 @@
-// src/remplazadores/Twitch.ts
+// src/sys/embeding/webs/Twitch.ts
 import Ruler from "../RuleReplacement";
 
 export default class Twitch extends Ruler {

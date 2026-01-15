@@ -1,19 +1,18 @@
 // src/client/commands/embed.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, AutocompleteInteraction } from "discord.js";
 import i18next from "i18next";
 import { setGuildReplacementConfig } from "../../sys/database";
-import { replacementMetaList } from "../../remplazadores/EmbedingConfig";
+import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { error } from "../../sys/logging";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
+const manualSites = replacementMetaList.map((meta) => ({ name: meta.name, value: meta.name }));
+const apiSites = apiReplacementDomainsEnv.map((domain) => ({ name: domain, value: domain }));
+const allSites = [...manualSites, ...apiSites];
 
 export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
-    const manualSites = replacementMetaList.map((meta) => ({ name: meta.name, value: meta.name }));
-    const apiSites = apiReplacementDomainsEnv.map((domain) => ({ name: domain, value: domain }));
-    const allSites = [...manualSites, ...apiSites];
-
     const embedCommand = new SlashCommandBuilder()
-        .setName("embed")
+        .setName("embedmanager") 
         .setDescription(i18next.t("command_embed_description", { ns: "embed" }))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .addSubcommand((subcommand) =>
@@ -25,11 +24,11 @@ export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
                         .setName("sitio")
                         .setDescription(i18next.t("embed_command_site_description", { ns: "embed" }))
                         .setRequired(true)
-                        .addChoices(...allSites)
+                        .setAutocomplete(true) 
                 )
                 .addStringOption((option) =>
                     option
-                        .setName("accion")
+                        .setName("modo")
                         .setDescription(i18next.t("embed_command_action_description", { ns: "embed" })) 
                         .setRequired(true)
                         .addChoices(
@@ -41,13 +40,26 @@ export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
                 )
                 .addStringOption((option) =>
                     option
-                        .setName("url_personalizada")
+                        .setName("personalizar")
                         .setDescription(i18next.t("embed_command_custom_url", { ns: "embed" }))
                         .setRequired(false)
                 )
         );
 
     return [embedCommand] as SlashCommandBuilder[];
+}
+
+// --- Cambio para autocompletar 
+export async function handleEmbedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedValue = interaction.options.getFocused().toLowerCase();
+    
+    const filtered = allSites.filter(choice => 
+        choice.name.toLowerCase().includes(focusedValue)
+    );
+
+    await interaction.respond(
+        filtered.slice(0, 25).map(choice => ({ name: choice.name, value: choice.value }))
+    );
 }
 
 export async function handleEmbedCommand(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -69,10 +81,9 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         }
 
         const site = interaction.options.getString("sitio", true);
-        const action = interaction.options.getString("accion", true);
-        const customUrlInput = interaction.options.getString("url_personalizada", false);
-
-        const isApiDomain = apiReplacementDomainsEnv .includes(site);
+        const action = interaction.options.getString("modo", true);
+        const customUrlInput = interaction.options.getString("personalizar", false);
+        const isApiDomain = apiReplacementDomainsEnv.includes(site);
 
         let customUrl: string | null = null;
         let enabled = true;
@@ -133,13 +144,13 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         let successMessage: string;
 
         if (action === "disable") {
-            successMessage = i18next.t("embed_subcommand_disable_description", { ns: "embed", user: userMention, site: site });
+            successMessage = i18next.t("embed_subcommand_disable_description", { ns: "embed", a1: userMention, a2: site });
         } else if (action === "enable") {
-            successMessage = i18next.t("embed_subcommand_enable_description", { ns: "embed", user: userMention, site: site });
+            successMessage = i18next.t("embed_subcommand_enable_description", { ns: "embed", a1: userMention, a2: site });
         } else if (action === "custom") {
-            successMessage = i18next.t("embed_subcommand_custom_description", { ns: "embed", user: userMention, site: site, url: customUrlInput });
+            successMessage = i18next.t("embed_subcommand_custom_description", { ns: "embed", a1: userMention, a2: site, a3: customUrlInput });
         } else { 
-            successMessage = i18next.t("embed_subcommand_default_description", { ns: "embed", user: userMention, site: site });
+            successMessage = i18next.t("embed_subcommand_default_description", { ns: "embed", a1: userMention, a2: site });
         }
 
         await interaction.reply({

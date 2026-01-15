@@ -1,6 +1,6 @@
-// src/remplazadores/Bilbili.ts
+// src/sys/embeding/webs/Bilibili.ts
 import Ruler from "../RuleReplacement";
-import { debug } from "../../sys/logging";
+import { debug } from "../../../sys/logging";
 
 export default class Bilibili extends Ruler {
   constructor(newDomain: string) {

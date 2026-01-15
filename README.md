@@ -180,73 +180,76 @@ services:
 
 ```
 Meltryllis con Arma/
-├── src/
-│   ├── client/
-│   │   ├── commands/
+├── /add
+│   ├── /langs  
+│   │   ├── /es
+│   │   │   └── {ns}.json
+│   │   └── /en
+│   │       └── {ns}.json
+│   └── /fonts
+│       ├── Bitcount.ttf
+│       └── StoryScript-Regular.ttf
+├── /logs
+│   └── {logLevel}.log
+├── /src
+│   ├── /client
+│   │   ├── /commands
 │   │   │   ├── cleanup.ts
 │   │   │   ├── embed.ts
 │   │   │   ├── hola.ts
 │   │   │   ├── jointovoice.ts
 │   │   │   ├── owner.ts
-|   |   |   ├── post.ts
-|   |   |   ├── reddit.ts
+│   │   │   ├── post.ts
+│   │   │   ├── reddit.ts
 │   │   │   ├── replybots.ts
 │   │   │   ├── rolemoji.ts
 │   │   │   ├── test.ts
 │   │   │   ├── welcome.ts
 │   │   │   ├── work.ts
 │   │   │   └── youtube.ts
-│   │   ├── coreCommands/
-|   |   |   ├── neTools.ts
+│   │   ├── /eventGear
+│   │   │   ├── neTools.ts
 │   │   │   ├── redditCheck.ts
 │   │   │   ├── rolemojiEvents.ts
 │   │   │   ├── upCommands.ts
-|   |   |   ├── voiceEvents.ts
-│   │   |   ├── welcomeEvents.ts
-|   |   |   ├── youtubeCheck.ts
-|   |   |   └── yTools.ts
-|   |   └── index.ts
-│   ├── i18n/
-│   │   ├── index.ts
-│   │   └── langCmndVal.ts
-│   ├── remplazadores/
-│   │   ├── webs/
-│   │   │   ├── Bilibili.ts
-│   │   │   ├── Bsky.ts
-│   │   │   ├── DeviantArt.ts
-│   │   │   ├── Facebook.ts
-│   │   │   ├── Furaffinity.ts
-│   │   │   ├── Imgur.ts
-│   │   │   ├── Instagram.ts
-│   │   │   ├── Iwara.ts
-│   │   │   ├── Pixiv.ts
-│   │   │   ├── Reddit.ts
-│   │   │   ├── Threads.ts
-│   │   │   ├── TikTok.ts
-│   │   │   ├── Tumblr.ts
-│   │   │   ├── Twitch.ts
-│   │   │   ├── Twitter.ts
-│   │   │   └── YouTube.ts
-│   │   ├── ApiReplacement.ts
-│   │   ├── EmbedingConfig.ts   
-│   │   ├── index.ts
-│   │   └── RuleReplacement.ts
-│   ├── sys/
+│   │   │   ├── voiceEvents.ts
+│   │   │   ├── welcomeEvents.ts
+│   │   │   ├── youtubeCheck.ts
+│   │   │   └── yTools.ts
+│   │   ├── _resources.ts
+│   │   └── index.ts
+│   ├── /sys
+│   │   ├── /embedding
+│   │   │   ├── /webs
+│   │   │   │   ├── Bilibili.ts
+│   │   │   │   ├── Bsky.ts
+│   │   │   │   ├── DeviantArt.ts
+│   │   │   │   ├── Facebook.ts
+│   │   │   │   ├── Furaffinity.ts
+│   │   │   │   ├── Imgur.ts
+│   │   │   │   ├── Instagram.ts
+│   │   │   │   ├── Iwara.ts
+│   │   │   │   ├── Pixiv.ts
+│   │   │   │   ├── Reddit.ts
+│   │   │   │   ├── Threads.ts
+│   │   │   │   ├── TikTok.ts
+│   │   │   │   ├── Tumblr.ts
+│   │   │   │   ├── Twitch.ts
+│   │   │   │   ├── Twitter.ts
+│   │   │   │   └── YouTube.ts
+│   │   │   ├── ApiReplacement.ts
+│   │   │   ├── EmbedingConfig.ts 
+│   │   │   ├── embedService.ts
+│   │   │   ├── index.ts
+│   │   │   └── RuleReplacement.ts
+│   │   ├── /i18n
+│   │   │   ├── index.ts
+│   │   │   └── langCmndVal.ts
 │   │   ├── database.ts
-│   │   ├── setStatus.ts
 │   │   ├── environment.ts
-|   |   └── logging.ts
+│   │   ├── logging.ts 
+│   │   └── setStatus.ts
 │   └── index.ts
-├── add/
-│   ├── /langs/
-│   │   └── locales/
-│   │       ├── es/
-│   │       │   └── *.json
-│   │       └── en/
-│   │           └── *.json
-│   └── /fonts/
-│       ├── Bitcount.ttf
-│       └── StoryScript-Regular.ttf/
 ├── .env
 ├── Dockerfile
 ├── package-lock.json

@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, Permiss
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { getConfigMap, setChannelConfig } from "../../sys/database"; 
-import { ChannelConfig } from "../coreCommands/upCommands";
+import { ChannelConfig } from "../_resources";
 
 export async function registerReplybotsCommand(): Promise<SlashCommandBuilder[]> {
   const replyBotsCommand = new SlashCommandBuilder()

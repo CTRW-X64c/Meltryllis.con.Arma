@@ -2,8 +2,8 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, PermissionFlagsBits } from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
-import { getConfigMap, setChannelConfig } from "../../sys/database"; // Eliminamos saveDatabase
-import { ChannelConfig } from "../coreCommands/upCommands";
+import { getConfigMap, setChannelConfig } from "../../sys/database";
+import { ChannelConfig } from "../_resources";
 
 export async function registerWorkCommand(): Promise<SlashCommandBuilder[]> {
   const workCommand = new SlashCommandBuilder()

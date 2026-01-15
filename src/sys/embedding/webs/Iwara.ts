@@ -1,4 +1,4 @@
-// src/remplazadores/Iwara.ts
+// src/sys/embeding/webs/Iwara.ts
 import Ruler from "../RuleReplacement";
 
 export default class Iwara extends Ruler {

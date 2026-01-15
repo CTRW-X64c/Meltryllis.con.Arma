@@ -1,4 +1,4 @@
-// src/remplazadores/Bsky.ts
+// src/sys/embeding/webs/Bsky.ts
 import Ruler from "../RuleReplacement";
 
 export default class Bsky extends Ruler {

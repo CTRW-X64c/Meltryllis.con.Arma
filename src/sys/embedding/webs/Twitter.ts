@@ -1,4 +1,4 @@
-// src/remplazadores/Twitter.ts
+// src/sys/embeding/webs/Twitter.ts
 import Ruler from "../RuleReplacement";
 
 export default class Twitter extends Ruler {

@@ -1,4 +1,4 @@
-// src/remplazadores/Pixiv.ts
+// src/sys/embeding/webs/Pixiv.ts
 import Ruler from "../RuleReplacement";
 
 export default class Pixiv extends Ruler {

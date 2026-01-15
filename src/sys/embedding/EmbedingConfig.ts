@@ -1,4 +1,4 @@
-// src/remplazadores/replacementConfigs.ts
+// src/sys/embeding/EmbedingConfig.ts
 import Bilibili from "./webs/Bilibili";
 import Bsky from "./webs/Bsky";
 import DeviantArt from "./webs/DeviantArt";

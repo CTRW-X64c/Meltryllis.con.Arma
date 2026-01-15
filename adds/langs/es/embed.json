@@ -20,8 +20,8 @@
         "Api_default": "❌ Las Web que se muestran la url como www.tiktok.com, no tienen un estado por Default, Solo 'Habilitar'/'Deshabilitar'.",
         "Api_custom": "❌ Las Web de URL no se pueden customizar, Solo 'Habilitar'/'Deshabilitar'.",
         "Api_url_custom": "❌ Revisa tu URL, Ej. https://www.example.com | sub.example.com | sample.com",
-        "embed_subcommand_disable_description": "{{user}} desactivó el embed de: **{{site}}**!",
-        "embed_subcommand_enable_description": "{{user}} habilitó el embed de: **{{site}}**!",
-        "embed_subcommand_custom_description": "{{user}} actualizó el sitio: **{{site}}** a modo **personalizado** con la siguiente URL: **{{url}}**!",
-        "embed_subcommand_default_description": "{{user}} actualizó el sitio: **{{site}}** a modo: **Default**!"
+        "embed_subcommand_disable_description": "{{a1}} desactivó el embed de: **{{a2}}**!",
+        "embed_subcommand_enable_description": "{{a1}} habilitó el embed de: **{{a2}}**!",
+        "embed_subcommand_custom_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo **personalizado** con la siguiente URL: **{{a3}}**!",
+        "embed_subcommand_default_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo: **Default**!"
 }

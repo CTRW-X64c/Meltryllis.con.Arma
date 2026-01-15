@@ -1,7 +1,8 @@
 // src/client/coreCommands/rolemojiEvents.ts
-import { Client, MessageReaction, User, PartialMessageReaction, PartialUser, GuildMember } from "discord.js";
+import { Client, MessageReaction, User, PartialMessageReaction, PartialUser, GuildMember, TextBasedChannel } from "discord.js";
 import { debug, error } from "../../sys/logging";
 import { getRoleAssignments } from "../../sys/database";
+import i18next from "i18next";
 
 export function registerRolemojiEvents(client: Client) {
     debug('Event listeners for role assignment are being registered.', "RolemojiEvents");
@@ -60,7 +61,8 @@ export function registerRolemojiEvents(client: Client) {
         }
     });
 
-// Removedor de Roles
+/* ========= Removedor de Roles ========= */
+
     client.on('messageReactionRemove', async (reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) => {
         debug(`Event 'messageReactionRemove' triggered by user ${user.username} for reaction ${reaction.emoji.name}`, "RolemojiEvents");
 
@@ -121,4 +123,33 @@ export function registerRolemojiEvents(client: Client) {
             debug(`No assignment found in DB for emoji ${emojiKey}.`, "RolemojiEvents");
         }
     });
+}
+
+/* ========= Cache Cheker ========= */
+
+export async function preloadRolemojiMessages(client: Client) {
+    debug(i18next.t("Preloading_rolemoji", { ns: "core"}), "Core");
+    const guilds = client.guilds.cache.values();
+    for (const guild of guilds) {
+        const assignments = await getRoleAssignments(guild.id);        
+        const messageIds = new Set(Array.from(assignments.values()).map(a => a.messageId));
+        
+        for (const messageId of messageIds) {
+            try {
+                const channels = guild.channels.cache.filter(c => c.isTextBased());
+                for (const channel of channels.values()) {
+                    try {
+                        const message = await (channel as TextBasedChannel).messages.fetch(messageId as string);
+                        if (message) {
+                            debug(i18next.t("Fetched_rolemoji", {ns: "core", mensjid: messageId, gremio: guild.name }), "Core");
+                            break;
+                        }
+                    } catch (err) {
+                    }
+                }
+            } catch (err) {
+                error(i18next.t("error_fetch_role_fail", {ns: "core", messageId: messageId, guild: guild.name, error: err }), "Core");
+            }
+        }
+    }
 }

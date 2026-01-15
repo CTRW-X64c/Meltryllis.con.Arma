@@ -1,4 +1,4 @@
-// src/remplazadores/DeviantArt.ts
+// src/sys/embeding/webs/DeviantArt.ts
 import Ruler from "../RuleReplacement";
 
 export default class DeviantArt extends Ruler {

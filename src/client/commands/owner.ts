@@ -2,7 +2,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction } from "discord.js";
 import { debug, error, } from "../../sys/logging";
 import { Buffer } from 'node:buffer';
-import { checkAllDomains, buildDomainStatusEmbed } from "../coreCommands/neTools";
+import { checkAllDomains, buildDomainStatusEmbed } from "../eventGear/neTools";
 
 export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()

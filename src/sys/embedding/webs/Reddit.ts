@@ -1,5 +1,5 @@
-// src/remplazadores/Reddit.ts
-import { debug } from "../../sys/logging";
+// src/sys/embeding/webs/Reddit.ts
+import { debug } from "../../../sys/logging";
 import Ruler from "../RuleReplacement";
 
 export default class Reddit extends Ruler {

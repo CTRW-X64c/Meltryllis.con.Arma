@@ -1,4 +1,4 @@
-// src/remplazadores/TikTok.ts
+// src/sys/embeding/webs/TikTok.ts
 import Ruler from "../RuleReplacement";
 
 export default class TikTok extends Ruler {

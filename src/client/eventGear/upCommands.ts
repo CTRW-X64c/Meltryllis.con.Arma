@@ -1,7 +1,6 @@
 // src/client/coreCommands/upCommands.ts
 import { Client, ChatInputCommandInteraction } from "discord.js";
 import { error, info } from "../../sys/logging";
-import { initializeDatabase } from "../../sys/database";
 import { registerTestCommand, handleTestCommand } from "../commands/test";
 import { registerHolaCommand, handleHolaCommand } from "../commands/hola";
 import { registerWorkCommand, handleWorkCommand } from "../commands/work";
@@ -16,14 +15,7 @@ import { registerPostCommand, handlePostCommand } from "../commands/post";
 import { registerCleanUpCommand, handleCleanUpCommand } from "../commands/cleanup";
 import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "../commands/jointovoice";
 
-export interface ChannelConfig {
-  enabled: boolean;
-  replyBots: boolean;
-}
-
-export async function registerCommands(client: Client) {
-  await initializeDatabase(); 
-
+export async function registerCommands(client: Client) { 
   const commands = [
     ...(await registerHolaCommand()),
     ...(await registerTestCommand()),
@@ -41,7 +33,7 @@ export async function registerCommands(client: Client) {
   ];
 
   client.application?.commands.set(commands)
-    .then(() => info("Comandos /hola, /test, /embeds, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice y /owner registrados con éxito", "Commands.Register"))
+    .then(() => info("Comandos /hola, /test, /manager, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice y /owner registrados con éxito", "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 
@@ -54,7 +46,7 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
     await handleWorkCommand(interaction);
   } else if (interaction.commandName === "replybots") {
     await handleReplybotsCommand(interaction);
-  } else if (interaction.commandName === "embed") {
+  } else if (interaction.commandName === "embedmanager") {
     await handleEmbedCommand(interaction);
   } else if (interaction.commandName === "welcome") {
     await handleWelcomeCommand(interaction);

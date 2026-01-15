@@ -3,12 +3,12 @@ import Parser from 'rss-parser';
 import { error, debug, info } from '../../sys/logging';
 import { YouTubeFeed, getYouTubeFeeds, updateYouTubeFeedLastVideo } from '../../sys/database';
 import { Client, TextChannel } from 'discord.js';
-import { extractVideoId } from './yTools';
+import { extractVideoId } from './youtubeTools';
 import i18next from 'i18next';
 
 const parser = new Parser();
 
-export class YTRssService {
+  class YTRssService {
   private client: Client;
   private isChecking: boolean = false;
 

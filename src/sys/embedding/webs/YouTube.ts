@@ -1,4 +1,4 @@
-// src/remplazadores/YouTube.ts
+// src/sys/embeding/webs/YouTube.ts
 import Ruler from "../RuleReplacement";
 
 export default class YouTube extends Ruler {

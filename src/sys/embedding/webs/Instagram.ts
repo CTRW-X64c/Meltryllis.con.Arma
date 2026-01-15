@@ -1,4 +1,4 @@
-// src/remplazadores/Instagram.ts
+// src/sys/embeding/webs/Instagram.ts
 import Ruler from "../RuleReplacement";
 
 export default class Instagram extends Ruler {

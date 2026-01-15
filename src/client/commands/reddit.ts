@@ -1,9 +1,9 @@
 // src/client/commands/reddit.ts
 import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, TextChannel } from "discord.js";
 import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed} from "../../sys/database";
+import { RedditApiResponse } from "../eventGear/redditCheck";
 import { error, debug} from "../../sys/logging";
 import i18next from "i18next";
-import { RedditApiResponse } from "../coreCommands/redditCheck"
 
 const redditDomain = process.env.REDDIT_FIX_URL || "reddit.com";
 

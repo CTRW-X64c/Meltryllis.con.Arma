@@ -3,8 +3,8 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, Message
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { getConfigMap, getGuildReplacementConfig } from "../../sys/database";
-import { replacementMetaList} from "../../remplazadores/EmbedingConfig";
-import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../coreCommands/neTools";
+import { replacementMetaList} from "../../sys/embedding/EmbedingConfig";
+import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../eventGear/neTools";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 

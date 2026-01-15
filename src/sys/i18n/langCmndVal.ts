@@ -1,7 +1,7 @@
-// src/client/langCmndVal.ts
+// src/sys/i18n/langCmndVal.ts
 import i18next from "i18next";
 import { SUPPORTED_LANGUAGES } from "./index";
-import { error, info } from "../sys/logging"
+import { error, info } from "../logging"
 
 type TranslationConfig = {
     [namespace: string]: string[];

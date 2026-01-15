@@ -1,4 +1,4 @@
-// src/remplazadores/Furaffinity.ts
+// src/sys/embeding/webs/Furaffinity.ts
 import Ruler from "../RuleReplacement";
 
 export default class Furaffinity extends Ruler {

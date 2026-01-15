@@ -1,4 +1,4 @@
-// src/remplazadores/Facebook.ts
+// src/sys/embeding/webs/Facebook.ts
 import Ruler from "../RuleReplacement";
 
 export default class Facebook extends Ruler {
