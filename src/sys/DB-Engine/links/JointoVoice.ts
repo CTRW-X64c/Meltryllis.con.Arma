@@ -2,12 +2,12 @@
 import { getPool } from "../database";
 import {debug, error} from "../../logging";
 
-export interface VoiceConfig {
+interface VoiceConfig {
   channelId: string;
   enabled: boolean;
 }
 
-export interface TempVoiceChannel {
+interface TempVoiceChannel {
   channelId: string;
   guildId: string;
   ownerId: string;

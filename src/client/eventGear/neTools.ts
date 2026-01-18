@@ -3,7 +3,7 @@ import { EmbedBuilder } from 'discord.js';
 import { debug, info } from '../../sys/logging'; // Asegúrate de tener los imports
 import i18next from 'i18next';
 
-export interface DomainStatus {
+interface DomainStatus {
     name: string;
     url: string;
     status: number;
