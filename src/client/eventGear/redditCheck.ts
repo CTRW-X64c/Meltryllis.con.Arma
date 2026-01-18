@@ -1,6 +1,6 @@
 // src/client/coreCommands/redditCheck.ts
 import { Client, TextChannel } from 'discord.js';
-import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed } from '../../sys/database';
+import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed } from '../../sys/DB-Engine/links/Reddit';
 import { info, error, debug } from '../../sys/logging';
 import i18next from 'i18next';
 

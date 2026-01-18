@@ -2,7 +2,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel, PermissionsBitField } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";
-import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../../sys/database";
+import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../../sys/DB-Engine/links/Rolemoji";
 
 function getEmojiKey(emojiString: string): string {
     const customEmojiRegex = /<a?:[a-zA-Z0-9_]+:(\d+)>$/;

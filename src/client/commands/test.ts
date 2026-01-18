@@ -2,7 +2,8 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, TextChannel, PermissionFlagsBits} from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
-import { getConfigMap, getGuildReplacementConfig } from "../../sys/database";
+import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
+import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList} from "../../sys/embedding/EmbedingConfig";
 import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../eventGear/neTools";
 

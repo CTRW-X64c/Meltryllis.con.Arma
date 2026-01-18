@@ -1,7 +1,7 @@
 // src/client/coreCommands/youtubeCheck.ts
 import Parser from 'rss-parser';
 import { error, debug, info } from '../../sys/logging';
-import { YouTubeFeed, getYouTubeFeeds, updateYouTubeFeedLastVideo } from '../../sys/database';
+import { YouTubeFeed, getYouTubeFeeds, updateYouTubeFeedLastVideo } from '../../sys/DB-Engine/links/Youtube';
 import { Client, TextChannel } from 'discord.js';
 import { extractVideoId } from './youtubeTools';
 import i18next from 'i18next';

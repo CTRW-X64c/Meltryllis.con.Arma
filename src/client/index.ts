@@ -2,7 +2,7 @@
 import { Client, Events, GatewayIntentBits, Interaction } from "discord.js";
 import { getEnvironmentMode } from "../sys/environment";
 import { error, info, initLogger, loggerAvailable } from "../sys/logging";
-import { initializeDatabase } from "../sys/database";
+import { initializeDatabase } from "../sys/DB-Engine/database";
 import { startEmbedService } from "../sys/embedding/embedService";
 import { startStatusRotation } from "../sys/setStatus";
 import i18next from "i18next";

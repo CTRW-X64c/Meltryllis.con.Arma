@@ -1,6 +1,7 @@
 // src/sys/embeding/embedService.ts
 import { Client, Events, Message, MessageReaction, User } from "discord.js";
-import { getGuildReplacementConfig, getConfigMap } from "../database"; 
+import { getGuildReplacementConfig } from "../DB-Engine/links/Embed";
+import { getConfigMap } from "../DB-Engine/links/ReplyBots";
 import { buildReplacements } from "./index";
 import ApiReplacement from "./ApiReplacement";
 import { debug, error } from "../logging";

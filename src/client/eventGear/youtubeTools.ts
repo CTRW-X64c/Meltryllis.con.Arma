@@ -2,7 +2,7 @@
 import Parser from 'rss-parser';
 import i18next from 'i18next';
 import { debug, error, info } from '../../sys/logging';
-import { getAllYouTubeFeeds, YouTubeFeed, removeYouTubeFeed } from '../../sys/database';
+import { getAllYouTubeFeeds, YouTubeFeed, removeYouTubeFeed } from '../../sys/DB-Engine/links/Youtube';
 
 /* =====================================  Youtube  ===================================== */
 export function extractChannelIdFromRss(rssUrl: string): string | null {

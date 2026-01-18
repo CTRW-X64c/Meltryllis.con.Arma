@@ -1,7 +1,7 @@
 // src/services/voicEvent.ts 
 import { Client, VoiceState, VoiceChannel, Guild} from "discord.js";
 import { error, debug, info } from "../../sys/logging";
-import { getVoiceConfig, addTempVoiceChannel, removeTempVoiceChannel, isTempVoiceChannel, getAllTempVoiceChannels } from "../../sys/database";
+import { getVoiceConfig, addTempVoiceChannel, removeTempVoiceChannel, isTempVoiceChannel, getAllTempVoiceChannels } from "../../sys/DB-Engine/links/JointoVoice";
 
 export class VoiceChannelService {
     private client: Client;
