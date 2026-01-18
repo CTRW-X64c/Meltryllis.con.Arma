@@ -35,7 +35,7 @@ export function loggerAvailable(): boolean {
 
 export function log(level: string, msg: string, label?: string): void {
   if (!logger) {
-    throw new Error("Logger is null! Did you forget to initialize the logger?");
+    throw new Error("Logger no inicializado, alguien lo llamo antes de estar listo!!");
   }
 
   logger.log(level, msg, {

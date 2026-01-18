@@ -120,7 +120,7 @@ export async function initializeDatabase(): Promise<void> {
           )
         `);
         
-// Canales temporales
+    // Canales temporales
         await pool.query(`
           CREATE TABLE IF NOT EXISTS temp_voice_channels (
             channel_id VARCHAR(30) PRIMARY KEY,
@@ -149,29 +149,10 @@ export async function initializeDatabase(): Promise<void> {
 
 export async function getPool(): Promise<Pool> {
   if (pool) return pool;
-
   if (initializationPromise) {
       debug("⚠️ Solicitud de DB recibida durante inicialización, esperando...", "Database");
       await initializationPromise;
-      
       if (pool) return pool;
   }
-
   throw new Error("❌ La base de datos no está inicializada y no se está conectando.");
 }
-
-// ==================== CHANNEL CONFIGS ==================== //
-
-// ==================== GUILD REPLACEMENTS ==================== //
-
-// ==================== WELCOME CONFIGS ==================== //
-
-// ==================== ROLE ASSIGNMENTS ==================== //
-
-// ==================== YOUTUBE FEEDS ==================== //
-
-// ==================== REDDIT FEEDS ====================
-
-// ==================== VOICE CHANNELS (Join to Create) ==================== //
-
-/* ==================== ESPACIO PARA NUEVA BD ==================== */

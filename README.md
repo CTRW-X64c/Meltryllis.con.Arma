@@ -114,7 +114,7 @@ services:
       - IWARA_FIX_URL=
       - API_REPLACEMENT_DOMAINS=
       #Configuraciones Bot 
-      - BOT_STATUSES=
+      - BOT_STATUS=
       - STATUS_TIME_MINUTOS=
     volumes:
       - ./bot:/app/logs
@@ -161,8 +161,8 @@ services:
 | `DB_DATABASE` | Nombre BD \| MYSQL_DATABASE |
 | `"Sitio"_FIX_URL` | Dominio a remplazar |
 | `API_REPLACEMENT_DOMAINS` | Sitios soportados por [Embedez](https://embedez.com/) |
-| `BOT_STATUSES` | emoji \| nombre \| tipo de actividad |
-| `STATUS_TIME_MINUTOS` | Tiempo de Rotacion de *BOT_STATUSES* |
+| `BOT_STATUS` | estado \| tipo de actividad |
+| `STATUS_TIME_MINUTOS` | Tiempo de Rotacion de *BOT_STATUS* |
 ##### **_ "YOUTUBE & REDDIT CHECK_TIMMER" cuentan con timmer minimo interno para evitar bloqueos de IP _**
 
 | Variable BD  | Valores |
