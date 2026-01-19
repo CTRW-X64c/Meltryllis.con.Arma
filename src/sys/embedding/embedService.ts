@@ -96,8 +96,12 @@ export function startEmbedService(client: Client): void {
             }
 
             if (replacedUrl) {
-                const formattedLink = i18next.t("format_link", {ns: "core", Site: domainSite, RemUrl: replacedUrl });
-                replacedUrls.push(formattedLink);
+                const hiddenMessage = message.content.includes("||")
+                let messageContent = i18next.t("format_link", { ns: "core", Site: domainSite, RemUrl: replacedUrl });
+                if (hiddenMessage) {
+                    messageContent = i18next.t("format_link_spoiler", { ns: "core", Site: domainSite, RemUrl: replacedUrl });
+                }
+                replacedUrls.push(messageContent);
             }
         }
 

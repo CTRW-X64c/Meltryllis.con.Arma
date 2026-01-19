@@ -9,12 +9,14 @@ import i18next from "i18next";
 const redditDomain = process.env.REDDIT_FIX_URL || "reddit.com";
 
 function getSubredditNameFromUrl(input: string): string | null {
+    try {
     const urlObject = new URL(input);
     const subredditMatch = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_-]+)/);
-    const userMatch = urlObject.pathname.match(/\/user\/([a-zA-Z0-9_-]+)/);
+    const userMatch = urlObject.pathname.match(/\/user|u\/([a-zA-Z0-9_-]+)/);
 
     if (subredditMatch) return subredditMatch[1];
     if (userMatch) return userMatch[1];
+    } catch (e) { /*regresado, aun que parece inutil esto sirve para algo*/ }
 
     const urlMatch = input.match(/(?:reddit\.com\/(?:r|user)\/|^(?:r|u)\/)([a-zA-Z0-9_-]+)/);
     if (urlMatch) return urlMatch[1];
@@ -49,6 +51,10 @@ function getRedditResourceInfo(input: string): { name: string; displayName: stri
     return { name, displayName, endpoint, resourceType };
 }
 
+function checkIfNSFW(channel: any): boolean {
+    if (!channel) return false;
+    return 'nsfw' in channel ? Boolean(channel.nsfw) : false;
+}
 
 export async function registerRedditCommand() {
     const reddit = new SlashCommandBuilder()
@@ -142,9 +148,11 @@ export async function handleRedditCommand(interaction: ChatInputCommandInteracti
                 await RedditHelp(interaction);
                 break;
         }
-    } catch (err) {
+    } catch (err: any) {
+        let errorMessage = 'Error';
+        if (err instanceof TypeError && err.message === 'Invalid URL') errorMessage = 'Error: URL invalida!';
         error(`Error ejecutando comando Reddit: ${err}`);
-        await interaction.editReply({ content: i18next.t("command_error", { ns: "reddit" })});
+        await interaction.editReply({ content: i18next.t("command_error", { ns: "reddit", a1: errorMessage })});
     }
 }
 
@@ -153,6 +161,7 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
     const userInput = interaction.options.getString("url_reddit", true);
     const discordChannelInput = interaction.options.getChannel("canal", true);
     const discordChannel = interaction.guild!.channels.cache.get(discordChannelInput.id);
+    const nsfwStatus = checkIfNSFW(discordChannel);
 
     if (!discordChannel || !discordChannel.isTextBased()) {
         await interaction.editReply({ content: i18next.t("command_reddit_canal_error", { ns: "reddit" })});
@@ -187,14 +196,15 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
         } else {
             jsonUrl = `https://www.reddit.com/user/${resourceName}/submitted.json`;
         }
-
+        
         await addRedditFeed({
             guild_id: guildId,
             channel_id: discordChannel.id,
             subreddit_name: resourceName, // Input de url si es tipo User o Subreddit
             subreddit_url: jsonUrl,
             last_post_id: null,
-            filter_mode: filterMode // Parche filtrado
+            filter_mode: filterMode, // Parche filtrado
+            nsfw_protect: nsfwStatus
         });
 
         const filterToText = {
@@ -204,7 +214,9 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
         const filterText = filterToText[filterMode] || i18next.t("command_reddit_sin_filtro", { ns: "reddit" }); 
         
         await interaction.editReply({
-            content: i18next.t("command_reddit_seguir_success", { ns: "reddit", a1: displayName, a2: discordChannel.toString(), a3: filterText})
+            content: nsfwStatus 
+                ? i18next.t("command_reddit_seguir_success_nsfw", { ns: "reddit", a1: displayName, a2: discordChannel.toString(), a3: filterText})
+                : i18next.t("command_reddit_seguir_success", { ns: "reddit", a1: displayName, a2: discordChannel.toString(), a3: filterText})
         });
         debug(`Se registro nuevo follow: ${displayName}`);
 

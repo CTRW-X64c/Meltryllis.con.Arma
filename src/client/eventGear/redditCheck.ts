@@ -130,8 +130,10 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 }
                 
                 // Hyperlink Fix & procesamiento de link
-                const nfsw = post.over_18;         
-                const permalink = post.permalink; 
+                const nsfwPost = post.over_18;
+                const nsfwChannel = feed.nsfw_protect;
+                const nsfwCheck = nsfwPost && !nsfwChannel;
+                const permalink = post.permalink;
                 const formattedUrl = `https://www.${redditEmbedDomain}${permalink}`;
                 const MAX_LENGTH = 50;
                 const originalTitle = post.title ?? "Sin Título";
@@ -147,9 +149,12 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     .replace(/\|/g, ' ')
                     .replace(emojiRegex, '');
                     
-                let messageContent = i18next.t("Reduit_pioste", { ns: "reddit", a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
-                if (nfsw) {
+                let messageContent;
+                if (nsfwCheck) {
                     messageContent = i18next.t("Reduit_pioste_nsfw", { ns: "reddit", a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
+                    debug(`[Reddit Checker]: Post NSFW protegido en #<${feed.channel_id}> de ${displayName}`);
+                } else {
+                    messageContent = i18next.t("Reduit_pioste", { ns: "reddit", a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
                 }
                      
                 await textChannel.send(messageContent);

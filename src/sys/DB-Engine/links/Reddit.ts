@@ -12,6 +12,7 @@ export interface RedditFeed {
   last_post_id: string | null;
   created_at: Date;
   filter_mode: 'all' | 'media_only' | 'text_only';  //Añadiendo filtro de tipo contenido
+  nsfw_protect: boolean;
 }
 
 const redditFeedCache = new Map<string, RedditFeed[]>();
@@ -30,7 +31,7 @@ export async function getRedditFeeds(guildId: string): Promise<RedditFeed[]> {
   try {
     const pool = await getPool();
     const [rows] = await pool.query(
-      "SELECT id, guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, created_at FROM reddit_feeds WHERE guild_id = ?",
+      "SELECT id, guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, created_at, nsfw_protect FROM reddit_feeds WHERE guild_id = ?",
       [guildId]
     );
 
@@ -42,7 +43,8 @@ export async function getRedditFeeds(guildId: string): Promise<RedditFeed[]> {
       subreddit_name: row.subreddit_name,
       last_post_id: row.last_post_id,
       filter_mode: row.filter_mode,
-      created_at: new Date(row.created_at)
+      created_at: new Date(row.created_at),
+      nsfw_protect: Boolean(Number(row.nsfw_protect)),
     }));
 
     redditFeedCache.set(guildId, feeds);
@@ -58,8 +60,8 @@ export async function addRedditFeed(feed: Omit<RedditFeed, 'id' | 'created_at'>)
   try {
     const pool = await getPool();
     const [result] = await pool.query(
-      "INSERT INTO reddit_feeds (guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, filter_mode) VALUES (?, ?, ?, ?, ?, ?)",
-      [feed.guild_id, feed.channel_id, feed.subreddit_url, feed.subreddit_name, feed.last_post_id, feed.filter_mode]
+      "INSERT INTO reddit_feeds (guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, filter_mode, nsfw_protect) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [feed.guild_id, feed.channel_id, feed.subreddit_url, feed.subreddit_name, feed.last_post_id, feed.filter_mode, feed.nsfw_protect]
     );
 
     const header = result as ResultSetHeader;
@@ -112,7 +114,7 @@ export async function getAllRedditFeeds(): Promise<RedditFeed[]> {
   try {
     const pool = await getPool();
     const [rows] = await pool.query(
-      "SELECT id, guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, filter_mode, created_at FROM reddit_feeds"
+      "SELECT id, guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, filter_mode, created_at, nsfw_protect FROM reddit_feeds"
     );
 
     return (rows as any[]).map(row => ({
@@ -123,7 +125,8 @@ export async function getAllRedditFeeds(): Promise<RedditFeed[]> {
       subreddit_name: row.subreddit_name,
       last_post_id: row.last_post_id,
       filter_mode: row.filter_mode,
-      created_at: new Date(row.created_at)
+      created_at: new Date(row.created_at),
+      nsfw_protect: Boolean(Number(row.nsfw_protect)),
     }));
   } catch (err) {
     error(`[BD.Reddit] Error al cargar la lista de feeds. ERROR!: ${err}`, "Database");

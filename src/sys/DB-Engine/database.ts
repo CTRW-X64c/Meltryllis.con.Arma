@@ -107,6 +107,7 @@ export async function initializeDatabase(): Promise<void> {
           last_post_id VARCHAR(100),
           filter_mode VARCHAR(50) NOT NULL DEFAULT 'all',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          nsfw_protect Boolean DEFAULT FALSE,
           UNIQUE KEY unique_guild_subreddit (guild_id, subreddit_name)
           )
         `);
