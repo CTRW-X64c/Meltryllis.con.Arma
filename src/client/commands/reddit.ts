@@ -3,20 +3,19 @@ import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlag
 import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed} from "../../sys/DB-Engine/links/Reddit";
 import { RedditApiResponse } from "../eventGear/redditCheck";
 import { error, debug} from "../../sys/logging";
+import { redditApi } from "../../sys/RedditApi";
 import i18next from "i18next";
 
 const redditDomain = process.env.REDDIT_FIX_URL || "reddit.com";
 
 function getSubredditNameFromUrl(input: string): string | null {
-    try {
-        const urlObject = new URL(input);
-        const subredditMatch = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_-]+)/);
-        const userMatch = urlObject.pathname.match(/\/user\/([a-zA-Z0-9_-]+)/);
-        
-        if (subredditMatch) return subredditMatch[1];
-        if (userMatch) return userMatch[1];
-    } catch (e) {     
-    }
+    const urlObject = new URL(input);
+    const subredditMatch = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_-]+)/);
+    const userMatch = urlObject.pathname.match(/\/user\/([a-zA-Z0-9_-]+)/);
+
+    if (subredditMatch) return subredditMatch[1];
+    if (userMatch) return userMatch[1];
+
     const urlMatch = input.match(/(?:reddit\.com\/(?:r|user)\/|^(?:r|u)\/)([a-zA-Z0-9_-]+)/);
     if (urlMatch) return urlMatch[1];
     
@@ -29,24 +28,27 @@ function getSubredditNameFromUrl(input: string): string | null {
     return null;
 }
 
-function getRedditResourceInfo(input: string): { name: string; displayName: string; jsonUrl: string } | null {
+function getRedditResourceInfo(input: string): { name: string; displayName: string; endpoint: string; sauceType: 'subreddit' | 'user'; } | null {
     const name = getSubredditNameFromUrl(input);
     if (!name) return null;
 
     let displayName: string;
-    let jsonUrl: string;
+    let endpoint: string;
+    let sauceType: 'subreddit' | 'user';
 
-// Determinar si es usuario o subreddit
     if (input.includes('/user/') || input.startsWith('u/')) {
         displayName = `u/${name}`;
-        jsonUrl = `https://www.reddit.com/user/${name}/.json`;
+        endpoint = `/user/${name}`; // Para la API autenticada
+        sauceType  = `user`;
     } else {
         displayName = `r/${name}`;
-        jsonUrl = `https://www.reddit.com/r/${name}/new/.json`;
+        endpoint = `/r/${name}`; // Para la API autenticada
+        sauceType = `subreddit`;
     }
-
-    return { name, displayName, jsonUrl };
+    
+    return { name, displayName, endpoint, sauceType };
 }
+
 
 export async function registerRedditCommand() {
     const reddit = new SlashCommandBuilder()
@@ -162,20 +164,28 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
         await interaction.editReply({ content: i18next.t("command_reddit_subreddit_error", { ns: "reddit" })});
         return;
     }
-    
-    const { name: resourceName, displayName, jsonUrl } = resourceInfo;
+
+    const { name: resourceName, displayName, endpoint, sauceType } = resourceInfo;
     const filterMode = (interaction.options.getString("filtro") ?? 'all') as 'all' | 'media_only' | 'text_only';
 
     try {
-        const response = await fetch(jsonUrl, { headers: { 'User-Agent': 'MeltryllisBot/1.0.0' } });
-        if (!response.ok) {
-            throw new Error(`${displayName} no encontrado o privado`);
+        const response = await redditApi.fetchAuthenticated(endpoint);
+        if (response.status === 404) {
+            await interaction.editReply({content: i18next.t("command_reddit_add_not_found", { ns: "reddit", subreddit: resourceName })});
+            return;
         }
 
         const existingFeeds = await getRedditFeeds(guildId);
         if (existingFeeds.some(feed => feed.subreddit_name.toLowerCase() === resourceName.toLowerCase())) {
             await interaction.editReply({ content: i18next.t("command_reddit_duplicado", { ns: "reddit", a1: displayName })});
             return;
+        }
+
+        let jsonUrl: string;
+        if (sauceType === 'subreddit') {
+            jsonUrl = `https://www.reddit.com/r/${resourceName}/new.json`;
+        } else {
+            jsonUrl = `https://www.reddit.com/user/${resourceName}/submitted.json`;
         }
 
         await addRedditFeed({

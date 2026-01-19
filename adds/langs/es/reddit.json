@@ -59,5 +59,6 @@
         "command_reddit_HelpEmb_Field_Value_4":"Publica el último post de un subreddit usando su URL o r/subbreddit|u/username.",
 
     "ATS6":"Embed Builder Help",
-        "Reduit_pioste":"Último post de {{a1}}:\n**POST:** [{{a2}}]({{a3}})"
+        "Reduit_pioste":"Último post de {{a1}}:\n**POST:** [{{a2}}]({{a3}})",
+        "Reduit_pioste_nsfw":"**[NSFW]** Último post de {{a1}}:\n**NSFW POST!!!:** ||[{{a2}}]({{a3}})||"
  }

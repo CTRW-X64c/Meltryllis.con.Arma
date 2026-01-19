@@ -1,9 +1,13 @@
 // src/commands/resources.ts
 
+/* =================== Interfaces =================== */
+
 export interface ChannelConfig {
   enabled: boolean;
   replyBots: boolean;
 }
+
+/* =================== UTILIDADES DE EMBEDS =================== */
 
 export function randomcolorembed(): string {
   const letters = '0123456789ABCDEF';
@@ -13,4 +17,5 @@ export function randomcolorembed(): string {
   }
   return color;
 }
+
 
