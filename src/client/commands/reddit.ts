@@ -28,25 +28,25 @@ function getSubredditNameFromUrl(input: string): string | null {
     return null;
 }
 
-function getRedditResourceInfo(input: string): { name: string; displayName: string; endpoint: string; sauceType: 'subreddit' | 'user'; } | null {
+function getRedditResourceInfo(input: string): { name: string; displayName: string; endpoint: string; resourceType: 'subreddit' | 'user'; } | null {
     const name = getSubredditNameFromUrl(input);
     if (!name) return null;
 
     let displayName: string;
     let endpoint: string;
-    let sauceType: 'subreddit' | 'user';
+    let resourceType: 'subreddit' | 'user';  //pusimos sauceType en vez de resourceType
 
     if (input.includes('/user/') || input.startsWith('u/')) {
         displayName = `u/${name}`;
         endpoint = `/user/${name}`; // Para la API autenticada
-        sauceType  = `user`;
+        resourceType  = `user`;
     } else {
         displayName = `r/${name}`;
         endpoint = `/r/${name}`; // Para la API autenticada
-        sauceType = `subreddit`;
+        resourceType = `subreddit`;
     }
     
-    return { name, displayName, endpoint, sauceType };
+    return { name, displayName, endpoint, resourceType };
 }
 
 
@@ -165,7 +165,7 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
         return;
     }
 
-    const { name: resourceName, displayName, endpoint, sauceType } = resourceInfo;
+    const { name: resourceName, displayName, endpoint, resourceType } = resourceInfo;
     const filterMode = (interaction.options.getString("filtro") ?? 'all') as 'all' | 'media_only' | 'text_only';
 
     try {
@@ -182,7 +182,7 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
         }
 
         let jsonUrl: string;
-        if (sauceType === 'subreddit') {
+        if (resourceType === 'subreddit') {
             jsonUrl = `https://www.reddit.com/r/${resourceName}/new.json`;
         } else {
             jsonUrl = `https://www.reddit.com/user/${resourceName}/submitted.json`;
