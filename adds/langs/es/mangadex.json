@@ -21,7 +21,7 @@
 
         "command_mangadex_lista_vacia": "No estas siguiendo ningun manga",
         "manga_embed_titulo": "📚 Mangas Seguidos en {{a1}}",
-        "manga_embed_descripcion": "Mangas seguiendo: {{a1}}",
+        "manga_embed_descripcion": "Mangas seguiendo: {{a1}} \n MANGA ID | TITULO DE MANGA | IDIOMA",
         "manga_embed_list_value": "Lista Vacia",
         "manga_embed_list_entry": "• 🆔: `{{a1}}` | `{{a2}}` | Idioma: {{a3}}",
         "manga_embed_footer": "Mangadex & (MDRSS)[https://mdrss.tijlvdb.me]",

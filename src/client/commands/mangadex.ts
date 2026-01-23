@@ -238,8 +238,7 @@ async function listaManga(interaction: ChatInputCommandInteraction, guildId: str
         const urlchannel = `https://discord.com/channels/${guildId}/${channelId}`;
         const lineas = grupo.feeds.map(feed => {
             const flag = feed.language === 'es' ? '🇪🇸' : feed.language === 'es-la' ? '🇲🇽' : feed.language === 'en' ? '🇺🇸' : '🌐';
-            return i18next.t("manga_embed_list_entry",
-                { ns: "mangadex",a1: feed.id, a2: feed.manga_title, a3: flag});
+            return i18next.t("manga_embed_list_entry",{ ns: "mangadex",a1: feed.id, a2: feed.manga_title, a3: flag});
         });
 
         /* Seccionador de embeds */
@@ -247,7 +246,7 @@ async function listaManga(interaction: ChatInputCommandInteraction, guildId: str
         for (let i = 0; i < lineas.length; i += TAMANO_BLOQUE) {
             const bloque = lineas.slice(i, i + TAMANO_BLOQUE).join('\n');
             const sufijo = lineas.length > TAMANO_BLOQUE ? ` (Parte ${Math.floor(i/TAMANO_BLOQUE) + 1})` : '';
-            const nombreCampo = `#${urlchannel} - ${sufijo}`;
+            const nombreCampo = `${urlchannel} - ${sufijo}`;
 
             embed.addFields({
                 name: nombreCampo, 
