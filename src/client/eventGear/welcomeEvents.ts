@@ -2,7 +2,7 @@
 import { Client, GuildMember, AttachmentBuilder, TextChannel, EmbedBuilder, PartialGuildMember } from "discord.js";
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
 import { debug, error } from "../../sys/logging";
-import { getWelcomeConfig } from "../../sys/database";
+import { getWelcomeConfig } from "../../sys/DB-Engine/links/Welcome";
 import path from 'path';
 
 let background: any;

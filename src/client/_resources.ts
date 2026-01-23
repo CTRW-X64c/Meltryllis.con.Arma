@@ -1,13 +1,15 @@
 // src/commands/resources.ts
 
+/* =================== Interfaces =================== */
+
 export interface ChannelConfig {
   enabled: boolean;
   replyBots: boolean;
 }
 
-export const embedcolors = {
-  emb_info: 0x3498db,
-  emb_success: 0x2ecc71,
-  emb_warning: 0xf1c40f,
-  emb_error: 0xe74c3c,
-};
+/* =================== UTILIDADES DE EMBEDS =================== */
+
+export function randomcolorembed(): string {
+  const color = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase();
+  return `0x${color.padStart(6, '0')}`;
+}

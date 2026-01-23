@@ -1,7 +1,7 @@
 // src/client/commands/embed.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, AutocompleteInteraction } from "discord.js";
 import i18next from "i18next";
-import { setGuildReplacementConfig } from "../../sys/database";
+import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { error } from "../../sys/logging";
 

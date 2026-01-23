@@ -1,22 +1,23 @@
 // src/client/commands/reddit.ts
 import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, TextChannel } from "discord.js";
-import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed} from "../../sys/database";
+import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed} from "../../sys/DB-Engine/links/Reddit";
 import { RedditApiResponse } from "../eventGear/redditCheck";
 import { error, debug} from "../../sys/logging";
+import { redditApi } from "../../sys/RedditApi";
 import i18next from "i18next";
 
 const redditDomain = process.env.REDDIT_FIX_URL || "reddit.com";
 
 function getSubredditNameFromUrl(input: string): string | null {
     try {
-        const urlObject = new URL(input);
-        const subredditMatch = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_-]+)/);
-        const userMatch = urlObject.pathname.match(/\/user\/([a-zA-Z0-9_-]+)/);
-        
-        if (subredditMatch) return subredditMatch[1];
-        if (userMatch) return userMatch[1];
-    } catch (e) {     
-    }
+    const urlObject = new URL(input);
+    const subredditMatch = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_-]+)/);
+    const userMatch = urlObject.pathname.match(/\/user|u\/([a-zA-Z0-9_-]+)/);
+
+    if (subredditMatch) return subredditMatch[1];
+    if (userMatch) return userMatch[1];
+    } catch (e) { /*regresado, aun que parece inutil esto sirve para algo*/ }
+
     const urlMatch = input.match(/(?:reddit\.com\/(?:r|user)\/|^(?:r|u)\/)([a-zA-Z0-9_-]+)/);
     if (urlMatch) return urlMatch[1];
     
@@ -29,23 +30,30 @@ function getSubredditNameFromUrl(input: string): string | null {
     return null;
 }
 
-function getRedditResourceInfo(input: string): { name: string; displayName: string; jsonUrl: string } | null {
+function getRedditResourceInfo(input: string): { name: string; displayName: string; endpoint: string; resourceType: 'subreddit' | 'user'; } | null {
     const name = getSubredditNameFromUrl(input);
     if (!name) return null;
 
     let displayName: string;
-    let jsonUrl: string;
+    let endpoint: string;
+    let resourceType: 'subreddit' | 'user';  //pusimos sauceType en vez de resourceType
 
-// Determinar si es usuario o subreddit
     if (input.includes('/user/') || input.startsWith('u/')) {
         displayName = `u/${name}`;
-        jsonUrl = `https://www.reddit.com/user/${name}/.json`;
+        endpoint = `/user/${name}`; // Para la API autenticada
+        resourceType  = `user`;
     } else {
         displayName = `r/${name}`;
-        jsonUrl = `https://www.reddit.com/r/${name}/new/.json`;
+        endpoint = `/r/${name}`; // Para la API autenticada
+        resourceType = `subreddit`;
     }
+    
+    return { name, displayName, endpoint, resourceType };
+}
 
-    return { name, displayName, jsonUrl };
+function checkIfNSFW(channel: any): boolean {
+    if (!channel) return false;
+    return 'nsfw' in channel ? Boolean(channel.nsfw) : false;
 }
 
 export async function registerRedditCommand() {
@@ -140,9 +148,11 @@ export async function handleRedditCommand(interaction: ChatInputCommandInteracti
                 await RedditHelp(interaction);
                 break;
         }
-    } catch (err) {
+    } catch (err: any) {
+        let errorMessage = 'Error';
+        if (err instanceof TypeError && err.message === 'Invalid URL') errorMessage = 'Error: URL invalida!';
         error(`Error ejecutando comando Reddit: ${err}`);
-        await interaction.editReply({ content: i18next.t("command_error", { ns: "reddit" })});
+        await interaction.editReply({ content: i18next.t("command_error", { ns: "reddit", a1: errorMessage })});
     }
 }
 
@@ -151,6 +161,7 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
     const userInput = interaction.options.getString("url_reddit", true);
     const discordChannelInput = interaction.options.getChannel("canal", true);
     const discordChannel = interaction.guild!.channels.cache.get(discordChannelInput.id);
+    const nsfwStatus = checkIfNSFW(discordChannel);
 
     if (!discordChannel || !discordChannel.isTextBased()) {
         await interaction.editReply({ content: i18next.t("command_reddit_canal_error", { ns: "reddit" })});
@@ -162,14 +173,15 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
         await interaction.editReply({ content: i18next.t("command_reddit_subreddit_error", { ns: "reddit" })});
         return;
     }
-    
-    const { name: resourceName, displayName, jsonUrl } = resourceInfo;
+
+    const { name: resourceName, displayName, endpoint, resourceType } = resourceInfo;
     const filterMode = (interaction.options.getString("filtro") ?? 'all') as 'all' | 'media_only' | 'text_only';
 
     try {
-        const response = await fetch(jsonUrl, { headers: { 'User-Agent': 'MeltryllisBot/1.0.0' } });
-        if (!response.ok) {
-            throw new Error(`${displayName} no encontrado o privado`);
+        const response = await redditApi.fetchAuthenticated(endpoint);
+        if (response.status === 404) {
+            await interaction.editReply({content: i18next.t("command_reddit_add_not_found", { ns: "reddit", subreddit: resourceName })});
+            return;
         }
 
         const existingFeeds = await getRedditFeeds(guildId);
@@ -178,13 +190,21 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
             return;
         }
 
+        let jsonUrl: string;
+        if (resourceType === 'subreddit') {
+            jsonUrl = `https://www.reddit.com/r/${resourceName}/new.json`;
+        } else {
+            jsonUrl = `https://www.reddit.com/user/${resourceName}/submitted.json`;
+        }
+        
         await addRedditFeed({
             guild_id: guildId,
             channel_id: discordChannel.id,
             subreddit_name: resourceName, // Input de url si es tipo User o Subreddit
             subreddit_url: jsonUrl,
             last_post_id: null,
-            filter_mode: filterMode // Parche filtrado
+            filter_mode: filterMode, // Parche filtrado
+            nsfw_protect: nsfwStatus
         });
 
         const filterToText = {
@@ -194,7 +214,9 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
         const filterText = filterToText[filterMode] || i18next.t("command_reddit_sin_filtro", { ns: "reddit" }); 
         
         await interaction.editReply({
-            content: i18next.t("command_reddit_seguir_success", { ns: "reddit", a1: displayName, a2: discordChannel.toString(), a3: filterText})
+            content: nsfwStatus 
+                ? i18next.t("command_reddit_seguir_success_nsfw", { ns: "reddit", a1: displayName, a2: discordChannel.toString(), a3: filterText})
+                : i18next.t("command_reddit_seguir_success", { ns: "reddit", a1: displayName, a2: discordChannel.toString(), a3: filterText})
         });
         debug(`Se registro nuevo follow: ${displayName}`);
 
@@ -212,35 +234,41 @@ async function ListaReddit(interaction: ChatInputCommandInteraction, guildId: st
         await interaction.editReply({ content: i18next.t("command_reddit_lista_vacia", { ns: "reddit" })});
         return;
     }
-    
+
+    const feedsPorCanal = new Map<string, RedditFeed[]>();
     const guildName = interaction.guild!.name;
+    
+    for (const feed of feeds) {
+    if (!feedsPorCanal.has(feed.channel_id)) {
+        feedsPorCanal.set(feed.channel_id, []);}
+        feedsPorCanal.get(feed.channel_id)!.push(feed);
+    }
+
     const embed = new EmbedBuilder()
         .setTitle(i18next.t("command_reddit_lista_titulo", { ns: "reddit", a1: feeds.length, a2: guildName }))
         .setColor(0xFF4500);
-
-    const feedsPorCanal = new Map<string, RedditFeed[]>();
-
-    for (const feed of feeds) {
-        if (!feedsPorCanal.has(feed.channel_id)) {
-            feedsPorCanal.set(feed.channel_id, []);
-        }
-        feedsPorCanal.get(feed.channel_id)!.push(feed);
-    }
 
     for (const [canalId, grupo] of feedsPorCanal) {
         const canalClickeable = `<#${canalId}>`;
         const listaSubreddits = grupo.map(feed => {
             const displayName = feed.subreddit_url.includes('/user/') ? `u/${feed.subreddit_name}` : `r/${feed.subreddit_name}`;
             return `**${displayName}**`;
-        }).join('\n');
+        })
 
+    /* Mangadex nos enseño que a esto le podria pasar lo mismo */
+    const TAMANO_BLOQUE = 40;  
+    for (let i = 0; i < listaSubreddits.length; i += TAMANO_BLOQUE) {
+        const bloque = listaSubreddits.slice(i, i + TAMANO_BLOQUE).join('\n');
+        const sufijo = listaSubreddits.length > TAMANO_BLOQUE ? ` (Parte ${Math.floor(i/TAMANO_BLOQUE) + 1})` : '';
+        const nombreCampo = `#${canalClickeable} - ${sufijo}`;
+       
         embed.addFields({
-            name: i18next.t("command_reddit_lista_name", { ns: "reddit", a1: canalClickeable, a2: grupo.length }),
-            value: listaSubreddits || i18next.t("command_reddit_lista_value", { ns: "reddit" }),
+            name: i18next.t("command_reddit_lista_name", { ns: "reddit", a1: nombreCampo, a2: grupo.length }),
+            value: bloque || i18next.t("command_reddit_lista_value", { ns: "reddit" }),
             inline: false,
         });
-    }
-    
+    }}
+
     embed.setFooter({ text: i18next.t("command_reddit_lista_footer", { ns: "reddit" })});
     await interaction.editReply({ embeds: [embed] });
 }

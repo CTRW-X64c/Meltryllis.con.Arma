@@ -50,7 +50,7 @@ services:
       - EMBEDEZ_API_FIX_URL=
       - API_REPLACEMENT_DOMAINS=
       
-      - BOT_STATUSES=
+      - BOT_STATUS=
 
     depends_on:
       - mariadb

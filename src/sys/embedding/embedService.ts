@@ -1,6 +1,7 @@
 // src/sys/embeding/embedService.ts
 import { Client, Events, Message, MessageReaction, User } from "discord.js";
-import { getGuildReplacementConfig, getConfigMap } from "../database"; 
+import { getGuildReplacementConfig } from "../DB-Engine/links/Embed";
+import { getConfigMap } from "../DB-Engine/links/ReplyBots";
 import { buildReplacements } from "./index";
 import ApiReplacement from "./ApiReplacement";
 import { debug, error } from "../logging";
@@ -95,8 +96,12 @@ export function startEmbedService(client: Client): void {
             }
 
             if (replacedUrl) {
-                const formattedLink = i18next.t("format_link", {ns: "core", Site: domainSite, RemUrl: replacedUrl });
-                replacedUrls.push(formattedLink);
+                const hiddenMessage = message.content.includes("||")
+                let messageContent = i18next.t("format_link", { ns: "core", Site: domainSite, RemUrl: replacedUrl });
+                if (hiddenMessage) {
+                    messageContent = i18next.t("format_link_spoiler", { ns: "core", Site: domainSite, RemUrl: replacedUrl });
+                }
+                replacedUrls.push(messageContent);
             }
         }
 

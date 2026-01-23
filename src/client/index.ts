@@ -2,7 +2,7 @@
 import { Client, Events, GatewayIntentBits, Interaction } from "discord.js";
 import { getEnvironmentMode } from "../sys/environment";
 import { error, info, initLogger, loggerAvailable } from "../sys/logging";
-import { initializeDatabase } from "../sys/database";
+import { initializeDatabase } from "../sys/DB-Engine/database";
 import { startEmbedService } from "../sys/embedding/embedService";
 import { startStatusRotation } from "../sys/setStatus";
 import i18next from "i18next";
@@ -13,6 +13,7 @@ import { startWelcomeEvents } from "./eventGear/welcomeEvents";
 import { registerRolemojiEvents } from "./eventGear/rolemojiEvents";
 import { startYoutubeService } from "./eventGear/youtubeCheck";
 import { startRedditChecker } from "./eventGear/redditCheck";
+import { startMangadexChecker } from "./eventGear/mangadexChek";
 import { autoCleanupService } from "./eventGear/youtubeTools";
 import { startVoiceChannelService } from "./eventGear/voicEvent";
 import { preloadRolemojiMessages } from "./eventGear/rolemojiEvents";
@@ -40,6 +41,7 @@ const client = createClient();
         startStatusRotation(client);
         startEmbedService(client);
         autoCleanupService.start();
+        startMangadexChecker(client);
         logInfo(`✅ Inicializacion completada!!`);
         logInfo(`Idioma por default de los comandos: ${locale}`);
         

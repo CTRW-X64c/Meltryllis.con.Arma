@@ -1,8 +1,9 @@
 // src/client/coreCommands/redditCheck.ts
 import { Client, TextChannel } from 'discord.js';
-import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed } from '../../sys/database';
+import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed } from '../../sys/DB-Engine/links/Reddit';
 import { info, error, debug } from '../../sys/logging';
 import i18next from 'i18next';
+import { redditApi } from '../../sys/RedditApi'; 
 
 export interface RedditApiResponse {
     data: {
@@ -19,117 +20,26 @@ interface RedditPost {
     name: string;
     pinned: boolean;
     stickied?: boolean;
+    over_18: boolean;
 }
 
 const redditEmbedDomain = process.env.REDDIT_FIX_URL || "reddit.com";
 const BATCH_SIZE = 25;
-
-// Configuración de Reddit API
-const REDDIT_API_BASE = 'https://oauth.reddit.com';
-const REDDIT_AUTH_URL = 'https://www.reddit.com/api/v1/access_token';
-
 let currentFeedIndex = 0;
-let accessToken: string | null = null;
-let tokenExpiry: number | null = null;
-
-class RedditApiClient {
-    private clientId: string;
-    private clientSecret: string;
-    private userAgent: string;
-
-    constructor() {
-        this.clientId = process.env.REDDIT_CLIENT_ID || '';
-        this.clientSecret = process.env.REDDIT_CLIENT_SECRET || '';
-        this.userAgent = 'MeltryllisBot/1.0.0';
-        
-        if (!this.clientId || !this.clientSecret) {
-            console.warn('[Reddit API] REDDIT_CLIENT_ID o REDDIT_CLIENT_SECRET no están configurados'); /*<= solo a consola ya que en este punto aun no inicia el logger */
-        }
-    }
-
-    async getAccessToken(): Promise<string> {
-        if (accessToken && tokenExpiry && Date.now() < tokenExpiry - 60000) {
-            return accessToken;
-        }
-
-        try {
-            const authHeader = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
-            
-            const response = await fetch(REDDIT_AUTH_URL, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Basic ${authHeader}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'User-Agent': this.userAgent
-                },
-                body: 'grant_type=client_credentials'
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json() as { access_token: string; expires_in: number };
-            accessToken = data.access_token;
-            tokenExpiry = Date.now() + (data.expires_in * 1000);
-            
-            debug('[Reddit API] Token de acceso renovado');
-            return accessToken;
-
-        } catch (err) {
-            error(`[Reddit API] Error obteniendo token: ${err}`);
-            throw err;
-        }
-    }
-
-// Marca el limite de post a obtener, diferencia enter user y subreddit 
-    async getSubredditPosts(resourceName: string, resourceType: 'subreddit' | 'user' = 'subreddit'): Promise<RedditApiResponse> {
-        const token = await this.getAccessToken();
-        let apiUrl: string;
-        if (resourceType === 'user') {
-            apiUrl = `${REDDIT_API_BASE}/user/${resourceName}/.json?limit=20`;
-        } else {
-            apiUrl = `${REDDIT_API_BASE}/r/${resourceName}/new?limit=20`;
-        }
-        
-        const response = await fetch(apiUrl, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'User-Agent': this.userAgent
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json() as RedditApiResponse;
-        return data;
-    }
-}
-
-// SOLUCIÓN: "lazy" cliente para preavenir fallos al inciar.
-let redditApiInstance: RedditApiClient | null = null;
-
-function getRedditApi(): RedditApiClient {
-    if (!redditApiInstance) {
-        redditApiInstance = new RedditApiClient();
-    }
-    return redditApiInstance;
-}
 
 function getSubredditNameFromUrl(input: string): string | null {
     try {
         const urlObject = new URL(input);
         const subredditMatch = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_-]+)/);
-        const userMatch = urlObject.pathname.match(/\/user\/([a-zA-Z0-9_-]+)/);
+        const userMatch = urlObject.pathname.match(/\/(?:user|u)\/([a-zA-Z0-9_-]+)/);
         
         if (subredditMatch) return subredditMatch[1];
         if (userMatch) return userMatch[1];
     } catch (e) {
+        // Si falla el URL parsing, intentamos con regex directo
     }
 
-    const urlMatch = input.match(/(?:reddit\.com\/(?:r|user)\/|^(?:r|u)\/)([a-zA-Z0-9_-]+)/);
+    const urlMatch = input.match(/(?:reddit\.com\/(?:r|user|u)\/|^(?:r|u)\/)([a-zA-Z0-9_-]+)/);
     if (urlMatch) return urlMatch[1];
     
     const rSlashMatch = input.match(/^(?:r|u)\/([a-zA-Z0-9_-]+)$/);
@@ -160,9 +70,9 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
             return;
         }
 
-        const isUser = feed.subreddit_url.includes('/user/');
-        const resourceType = isUser ? 'user' : 'subreddit';
-        const jsonData = await getRedditApi().getSubredditPosts(resourceName, resourceType);
+        const isUser = feed.subreddit_url.includes('/user/') || feed.subreddit_url.startsWith('/u/');
+        const resourceType = isUser ? 'user' : 'subreddit';  
+        const jsonData = await redditApi.getPosts(resourceName, resourceType, 20);
         
         if (!jsonData?.data?.children || !Array.isArray(jsonData.data.children)) {
             throw new Error('Estructura de respuesta inválida de Reddit API');
@@ -203,7 +113,6 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
             }
             const textChannel = channel as TextChannel;
             
-        // Switch filtro
             for (const post of newPosts) { 
                 const hint = post.post_hint;
                 switch (feed.filter_mode) {
@@ -220,8 +129,11 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                         break;
                 }
                 
-        // Hyperlink Fix & procesamiento de link          
-                const permalink = post.permalink; 
+                // Hyperlink Fix & procesamiento de link
+                const nsfwPost = post.over_18;
+                const nsfwChannel = feed.nsfw_protect;
+                const nsfwCheck = nsfwPost && !nsfwChannel;
+                const permalink = post.permalink;
                 const formattedUrl = `https://www.${redditEmbedDomain}${permalink}`;
                 const MAX_LENGTH = 50;
                 const originalTitle = post.title ?? "Sin Título";
@@ -237,11 +149,17 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     .replace(/\|/g, ' ')
                     .replace(emojiRegex, '');
                     
-                await textChannel.send(
-                    i18next.t("Reduit_pioste", 
-                        {ns: "reddit", a1: displayName, a2: safeTitle.trim(), a3: formattedUrl}));
+                let messageContent;
+                if (nsfwCheck) {
+                    messageContent = i18next.t("Reduit_pioste_nsfw", { ns: "reddit", a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
+                    debug(`[Reddit Checker]: Post NSFW protegido en #<${feed.channel_id}> de ${displayName}`);
+                } else {
+                    messageContent = i18next.t("Reduit_pioste", { ns: "reddit", a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
+                }
+                     
+                await textChannel.send(messageContent);
                 await new Promise(resolve => setTimeout(resolve, 1100));
-            }
+            }           
 
             const latestPostId = newPosts[newPosts.length - 1].name;
             await updateRedditFeedLastPost(feed.id, latestPostId, feed.guild_id);

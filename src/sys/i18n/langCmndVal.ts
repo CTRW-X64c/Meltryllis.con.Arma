@@ -121,6 +121,17 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_jointocreate_cleanup_description",
         "command_jointocreate_forzar_description"
     ],
+    "mangadex":[
+        "command_mangadex",
+        "command_mangadex_descripcion",
+        "command_mangadex_seguir",
+        "command_mangadex_canal",
+        "command_mangadex_idioma",
+        "command_mangadex_lista_desc",
+        "command_mangadex_dejar_desc",
+        "command_mangadex_dejar_url",
+        "command_mangadex_ayuda_desc"
+    ]
 
     // Agrega más namespaces según necesites
 };

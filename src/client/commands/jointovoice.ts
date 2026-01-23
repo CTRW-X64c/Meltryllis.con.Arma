@@ -3,7 +3,7 @@ import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, 
     /*botnes*/  ButtonBuilder, ButtonStyle, ActionRowBuilder, ButtonInteraction} from "discord.js";
 import { error, info, debug } from "../../sys/logging";
 import i18next from "i18next";
-import { getVoiceConfig, setVoiceConfig, getAllTempVoiceChannels, getGuildTempChannelCount } from "../../sys/database";
+import { getVoiceConfig, setVoiceConfig, getAllTempVoiceChannels, getGuildTempChannelCount } from "../../sys/DB-Engine/links/JointoVoice";
 
 export async function registerJoinToCreateCommand(): Promise<SlashCommandBuilder[]> {
     const jointovoice = new SlashCommandBuilder()

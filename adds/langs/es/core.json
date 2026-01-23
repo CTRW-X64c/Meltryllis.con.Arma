@@ -13,6 +13,8 @@
         
     "ATS2": "Intereacion de comandos",
         "format_link": "[Embedding de {{Site}}]({{RemUrl}})",
+        "format_link_spoiler": "||[Embedding de {{Site}}]({{RemUrl}})|| \n No carga?, prueba mandar sin \"espoiler\" \n",
+        
         "message_delete_failed": "❌ No pude borrar el mensaje.",
         "message_ignored": "Mensaje ignorado: {{authorId}}.",
         "channel_disabled": "⛔ Canal deshabilitado: {{channelId}}.",

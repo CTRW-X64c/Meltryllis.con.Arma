@@ -3,35 +3,33 @@ import { Client, ActivityType } from "discord.js";
 import { info, error } from "./logging";
 
 interface Status {
-  emoji: string;
   name: string;
   type: ActivityType;
 }
 
 const parseStatuses = (statusString: string | undefined): Status[] => {
   if (!statusString) {
-    info("No se definieron estados en BOT_STATUSES, usando estado predeterminado", "Status.Parse");
-    return [{ name: "Bot Simulator", type: ActivityType.Playing, emoji: "🤖" }];
+    info("No se definieron estados en BOT_STATUS, usando estado predeterminado", "Status.Parse");
+    return [{ name: "Bot Simulator", type: ActivityType.Playing}];
   }
 
   try {
     return statusString.split(";").map((status) => {
-      const [emoji, name, type] = status.split("|").map(part => part.trim());
-      if (!emoji || !name || !type) {
+      const [name, type] = status.split("|").map(part => part.trim());
+      if (!name || !type) {
         throw new Error(`Formato inválido en estado: ${status}`);
       }
       if (!["Playing", "Watching", "Listening", "Streaming", "Competing"].includes(type)) {
         throw new Error(`Tipo de actividad inválido: ${type} en estado: ${status}`);
       }
       return {
-        emoji,
         name,
         type: ActivityType[type as keyof typeof ActivityType],
       };
     });
   } catch (err) {
-    error(`Error al parsear BOT_STATUSES: ${err}`, "Status.Parse");
-    return [{ name: "Bot Simulator", type: ActivityType.Playing, emoji: "🤖" }];
+    error(`Error al parsear BOT_STATUS: ${err}`, "Status.Parse");
+    return [{ name: "Bot Simulator", type: ActivityType.Playing}];
   }
 };
 
@@ -61,8 +59,8 @@ const parseStatuses = (statusString: string | undefined): Status[] => {
 const setupStatusRotation = (client: Client, statusList: Status[]): void => {
   const updateStatus = () => {
     const status = statusList[Math.floor(Math.random() * statusList.length)];
-    client.user?.setActivity(`${status.emoji} ${status.name}`, { type: status.type });
-    info(`Estado actualizado: ${status.emoji} ${status.name}`, "Status.Update");
+    client.user?.setActivity(`${status.name}`, { type: status.type});
+    info(`Estado actualizado: ${status.name}`, "Status.Update");
   };
 
   updateStatus();
@@ -72,5 +70,5 @@ const setupStatusRotation = (client: Client, statusList: Status[]): void => {
 };
 
 export const startStatusRotation = (client: Client): void => {
-  setupStatusRotation(client, parseStatuses(process.env.BOT_STATUSES));
+  setupStatusRotation(client, parseStatuses(process.env.BOT_STATUS));
 }

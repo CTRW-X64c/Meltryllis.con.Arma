@@ -2,6 +2,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags } from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
+import { randomcolorembed } from "../_resources";
 
 export async function registerHolaCommand(): Promise<SlashCommandBuilder[]> {
   const holaCommand = new SlashCommandBuilder()
@@ -86,13 +87,11 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
           name: i18next.t("field_voice_name", { ns: "hola" }),
           value: i18next.t("field_voice_value", { ns: "hola" }),
           inline: false
-        },
+        }
       )
       .setImage("https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/banner-v2.jpg")
-      .setColor("#d20fae")
-      .setFooter({
-        text: i18next.t("footer_text", { ns: "hola" }),
-      })
+      .setColor(parseInt(randomcolorembed(), 16))
+      .setFooter({text: i18next.t("footer_text", { ns: "hola" })})
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
