@@ -131,6 +131,22 @@ export async function initializeDatabase(): Promise<void> {
           )
         `);
 
+// Tabla de Mangadex /mangadex
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS mangadex_feeds ( 
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            guild_id VARCHAR(50) NOT NULL,
+            channel_id VARCHAR(50) NOT NULL,
+            RSS_manga VARCHAR(250) NOT NULL,
+            mangaUrl VARCHAR(250) NOT NULL,
+            language VARCHAR(10),
+            manga_title VARCHAR(250) NOT NULL,
+            last_chapter VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE INDEX idx_unique_rss_guild_channel (guild_id, channel_id, RSS_manga)
+          )
+        `);
+        
         return;
       } catch (err) {
         if (attempt < maxRetries) {

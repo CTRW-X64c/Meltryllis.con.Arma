@@ -10,12 +10,6 @@ export interface ChannelConfig {
 /* =================== UTILIDADES DE EMBEDS =================== */
 
 export function randomcolorembed(): string {
-  const letters = '0123456789ABCDEF';
-  let color = '#';
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
+  const color = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase();
+  return `0x${color.padStart(6, '0')}`;
 }
-
-

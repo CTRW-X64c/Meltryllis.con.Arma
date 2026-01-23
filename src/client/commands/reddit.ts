@@ -234,35 +234,41 @@ async function ListaReddit(interaction: ChatInputCommandInteraction, guildId: st
         await interaction.editReply({ content: i18next.t("command_reddit_lista_vacia", { ns: "reddit" })});
         return;
     }
-    
+
+    const feedsPorCanal = new Map<string, RedditFeed[]>();
     const guildName = interaction.guild!.name;
+    
+    for (const feed of feeds) {
+    if (!feedsPorCanal.has(feed.channel_id)) {
+        feedsPorCanal.set(feed.channel_id, []);}
+        feedsPorCanal.get(feed.channel_id)!.push(feed);
+    }
+
     const embed = new EmbedBuilder()
         .setTitle(i18next.t("command_reddit_lista_titulo", { ns: "reddit", a1: feeds.length, a2: guildName }))
         .setColor(0xFF4500);
-
-    const feedsPorCanal = new Map<string, RedditFeed[]>();
-
-    for (const feed of feeds) {
-        if (!feedsPorCanal.has(feed.channel_id)) {
-            feedsPorCanal.set(feed.channel_id, []);
-        }
-        feedsPorCanal.get(feed.channel_id)!.push(feed);
-    }
 
     for (const [canalId, grupo] of feedsPorCanal) {
         const canalClickeable = `<#${canalId}>`;
         const listaSubreddits = grupo.map(feed => {
             const displayName = feed.subreddit_url.includes('/user/') ? `u/${feed.subreddit_name}` : `r/${feed.subreddit_name}`;
             return `**${displayName}**`;
-        }).join('\n');
+        })
 
+    /* Mangadex nos enseño que a esto le podria pasar lo mismo */
+    const TAMANO_BLOQUE = 40;  
+    for (let i = 0; i < listaSubreddits.length; i += TAMANO_BLOQUE) {
+        const bloque = listaSubreddits.slice(i, i + TAMANO_BLOQUE).join('\n');
+        const sufijo = listaSubreddits.length > TAMANO_BLOQUE ? ` (Parte ${Math.floor(i/TAMANO_BLOQUE) + 1})` : '';
+        const nombreCampo = `#${canalClickeable} - ${sufijo}`;
+       
         embed.addFields({
-            name: i18next.t("command_reddit_lista_name", { ns: "reddit", a1: canalClickeable, a2: grupo.length }),
-            value: listaSubreddits || i18next.t("command_reddit_lista_value", { ns: "reddit" }),
+            name: i18next.t("command_reddit_lista_name", { ns: "reddit", a1: nombreCampo, a2: grupo.length }),
+            value: bloque || i18next.t("command_reddit_lista_value", { ns: "reddit" }),
             inline: false,
         });
-    }
-    
+    }}
+
     embed.setFooter({ text: i18next.t("command_reddit_lista_footer", { ns: "reddit" })});
     await interaction.editReply({ embeds: [embed] });
 }

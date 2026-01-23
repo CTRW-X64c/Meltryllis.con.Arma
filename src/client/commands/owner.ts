@@ -33,6 +33,11 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
                         .setDescription("Mostrar información detallada de cada dominio")
                         .setRequired(false)
                 )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("restart")
+                .setDescription("Reinicia el bot")    
         );
     return [leaveServerCommand] as SlashCommandBuilder[];
 }
@@ -59,7 +64,11 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
 
             case "checkdomains":
                 await ChekDominios(interaction);
-                break;    
+                break;
+                
+            case "restart":
+                await Restart(interaction)
+                break;
             
             default:
                 await interaction.reply({
@@ -250,4 +259,18 @@ export async function ChekDominios(interaction: ChatInputCommandInteraction): Pr
             });
         }
     }
+}
+
+async function Restart(interaction: ChatInputCommandInteraction): Promise<void> {
+    try {         
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.editReply({
+            content: "🔄 Reiniciando el bot..."
+        });
+        
+        process.exit(0);
+    } catch (err) { 
+        await interaction.editReply({content: "❌ Ocurrió un error inesperado al intentar reiniciar!!."})
+        error(`Error en comando restart: ${err}`, "Restart");
+    }    
 }

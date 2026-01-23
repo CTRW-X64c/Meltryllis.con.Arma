@@ -54,6 +54,12 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
     - status: Muestra los canales temporales y configuraciones.
     - disable: Desactiva "/jointovoice"
     - cleanup: Borra todos los canales temporales activos. 
+  - /mangadex:
+    - help = Proporciona ayuda sobre sobre los comandos.
+    - lista = Muestra todos los mangas que se suiguen en el server.
+    - seguir = Publica las actualizaciones de un manga, se puede filtrar por idioma.
+    - dejar = Dejar de seguir un manga, requiere el ID de adicion, se puede ver con /mangadex lista.
+    - test = Planeado para algun futuro. 
 
 
 ---    
@@ -91,6 +97,7 @@ services:
       - REDDIT_CHECK_TIMMER=
       - REDDIT_CLIENT_ID=
       - REDDIT_CLIENT_SECRET=
+      - MANGADEX_CHECK_TIMMER=
       #Base de datos    
       - DB_HOST=
       - DB_USER=
@@ -149,6 +156,7 @@ services:
 | `DEBUG_MODE` | "Debug mode *0* \| Produccion *>0*" |
 | `YOUTUBE_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:5m |
 | `AUTO_CLEAN_YOUTUBE_TIMMER` | Tiempo entre purgas de la BD Youtube |
+| `MANGADEX_CHECK_TIMMER` | Tiempo entre revisiones. Def.&Min:20m  |
 | `REDDIT_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:3m |
 | `REDDIT_CLIENT_ID`  | [Reddit APPs Client](https://www.reddit.com/prefs/apps) |
 | `REDDIT_CLIENT_SECRET`  | [Reddit APPs Token](https://www.reddit.com/prefs/apps) |
@@ -198,6 +206,7 @@ Meltryllis con Arma/
 │   │   │   ├── embed.ts
 │   │   │   ├── hola.ts
 │   │   │   ├── jointovoice.ts
+│   │   │   ├── mangadex.ts
 │   │   │   ├── owner.ts
 │   │   │   ├── post.ts
 │   │   │   ├── reddit.ts
@@ -208,6 +217,7 @@ Meltryllis con Arma/
 │   │   │   ├── work.ts
 │   │   │   └── youtube.ts
 │   │   ├── /eventGear
+│   │   │   ├── mangadexCheck.ts
 │   │   │   ├── neTools.ts
 │   │   │   ├── redditCheck.ts
 │   │   │   ├── rolemojiEvents.ts
@@ -219,6 +229,17 @@ Meltryllis con Arma/
 │   │   ├── _resources.ts
 │   │   └── index.ts
 │   ├── /sys
+│   │   ├── /BD-Engine
+│   │   │   ├── /links
+│   │   │   │   ├── Embed.ts
+│   │   │   │   ├── JoinVoice.ts
+│   │   │   │   ├── Mangadex.ts
+│   │   │   │   ├── Reddit.ts
+│   │   │   │   ├── Replybots.ts
+│   │   │   │   ├── Rolemoji.ts
+│   │   │   │   ├── Welcome.ts
+│   │   │   │   └── Youtube.ts
+│   │   │   └── database.ts
 │   │   ├── /embedding
 │   │   │   ├── /webs
 │   │   │   │   ├── Bilibili.ts
@@ -245,9 +266,9 @@ Meltryllis con Arma/
 │   │   ├── /i18n
 │   │   │   ├── index.ts
 │   │   │   └── langCmndVal.ts
-│   │   ├── database.ts
 │   │   ├── environment.ts
-│   │   ├── logging.ts 
+│   │   ├── logging.ts
+│   │   ├── RedditApi.ts
 │   │   └── setStatus.ts
 │   └── index.ts
 ├── .env

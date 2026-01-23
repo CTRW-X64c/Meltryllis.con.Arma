@@ -182,13 +182,13 @@ async function listaCanales(interaction: any, guildId: string) {
   const feedsPorCanal = new Map<string, { canal: any, feeds: YouTubeFeed[] }>();
   
   for (const feed of feeds) {
-    const canalDiscord = interaction.guild.channels.cache.get(feed.channel_id);
     const clave = feed.channel_id;
     
-    if (!feedsPorCanal.has(clave)) {
-      feedsPorCanal.set(clave, { 
-        canal: canalDiscord, 
-        feeds: [] 
+     if (!feedsPorCanal.has(clave)) {
+        const channel = interaction.guild?.channels.cache.get(clave);
+        feedsPorCanal.set(clave, { 
+          canal: channel, 
+          feeds: [] 
       });
     }
     feedsPorCanal.get(clave)!.feeds.push(feed);
@@ -202,13 +202,20 @@ async function listaCanales(interaction: any, guildId: string) {
 
   for (const [canalId, grupo] of feedsPorCanal) {
     const urlchannel = `https://discord.com/channels/${guildId}/${canalId}`;
-        const listaCanales = grupo.feeds.map(feed => 
-          i18next.t("YT_embed_list_entry", {ns: "youtube", a1: feed.youtube_channel_name, a2: feed.youtube_channel_id})
-        ).join('\n');
+        const listaCanales = grupo.feeds.map(feed => {
+         return i18next.t("YT_embed_list_entry", {ns: "youtube", a1: feed.youtube_channel_name, a2: feed.youtube_channel_id})
+  });
+
+    /* Mangadex nos enseño que a esto le podria pasar lo mismo */
+      const TAMANO_BLOQUE = 30;
+        for (let i = 0; i < listaCanales.length; i += TAMANO_BLOQUE) {
+        const bloque = listaCanales.slice(i, i + TAMANO_BLOQUE).join('\n');
+        const sufijo = listaCanales.length > TAMANO_BLOQUE ? ` (Parte ${Math.floor(i/TAMANO_BLOQUE) + 1})` : '';
+        const nombreCampo = `#${urlchannel} - ${sufijo}`;
 
     embed.addFields({
-      name: i18next.t("YT_embed_list_title", { ns: "youtube", a1: urlchannel, a2: grupo.feeds.length }),
-      value: listaCanales || i18next.t("YT_embed_list_value", { ns: "youtube"}),
+      name: nombreCampo,
+      value: bloque || i18next.t("YT_embed_list_value", { ns: "youtube"}),
       inline: false
     });
   }
@@ -221,7 +228,7 @@ async function listaCanales(interaction: any, guildId: string) {
     embeds: [embed],
     ephemeral: true 
   });
-}
+}}
 
 // =============== SubDejar =============== //
 async function dejarCanal(interaction: any, guildId: string) {
