@@ -17,6 +17,8 @@ interface RedditPost {
     title: string;
     permalink: string;
     post_hint?: string;
+    is_gallery: boolean;
+    is_video: boolean;
     name: string;
     pinned: boolean;
     stickied?: boolean;
@@ -24,7 +26,7 @@ interface RedditPost {
 }
 
 const redditEmbedDomain = process.env.REDDIT_FIX_URL || "reddit.com";
-const BATCH_SIZE = 25;
+const BATCH_SIZE = 99;
 let currentFeedIndex = 0;
 
 function getSubredditNameFromUrl(input: string): string | null {
@@ -115,9 +117,12 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
             
             for (const post of newPosts) { 
                 const hint = post.post_hint;
+                const noHint = post.is_gallery || post.is_video;
                 switch (feed.filter_mode) {
                     case 'media_only':
-                        if (hint !== 'image' && hint !== 'hosted:video' && hint !== 'rich:video') {
+                        const visualHint = hint === 'image' || hint === 'hosted:video' || hint === 'rich:video' || hint === 'link'; 
+                        const isMedia = visualHint || noHint;
+                        if (!isMedia) {
                             continue;
                         } break;
                     case 'text_only':
