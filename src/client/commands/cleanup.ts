@@ -2,12 +2,13 @@
 import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, MessageFlags, TextChannel, Collection, Snowflake, Message } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";
+import { hasPermission } from "../../sys/managerPermission";
 
 export async function registerCleanUpCommand(): Promise<SlashCommandBuilder[]> {
     const cleanupCommand = new SlashCommandBuilder()
         .setName("cleanup")
         .setDescription(i18next.t("command_cleanup_description", { ns: "cleanup" }))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+        .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addStringOption(option =>
             option.setName("start")
                 .setDescription(i18next.t("command_cleanup_start_description", { ns: "cleanup" }))
@@ -45,16 +46,15 @@ export async function registerCleanUpCommand(): Promise<SlashCommandBuilder[]> {
 
 export async function handleCleanUpCommand(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
-        const memberPermissions = interaction.memberPermissions;
-        const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageMessages) || interaction.guild?.ownerId === interaction.user.id;
-        
-        if (!isAdmin) {
+        const isAllowed = hasPermission(interaction, interaction.commandName);
+        if (!isAllowed) {
             await interaction.reply({
                 content: i18next.t("command_permission_error", { ns: "cleanup" }),
                 flags: MessageFlags.Ephemeral,
             });
             return;
         }
+
         const channel = interaction.channel;
         if (!channel || !channel.isTextBased() || channel.isDMBased()) {
             await interaction.reply({

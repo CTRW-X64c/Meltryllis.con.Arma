@@ -3,6 +3,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, 
 import i18next from "i18next";
 import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
+import { hasPermission } from "../../sys/managerPermission";
 import { error } from "../../sys/logging";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
@@ -14,7 +15,7 @@ export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
     const embedCommand = new SlashCommandBuilder()
         .setName("embedmanager") 
         .setDescription(i18next.t("command_embed_description", { ns: "embed" }))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+        .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("configurar")
@@ -70,9 +71,8 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
             return;
         }
 
-        const memberPermissions = interaction.memberPermissions;
-        const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
-        if (!isAdmin) {
+        const isAllowed = hasPermission(interaction, interaction.commandName);
+        if (!isAllowed) {
             await interaction.reply({
                 content: i18next.t("no_permission", { ns: "embed" }),
                 flags: MessageFlags.Ephemeral,

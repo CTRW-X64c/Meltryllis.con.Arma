@@ -3,12 +3,13 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, Permiss
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { getConfigMap, setChannelConfig } from "../../sys/DB-Engine/links/ReplyBots"; 
+import { hasPermission } from "../../sys/managerPermission";
 import { ChannelConfig } from "../_resources";
 
 export async function registerReplybotsCommand(): Promise<SlashCommandBuilder[]> {
   const replyBotsCommand = new SlashCommandBuilder()
     .setName("replybots")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("replybots_command_description", { ns: "replybots" }))
     .addStringOption((option) =>
       option.setName("state").setDescription(i18next.t("replybots_command_state_description", { ns: "replybots" }))
@@ -19,10 +20,8 @@ export async function registerReplybotsCommand(): Promise<SlashCommandBuilder[]>
 
 export async function handleReplybotsCommand(interaction: ChatInputCommandInteraction): Promise<void> {
   try {
-
-    const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
-    if (!isAdmin) {
+    const isAllowed = hasPermission(interaction, interaction.commandName);
+    if (!isAllowed) {
       await interaction.reply({
         content: i18next.t("command_permission_error", { ns: "replybots" }),
         flags: MessageFlags.Ephemeral,

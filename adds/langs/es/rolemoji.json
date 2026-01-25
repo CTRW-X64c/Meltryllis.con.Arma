@@ -1,6 +1,6 @@
 {
     "ATS1": "Command Builder",
-        "command_rolemoji_description": "Vincula un rol a un emoji en un mensaje para que puedan obtener el rol reaccionando.",
+        "command_rolemoji_description": "Permite la asignacion de roles atravez de reacciones de emojis.",
         "command_rolemoji_assign_description": "Roles en emojis, Roles en emojis",
         "command_rolemoji_message_id_description": "Id del mensaje, (Clic en ... de tu mensaje y copiar id de mensaje Id del mensaje)",
         "command_rolemoji_emoji_description": "Escoge tu emoji para el Rol",

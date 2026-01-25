@@ -1,6 +1,6 @@
 {
     "ATS1": "Command Builder",
-        "command_test_description": "Revisar por permisos",
+        "command_test_description": "Ping a dominios embed & check de mis permisos",
         "test_command_mode_description": "Modo de chequeo",
         "test_command_mode_channel": "Canal",
         "test_command_mode_guild": "Servidor",

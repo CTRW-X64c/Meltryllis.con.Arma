@@ -4,12 +4,14 @@ import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, 
 import { error, info, debug } from "../../sys/logging";
 import i18next from "i18next";
 import { getVoiceConfig, setVoiceConfig, getAllTempVoiceChannels, getGuildTempChannelCount } from "../../sys/DB-Engine/links/JointoVoice";
+import { hasPermission } from "../../sys/managerPermission";
+
 
 export async function registerJoinToCreateCommand(): Promise<SlashCommandBuilder[]> {
     const jointovoice = new SlashCommandBuilder()
         .setName("jointovoice")
         .setDescription(i18next.t("command_jointocreate_description", { ns: "jointocreate" }))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+        .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addSubcommand(subcommand =>
             subcommand
                 .setName("set")
@@ -42,9 +44,8 @@ export async function registerJoinToCreateCommand(): Promise<SlashCommandBuilder
 }
 
 export async function handleJoinToCreateCommand(interaction: ChatInputCommandInteraction): Promise<void> {
-    const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageChannels) || interaction.guild?.ownerId === interaction.user.id;
-    if (!isAdmin) {
+    const isAllowed = hasPermission(interaction, interaction.commandName);
+    if (!isAllowed) {
         await interaction.reply({
             content: i18next.t("command_permission_error", { ns: "jointocreate" }),
             flags: MessageFlags.Ephemeral

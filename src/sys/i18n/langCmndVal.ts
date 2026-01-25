@@ -131,6 +131,21 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_mangadex_dejar_desc",
         "command_mangadex_dejar_url",
         "command_mangadex_ayuda_desc"
+    ],
+    "permissions":[
+        "command_permissions_description",
+        "command_permissions_add_description",
+        "command_permissions_add_option_description",
+        "command_permissions_add_description",
+        "command_permissions_option_rol",
+        "command_permissions_option_usuario",
+        "command_permissions_remove_description",
+        "command_permissions_remove_option_description",
+        "command_permissions_list_description",
+        "command_permissions_list_option_description",
+        "command_permissions_list_option_detallado",
+        "command_permissions_clear_description",
+        "command_permissions_help_description"
     ]
 
     // Agrega más namespaces según necesites

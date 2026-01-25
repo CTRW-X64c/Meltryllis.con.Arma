@@ -15,6 +15,7 @@ import { registerPostCommand, handlePostCommand } from "../commands/post";
 import { registerCleanUpCommand, handleCleanUpCommand } from "../commands/cleanup";
 import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "../commands/jointovoice";
 import { registerMangadexCommand, handleMangadexCommand } from "../commands/mangadex";
+import { registerPermissionsCommand, handlePermissionsCommand } from "../commands/permission";
 
 export async function registerCommands(client: Client) { 
   const commands = [
@@ -34,8 +35,12 @@ export async function registerCommands(client: Client) {
     ...(await registerMangadexCommand()),
   ];
 
+  const permissionsCommand = await registerPermissionsCommand(commands as any);
+  commands.push(...permissionsCommand);
+
+
   client.application?.commands.set(commands)
-    .then(() => info("Comandos /hola, /test, /manager, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice, /mangadex y /owner registrados con éxito", "Commands.Register"))
+    .then(() => info("Comandos /hola, /test, /manager, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice, /mangadex, /permisos y /owner registrados con éxito", "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 
@@ -68,5 +73,7 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
     await handleJoinToCreateCommand(interaction);
   }else if (interaction.commandName === "mangadex") {
     await handleMangadexCommand(interaction);
+  }else if (interaction.commandName === "permisos") {
+    await handlePermissionsCommand(interaction);
   }
 }

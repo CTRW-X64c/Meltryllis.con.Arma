@@ -1,6 +1,6 @@
 {
     "ATS1": "Command Builder",
-        "command_welcome_description": "Establece un mensaje de Bienvenida y Banner", 
+        "command_welcome_description": "Establece un mensaje de Bienvenida y Salida", 
         "command_welcome_config_description": "Establece un canal para la Bienvenida",
         "command_welcome_channel_description": "Establece canal para mostrar el mensaje de Bienvenida/salida",
         "command_welcome_enabled_description": "Activa/Desactiva la funcion Welcome",

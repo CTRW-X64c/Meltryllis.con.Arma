@@ -3,12 +3,13 @@ import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlag
 import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/DB-Engine/links/Youtube";
 import { extractChannelIdFromRss, extractVideoId, verifyYouTubeRss } from "../eventGear/youtubeTools";
 import { error, debug } from "../../sys/logging";
+import { hasPermission } from "../../sys/managerPermission";
 import i18next from "i18next" 
 
 export async function registerYouTubeCommand() {
   const youtube = new SlashCommandBuilder()
     .setName("youtube")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("command_youtube", { ns: "youtube" }))
     .addSubcommand(subcommand =>
       subcommand
@@ -61,16 +62,14 @@ export async function registerYouTubeCommand() {
 
 export async function handleYouTubeCommand(interaction: any) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-  const memberPermissions = interaction.memberPermissions;
-  const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
-    if (!isAdmin) {
-      await interaction.editReply({
-        content: i18next.t("command_permission_error", { ns: "rolemoji" }),
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
+  const isAllowed = hasPermission(interaction, interaction.commandName);
+  if (!isAllowed) {
+    await interaction.editReply({
+      content: i18next.t("command_permission_error", { ns: "rolemoji" }),
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
     
   const subcommand = interaction.options.getSubcommand();
   const guildId = interaction.guild.id;

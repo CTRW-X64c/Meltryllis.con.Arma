@@ -7,6 +7,7 @@ import { checkAllDomains, buildDomainStatusEmbed } from "../eventGear/neTools";
 export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()
         .setName("owner")
+        .setDefaultMemberPermissions(0)
         .setDescription("Comando exclusivo del dueño para gestionar servidores del bot.")
         .addSubcommand(subcommand =>
             subcommand

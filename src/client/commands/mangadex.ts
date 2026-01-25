@@ -2,6 +2,7 @@
 import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, TextChannel, EmbedBuilder } from "discord.js";
 import { AddMangadexFeed, getMangadexFeeds, MangadexFeed, removeMangadexFeed} from "../../sys/DB-Engine/links/Mangadex"; // Asumo que esto ya existe
 import { error, debug } from "../../sys/logging";
+import { hasPermission } from "../../sys/managerPermission";
 import i18next from "i18next";
 
 function getMangadexId(input: string): string | null {
@@ -51,7 +52,7 @@ async function verifyMangadexFeed(rssUrl: string): Promise<string | null> {
 export async function registerMangadexCommand() {
   const mangadex = new SlashCommandBuilder()
     .setName("mangadex")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("command_mangadex", { ns: "mangadex" }))
     .addSubcommand(subcommand =>
       subcommand
@@ -96,7 +97,7 @@ export async function registerMangadexCommand() {
     )
     .addSubcommand(subcommand =>  
         subcommand
-          .setName("ayuda")
+          .setName("help")
           .setDescription(i18next.t("command_mangadex_ayuda_desc", { ns: "mangadex", defaultValue: "Mostrar ayuda sobre el comando" }))
     );
 
@@ -105,10 +106,8 @@ export async function registerMangadexCommand() {
 
 export async function handleMangadexCommand(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-    const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;  
-    if (!isAdmin) {
+    const isAllowed = hasPermission(interaction, interaction.commandName);
+    if (!isAllowed) {
         await interaction.editReply({
             content: i18next.t("command_permission_error", { ns: "rolemoji" }),
         });
