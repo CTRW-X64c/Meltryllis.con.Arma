@@ -3,7 +3,7 @@ import { Client, TextChannel } from 'discord.js';
 import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed } from '../../sys/DB-Engine/links/Reddit';
 import { info, error, debug } from '../../sys/logging';
 import i18next from 'i18next';
-import { redditApi } from '../../sys/RedditApi'; 
+import { redditApi } from '../../sys/gear/RedditApi'; 
 
 export interface RedditApiResponse {
     data: {

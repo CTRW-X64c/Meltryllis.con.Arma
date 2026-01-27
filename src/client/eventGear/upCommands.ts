@@ -8,7 +8,7 @@ import { registerEmbedCommand, handleEmbedCommand } from "../commands/embed";
 import { registerWelcomeCommand, handleWelcomeCommand } from "../commands/welcome";
 import { registerReplybotsCommand, handleReplybotsCommand } from "../commands/replybots";
 import { registerRolemojiCommand, handleRolemojiCommand } from "../commands/rolemoji"
-import { registerOwnerCommands, handleOwnerCommands } from "../commands/owner";
+import { registerOwnerCommands, handleOwnerCommands } from "../../sys/gear/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "../commands/youtube";
 import { registerRedditCommand, handleRedditCommand } from "../commands/reddit";
 import { registerPostCommand, handlePostCommand } from "../commands/post";
@@ -40,7 +40,7 @@ export async function registerCommands(client: Client) {
 
 
   client.application?.commands.set(commands)
-    .then(() => info("Comandos /hola, /test, /manager, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice, /mangadex, /permisos y /owner registrados con éxito", "Commands.Register"))
+    .then(() => info("Comandos /hola, /test, /embed, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice, /mangadex, /permisos y /owner registrados con éxito", "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 
@@ -53,7 +53,7 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
     await handleWorkCommand(interaction);
   } else if (interaction.commandName === "replybots") {
     await handleReplybotsCommand(interaction);
-  } else if (interaction.commandName === "embedmanager") {
+  } else if (interaction.commandName === "embed") {
     await handleEmbedCommand(interaction);
   } else if (interaction.commandName === "welcome") {
     await handleWelcomeCommand(interaction);

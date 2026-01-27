@@ -59,7 +59,13 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
     - lista = Muestra todos los mangas que se suiguen en el server.
     - seguir = Publica las actualizaciones de un manga, se puede filtrar por idioma.
     - dejar = Dejar de seguir un manga, requiere el ID de adicion, se puede ver con /mangadex lista.
-    - test = Planeado para algun futuro. 
+    - test = Planeado para algun futuro.
+  - /permisos: |ESTE PERMISO SOLO Y UNICAMENTE PUEDE SER USADO POR ADMINISTRADORES/DUEÑO DEL SERVER|
+    - set: Asigna a un usuario/rol permisos para usar comandos.
+    - list: Muestra los usuarios/roles con permisos.
+    - remove: Quita los permisos de un rol/usurio.
+    - limpiar: Quita todos los permisos del server.
+    - help: Proporciona ayuda sobre sobre los comandos.
 
 
 ---    
@@ -207,7 +213,6 @@ Meltryllis con Arma/
 │   │   │   ├── hola.ts
 │   │   │   ├── jointovoice.ts
 │   │   │   ├── mangadex.ts
-│   │   │   ├── owner.ts
 │   │   │   ├── post.ts
 │   │   │   ├── reddit.ts
 │   │   │   ├── replybots.ts
@@ -225,7 +230,7 @@ Meltryllis con Arma/
 │   │   │   ├── voiceEvents.ts
 │   │   │   ├── welcomeEvents.ts
 │   │   │   ├── youtubeCheck.ts
-│   │   │   └── yTools.ts
+│   │   │   └── youtubeTools.ts
 │   │   ├── _resources.ts
 │   │   └── index.ts
 │   ├── /sys
@@ -234,6 +239,7 @@ Meltryllis con Arma/
 │   │   │   │   ├── Embed.ts
 │   │   │   │   ├── JoinVoice.ts
 │   │   │   │   ├── Mangadex.ts
+│   │   │   │   ├── Permission.ts
 │   │   │   │   ├── Reddit.ts
 │   │   │   │   ├── Replybots.ts
 │   │   │   │   ├── Rolemoji.ts
@@ -263,13 +269,16 @@ Meltryllis con Arma/
 │   │   │   ├── embedService.ts
 │   │   │   ├── index.ts
 │   │   │   └── RuleReplacement.ts
+│   │   ├── /gear
+│   │   │   ├── managerPermisions.ts
+│   │   │   ├── owner.ts
+│   │   │   ├── RedditApi.ts
+│   │   │   └── setStatus.ts
 │   │   ├── /i18n
 │   │   │   ├── index.ts
 │   │   │   └── langCmndVal.ts
 │   │   ├── environment.ts
-│   │   ├── logging.ts
-│   │   ├── RedditApi.ts
-│   │   └── setStatus.ts
+│   │   └── logging.ts
 │   └── index.ts
 ├── .env
 ├── Dockerfile

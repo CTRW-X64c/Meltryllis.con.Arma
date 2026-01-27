@@ -5,7 +5,7 @@ import { error, debug } from "../../sys/logging";
 import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
 import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList} from "../../sys/embedding/EmbedingConfig";
-import { hasPermission } from "../../sys/managerPermission";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../eventGear/neTools";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];

@@ -1,6 +1,6 @@
 // src/sys/managerPermission.ts
 import { ChatInputCommandInteraction, PermissionFlagsBits } from "discord.js";
-import { getCommandPermissions } from "../sys/DB-Engine/links/Permission";
+import { getCommandPermissions } from "../../sys/DB-Engine/links/Permission";
 
 
 export async function hasPermission( interaction: ChatInputCommandInteraction, commandName: string ): Promise<boolean> {

@@ -1,6 +1,6 @@
 // src/sys/setStatus.ts
 import { Client, ActivityType } from "discord.js";
-import { info, error } from "./logging";
+import { info, error } from "../logging";
 
 interface Status {
   name: string;

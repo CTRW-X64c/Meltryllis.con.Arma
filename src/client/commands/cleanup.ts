@@ -2,7 +2,7 @@
 import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, MessageFlags, TextChannel, Collection, Snowflake, Message } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";
-import { hasPermission } from "../../sys/managerPermission";
+import { hasPermission } from "../../sys/gear/managerPermission";
 
 export async function registerCleanUpCommand(): Promise<SlashCommandBuilder[]> {
     const cleanupCommand = new SlashCommandBuilder()

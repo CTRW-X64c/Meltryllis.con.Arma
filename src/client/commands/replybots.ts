@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, Permiss
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { getConfigMap, setChannelConfig } from "../../sys/DB-Engine/links/ReplyBots"; 
-import { hasPermission } from "../../sys/managerPermission";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import { ChannelConfig } from "../_resources";
 
 export async function registerReplybotsCommand(): Promise<SlashCommandBuilder[]> {

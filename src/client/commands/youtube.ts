@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlag
 import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/DB-Engine/links/Youtube";
 import { extractChannelIdFromRss, extractVideoId, verifyYouTubeRss } from "../eventGear/youtubeTools";
 import { error, debug } from "../../sys/logging";
-import { hasPermission } from "../../sys/managerPermission";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import i18next from "i18next" 
 
 export async function registerYouTubeCommand() {

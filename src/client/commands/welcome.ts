@@ -2,7 +2,7 @@
 import { SlashCommandBuilder, MessageFlags, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType } from "discord.js";
 import i18next from "i18next";
 import { error } from "../../sys/logging";
-import { hasPermission } from "../../sys/managerPermission";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import { setWelcomeConfig, getWelcomeConfig } from "../../sys/DB-Engine/links/Welcome";
 
 export async function registerWelcomeCommand(): Promise<SlashCommandBuilder[]> {

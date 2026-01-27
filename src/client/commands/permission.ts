@@ -1,15 +1,26 @@
 // src/client/commands/permissions.ts
-import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, 
+import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, AutocompleteInteraction, 
   /*Botones*/ ButtonBuilder, ButtonStyle, ActionRowBuilder, ButtonInteraction } from "discord.js";
 import { addCommandPermission, removeCommandPermission, listCommandPermissions, clearGuildPermissions, PermissionEntry } from "../../sys/DB-Engine/links/Permission"; 
 import { error, info } from "../../sys/logging";
 import i18next from "i18next";
 
 let configurableCommands: { name: string, description: string }[] = [];
+let commandChoices: { name: string, value: string }[] = [];
+
+export async function handlePermissionsAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const permlist = interaction.options.getFocused().toLowerCase();
+    const filtered = commandChoices.filter(choice => 
+        choice.name.toLowerCase().includes(permlist)
+    );
+    await interaction.respond(
+        filtered.slice(0, 25)
+    );
+}
 
 export async function registerPermissionsCommand(commandsList: { name: string, description: string }[] = []) {
     configurableCommands = commandsList.filter(cmd => cmd.name !== 'hola' && cmd.name !== 'owner' && cmd.name !== 'permisos');
-    const commandChoices = configurableCommands.map(cmd => ({
+    commandChoices = configurableCommands.map(cmd => ({
         name: `/${cmd.name} - ${cmd.description}`,
         value: cmd.name
     }));
@@ -26,7 +37,7 @@ export async function registerPermissionsCommand(commandsList: { name: string, d
                     option.setName("comando")
                         .setDescription(i18next.t("command_permissions_add_option_description", { ns: "permissions" }))
                         .setRequired(true)
-                        .addChoices(...commandChoices))
+                        .setAutocomplete(true))
                 .addRoleOption(option =>
                     option.setName("rol")
                         .setDescription(i18next.t("command_permissions_option_rol", { ns: "permissions" }))
@@ -44,7 +55,7 @@ export async function registerPermissionsCommand(commandsList: { name: string, d
                     option.setName("comando")
                         .setDescription(i18next.t('command_permissions_remove_option_description', { ns: 'permissions' }))
                         .setRequired(true)
-                        .addChoices(...commandChoices))
+                        .setAutocomplete(true))
                 .addRoleOption(option =>
                     option.setName("rol")
                         .setDescription(i18next.t("command_permissions_option_rol", { ns: "permissions" }))
@@ -62,7 +73,7 @@ export async function registerPermissionsCommand(commandsList: { name: string, d
                     option.setName("comando")
                         .setDescription(i18next.t("command_permissions_list_option_description", { ns: "permissions" }))
                         .setRequired(false)
-                        .addChoices(...commandChoices))
+                        .setAutocomplete(true))
         )
         .addSubcommand(subcommand =>
             subcommand
