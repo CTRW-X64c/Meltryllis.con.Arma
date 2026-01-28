@@ -16,6 +16,8 @@ import { registerCleanUpCommand, handleCleanUpCommand } from "../commands/cleanu
 import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "../commands/jointovoice";
 import { registerMangadexCommand, handleMangadexCommand } from "../commands/mangadex";
 import { registerPermissionsCommand, handlePermissionsCommand } from "../commands/permission";
+import { registerMusicCommands, handleMusicInteraction } from "../../../beta/music";
+
 
 export async function registerCommands(client: Client) { 
   const commands = [
@@ -33,6 +35,7 @@ export async function registerCommands(client: Client) {
     ...(await registerCleanUpCommand()),
     ...(await registerJoinToCreateCommand()),
     ...(await registerMangadexCommand()),
+    ...(await registerMusicCommands()),
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -45,6 +48,15 @@ export async function registerCommands(client: Client) {
 }
 
 export async function handleCommandInteraction(interaction: ChatInputCommandInteraction) {
+  const { commandName } = interaction;
+  switch (commandName) {
+    case 'play':
+    case 'stop':
+    case 'skip':
+    case 'queue':
+      await handleMusicInteraction(interaction);
+      break;
+  }
   if (interaction.commandName === "hola") {
     await handleHolaCommand(interaction);
   } else if (interaction.commandName === "test") {
