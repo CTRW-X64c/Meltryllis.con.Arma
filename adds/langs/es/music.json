@@ -26,7 +26,7 @@
         "command_mussic_Queue_01": "📋 La lista está vacía.",
         "command_mussic_Queue_02": "🎵 Lista de Reproducción",
         "command_mussic_Queue_03_name": "▶️ Sonando ahora:",
-        "command_mussic_Queue_03_value": "**[{{a1}}]({{a2}})** - `${a3}`",
+        "command_mussic_Queue_03_value": "**[{{a1}}]({{a2}})** - `{{a3}}`",
         "command_mussic_Queue_04": "**Próximas canciones:** \n{{a1}}{{a2}}",
         "command_mussic_Queue_05": "*No hay más canciones en espera.*",
 

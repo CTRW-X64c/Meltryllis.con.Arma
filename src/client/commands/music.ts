@@ -193,7 +193,7 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
         .setColor(0x00AE86);
 
     if (current) {
-        embed.addFields({ name: i18next.t("command_mussic_Queue_03_name", { ns: "music" }), value: i18next.t("command_mussic_Queue_03_value", { ns: "music", a1: current.title, a2: current.requester, a3: current.requester}),  inline: false});
+        embed.addFields({ name: i18next.t("command_mussic_Queue_03_name", { ns: "music" }), value: i18next.t("command_mussic_Queue_03_value", { ns: "music", a1: current.title, a2: current.uri, a3: current.requester}),  inline: false});
     }
 
     if (queue.length > 0) {
