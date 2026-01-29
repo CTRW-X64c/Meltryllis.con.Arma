@@ -68,7 +68,7 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
     await interaction.deferReply();
     const guildId = interaction.guildId!;
     const member = interaction.member as GuildMember;
-    const query = interaction.options.getString("cancion", true);
+    let query = interaction.options.getString("cancion", true);
 
     if (!member.voice.channelId) {
         await interaction.editReply(i18next.t("command_mussic_error_empit", { ns: "music" }));
@@ -91,7 +91,13 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
         const node = lavalink.getNode();
         if (!node) { await interaction.editReply(i18next.t("command_mussic_lavalink_down", { ns: "music" })); return; }
 
-        const searchEngine = /^https?:\/\//.test(query) ? query : `ytsearch:${query}`;
+    // Previene que se añadan listas de reproduccion
+        if (query.includes("youtube.com/watch") && query.includes("&")) {
+            const ampersandIndex = query.indexOf('&');
+            if (ampersandIndex !== -1) query = query.substring(0, ampersandIndex);
+        }
+
+        const searchEngine = /^https?:\/\//.test(query) ? query : `ytsearch:${query}`;               
         const result = await node.rest.resolve(searchEngine);
 
         if (!result || result.loadType === 'empty' || result.loadType === 'error') {
@@ -187,7 +193,7 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
         .setColor(0x00AE86);
 
     if (current) {
-        embed.addFields({ name: "▶️ Sonando ahora:", value: `[${current.title}](${current.uri}) - \`${current.requester}\`` });
+        embed.addFields({ name: i18next.t("command_mussic_Queue_03_name", { ns: "music" }), value: i18next.t("command_mussic_Queue_03_value", { ns: "music", a1: current.title, a2: current.requester, a3: current.requester}),  inline: false});
     }
 
     if (queue.length > 0) {
@@ -195,9 +201,10 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
             `**${i + 1}.** [${song.title}](${song.uri})`
         ).join("\n");
 
-        embed.setDescription(`**Próximas canciones:**\n${list}${queue.length > 10 ? `\n\n*...y ${queue.length - 10} más.*` : ''}`);
+        const shortlist = queue.length > 10 ? `\n\n*...y ${queue.length - 10} más.*` : '';
+        embed.setDescription(i18next.t("command_mussic_Queue_04", { ns: "music", a1: list, a2: shortlist}));
     } else {
-        embed.setDescription(i18next.t("command_mussic_Queue_03", { ns: "music" }));
+        embed.setDescription(i18next.t("command_mussic_Queue_05", { ns: "music" }));
     }
 
     await interaction.reply({ embeds: [embed] });
