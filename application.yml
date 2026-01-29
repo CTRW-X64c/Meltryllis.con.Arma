@@ -1,0 +1,61 @@
+server: # Configuración del servidor web
+  port: 2333
+  address: 0.0.0.0
+  bufferDurationMs: 300
+  frameBufferDurationMs: 4000
+  opusEncodingQuality: 10
+
+lavalink:
+  plugins:
+    # 👇 AQUÍ AÑADE TUS PLUGINS, TE DEJO EL DE YOUTUBE 1.17.0 AL DIE DE HOY 01/2026, no sirve poner latest, debes espesificar una o bien hacerte un script que actulice y reinicie tu docker.
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.17.0" 
+      repository: "https://maven.lavalink.dev/releases" 
+
+  server:
+    password: "meltryLL"
+    sources:
+      youtube: false # Desactivado porque ya no se le da mantenimiento nativo
+      bandcamp: true
+      soundcloud: true
+      twitch: true
+      vimeo: true
+      http: true
+      local: false
+    filters:
+      volume: true
+      equalizer: true
+      karaoke: true
+      timescale: true
+      tremolo: true
+      vibrato: true
+      distortion: true
+      rotation: true
+      channelMix: true
+      lowPass: true
+    bufferDurationMs: 200
+    youtubePlaylistLoadLimit: 3
+    playerUpdateInterval: 3
+    frameBufferDurationMs: 5000
+    opusEncodingQuality: 10
+    resamplingQuality: LOW
+    trackStuckThresholdMs: 10000
+    
+    cache:
+      enabled: true
+      cacheSize: 4096  
+      cacheTtl: 86400  
+      precache: true
+      cleanupInterval: 3600
+
+# 👇 Configuración de los plugins, cada plugin es distinto. 
+plugins:
+  youtube:
+    enabled: true
+    allowSearch: true
+    allowDirectVideoIds: true
+    allowDirectPlaylistIds: true
+    clients:
+      - MUSIC
+      - ANDROID_VR
+      - WEB
+      - WEBEMBEDDED

@@ -7,7 +7,7 @@ export class LavalinkManager {
 
   async init(client: Client) {
     const Nodes = [{
-        name: 'Main-Node',
+        name: process.env.LAVALINK_NAME + '-Node'|| 'Main-Node',
         url: `${process.env.LAVALINK_HOST || 'lavalink'}:${process.env.LAVALINK_PORT || '2333'}`,
         auth: process.env.LAVALINK_PASSWORD || 'youshallnotpass'
     }];
@@ -15,7 +15,7 @@ export class LavalinkManager {
     const Options = {
         moveOnDisconnect: false,
         resume: false,
-        resumeKey: 'Meltryllis_Bot',
+        resumeKey: process.env.LAVALINK_NAME || 'Shoukaku', 
         reconnectTries: 5,
         restTimeout: 10000
     };

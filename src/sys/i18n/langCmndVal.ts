@@ -146,6 +146,13 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_permissions_list_option_detallado",
         "command_permissions_clear_description",
         "command_permissions_help_description"
+    ],
+    "music":[
+        "command_mussic_play_01",
+        "command_mussic_play_02",
+        "command_mussic_stop_01",
+        "command_mussic_skip_01",
+        "command_mussic_queue_01"
     ]
 
     // Agrega más namespaces según necesites

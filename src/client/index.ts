@@ -3,19 +3,19 @@ import { Client, Events, GatewayIntentBits, Interaction } from "discord.js";
 import { getEnvironmentMode } from "../sys/environment";
 import { error, info, initLogger, loggerAvailable } from "../sys/logging";
 import { initializeDatabase } from "../sys/DB-Engine/database";
-//import { startEmbedService } from "../sys/embedding/embedService";
+import { startEmbedService } from "../sys/embedding/embedService";
 import { startStatusRotation } from "../sys/gear/setStatus";
 import i18next from "i18next";
 import { initI18n } from "../sys/i18n";
 import { validateAllTranslations } from "../sys/i18n/langCmndVal";
 import { registerCommands, handleCommandInteraction } from "./eventGear/upCommands";
-/*import { startWelcomeEvents } from "./eventGear/welcomeEvents";
+import { startWelcomeEvents } from "./eventGear/welcomeEvents";
 import { registerRolemojiEvents } from "./eventGear/rolemojiEvents";
 import { startYoutubeService } from "./eventGear/youtubeCheck";
 import { startRedditChecker } from "./eventGear/redditCheck";
 import { startMangadexChecker } from "./eventGear/mangadexChek";
 import { autoCleanupService } from "./eventGear/youtubeTools";
-import { startVoiceChannelService } from "./eventGear/voicEvent";*/
+import { startVoiceChannelService } from "./eventGear/voicEvent";
 import { preloadRolemojiMessages } from "./eventGear/rolemojiEvents";
 import { handleEmbedAutocomplete } from "./commands/embed";
 import { handlePermissionsAutocomplete } from "./commands/permission";
@@ -35,16 +35,16 @@ const client = createClient();
         await validateAllTranslations();
         if (lavalinkManager) {lavalinkManager.init(client);}
         await client.login(process.env.DISCORD_BOT_TOKEN);   
-        //await startWelcomeEvents(client);     
+        await startWelcomeEvents(client);     
         registerCommands(client);
-        //registerRolemojiEvents(client);
-        //startYoutubeService(client); // by nep  
-        //startRedditChecker(client);  // by nowa
-        //startVoiceChannelService(client);
+        registerRolemojiEvents(client);
+        startYoutubeService(client); // by nep  
+        startRedditChecker(client);  // by nowa
+        startVoiceChannelService(client);
         startStatusRotation(client);
-        //startEmbedService(client);
-        //autoCleanupService.start();
-        //startMangadexChecker(client);
+        startEmbedService(client);
+        autoCleanupService.start();
+        startMangadexChecker(client);
         logInfo(`✅ Inicializacion completada!!`);
         logInfo(`Idioma por default de los comandos: ${locale}`);
         

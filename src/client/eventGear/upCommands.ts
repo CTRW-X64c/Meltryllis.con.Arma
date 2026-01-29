@@ -16,7 +16,7 @@ import { registerCleanUpCommand, handleCleanUpCommand } from "../commands/cleanu
 import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "../commands/jointovoice";
 import { registerMangadexCommand, handleMangadexCommand } from "../commands/mangadex";
 import { registerPermissionsCommand, handlePermissionsCommand } from "../commands/permission";
-import { registerMusicCommands, handleMusicInteraction } from "../../../beta/music";
+import { registerMusicCommands, handleMusicInteraction } from "../commands/music";
 
 
 export async function registerCommands(client: Client) { 
