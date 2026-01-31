@@ -1,5 +1,4 @@
 // src/index.ts 
-// version 1.6.0
 import dotenv from "dotenv";
 import { info, initLogger, error } from "./sys/logging";
 import { getEnvironmentMode } from "./sys/environment";

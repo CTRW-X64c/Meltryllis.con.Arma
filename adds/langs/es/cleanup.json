@@ -1,7 +1,7 @@
 
 {
     "ATS1": "Command Builder",
-        "command_cleanup_description": "Eliminar mensajes en masa con varios filtros",
+        "command_cleanup_description": "Permite eliminar mensajes en batch",
         "command_cleanup_start_description": "Dónde empezar a eliminar",
         "command_cleanup_before_option": "Eliminar anteriores al mensaje",
         "command_cleanup_after_option": "Eliminar apartir del mensaje",

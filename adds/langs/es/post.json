@@ -1,6 +1,6 @@
 {
     "AST":"SLASHBUILDER",
-        "command_post_description":"Publica un mensaje como el bot en un canal específico",
+        "command_post_description":"Permite publicar mensajes en mi nombre",
         "command_post_post_msg_description":"Realiza un post enviando un mensaje",
         "command_post_canal_description":"El canal donde se publicará el anuncio",
         "command_post_borrar_msg_description":"Borrar mensaje. default: true",

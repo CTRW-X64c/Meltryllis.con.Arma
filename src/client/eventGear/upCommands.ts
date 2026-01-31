@@ -8,13 +8,16 @@ import { registerEmbedCommand, handleEmbedCommand } from "../commands/embed";
 import { registerWelcomeCommand, handleWelcomeCommand } from "../commands/welcome";
 import { registerReplybotsCommand, handleReplybotsCommand } from "../commands/replybots";
 import { registerRolemojiCommand, handleRolemojiCommand } from "../commands/rolemoji"
-import { registerOwnerCommands, handleOwnerCommands } from "../commands/owner";
+import { registerOwnerCommands, handleOwnerCommands } from "../../sys/gear/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "../commands/youtube";
 import { registerRedditCommand, handleRedditCommand } from "../commands/reddit";
 import { registerPostCommand, handlePostCommand } from "../commands/post";
 import { registerCleanUpCommand, handleCleanUpCommand } from "../commands/cleanup";
 import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "../commands/jointovoice";
 import { registerMangadexCommand, handleMangadexCommand } from "../commands/mangadex";
+import { registerPermissionsCommand, handlePermissionsCommand } from "../commands/permission";
+import { registerMusicCommands, handleMusicInteraction } from "../commands/music";
+
 
 export async function registerCommands(client: Client) { 
   const commands = [
@@ -32,14 +35,28 @@ export async function registerCommands(client: Client) {
     ...(await registerCleanUpCommand()),
     ...(await registerJoinToCreateCommand()),
     ...(await registerMangadexCommand()),
+    ...(await registerMusicCommands()),
   ];
 
+  const permissionsCommand = await registerPermissionsCommand(commands as any);
+  commands.push(...permissionsCommand);
+
+
   client.application?.commands.set(commands)
-    .then(() => info("Comandos /hola, /test, /manager, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice, /mangadex y /owner registrados con éxito", "Commands.Register"))
+    .then(() => info("Comandos /hola, /test, /embed, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice, /mangadex, /permisos y /owner registrados con éxito", "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 
 export async function handleCommandInteraction(interaction: ChatInputCommandInteraction) {
+  const { commandName } = interaction;
+  switch (commandName) {
+    case 'play':
+    case 'stop':
+    case 'skip':
+    case 'queue':
+      await handleMusicInteraction(interaction);
+      break;
+  }
   if (interaction.commandName === "hola") {
     await handleHolaCommand(interaction);
   } else if (interaction.commandName === "test") {
@@ -48,7 +65,7 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
     await handleWorkCommand(interaction);
   } else if (interaction.commandName === "replybots") {
     await handleReplybotsCommand(interaction);
-  } else if (interaction.commandName === "embedmanager") {
+  } else if (interaction.commandName === "embed") {
     await handleEmbedCommand(interaction);
   } else if (interaction.commandName === "welcome") {
     await handleWelcomeCommand(interaction);
@@ -68,5 +85,7 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
     await handleJoinToCreateCommand(interaction);
   }else if (interaction.commandName === "mangadex") {
     await handleMangadexCommand(interaction);
+  }else if (interaction.commandName === "permisos") {
+    await handlePermissionsCommand(interaction);
   }
 }

@@ -11,37 +11,43 @@
         "field_issue_value": "En canales @everyone no necesito más permisos que los que pido al ser invitada; en canales privados usa /test para ver qué permisos faltan y asignármelos.\n - Si no ves los comandos es porque requiren permisos de Administrador. \n - Discord solo procesa máximo 5 links por mensaje así que se divide automáticamente en batch de 5 links y puedes borrar el repost reaccionando a ❌ antes de que desaparezca (20s).",
 
         "field_test_name": "Comando: /test Canal Actual | Guild | Embed | Check Domains",
-        "field_test_value": "- Canal Actual/Guld: Revisa permisos del bot.\n - Embed: Muestra que sitios están soportados.\n - Check Domains: Revisa si los donios por default estan caidos, 30m de cd",
+        "field_test_value": "Permite revisar los permisos para el embedig y los sitios custom por \"/embedmanager\"; tambien realizar ping a los sitios",
 
         "field_replybots_name": "Comando: **/replybots**",
-        "field_replybots_value": "- Habilita/Deshabilita el responder a bots por canales (Habilitado por default)",
+        "field_replybots_value": "Permite habilitar/ Deshabilitar el modo ReplyBots en el server",
 
         "field_work_name": "Comando: /work",
-        "field_work_value": "- Habilita/Deshabilita si se procesan link en el canal",
+        "field_work_value": "Permite deshabilitar si se realizara el embeding los canales",
 
-        "field_embed_name": "Comando: /embed custom | disable| default",
-        "field_embed_value": "- Custom: Cambia el url embed por uno personalizado.\n- Disable: Desactiva el embedding del sitio especifico \n- Default: Restaura el URL o Habilita el embedding del sitio especifico.",
-        
+        "field_embed_name": "Comando: /embedmanager custom | disable| default",
+        "field_embed_value": "Permite cambiar las URL de los embeds por defecto o desactivarlos.",
+
         "field_welcome_name": "Comando: /welcome set",
-        "field_welcome_value": "- Permite asignar un canal para que se envie un banner con la bienvenida y un mensaje personalizado. \n- Recuerda puedes usar <user> para mencionar a quiense une. Ej. Hola <user> Bienvenido al server.",
+        "field_welcome_value": "Permite asignar un canal para que se envie un banner con la bienvenida y un mensaje personalizado. \n- Recuerda puedes usar <user> para mencionar a quiense une. Ej. Hola <user> Bienvenido al server.",
         
         "field_rolemoji_name": "Comando: /rolemoji set | remove | list",
-        "field_rolemoji_value": "- Permite crear, eliminar y listar reacciones ligada a un mensaje para asignar un Rol",
+        "field_rolemoji_value": "Permite crear, eliminar y listar reacciones ligada a un mensaje para asignar un Rol",
         
-        "field_youtube_name": "Comando /youtube set | remove | list",
-        "field_youtube_value":"- Sigue, remueve o lista los canales de Youtube que sigues en el server.\n - Formato del link: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCmODV...'",
+        "field_youtube_name": "Comando /youtube set | lista | dejar",
+        "field_youtube_value": "Sigue, remueve o lista los canales de Youtube que sigues en el server.\n - Formato del link: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCmODV...'",
 
-        "field_reddit_name":"Comando /reddit set | remove | list",
-        "field_reddit_value":"- Sigue, remueve o lista los subreddits o usuarios de Reddit que sigues en el server.\n - Puedes usar la URL como r/subbreddit o u/username",
+        "field_reddit_name":"Comando /reddit set | lista | dejar",
+        "field_reddit_value": "Permite realizar follow a subreddits o usuarios de reddit",
 
         "field_post_name":"Comando /post msg | copy | edit",
-        "field_post_value":"- msg: Publica un mensaje como **yo** mandando un mensaje.\n - copy: Copia un mensaje para publicarlo como **yo**. \n - edit: Permite editar mis mensajes publicados. \n - opcion: \"borrar\" solo en **msg** y **edit** se borra automaticamente el mesnaje original si no se espesifica.",
+        "field_post_value": "Permite enviar/editar mensaje en mi nombre de manera directa o desde una plantilla",
 
         "field_cleanup_name":"Comando /cleanup start | count | type",
-        "field_cleanup_value":"- start: Marca el modo en que se borraran los mensajes, apartir de o hasta el mensaje. \n count: Numero de mensajes a borrar. (limitado a 100 y 3 semanas de antiguedad por el API) \n - type: Solo mensajes de Bots, Usuarios o Todos.", 
+        "field_cleanup_value":"Permite borrar mensajes batch maximos de 100 y 3 seamanas de antiguedad (limite por el API de Discord)", 
 
-        "field_voice_name":"Comando /jointovoice  set | disable | statsus | cleanup",
-        "field_voice_value":"- set: Asigna el canal maestro. \n - disable: Desactiva /jointovoice. \n - statsus: Muestra el canal Maestro asignado y cnales temporales activos. \n cleanup: Borra todos los canales temporales activos.",
+        "field_voice_name": "Comando /jointovoice  set | disable | statsus | cleanup",
+        "field_voice_value": "Permite crear un canala maestro del cual se generaran canales temporales al unirse a el; te mueve automaticamente a el",
+
+        "field_mangadex_name": "Comando /mangadex seguir | lista | dejar",
+        "field_mangadex_value": "Permite realizar follow de mangas en (mangadex)[https://mangadex.org/], permite usar filtro por idioma",
+
+        "field_permisos_name": "GESTOR DE PERMISOS DE COMANDOS!!",
+        "field_permisos_value": "PERMITE A USUARIOS/ROLES USAR COMANDOS ESPESIFICOS!! \n **ESTE COMANDO NO PUEDE SER ASIGNADO A NINGUN ROL O USUARIO, Y SOLO PUEDE SER USADO POR ADMINISTRADORES O EL DUEÑO DEL SERVER**",
         
         "field_invite_value": "[Meltryllis con Arma!](https://discord.com/oauth2/authorize?client_id=847989699083632671&scope=bot&permissions=268790848)",
         "field_terms_value": "[Declaración](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md)",

@@ -1,0 +1,35 @@
+{
+    "a1": "Builder slash",
+        "command_mussic_play_01": "Reproduce música",
+        "command_mussic_play_02": "URL/Nombre",
+        "command_mussic_stop_01": "Detiene la música",
+        "command_mussic_skip_01": "Salta canción",
+        "command_mussic_queue_01": "Muestra lista de reproduccion",
+    
+    "a2": "Mensajes",
+        "command_mussic_error_01": "❌ El sistema de música está desactivado.",
+        "command_permission_error_permission": "❌ No tienes permiso para ejecuta este comando.",
+
+        "command_mussic_error_empit":"❌ ¡Debes estar en un canal de voz!",
+        "command_mussic_occupied": "❌ El bot está ocupado en otro canal.",
+        "command_mussic_lavalink_down":"❌ Sin conexión a Lavalink.",
+        "command_mussic_no_found": "❌ No encontre la cancion que querias",
+        "command_mussic_playlist":"✅ Playlist **{{a1}}** cargada ({{a2}} canciones).",
+        "command_mussic_playlist_queue":"📝 Agregado a la cola: **{{a1}}**",
+
+        "command_mussic_Stop_01": "💤 No estoy tocando nada.",
+        "command_mussic_Stop_02": "🛑 Música detenida, se borro la cola.",
+
+        "command_mussic_Skip_01": "Estamos en la ultima cancion.",
+        "command_mussic_Skip_02": "⏭️ Canción saltada.",
+
+        "command_mussic_Queue_01": "📋 La lista está vacía.",
+        "command_mussic_Queue_02": "🎵 Lista de Reproducción",
+        "command_mussic_Queue_03_name": "▶️ Sonando ahora:",
+        "command_mussic_Queue_03_value": "**[{{a1}}]({{a2}})** - `{{a3}}`",
+        "command_mussic_Queue_04": "**Próximas canciones:** \n{{a1}}{{a2}}",
+        "command_mussic_Queue_05": "*No hay más canciones en espera.*",
+
+        "command_mussic_pNext_01": "💤 Cola terminada. Desconectando...",
+        "command_mussic_pNext_02": "▶️ Reproduciendo: **{{a1}}** \nPedida por: {{a2}}"
+}

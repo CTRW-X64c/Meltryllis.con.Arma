@@ -59,7 +59,14 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
     - lista = Muestra todos los mangas que se suiguen en el server.
     - seguir = Publica las actualizaciones de un manga, se puede filtrar por idioma.
     - dejar = Dejar de seguir un manga, requiere el ID de adicion, se puede ver con /mangadex lista.
-    - test = Planeado para algun futuro. 
+    - test = Planeado para algun futuro.
+  - /permisos: |ESTE PERMISO SOLO Y UNICAMENTE PUEDE SER USADO POR ADMINISTRADORES/DUEÑO DEL SERVER|
+    - set: Asigna a un usuario/rol permisos para usar comandos.
+    - list: Muestra los usuarios/roles con permisos.
+    - remove: Quita los permisos de un rol/usurio.
+    - limpiar: Quita todos los permisos del server.
+    - help: Proporciona ayuda sobre sobre los comandos.
+  - /comandos de musica [ PLAY | STOP | QUEUE | SKIP ]
 
 
 ---    
@@ -78,32 +85,38 @@ services:
     container_name:    
     restart: "recomendado como: on-failure:2"
     environment:
-      #Cosas del Owner
+    #Cosas del Owner
       - DISCORD_BOT_TOKEN=
       - OWNER_BOT_ID=
-      #Idiomas
+    #Idiomas
       - LANGS_SUPPORTED=
       - LOCALE=
-      #Configuraciones
+    #Configuraciones
       - DEBUG_MODE=
       - REPLY_OTHER_BOTS=
       - WELCOME_BANNER_URL= 
       - PUID=
       - PGID=
       - TZ=
-      #Reddit & Youtube 
+    #Funciones "follow"
       - YOUTUBE_CHECK_TIMMER=
       - AUTO_CLEAN_YOUTUBE_TIMMER=
       - REDDIT_CHECK_TIMMER=
       - REDDIT_CLIENT_ID=
       - REDDIT_CLIENT_SECRET=
       - MANGADEX_CHECK_TIMMER=
-      #Base de datos    
+    #Base de datos    
       - DB_HOST=
       - DB_USER=
       - DB_PASSWORD=
       - DB_DATABASE=
-      #Dominios remplazadores         
+    #Lavalink
+      - LAVALINK_ACTIVE=
+      - LAVALINK_NAME=
+      - LAVALINK_HOST=
+      - LAVALINK_PORT=
+      - LAVALINK_PASSWORD=
+    #Dominios embeding         
       - INSTAGRAM_FIX_URL=
       - PIXIV_FIX_URL=
       - REDDIT_FIX_URL=
@@ -120,13 +133,14 @@ services:
       - IMGUR_FIX_URL=
       - IWARA_FIX_URL=
       - API_REPLACEMENT_DOMAINS=
-      #Configuraciones Bot 
+    #Configuraciones Bot 
       - BOT_STATUS=
       - STATUS_TIME_MINUTOS=
     volumes:
       - ./bot:/app/logs
     depends_on:
-      - mariadb     
+      - mariadb
+      - lavalink  #En caso de usar lavalink externo borra esta linea
   
   mariadb:
     image: mariadb:latest
@@ -143,6 +157,21 @@ services:
       - PUID=
     volumes:
       - ./db:/var/lib/mysql
+      
+#EN CASO DE USAR UN LAVALINK EXTERNO BORRA ESTO
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4-alpine
+    container_name: lavalink-server
+    ports:
+      - "2333:2333"
+    environment:
+      - SERVER_PORT=
+      - LAVALINK_SERVER_PASSWORD=
+    volumes:
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml # es mejor setear tus configuraciones en el archivo yml.
+    restart: unless-stopped
+#EN CASO DE USAR UN LAVALINK EXTERNO BORRA ESTO
+
 ```
 <details> <summary>🐳 Valores para variables</summary>
  
@@ -171,6 +200,12 @@ services:
 | `API_REPLACEMENT_DOMAINS` | Sitios soportados por [Embedez](https://embedez.com/) |
 | `BOT_STATUS` | estado \| tipo de actividad |
 | `STATUS_TIME_MINUTOS` | Tiempo de Rotacion de *BOT_STATUS* |
+| `LAVALINK_ACTIVE` | OFF = desactiva Lavalink y sus comandos |
+| `LAVALINK_NAME` | Nombre de Nodo |
+| `LAVALINK_HOST` | IP / URL / name |
+| `LAVALINK_PORT` | default: 2333 |
+| `LAVALINK_PASSWORD` | default: youshallnotpass |
+
 ##### **_ "YOUTUBE & REDDIT CHECK_TIMMER" cuentan con timmer minimo interno para evitar bloqueos de IP _**
 
 | Variable BD  | Valores |
@@ -207,7 +242,7 @@ Meltryllis con Arma/
 │   │   │   ├── hola.ts
 │   │   │   ├── jointovoice.ts
 │   │   │   ├── mangadex.ts
-│   │   │   ├── owner.ts
+│   │   │   ├── music.ts
 │   │   │   ├── post.ts
 │   │   │   ├── reddit.ts
 │   │   │   ├── replybots.ts
@@ -217,6 +252,7 @@ Meltryllis con Arma/
 │   │   │   ├── work.ts
 │   │   │   └── youtube.ts
 │   │   ├── /eventGear
+│   │   │   ├── lavalinkConnect.ts
 │   │   │   ├── mangadexCheck.ts
 │   │   │   ├── neTools.ts
 │   │   │   ├── redditCheck.ts
@@ -225,7 +261,7 @@ Meltryllis con Arma/
 │   │   │   ├── voiceEvents.ts
 │   │   │   ├── welcomeEvents.ts
 │   │   │   ├── youtubeCheck.ts
-│   │   │   └── yTools.ts
+│   │   │   └── youtubeTools.ts
 │   │   ├── _resources.ts
 │   │   └── index.ts
 │   ├── /sys
@@ -234,6 +270,7 @@ Meltryllis con Arma/
 │   │   │   │   ├── Embed.ts
 │   │   │   │   ├── JoinVoice.ts
 │   │   │   │   ├── Mangadex.ts
+│   │   │   │   ├── Permission.ts
 │   │   │   │   ├── Reddit.ts
 │   │   │   │   ├── Replybots.ts
 │   │   │   │   ├── Rolemoji.ts
@@ -263,13 +300,16 @@ Meltryllis con Arma/
 │   │   │   ├── embedService.ts
 │   │   │   ├── index.ts
 │   │   │   └── RuleReplacement.ts
+│   │   ├── /gear
+│   │   │   ├── managerPermisions.ts
+│   │   │   ├── owner.ts
+│   │   │   ├── RedditApi.ts
+│   │   │   └── setStatus.ts
 │   │   ├── /i18n
 │   │   │   ├── index.ts
 │   │   │   └── langCmndVal.ts
 │   │   ├── environment.ts
-│   │   ├── logging.ts
-│   │   ├── RedditApi.ts
-│   │   └── setStatus.ts
+│   │   └── logging.ts
 │   └── index.ts
 ├── .env
 ├── Dockerfile

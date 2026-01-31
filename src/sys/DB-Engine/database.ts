@@ -147,6 +147,19 @@ export async function initializeDatabase(): Promise<void> {
           )
         `);
         
+// Tabla de permisos /permission
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS command_permissions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            guild_id VARCHAR(50) NOT NULL,
+            target_id VARCHAR(50) NOT NULL,
+            target_type ENUM('USER', 'ROLE') NOT NULL,
+            command_name VARCHAR(50) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_perm (guild_id, target_id, command_name)
+          )
+        `);
+        
         return;
       } catch (err) {
         if (attempt < maxRetries) {

@@ -1,6 +1,6 @@
 {
     "ATS1": "Command Builder",
-        "replybots_command_description": "Activa o desactiva el contestar a otros bots",
+        "replybots_command_description": "Habilitar/Deshabilitar el responder a bots en un canal",
         "replybots_command_state_description": "Responder a bots:",
         
     "ATS2": "Respuestas de Comando y Errores",

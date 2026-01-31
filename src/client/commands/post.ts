@@ -1,13 +1,14 @@
 // src/client/commands/post.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, TextChannel, Message, Attachment } from "discord.js";
 import { error, debug } from "../../sys/logging";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import i18next from "i18next";
 
 export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
     const postCommand = new SlashCommandBuilder()
         .setName("post")
         .setDescription(i18next.t("command_post_description", { ns: "post" }))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+        .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addSubcommand(subcommand =>
             subcommand
                 .setName("msg")
@@ -111,9 +112,8 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
 }
 
 export async function handlePostCommand(interaction: ChatInputCommandInteraction): Promise<void> {
-    const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageMessages) || interaction.guild?.ownerId === interaction.user.id;
-    if (!isAdmin) {
+    const isAllowed = hasPermission(interaction, interaction.commandName);
+    if (!isAllowed) {
         await interaction.reply({
             content: i18next.t("command_permission_error", { ns: "post" }),
             flags: MessageFlags.Ephemeral

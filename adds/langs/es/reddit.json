@@ -1,6 +1,6 @@
 {
     "ATS1":"Command Builder",
-        "command_reddit": "Seguimiento de subreddits",
+        "command_reddit": "Seguir subreddits y usuarios de Reddit",
         "command_reddit_descripcion":"Añade la URL del Subreddit a seguir",
         "command_reddit_seguir":"URL del Subreddit",
         "command_reddit_canal": "Canal de Discord donde se publicarán los posts",

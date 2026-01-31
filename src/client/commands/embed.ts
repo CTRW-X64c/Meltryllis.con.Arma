@@ -3,6 +3,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, 
 import i18next from "i18next";
 import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import { error } from "../../sys/logging";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
@@ -10,11 +11,24 @@ const manualSites = replacementMetaList.map((meta) => ({ name: meta.name, value:
 const apiSites = apiReplacementDomainsEnv.map((domain) => ({ name: domain, value: domain }));
 const allSites = [...manualSites, ...apiSites];
 
+// --- Cambio para autocompletar 
+export async function handleEmbedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedValue = interaction.options.getFocused().toLowerCase();
+    
+    const filtered = allSites.filter(choice => 
+        choice.name.toLowerCase().includes(focusedValue)
+    );
+
+    await interaction.respond(
+        filtered.slice(0, 25).map(choice => ({ name: choice.name, value: choice.value }))
+    );
+}
+
 export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
     const embedCommand = new SlashCommandBuilder()
-        .setName("embedmanager") 
+        .setName("embed") 
         .setDescription(i18next.t("command_embed_description", { ns: "embed" }))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+        .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("configurar")
@@ -49,19 +63,6 @@ export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
     return [embedCommand] as SlashCommandBuilder[];
 }
 
-// --- Cambio para autocompletar 
-export async function handleEmbedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const focusedValue = interaction.options.getFocused().toLowerCase();
-    
-    const filtered = allSites.filter(choice => 
-        choice.name.toLowerCase().includes(focusedValue)
-    );
-
-    await interaction.respond(
-        filtered.slice(0, 25).map(choice => ({ name: choice.name, value: choice.value }))
-    );
-}
-
 export async function handleEmbedCommand(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
         const guildId = interaction.guild?.id;
@@ -70,9 +71,8 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
             return;
         }
 
-        const memberPermissions = interaction.memberPermissions;
-        const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
-        if (!isAdmin) {
+        const isAllowed = hasPermission(interaction, interaction.commandName);
+        if (!isAllowed) {
             await interaction.reply({
                 content: i18next.t("no_permission", { ns: "embed" }),
                 flags: MessageFlags.Ephemeral,

@@ -4,7 +4,7 @@ import { getEnvironmentMode } from "../sys/environment";
 import { error, info, initLogger, loggerAvailable } from "../sys/logging";
 import { initializeDatabase } from "../sys/DB-Engine/database";
 import { startEmbedService } from "../sys/embedding/embedService";
-import { startStatusRotation } from "../sys/setStatus";
+import { startStatusRotation } from "../sys/gear/setStatus";
 import i18next from "i18next";
 import { initI18n } from "../sys/i18n";
 import { validateAllTranslations } from "../sys/i18n/langCmndVal";
@@ -18,6 +18,8 @@ import { autoCleanupService } from "./eventGear/youtubeTools";
 import { startVoiceChannelService } from "./eventGear/voicEvent";
 import { preloadRolemojiMessages } from "./eventGear/rolemojiEvents";
 import { handleEmbedAutocomplete } from "./commands/embed";
+import { handlePermissionsAutocomplete } from "./commands/permission";
+import lavalinkManager from "./eventGear/lavalinkConnect";
 
 /*========= Inicializadores =========*/
 
@@ -31,6 +33,7 @@ const client = createClient();
         await initI18n(locale);
         await initializeDatabase();     
         await validateAllTranslations();
+        if (lavalinkManager) {lavalinkManager.init(client);}
         await client.login(process.env.DISCORD_BOT_TOKEN);   
         await startWelcomeEvents(client);     
         registerCommands(client);
@@ -81,13 +84,16 @@ function createClient(): Client {
             await handleCommandInteraction(interaction);
         }
         if (interaction.isAutocomplete()) {
-            const commandName = interaction.commandName;
-            if (commandName === "embedmanager") {
-                await handleEmbedAutocomplete(interaction);
+            switch (interaction.commandName) {
+                case "embed":
+                    await handleEmbedAutocomplete(interaction);
+                    break;
+                case "permisos":
+                    await handlePermissionsAutocomplete(interaction);
+                    break;
             }
         }
     });
-
     return client;
 }
 

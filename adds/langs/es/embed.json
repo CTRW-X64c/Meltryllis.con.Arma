@@ -1,6 +1,6 @@
 {
     "ATS1": "Command Builder",
-        "command_embed_description": "Configura los dominios/urls para embeds",
+        "command_embed_description": "Configuracion de los dominios/urls para los embeds",
         "command_embed_config": "Establece configuraciones.",
         "embed_command_mode_description": "Configuraciones: Default, Custom o Habilitar/Deshabilitar",
         "embed_command_url_description": "Establece un nuevo Dominio/URL.",

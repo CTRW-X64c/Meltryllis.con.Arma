@@ -2,7 +2,8 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel, PermissionsBitField } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";
-import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../../sys/DB-Engine/links/Rolemoji";
+import { hasPermission } from "../../sys/gear/managerPermission";
+import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../../sys/DB-Engine/links/Rolemoji";11
 
 function getEmojiKey(emojiString: string): string {
     const customEmojiRegex = /<a?:[a-zA-Z0-9_]+:(\d+)>$/;
@@ -17,7 +18,7 @@ export async function registerRolemojiCommand(): Promise<SlashCommandBuilder[]> 
     const rolemojiCommand = new SlashCommandBuilder()
         .setName("rolemoji")
         .setDescription(i18next.t("command_rolemoji_description", { ns: "rolemoji" }))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+        .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addSubcommand(subcommand =>
             subcommand
                 .setName("set")
@@ -68,9 +69,8 @@ export async function registerRolemojiCommand(): Promise<SlashCommandBuilder[]> 
 
 export async function handleRolemojiCommand(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
-        const memberPermissions = interaction.memberPermissions;
-        const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
-        if (!isAdmin) {
+        const isAllowed = hasPermission(interaction, interaction.commandName);
+        if (!isAllowed) {
             await interaction.reply({
                 content: i18next.t("command_permission_error", { ns: "rolemoji" }),
                 flags: MessageFlags.Ephemeral,

@@ -2,6 +2,7 @@
 import { Client, VoiceState, VoiceChannel, Guild} from "discord.js";
 import { error, debug, info } from "../../sys/logging";
 import { getVoiceConfig, addTempVoiceChannel, removeTempVoiceChannel, isTempVoiceChannel, getAllTempVoiceChannels } from "../../sys/DB-Engine/links/JointoVoice";
+import { checkVoiceEmptyShoukaku } from "../commands/music";
 
 export class VoiceChannelService {
     private client: Client;
@@ -32,6 +33,9 @@ export class VoiceChannelService {
 
     async handleVoiceStateUpdate(oldState: VoiceState, newState: VoiceState): Promise<void> {
         try {
+         
+            await checkVoiceEmptyShoukaku(oldState); // Verificar si se queda sola en el canal.
+
             const guildId = newState.guild.id;
             const config = await getVoiceConfig(guildId);
 

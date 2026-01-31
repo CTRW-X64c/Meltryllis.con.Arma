@@ -1,6 +1,6 @@
   {
     "ATS1": "Command Builder",
-        "work_command_description": "Activa o desactiva el bot en este canal",
+        "work_command_description": "Activa o desactiva en que canales funcionara el Embedding",
         "work_command_state_description": "Estado del bot: on o off",
         
     "ATS2": "Respuestas de Comando y Errores",

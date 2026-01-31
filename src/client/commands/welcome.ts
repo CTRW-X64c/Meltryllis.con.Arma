@@ -2,12 +2,13 @@
 import { SlashCommandBuilder, MessageFlags, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType } from "discord.js";
 import i18next from "i18next";
 import { error } from "../../sys/logging";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import { setWelcomeConfig, getWelcomeConfig } from "../../sys/DB-Engine/links/Welcome";
 
 export async function registerWelcomeCommand(): Promise<SlashCommandBuilder[]> {
     const welcomeCommand = new SlashCommandBuilder()
         .setName("welcome")
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+        .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .setDescription(i18next.t("command_welcome_description", { ns: "welcome" }))
         .addSubcommand((subcommand) =>
             subcommand
@@ -38,9 +39,8 @@ export async function registerWelcomeCommand(): Promise<SlashCommandBuilder[]> {
 
 export async function handleWelcomeCommand(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
-        const memberPermissions = interaction.memberPermissions;
-        const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
-        if (!isAdmin) {
+        const isAllowed = hasPermission(interaction, interaction.commandName);
+        if (!isAllowed) {
             await interaction.reply({
                 content: i18next.t("command_permission_error", { ns: "rolemoji" }),
                 flags: MessageFlags.Ephemeral,

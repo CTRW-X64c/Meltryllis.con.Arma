@@ -1,0 +1,65 @@
+{
+        "AST1":"SLASHBUILDER",
+    "command_permissions_description": "📋 Gestionar permisos de comandos por usuario/rol",
+    "command_permissions_add_description": "Autorizar a un Rol o Usuario para usar un comando",
+    "command_permissions_add_option_description":"Comando a autorizar",
+    "command_permissions_option_rol": "Selecciona el ROL a autorizar",
+    "command_permissions_option_usuario": "Selecciona el USUARIO a autorizar",
+    
+    "command_permissions_remove_description": "Revocar permisos de un comando",
+    "command_permissions_remove_option_description":"Comando a revocar",
+
+    "command_permissions_list_description": "📜 Lista de los permisos asignados",
+    "command_permissions_list_option_description": "Muestra por comando",
+    "command_permissions_list_option_detallado" : "Mostrar todos los comandos",
+    
+    "command_permissions_clear_description": "🗑️ Eliminar TODOS los permisos del servidor (cuidado)",
+    "command_permissions_help_description": "❓ Muestra la ayuda sobre permisos",
+
+        "AST2":"SLASHBUILDER",
+
+    "command_permission_error": "⛔ Este comando no puede ser asignado y solo los administradores pueden establecer permisos!!",
+
+    "command_permission_add_list": "❌ Debes especificar un rol o un usuario.",
+    "command_permissions_add_success": "✅ **{{a1}}** ({{a2}}) ahora puede usar {{a3}}",
+    "command_permissions_add_error": "⚠️ **{{a1}}** ya tenía permisos para {{a2}}.",
+    "command_add_error": "❌ Error al procesar la asignacion de permisos!!",
+
+    "command_permissions_remove_error_target": "❌ Debes especificar el rol o usuario para eliminarlo.",
+    "command_permissions_remove_success": "🗑️ Permisos eliminados para **{{a1}}** en {{a2}}.",
+    "command_permissions_remove_error": "❌ **{{a1}}** no estaba en la lista de permisos para {{a2}}.",
+    "command_error_remove": "❌ Ocurrio un error al intentar borrar los permisos.",
+
+    "command_permissions_list_by_command": "No se encuentran usuarios/roles asignados al comando: /{{a1}}",
+    "command_permissions_list_error": "No hay ningun permiso asignado",
+    "command_permissions_no_permissions": "No se encontraron permisos asignados",
+
+    "command_permissions_list_by_command_emb": "Mostrando usuarios/roles asignados al comando: /{{a1}}",
+    "command_permissions_list_all_command_emb": "Mostrando todos los comandos usuarios/roles asignados",
+
+    "command_permissions_total_footer": "Total de permisos: {{a1}}",
+    "command_permissions_total_footer_complete": "Total de permisos: {{a1}} Total de Comandos: {{a2}}",
+
+    "command_error_list_res_emb": "❌ Error al generar la lista de permisos.",
+
+
+
+    "command_permissions_cleanup_confirm": "Se eliminaran los permisos en el servidor!!",
+    "command_permissions_cleanup_cancelled": "Eliminacion cancelada!!",
+    "command_permissions_cleanup_result": "Todos los permisos han sido eliminados!",
+    "command_permissions_cleanup_timeout": "Tiempo de espera agotado!",
+    "command_permissions_cleanup_error": "❌ Error al limpiar los permisos.",
+
+    "command_permissions_help_title": "**Sistema de Permisos!**",
+    "command_permissions_help_desc": "Controla quién puede usar cada comando del bot en este servidor. \n **Es muy importante checar a quien le das permisos!!**",
+    "command_permissions_help_add_title": "/permission añadir",
+    "command_permissions_help_add_desc": "Autoriza a un rol o usuario para usar un comando.",
+    "command_permissions_help_remove_title": "/permission remover",
+    "command_permissions_help_remove_desc": "Permite eliminar los permisos que tenga un usuario o rol.",
+    "command_permissions_help_list_title": "/permission listar",
+    "command_permissions_help_list_desc": "Lista todos los comandos que esten asignados a un rol o usuario.",
+    "command_permissions_help_clear_title": "/permission limpiar",
+    "command_permissions_help_clear_desc": "Elimina todos los permisos del servidor.",
+    "footer_text_help": "Solo los administradores y el dueño del servido pueden usar este comando."
+
+}

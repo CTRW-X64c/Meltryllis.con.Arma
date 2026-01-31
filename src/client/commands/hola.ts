@@ -34,6 +34,11 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
           inline: false
         },
         {
+          name: i18next.t("field_permisos_name", { ns: "hola" }),
+          value: i18next.t("field_permisos_value", { ns: "hola" }),
+          inline: false
+        },
+        {
           name: i18next.t("field_test_name", { ns: "hola" }),
           value: i18next.t("field_test_value", { ns: "hola" }),
           inline: false
@@ -86,6 +91,11 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
         {
           name: i18next.t("field_voice_name", { ns: "hola" }),
           value: i18next.t("field_voice_value", { ns: "hola" }),
+          inline: false
+        },
+        {
+          name: i18next.t("field_mangadex_name", { ns: "hola" }),
+          value: i18next.t("field_mangadex_value", { ns: "hola" }),
           inline: false
         }
       )

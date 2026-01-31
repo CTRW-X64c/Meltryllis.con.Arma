@@ -2,6 +2,7 @@
 import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, TextChannel, EmbedBuilder } from "discord.js";
 import { AddMangadexFeed, getMangadexFeeds, MangadexFeed, removeMangadexFeed} from "../../sys/DB-Engine/links/Mangadex"; // Asumo que esto ya existe
 import { error, debug } from "../../sys/logging";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import i18next from "i18next";
 
 function getMangadexId(input: string): string | null {
@@ -51,7 +52,7 @@ async function verifyMangadexFeed(rssUrl: string): Promise<string | null> {
 export async function registerMangadexCommand() {
   const mangadex = new SlashCommandBuilder()
     .setName("mangadex")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("command_mangadex", { ns: "mangadex" }))
     .addSubcommand(subcommand =>
       subcommand
@@ -96,7 +97,7 @@ export async function registerMangadexCommand() {
     )
     .addSubcommand(subcommand =>  
         subcommand
-          .setName("ayuda")
+          .setName("help")
           .setDescription(i18next.t("command_mangadex_ayuda_desc", { ns: "mangadex", defaultValue: "Mostrar ayuda sobre el comando" }))
     );
 
@@ -105,10 +106,8 @@ export async function registerMangadexCommand() {
 
 export async function handleMangadexCommand(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-    const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;  
-    if (!isAdmin) {
+    const isAllowed = hasPermission(interaction, interaction.commandName);
+    if (!isAllowed) {
         await interaction.editReply({
             content: i18next.t("command_permission_error", { ns: "rolemoji" }),
         });
@@ -234,15 +233,17 @@ async function listaManga(interaction: ChatInputCommandInteraction, guildId: str
         .setDescription(i18next.t("manga_embed_descripcion", { ns: "mangadex", a1: feeds.length}))
         .setColor(0xFF6740);
 
-    for (const [channelId, grupo] of feedsPorCanal) {       
+    for (const [channelId, grupo] of feedsPorCanal) {
         const urlchannel = `https://discord.com/channels/${guildId}/${channelId}`;
         const lineas = grupo.feeds.map(feed => {
+            const originalName = feed.manga_title ?? "Sin Título";
+            const shortTitle = originalName.length > 50 ? originalName.substring(0, 50) + "..." : originalName;
             const flag = feed.language === 'es' ? '🇪🇸' : feed.language === 'es-la' ? '🇲🇽' : feed.language === 'en' ? '🇺🇸' : '🌐';
-            return i18next.t("manga_embed_list_entry",{ ns: "mangadex",a1: feed.id, a2: feed.manga_title, a3: flag});
+            return i18next.t("manga_embed_list_entry",{ ns: "mangadex",a1: feed.id, a2: shortTitle, a3: flag});
         });
 
         /* Seccionador de embeds */
-        const TAMANO_BLOQUE = 20;         
+        const TAMANO_BLOQUE = 12;         
         for (let i = 0; i < lineas.length; i += TAMANO_BLOQUE) {
             const bloque = lineas.slice(i, i + TAMANO_BLOQUE).join('\n');
             const sufijo = lineas.length > TAMANO_BLOQUE ? ` (Parte ${Math.floor(i/TAMANO_BLOQUE) + 1})` : '';

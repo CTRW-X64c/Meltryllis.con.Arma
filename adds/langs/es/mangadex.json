@@ -1,6 +1,6 @@
 {
     "ATS1": "Command Builder",
-        "command_mangadex": "Seguir mangas de Mangadex",
+        "command_mangadex": "Permite seguir mangas de Mangadex",
         "command_mangadex_descripcion": "Comandos para seguir mangas de Mangadex",
         "command_mangadex_seguir": "URL del manga que queires seguir",
         "command_mangadex_canal": "Canal en el que se publicaran las updates",

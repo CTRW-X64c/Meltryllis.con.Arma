@@ -5,6 +5,7 @@ import { error, debug } from "../../sys/logging";
 import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
 import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList} from "../../sys/embedding/EmbedingConfig";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../eventGear/neTools";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
@@ -12,7 +13,7 @@ const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.e
 export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
   const testCommand = new SlashCommandBuilder()
     .setName("test")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("command_test_description", { ns: "test" }))
     .addStringOption((option) =>
       option
@@ -32,9 +33,8 @@ export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
 
 export async function handleTestCommand(interaction: ChatInputCommandInteraction): Promise<void> {
   try {
-    const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
-    if (!isAdmin) {
+    const isAllowed = hasPermission(interaction, interaction.commandName);
+    if (!isAllowed) {
       await interaction.reply({
         content: i18next.t("command_permission_error", { ns: "test" }),
         flags: MessageFlags.Ephemeral,

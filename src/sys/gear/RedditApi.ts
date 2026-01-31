@@ -1,5 +1,5 @@
 // src/sys/RedditApi.ts
-import { error, debug } from './logging';   
+import { error, debug } from '../logging';   
 
 const REDDIT_API_BASE = 'https://oauth.reddit.com';
 const REDDIT_AUTH_URL = 'https://www.reddit.com/api/v1/access_token';

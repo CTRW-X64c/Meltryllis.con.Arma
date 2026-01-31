@@ -3,7 +3,8 @@ import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlag
 import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed} from "../../sys/DB-Engine/links/Reddit";
 import { RedditApiResponse } from "../eventGear/redditCheck";
 import { error, debug} from "../../sys/logging";
-import { redditApi } from "../../sys/RedditApi";
+import { redditApi } from "../../sys/gear/RedditApi";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import i18next from "i18next";
 
 const redditDomain = process.env.REDDIT_FIX_URL || "reddit.com";
@@ -12,7 +13,7 @@ function getSubredditNameFromUrl(input: string): string | null {
     try {
     const urlObject = new URL(input);
     const subredditMatch = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_-]+)/);
-    const userMatch = urlObject.pathname.match(/\/user|u\/([a-zA-Z0-9_-]+)/);
+    const userMatch = urlObject.pathname.match(/\/user\/([a-zA-Z0-9_-]+)/);
 
     if (subredditMatch) return subredditMatch[1];
     if (userMatch) return userMatch[1];
@@ -59,7 +60,7 @@ function checkIfNSFW(channel: any): boolean {
 export async function registerRedditCommand() {
     const reddit = new SlashCommandBuilder()
         .setName("reddit")
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+        .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .setDescription(i18next.t("command_reddit", { ns: "reddit" }))
         .addSubcommand(subcommand =>
             subcommand
@@ -117,10 +118,8 @@ export async function registerRedditCommand() {
 
 export async function handleRedditCommand(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-    const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
-    if (!isAdmin) {
+    const isAllowed = hasPermission(interaction, interaction.commandName);
+    if (!isAllowed) {
         await interaction.editReply({
             content: i18next.t("command_permission_error", { ns: "rolemoji" }),
         });

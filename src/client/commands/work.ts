@@ -2,13 +2,14 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, PermissionFlagsBits } from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
+import { hasPermission } from "../../sys/gear/managerPermission";
 import { getConfigMap, setChannelConfig } from "../../sys/DB-Engine/links/ReplyBots";
 import { ChannelConfig } from "../_resources";
 
 export async function registerWorkCommand(): Promise<SlashCommandBuilder[]> {
   const workCommand = new SlashCommandBuilder()
     .setName("work")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("work_command_description", { ns: "work" }))
     .addStringOption((option) =>
       option.setName("state").setDescription(i18next.t("work_command_state_description", { ns: "work" }))
@@ -19,10 +20,8 @@ export async function registerWorkCommand(): Promise<SlashCommandBuilder[]> {
 
 export async function handleWorkCommand(interaction: ChatInputCommandInteraction): Promise<void> {
   try {
-    
-    const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id;
-    if (!isAdmin) {
+    const isAllowed = hasPermission(interaction, interaction.commandName);
+    if (!isAllowed) {
       await interaction.reply({
         content: i18next.t("command_permission_error", { ns: "work" }),
         flags: MessageFlags.Ephemeral,

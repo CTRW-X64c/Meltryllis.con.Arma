@@ -1,6 +1,6 @@
 {
     "ATS1": "Command Builder",
-        "command_jointocreate_description": "Establece el canal Maestro para crear los nuevos canales",
+        "command_jointocreate_description": "Permite crear canales temporales de voz apartir de un canal de voz maestro",
         "command_jointocreate_set_description": "Marca ID del canal maestro",
         "command_jointocreate_canal_description": "ID del canal maestro",
         "command_jointocreate_disable_description": "Desactiva el sistema de canales",
