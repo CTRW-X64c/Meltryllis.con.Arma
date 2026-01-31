@@ -1,6 +1,6 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, GuildMember, TextChannel, EmbedBuilder } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, GuildMember, TextChannel, EmbedBuilder, VoiceState } from "discord.js";
 import lavalinkManager, { LavalinkManager } from "../eventGear/lavalinkConnect"; 
-import { error } from "../../sys/logging";
+import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/gear/managerPermission";
 import i18next from "i18next";
 
@@ -15,6 +15,7 @@ interface QueueEntry {
 
 const musicQueue = new Map<string, QueueEntry[]>();
 const currentPlaying = new Map<string, QueueEntry>();
+const mapTimmers = new Map<string, NodeJS.Timeout>();
 
 export async function registerMusicCommands() {
     if (!lavalinkManager) return [];
@@ -68,6 +69,7 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
     await interaction.deferReply();
     const guildId = interaction.guildId!;
     const member = interaction.member as GuildMember;
+    const inChannelPlaying = currentPlaying.get(guildId);
     let query = interaction.options.getString("cancion", true);
 
     if (!member.voice.channelId) {
@@ -75,21 +77,25 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
         return;
     }
 
-    let player = lavalink.getPlayer(interaction.guildId!)
-    const botVoiceChannel = interaction.guild?.members.me?.voice.channelId;
-
-    if (player && botVoiceChannel) {
-        if (botVoiceChannel !== member.voice.channelId) {
-            await interaction.editReply(i18next.t("command_mussic_occupied", { ns: "music" }));
-            return;
-        }
-    } else {
-        player = await lavalink.joinVoiceChannel(guildId, member.voice.channelId);
-    }
-
     try {
+        let player = lavalink.getPlayer(interaction.guildId!)
+        const botVoiceChannel = interaction.guild?.members.me?.voice.channelId;
+
+        if (player && botVoiceChannel) {
+            if (botVoiceChannel !== member.voice.channelId) {
+                await interaction.editReply(i18next.t("command_mussic_occupied", { ns: "music" }));
+                return;
+            }
+        } else {
+            player = await lavalink.joinVoiceChannel(guildId, member.voice.channelId);
+        }
         const node = lavalink.getNode();
-        if (!node) { await interaction.editReply(i18next.t("command_mussic_lavalink_down", { ns: "music" })); return; }
+        if (!node) { 
+            await interaction.editReply(i18next.t("command_mussic_lavalink_down", { ns: "music" }));
+            if (inChannelPlaying) return;
+            lavalink.shoukaku?.leaveVoiceChannel(guildId);
+            return; 
+        }
 
     // Previene que se añadan listas de reproduccion
         if (query.includes("youtube.com/watch") && query.includes("&")) {
@@ -102,6 +108,8 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
 
         if (!result || result.loadType === 'empty' || result.loadType === 'error') {
             await interaction.editReply(i18next.t("command_mussic_no_found", { ns: "music" }));
+            if (inChannelPlaying) return;
+            lavalink.shoukaku?.leaveVoiceChannel(guildId);
             return;
         }
 
@@ -138,10 +146,13 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
         } else {
             await interaction.editReply(message);
         }
-
+        
     } catch (err) {
         error(`Play Error: ${err}`);
         await interaction.editReply("❌ Error interno.");
+        if (!inChannelPlaying){
+        lavalink.shoukaku?.leaveVoiceChannel(guildId);
+        }
     }
 }
 
@@ -210,7 +221,7 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
     await interaction.reply({ embeds: [embed] });
 }
 
-/* ===== HELPER =====*/
+/* ===== HELPER - reproduccion - =====*/
 
 async function playNext(guildId: string, player: any, interaction?: ChatInputCommandInteraction) {
     const queue = musicQueue.get(guildId);
@@ -244,3 +255,44 @@ async function playNext(guildId: string, player: any, interaction?: ChatInputCom
         });
     }
 }
+
+/* ===== HELPER - nadie escuchando - =====*/
+
+export async function checkVoiceEmptyShoukaku(oldState: VoiceState): Promise<void> {
+    const guildId = oldState.guild.id;
+    const Meltrys = oldState.guild.members.me;
+
+    if (!Meltrys?.voice.channelId) {
+        if (mapTimmers.has(guildId)) {
+            clearTimeout(mapTimmers.get(guildId)!);
+            mapTimmers.delete(guildId);
+        }
+        return;
+    }
+
+    const botChannel = Meltrys.voice.channel;
+    if (botChannel && botChannel.members.size === 1) {
+        if (mapTimmers.has(guildId)) return;
+        const timer = setTimeout(async () => {
+            try {
+                const currentChannel = oldState.guild.members.me?.voice.channel;
+                if (currentChannel && currentChannel.members.size === 1) {
+                    musicQueue.delete(guildId);
+                    currentPlaying.delete(guildId);
+                    await lavalinkManager?.shoukaku?.leaveVoiceChannel(guildId);
+                    debug(`Me desconecte en ${guildId}, nadie escuchando`);
+                }
+            } catch (e) {
+                error(`Error en checkVoiceEmptyShoukaku: ${e}`);
+            } finally {
+                mapTimmers.delete(guildId);
+            }
+        }, 10 * 1000); // 10 segundos
+        mapTimmers.set(guildId, timer);
+    } else {
+        if (mapTimmers.has(guildId)) {
+            clearTimeout(mapTimmers.get(guildId));
+            mapTimmers.delete(guildId);
+        }
+    }
+}  
