@@ -233,15 +233,17 @@ async function listaManga(interaction: ChatInputCommandInteraction, guildId: str
         .setDescription(i18next.t("manga_embed_descripcion", { ns: "mangadex", a1: feeds.length}))
         .setColor(0xFF6740);
 
-    for (const [channelId, grupo] of feedsPorCanal) {       
+    for (const [channelId, grupo] of feedsPorCanal) {
         const urlchannel = `https://discord.com/channels/${guildId}/${channelId}`;
         const lineas = grupo.feeds.map(feed => {
+            const originalName = feed.manga_title ?? "Sin Título";
+            const shortTitle = originalName.length > 50 ? originalName.substring(0, 50) + "..." : originalName;
             const flag = feed.language === 'es' ? '🇪🇸' : feed.language === 'es-la' ? '🇲🇽' : feed.language === 'en' ? '🇺🇸' : '🌐';
-            return i18next.t("manga_embed_list_entry",{ ns: "mangadex",a1: feed.id, a2: feed.manga_title, a3: flag});
+            return i18next.t("manga_embed_list_entry",{ ns: "mangadex",a1: feed.id, a2: shortTitle, a3: flag});
         });
 
         /* Seccionador de embeds */
-        const TAMANO_BLOQUE = 20;         
+        const TAMANO_BLOQUE = 12;         
         for (let i = 0; i < lineas.length; i += TAMANO_BLOQUE) {
             const bloque = lineas.slice(i, i + TAMANO_BLOQUE).join('\n');
             const sufijo = lineas.length > TAMANO_BLOQUE ? ` (Parte ${Math.floor(i/TAMANO_BLOQUE) + 1})` : '';
