@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, 
 import i18next from "i18next";
 import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
-import { hasPermission } from "../../sys/gear/managerPermission";
+import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];

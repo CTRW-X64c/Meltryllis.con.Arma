@@ -1,10 +1,10 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, GuildMember, TextChannel, EmbedBuilder, VoiceState } from "discord.js";
 import lavalinkManager, { LavalinkManager } from "../eventGear/lavalinkConnect"; 
 import { error, debug } from "../../sys/logging";
-import { hasPermission } from "../../sys/gear/managerPermission";
+import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
 
-/*=== SISTEMA DE COLA  === */
+/* === SISTEMA DE COLA  === */
 interface QueueEntry {
     track: any;
     requester: string;
@@ -44,7 +44,7 @@ export async function handleMusicInteraction(interaction: ChatInputCommandIntera
         });
         return;
     }
-
+    
     const { commandName } = interaction;
     
     switch (commandName) {
@@ -63,18 +63,24 @@ export async function handleMusicInteraction(interaction: ChatInputCommandIntera
     }
 }
 
-/* ===== PLAY =====*/
+/* ========================= PLAY ========================= */
 
 async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: LavalinkManager) {
     await interaction.deferReply();
     const guildId = interaction.guildId!;
     const member = interaction.member as GuildMember;
     const inChannelPlaying = currentPlaying.get(guildId);
+    const queue = musicQueue.get(guildId) || [];
     let query = interaction.options.getString("cancion", true);
 
     if (!member.voice.channelId) {
         await interaction.editReply(i18next.t("command_mussic_error_empit", { ns: "music" }));
         return;
+    }
+
+    // si no hay cola ni esta reproduciendo pero esta conectada "reinicia" la conexion
+    if (!inChannelPlaying && queue.length === 0) {
+        await lavalink.shoukaku?.leaveVoiceChannel(guildId);        
     }
 
     try {
@@ -156,23 +162,29 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
     }
 }
 
-/* ===== STOP =====*/
+/* ========================= STOP ========================= */
 
 async function handleStop(interaction: ChatInputCommandInteraction, lavalink: LavalinkManager) {
     const player = lavalink.getPlayer(interaction.guildId!);
+    const guildId = interaction.guildId!;
     
     if (!player) {
         await interaction.reply({ content: i18next.t("command_mussic_Stop_01", { ns: "music" }), ephemeral: true });
         return;
     }
 
-    musicQueue.delete(interaction.guildId!);
-    currentPlaying.delete(interaction.guildId!);
+    musicQueue.delete(guildId!);
+    currentPlaying.delete(guildId!);
     
     await player.stopTrack();
+    if (interaction.guild?.members.me?.voice.channelId) try {
+        await lavalink.shoukaku?.leaveVoiceChannel(guildId);
+    } catch (e) {error(`Error al desconectarse del canal de voz: ${e}`);}
     
     await interaction.reply(i18next.t("command_mussic_Stop_02", { ns: "music" }));
 }
+
+/* ========================= SKIP ========================= */
 
 async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: LavalinkManager) {
     const player = lavalink.getPlayer(interaction.guildId!);
@@ -187,7 +199,7 @@ async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: La
     await interaction.reply(i18next.t("command_mussic_Skip_02", { ns: "music" }));
 }
 
-/* ===== QUEUE =====*/
+/* ========================= QUEUE ========================= */
 
 async function handleQueue(interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId!;
@@ -221,7 +233,7 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
     await interaction.reply({ embeds: [embed] });
 }
 
-/* ===== HELPER - reproduccion - =====*/
+/* ========================= HELPER - reproduccion - ========================= */
 
 async function playNext(guildId: string, player: any, interaction?: ChatInputCommandInteraction) {
     const queue = musicQueue.get(guildId);
@@ -256,7 +268,7 @@ async function playNext(guildId: string, player: any, interaction?: ChatInputCom
     }
 }
 
-/* ===== HELPER - nadie escuchando - =====*/
+/* ========================= HELPER - nadie escuchando - ========================= */
 
 export async function checkVoiceEmptyShoukaku(oldState: VoiceState): Promise<void> {
     const guildId = oldState.guild.id;
