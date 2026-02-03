@@ -177,7 +177,7 @@ async function handleStop(interaction: ChatInputCommandInteraction, lavalink: La
     currentPlaying.delete(guildId!);
     
     await player.stopTrack();
-    if (interaction.guild?.members.me?.voice.channelId) try {
+    try {
         await lavalink.shoukaku?.leaveVoiceChannel(guildId);
     } catch (e) {error(`Error al desconectarse del canal de voz: ${e}`);}
     
