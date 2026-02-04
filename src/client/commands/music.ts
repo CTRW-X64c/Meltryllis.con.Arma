@@ -23,7 +23,10 @@ export async function registerMusicCommands() {
     return [
         new SlashCommandBuilder().setName("play").setDescription(i18next.t("command_mussic_play_01", { ns: "music" }))
             .addStringOption(o => o.setName("cancion")
-            .setDescription(i18next.t("command_mussic_play_02", { ns: "music" })).setRequired(true)),
+            .setDescription(i18next.t("command_mussic_play_02", { ns: "music" })).setRequired(true))
+            .addStringOption(o => o.setName("queue")
+            .setDescription(i18next.t("command_mussic_play_03", { ns: "music" })).setRequired(false)
+            .addChoices({ name: "yes", value: "yes" })),
         new SlashCommandBuilder().setName("stop").setDescription(i18next.t("command_mussic_stop_01", { ns: "music" })),
         new SlashCommandBuilder().setName("skip").setDescription(i18next.t("command_mussic_skip_01", { ns: "music" })),
         new SlashCommandBuilder().setName("queue").setDescription(i18next.t("command_mussic_queue_01", { ns: "music" }))
@@ -72,6 +75,7 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
     const inChannelPlaying = currentPlaying.get(guildId);
     const queue = musicQueue.get(guildId) || [];
     let query = interaction.options.getString("cancion", true);
+    const playlist = interaction.options.getString("queue");
 
     if (!member.voice.channelId) {
         await interaction.editReply(i18next.t("command_mussic_error_empit", { ns: "music" }));
@@ -103,8 +107,9 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
             return; 
         }
 
-    // Previene que se añadan listas de reproduccion
-        if (query.includes("youtube.com/watch") && query.includes("&")) {
+    // Previene que se añadan listas de reproduccion, se añada opcion para que si acepte listas
+        if (playlist !== "yes"){
+            query.includes("youtube.com/watch") && query.includes("&")
             const ampersandIndex = query.indexOf('&');
             if (ampersandIndex !== -1) query = query.substring(0, ampersandIndex);
         }

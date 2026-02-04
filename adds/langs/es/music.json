@@ -2,6 +2,7 @@
     "a1": "Builder slash",
         "command_mussic_play_01": "Reproduce música",
         "command_mussic_play_02": "URL/Nombre",
+        "command_mussic_play_03": "Añadir lista de reproduccion completa",
         "command_mussic_stop_01": "Detiene la música",
         "command_mussic_skip_01": "Salta canción",
         "command_mussic_queue_01": "Muestra lista de reproduccion",
