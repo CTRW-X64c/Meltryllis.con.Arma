@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, GuildMember, TextChannel, EmbedBuilder, VoiceState } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, GuildMember, TextChannel, EmbedBuilder, VoiceState, MessageFlags } from "discord.js";
 import lavalinkManager, { LavalinkManager } from "../eventGear/lavalinkConnect"; 
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
@@ -32,7 +32,7 @@ export async function registerMusicCommands() {
 
 export async function handleMusicInteraction(interaction: ChatInputCommandInteraction) {
     if (!lavalinkManager) {
-        await interaction.reply({ content: i18next.t("command_mussic_error_01", { ns: "music" }), ephemeral: true });
+        await interaction.reply({ content: i18next.t("command_mussic_error_01", { ns: "music" }), flags: MessageFlags.Ephemeral });
         return;
     }
 
@@ -40,7 +40,7 @@ export async function handleMusicInteraction(interaction: ChatInputCommandIntera
     if (!isAllowed) {
         await interaction.reply({
             content: i18next.t("command_permission_error_permission", { ns: "music" }),
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
         return;
     }
@@ -169,7 +169,7 @@ async function handleStop(interaction: ChatInputCommandInteraction, lavalink: La
     const guildId = interaction.guildId!;
     
     if (!player) {
-        await interaction.reply({ content: i18next.t("command_mussic_Stop_01", { ns: "music" }), ephemeral: true });
+        await interaction.reply({ content: i18next.t("command_mussic_Stop_01", { ns: "music" }), flags: MessageFlags.Ephemeral });
         return;
     }
 
@@ -190,7 +190,7 @@ async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: La
     const player = lavalink.getPlayer(interaction.guildId!);
     
     if (!player || !player.track) {
-        await interaction.reply({ content: i18next.t("command_mussic_Skip_01", { ns: "music" }), ephemeral: true });
+        await interaction.reply({ content: i18next.t("command_mussic_Skip_01", { ns: "music" }), flags: MessageFlags.Ephemeral });
         return;
     }
 

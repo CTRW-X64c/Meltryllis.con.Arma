@@ -66,7 +66,6 @@ export class LavalinkManager {
                     try {
                         await Promise.race([
                             node.rest.getLavalinkInfo(),
-                            console.debug(`[Lavalink] Mandando "ping" a ${node.name}...`),
                             new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000))
                         ]);
                     } catch (err) {
