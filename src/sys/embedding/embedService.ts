@@ -56,45 +56,49 @@ export function startEmbedService(client: Client): void {
                 debug(i18next.t("invalid_url", {ns: "core", url: originalUrl }), "Events.MessageCreate");
                 continue;
             }
-
-            for (const [key, replaceFunc] of Object.entries(replacements)) {
-                const manualDomainConfig = guildReplacementConfig.get(key);
-                if (manualDomainConfig && manualDomainConfig.enabled === false) {
-                    debug(i18next.t("api_domain_disabled", {ns: "core", domain: key }), "Events.MessageCreate");
-                    continue;
-                }
-                
-                if (new RegExp(key).test(originalUrl)) {
-                    const result = (replaceFunc as any)(originalUrl.replace(/\|/g, ""));
-                    if (result) {
-                        replacedUrl = result;
-                        break;
-                    }
-                }
-            }
-
-            if (!replacedUrl) {
-                try {
-                    const matchingDomain = apiReplacementDomainsEnv.find(d => domainSite?.endsWith(d));
-                    if (matchingDomain) {
-                        const apiDomainConfig = guildReplacementConfig.get(matchingDomain);
-                        if (apiDomainConfig) {
-                            debug(i18next.t("config_found", {ns: "core", domain: matchingDomain, enabled: apiDomainConfig.enabled }), "Events.MessageCreate");
-                            if (apiDomainConfig.enabled === false) {
-                                debug(i18next.t("api_domain_disabled", {ns: "core", domain: matchingDomain }), "Events.MessageCreate");
-                                continue;
-                            }
-                        } else {
-                            debug(i18next.t("config_not_found", {ns: "core", domain: matchingDomain }), "Events.MessageCreate");
+    /* ==================================================== Ajuste para prioridad del API ==================================================== */
+            try {
+                const matchingDomain = apiReplacementDomainsEnv.find(d => domainSite?.endsWith(d)); 
+                if (matchingDomain) {
+                    const apiDomainConfig = guildReplacementConfig.get(matchingDomain);
+                    let apiEnabled = true;
+                    if (apiDomainConfig) {
+                        if (apiDomainConfig.enabled === false) {
+                            debug(i18next.t("api_domain_disabled", {ns: "core", domain: matchingDomain }), "Events.MessageCreate");
+                            apiEnabled = false;
                         }
-                        
-                        replacedUrl = await apiReplacer.getEmbedUrl(originalUrl);
+                    } 
+
+                    if (apiEnabled) {
+                        const apiResult = await apiReplacer.getEmbedUrl(originalUrl);
+                        if (apiResult) {
+                            replacedUrl = apiResult;
+                            debug(`API replacement used for: ${domainSite}`, "Events.MessageCreate");
+                        }
                     }
-                } catch (err) {
-                    debug(i18next.t("invalid_url", {ns: "core", url: originalUrl }), "Events.MessageCreate");
+                }
+            } catch (err) {
+                debug(i18next.t("api_error", {ns: "core", error: (err as Error).message }), "Events.MessageCreate");
+            }
+    /* ==================================================== No API ==================================================== */
+            if (!replacedUrl) {
+                for (const [key, replaceFunc] of Object.entries(replacements)) {
+                    const manualDomainConfig = guildReplacementConfig.get(key); 
+                    if (manualDomainConfig && manualDomainConfig.enabled === false) {
+                        continue;
+                    }
+                    
+                    if (new RegExp(key).test(originalUrl)) {
+                        const result = (replaceFunc as any)(originalUrl.replace(/\|/g, ""));
+                        if (result) {
+                            replacedUrl = result;
+                            debug(`Local replacement used for regex key matching: ${key}`, "Events.MessageCreate");
+                            break; 
+                        }
+                    }
                 }
             }
-
+    /* ==================================================== Procesamiento del mensaje ==================================================== */
             if (replacedUrl) {
                 const hiddenMessage = message.content.includes("||")
                 let messageContent = i18next.t("format_link", { ns: "core", Site: domainSite, RemUrl: replacedUrl });
@@ -194,7 +198,7 @@ export function startEmbedService(client: Client): void {
                     if (errMsg.includes("Missing Permissions")) {
                         return;
                     }
-                    error(i18next.t("reply_fail", {ns: "core", error: errMsg }), "Events.MessageCreate");                   
+                    error(i18next.t("reply_fail", {ns: "core", error: errMsg }), "Events.MessageCreate");                  
                 }
             }
         }
