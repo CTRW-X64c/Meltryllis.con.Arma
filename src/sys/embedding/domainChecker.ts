@@ -26,7 +26,11 @@ class UrlStatusManager {
     }
 
     private async runChecks() {
-        for (const meta of replacementMetaList) {
+        const targets = [
+            ...replacementMetaList.map(map => ({ name: map.name, envVar: map.envVar })),
+        ];
+
+        for (const meta of targets) {
             const envVarName = meta.envVar;
             const rawEnv = process.env[envVarName];
             

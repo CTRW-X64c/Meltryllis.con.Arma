@@ -116,7 +116,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
             const textChannel = channel as TextChannel;
             
             for (const post of newPosts) { 
-                const upEmbeddingDomain = urlStatusManager.getActiveUrl("REDDIT_FIX_URL") || "reddit.com";
+                const upEmbeddingDomain = urlStatusManager.getActiveUrl("REDDIT_FIX_URL");
                 const hint = post.post_hint;
                 const noHint = post.is_gallery || post.is_video;
                 switch (feed.filter_mode) {
