@@ -2,7 +2,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel, PermissionsBitField } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";
-import { hasPermission } from "../../sys/gear/managerPermission";
+import { hasPermission } from "../../sys/zGears/mPermission";
 import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../../sys/DB-Engine/links/Rolemoji";11
 
 function getEmojiKey(emojiString: string): string {

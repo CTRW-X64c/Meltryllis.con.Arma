@@ -4,7 +4,7 @@ import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, 
 import { error, info, debug } from "../../sys/logging";
 import i18next from "i18next";
 import { getVoiceConfig, setVoiceConfig, getAllTempVoiceChannels, getGuildTempChannelCount } from "../../sys/DB-Engine/links/JointoVoice";
-import { hasPermission } from "../../sys/gear/managerPermission";
+import { hasPermission } from "../../sys/zGears/mPermission";
 
 
 export async function registerJoinToCreateCommand(): Promise<SlashCommandBuilder[]> {

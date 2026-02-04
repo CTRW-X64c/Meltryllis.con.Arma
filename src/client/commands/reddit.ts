@@ -3,8 +3,8 @@ import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlag
 import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed} from "../../sys/DB-Engine/links/Reddit";
 import { RedditApiResponse } from "../eventGear/redditCheck";
 import { error, debug} from "../../sys/logging";
-import { redditApi } from "../../sys/gear/RedditApi";
-import { hasPermission } from "../../sys/gear/managerPermission";
+import { redditApi } from "../../sys/zGears/RedditApi";
+import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
 
 const redditDomain = process.env.REDDIT_FIX_URL || "reddit.com";

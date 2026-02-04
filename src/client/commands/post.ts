@@ -1,7 +1,7 @@
 // src/client/commands/post.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, TextChannel, Message, Attachment } from "discord.js";
 import { error, debug } from "../../sys/logging";
-import { hasPermission } from "../../sys/gear/managerPermission";
+import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
 
 export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
