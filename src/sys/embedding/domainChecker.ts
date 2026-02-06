@@ -1,4 +1,4 @@
-import { info, error } from "../logging";
+import { info, error, debug } from "../logging";
 import { replacementMetaList } from "./EmbedingConfig"; 
 
 class UrlStatusManager {
@@ -28,6 +28,7 @@ class UrlStatusManager {
     private async runChecks() {
         const targets = [
             ...replacementMetaList.map(map => ({ name: map.name, envVar: map.envVar })),
+                {name: "APIs", envVar: "APIs_FIX_URL"}
         ];
 
         for (const meta of targets) {
@@ -70,19 +71,21 @@ class UrlStatusManager {
             
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+            const header = { 'User-Agent': 'MeltryllistHealthCheck/1.0' }
 
             const response = await fetch(url, { 
                 method: 'HEAD', 
                 signal: controller.signal,
-                headers: { 'User-Agent': 'MeltryllistHealthCheck/1.0' }
+                headers: header
             }).catch(() => {
-                return fetch(url, { method: 'GET', signal: controller.signal });
+                return fetch(url, { method: 'GET', signal: controller.signal, headers: header});
             });
 
             clearTimeout(timeoutId);
             return response.status < 500; 
 
         } catch (e) {
+            debug(`[DomainCheck] Error crítico verificando ${domain}: ${e}`);
             return false;
         }
     }
