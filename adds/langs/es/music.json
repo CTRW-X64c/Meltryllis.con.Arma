@@ -18,11 +18,12 @@
         "command_mussic_playlist":"✅ Playlist **{{a1}}** cargada ({{a2}} canciones).",
         "command_mussic_playlist_queue":"📝 Agregado a la cola: **{{a1}}**",
 
-        "command_mussic_Stop_01": "💤 No estoy tocando nada.",
+        "command_mussic_Stop_01": "💤 No estoy reproduciendo nada.",
         "command_mussic_Stop_02": "🛑 Música detenida, se borro la cola.",
 
-        "command_mussic_Skip_01": "Estamos en la ultima cancion.",
-        "command_mussic_Skip_02": "⏭️ Canción saltada.",
+        "command_mussic_Skip_01": "⏭️ Canción saltada.",
+        "command_mussic_Skip_02": "Estamos en la ultima cancion.",
+        "command_mussic_Skip_03": "❌ No estoy reproduciendo nada",
 
         "command_mussic_Queue_01": "📋 La lista está vacía.",
         "command_mussic_Queue_02": "🎵 Lista de Reproducción",

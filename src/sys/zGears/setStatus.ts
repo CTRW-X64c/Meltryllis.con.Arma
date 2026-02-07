@@ -14,8 +14,8 @@ const parseStatuses = (statusString: string | undefined): Status[] => {
   }
 
   try {
-    return statusString.split(";").map((status) => {
-      const [name, type] = status.split("|").map(part => part.trim());
+    return statusString.split("|").map((status) => {
+      const [type, name] = status.split(";").map(part => part.trim());
       if (!name || !type) {
         throw new Error(`Formato inválido en estado: ${status}`);
       }

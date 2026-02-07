@@ -205,16 +205,23 @@ async function handleStop(interaction: ChatInputCommandInteraction, lavalink: La
 
 async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: LavalinkManager) {
     const player = lavalink.getPlayer(interaction.guildId!);
-    
-    if (!player || !player.track) {
-        await interaction.reply({ content: i18next.t("command_mussic_Skip_01", { ns: "music" }), flags: MessageFlags.Ephemeral });
+    const queue = musicQueue.get(interaction.guildId!) || [];
+    const inChannelPlaying = currentPlaying.get(interaction.guildId!);
+
+    if (inChannelPlaying && queue.length > 0){
+        await interaction.reply({ content: i18next.t("command_mussic_Skip_01", { ns: "music"}),  flags: MessageFlags.Ephemeral });
+        await player?.stopTrack();
         await deletReplyMsg(interaction);
         return;
     }
 
-    await player.stopTrack();
-    
-    await interaction.reply(i18next.t("command_mussic_Skip_02", { ns: "music" }));
+    if (inChannelPlaying && queue.length === 0){
+        await interaction.reply({ content: i18next.t("command_mussic_Skip_02", { ns: "music" }), flags: MessageFlags.Ephemeral });
+        await deletReplyMsg(interaction);
+        return;
+    }
+
+    await interaction.reply({ content: i18next.t("command_mussic_Skip_03", { ns: "music" }), flags: MessageFlags.Ephemeral });
     await deletReplyMsg(interaction);
 }
 
@@ -337,5 +344,5 @@ async function deletReplyMsg(interaction: ChatInputCommandInteraction) {
         interaction.deleteReply().catch((e) => {
             debug(`Error al borrar respuesta ${e}`);
         });
-    }, 30000); // Borra las repsues 30s despues
+    }, 30000); // Borra a los 30s
 }
