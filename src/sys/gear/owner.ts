@@ -2,7 +2,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction } from "discord.js";
 import { debug, error, } from "../logging";
 import { Buffer } from 'node:buffer';
-import { checkAllDomains, buildDomainStatusEmbed } from "./neTools";
+import { checkAllDomains, buildDomainStatusEmbed } from "../../client/eventGear/neTools";
 
 export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()
@@ -28,7 +28,12 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
             subcommand
                 .setName("checkdomains")
                 .setDescription("Verifica el estado de los dominios de embedding.")
-   
+                .addBooleanOption(option =>
+                    option
+                        .setName("detallado")
+                        .setDescription("Mostrar información detallada de cada dominio")
+                        .setRequired(false)
+                )
         )
         .addSubcommand(subcommand =>
             subcommand
@@ -224,7 +229,9 @@ async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<vo
 export async function ChekDominios(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-                
+        
+        const showDetailed = interaction.options.getBoolean("detallado") ?? false;
+        
         await interaction.editReply({
             content: "🔄 Verificando estado de dominios (Comando Owner)..."
         });
@@ -233,7 +240,7 @@ export async function ChekDominios(interaction: ChatInputCommandInteraction): Pr
         const domainStatuses = await checkAllDomains();
         
         // 3. Llama al constructor de embeds
-        const embed = buildDomainStatusEmbed(domainStatuses);
+        const embed = buildDomainStatusEmbed(domainStatuses, showDetailed);
         
         await interaction.editReply({ 
             content: null, 

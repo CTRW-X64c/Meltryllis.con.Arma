@@ -1,6 +1,6 @@
 // src/client/coreCommands/neetTools.ts
 import { EmbedBuilder } from 'discord.js';
-import { debug, info } from '../logging'; // Asegúrate de tener los imports
+import { debug, info } from '../../sys/logging'; // Asegúrate de tener los imports
 import i18next from 'i18next';
 
 interface DomainStatus {
@@ -17,17 +17,13 @@ function getDomainsFromEnv(): Array<{ name: string; url: string; expectedStatus:
     for (const [key, value] of Object.entries(process.env)) {
         if (key.endsWith('_FIX_URL') && value && value.trim() !== '') {
             const serviceName = key.replace('_FIX_URL', '');
-            const rawUrls = value.trim();
-            const splitURL = rawUrls.split('|').map(url => url.trim()).filter(url => url.length > 0);
-            
-            for (const url of splitURL) {
-                const fullUrl = ensureProtocol(url);
-                domains.push({
-                    name: formatServiceName(serviceName),
-                    url: fullUrl,
-                    expectedStatus: 200
-                });
-            }
+            const rawUrl = value.trim();
+            const fullUrl = ensureProtocol(rawUrl);
+            domains.push({
+                name: formatServiceName(serviceName),
+                url: fullUrl,
+                expectedStatus: 200
+            });
         }
     }
     return domains;
@@ -50,16 +46,15 @@ async function checkDomain(domain: { name: string; url: string; expectedStatus: 
         const timeoutId = setTimeout(() => controller.abort(), 15000);
         
         const response = await fetch(domain.url, {
-            method: 'HEAD',
+            method: 'GET',
             signal: controller.signal,
-            headers: { 'User-Agent': 'MeltryllistHealthCheck/1.0' }
-        }).catch(() => {
-            return fetch(domain.url, { method: 'GET', signal: controller.signal });
+            headers: {},
+            redirect: 'follow'
         });
         
         clearTimeout(timeoutId);
         const responseTime = Date.now() - startTime;
-        const isSuccess = response.status >= 200 && response.status < 499;
+        const isSuccess = response.status >= 200 && response.status < 400;
         
         return {
             name: domain.name, url: domain.url, status: response.status,
@@ -92,7 +87,7 @@ export async function checkAllDomains(): Promise<DomainStatus[]> {
     return results;
 }
 
-export function buildDomainStatusEmbed(domainStatuses: DomainStatus[]): EmbedBuilder {
+export function buildDomainStatusEmbed(domainStatuses: DomainStatus[], showDetailed: boolean): EmbedBuilder {
     const embed = new EmbedBuilder()
         .setTitle(i18next.t("neTools_embed_title", { ns: "neTools" }))
         .setTimestamp();
@@ -110,27 +105,46 @@ export function buildDomainStatusEmbed(domainStatuses: DomainStatus[]): EmbedBui
         embed.setColor("#ffaa00");
     }
     
-    const groupedDomains: { [key: string]: DomainStatus[] } = {};
-    
-    domainStatuses.forEach(domain => {
-        if (!groupedDomains[domain.name]) {
-            groupedDomains[domain.name] = [];
-        }
-        groupedDomains[domain.name].push(domain);
-    });
-
-    for (const [serviceName, domains] of Object.entries(groupedDomains)) {
-        const fieldContent = domains.map(d => {
-            const statusIcon = d.isWorking ? "✅" : "🔻";
-            const cleanUrl = d.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
-            return `  ${cleanUrl} ${statusIcon}`;
-        }).join('\n');
-
-        embed.addFields({
-            name: serviceName,
-            value: fieldContent,
-            inline: true
+    if (showDetailed) {
+        domainStatuses.forEach(domain => {
+            const statusEmoji = domain.isWorking ? "✅" : "❌";
+            const statusText = domain.isWorking ? i18next.t("neTools_embed_operativo", { ns: "neTools" }) : i18next.t("neTools_embed_inoperativo", { ns: "neTools" }); 
+            
+            let fieldValue = `${statusEmoji} ${statusText}\n`;
+            fieldValue += `📊 HTTP: ${domain.status || "N/A"}\n`;
+            fieldValue += i18next.t("neTools_embed_tiempo", { ns: "neTools", a1: domain.responseTime});
+            
+            if (domain.error) {
+                fieldValue += i18next.t("neTools_embed_error", { ns: "neTools", a1: domain.error});
+            }
+            
+            fieldValue += `🔗 ${domain.url}`;
+            
+            embed.addFields({
+                name: domain.name,
+                value: fieldValue,
+                inline: false
+            });
         });
+    } else {
+        const workingDomains = domainStatuses.filter(d => d.isWorking);
+        const brokenDomains = domainStatuses.filter(d => !d.isWorking);
+        
+        if (workingDomains.length > 0) {
+            embed.addFields({
+                name: i18next.t("neTools_embed_operativos", { ns: "neTools", a1: workingDomains.length}),
+                value: workingDomains.map(d => `• ${d.name} (${d.responseTime}ms)`).join('\n'),
+                inline: true
+            });
+        }
+        
+        if (brokenDomains.length > 0) {
+            embed.addFields({
+                name: i18next.t("neTools_embed_inoperativos", { ns: "neTools", a1: brokenDomains.length}),
+                value: brokenDomains.map(d => `• ${d.name} - ${d.error?.split(' - ')[0] || `HTTP ${d.status}`}`).join('\n'),
+                inline: true
+            });
+        }
     }
     
     const workingDomains = domainStatuses.filter(d => d.isWorking);

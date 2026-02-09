@@ -3,8 +3,7 @@ import { Client, TextChannel } from 'discord.js';
 import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed } from '../../sys/DB-Engine/links/Reddit';
 import { info, error, debug } from '../../sys/logging';
 import i18next from 'i18next';
-import { redditApi } from '../../sys/zGears/RedditApi';
-import urlStatusManager from '../../sys/embedding/domainChecker';
+import { redditApi } from '../../sys/gear/RedditApi'; 
 
 export interface RedditApiResponse {
     data: {
@@ -26,6 +25,7 @@ interface RedditPost {
     over_18: boolean;
 }
 
+const redditEmbedDomain = process.env.REDDIT_FIX_URL || "reddit.com";
 const BATCH_SIZE = 99;
 let currentFeedIndex = 0;
 
@@ -116,7 +116,6 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
             const textChannel = channel as TextChannel;
             
             for (const post of newPosts) { 
-                const upEmbeddingDomain = urlStatusManager.getActiveUrl("REDDIT_FIX_URL");
                 const hint = post.post_hint;
                 const noHint = post.is_gallery || post.is_video;
                 switch (feed.filter_mode) {
@@ -140,7 +139,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 const nsfwChannel = feed.nsfw_protect;
                 const nsfwCheck = nsfwPost && !nsfwChannel;
                 const permalink = post.permalink;
-                const formattedUrl = `https://${upEmbeddingDomain}${permalink}`;
+                const formattedUrl = `https://www.${redditEmbedDomain}${permalink}`;
                 const MAX_LENGTH = 50;
                 const originalTitle = post.title ?? "Sin Título";
                 const truncatedTitle = originalTitle.length > MAX_LENGTH
@@ -164,7 +163,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 }
                      
                 await textChannel.send(messageContent);
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                await new Promise(resolve => setTimeout(resolve, 1100));
             }           
 
             const latestPostId = newPosts[newPosts.length - 1].name;

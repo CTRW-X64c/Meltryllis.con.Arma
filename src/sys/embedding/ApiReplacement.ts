@@ -3,7 +3,10 @@ import { debug, error } from "../../sys/logging";
 
 interface EmbedezApiResponse {
     success: boolean;
-    error?: string;
+    data: {
+        shareUrl: string;        
+    };
+    error?: string; 
 }
 
 export default class ApiReplacement {
@@ -26,9 +29,9 @@ export default class ApiReplacement {
             }
 
             const data = (await response.json()) as EmbedezApiResponse;
-            if (data.success) {
-                debug(`API de Embedez exitosa: ${originalUrl} -> https://embedez.com/download?q=${originalUrl}`, "ApiReplacement");
-                return `https://embedez.com/download?q=${originalUrl}`;
+            if (data.success && data.data && data.data.shareUrl) {
+                debug(`API de Embedez exitosa: ${originalUrl} -> ${data.data.shareUrl}`, "ApiReplacement");
+                return data.data.shareUrl;
             } else {
                 debug(`API de Embedez falló para la URL: ${originalUrl}. Respuesta: ${JSON.stringify(data)}`, "ApiReplacement");
                 return null;
