@@ -6,6 +6,7 @@
         "command_mussic_stop_01": "Detiene la música",
         "command_mussic_skip_01": "Salta canción",
         "command_mussic_queue_01": "Muestra lista de reproduccion",
+        "command_mussic_queue_02": "Limpia la lista de reproduccion",
     
     "a2": "Mensajes",
         "command_mussic_error_01": "❌ El sistema de música está desactivado.",
@@ -18,11 +19,12 @@
         "command_mussic_playlist":"✅ Playlist **{{a1}}** cargada ({{a2}} canciones).",
         "command_mussic_playlist_queue":"📝 Agregado a la cola: **{{a1}}**",
 
-        "command_mussic_Stop_01": "💤 No estoy tocando nada.",
+        "command_mussic_Stop_01": "💤 No estoy reproduciendo nada.",
         "command_mussic_Stop_02": "🛑 Música detenida, se borro la cola.",
 
-        "command_mussic_Skip_01": "Estamos en la ultima cancion.",
-        "command_mussic_Skip_02": "⏭️ Canción saltada.",
+        "command_mussic_Skip_01": "⏭️ Canción saltada.",
+        "command_mussic_Skip_02": "Estamos en la ultima cancion.",
+        "command_mussic_Skip_03": "❌ No estoy reproduciendo nada",
 
         "command_mussic_Queue_01": "📋 La lista está vacía.",
         "command_mussic_Queue_02": "🎵 Lista de Reproducción",
@@ -30,6 +32,8 @@
         "command_mussic_Queue_03_value": "**[{{a1}}]({{a2}})** - `{{a3}}`",
         "command_mussic_Queue_04": "**Próximas canciones:** \n{{a1}}{{a2}}",
         "command_mussic_Queue_05": "*No hay más canciones en espera.*",
+        "command_mussic_Queue_06": "❌ No hay lista de reproduccion activa.",
+        "command_mussic_Queue_07": "Lista de reproduccion eliminada.",
 
         "command_mussic_pNext_01": "💤 Cola terminada. Desconectando...",
         "command_mussic_pNext_02": "▶️ Reproduciendo: **{{a1}}** \nPedida por: {{a2}}"

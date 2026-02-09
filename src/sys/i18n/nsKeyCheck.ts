@@ -152,7 +152,8 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_mussic_play_02",
         "command_mussic_stop_01",
         "command_mussic_skip_01",
-        "command_mussic_queue_01"
+        "command_mussic_queue_01",
+        "command_mussic_queue_02"
     ]
 
     // Agrega más namespaces según necesites

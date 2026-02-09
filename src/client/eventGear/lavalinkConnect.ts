@@ -77,7 +77,7 @@ export class LavalinkManager {
                     this.forceReconnect(node);
                 }
             });
-        }, 5 * 60 * 1000); 
+        }, 60 * 60 * 1000); 
     }
     
     private forceReconnect(node: any) {

@@ -51,7 +51,7 @@ export const replacementMetaList: ReplacementMeta[] = [
     name: "Facebook",
     envVar: "FACEBOOK_FIX_URL",
     Class: Facebook,
-    regexKeys: ["(\\/\\/|\\.)?facebook\\.com/share/r/"],
+    regexKeys: ["(\\/\\/|\\.)?facebook\\.com/"],
     takesUrl: true,
   },
   {

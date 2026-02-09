@@ -7,7 +7,7 @@ import ApiReplacement from "./ApiReplacement";
 import { debug, error } from "../logging";
 import i18next from "i18next";
 
-const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
+const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split('|').map(s => s.trim()) : [];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
 const MAX_EMBEDS = 5;
 
