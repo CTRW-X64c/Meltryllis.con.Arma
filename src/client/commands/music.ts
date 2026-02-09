@@ -30,6 +30,9 @@ export async function registerMusicCommands() {
         new SlashCommandBuilder().setName("stop").setDescription(i18next.t("command_mussic_stop_01", { ns: "music" })),
         new SlashCommandBuilder().setName("skip").setDescription(i18next.t("command_mussic_skip_01", { ns: "music" })),
         new SlashCommandBuilder().setName("queue").setDescription(i18next.t("command_mussic_queue_01", { ns: "music" }))
+            .addStringOption(o => o.setName("clean")
+            .setDescription(i18next.t("command_mussic_queue_02", { ns: "music" })).setRequired(false)
+            .addChoices({ name: "yes", value: "yes" })),
     ];
 }
 
@@ -231,6 +234,22 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId!;
     const queue = musicQueue.get(guildId) || [];
     const current = currentPlaying.get(guildId);
+    const cleanqueue = interaction.options.getString("clean");
+
+    if (cleanqueue === "yes") { /*Ahora permite borrar la lista*/
+        if (queue.length === 0 || !current) {
+            await interaction.reply(i18next.t("command_mussic_Queue_06", { ns: "music" }));
+            await deletReplyMsg(interaction);
+            return;
+        }
+
+        if (queue.length > 0 && current) {
+            musicQueue.delete(guildId);
+            await interaction.reply(i18next.t("command_mussic_Queue_07", { ns: "music" }));
+            await deletReplyMsg(interaction);
+            return;
+        }
+    }
 
     if (!current && queue.length === 0) {
         await interaction.reply(i18next.t("command_mussic_Queue_01", { ns: "music" }));
