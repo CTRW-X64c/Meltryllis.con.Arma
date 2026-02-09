@@ -10,32 +10,32 @@ import i18next from "i18next";
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
 const MAX_EMBEDS = 5;
+const replyToOtherBots = process.env.REPLY_OTHER_BOTS === "true";
 
 export function startEmbedService(client: Client): void {
     client.on(Events.MessageCreate, async (message) => {
         if (!client.user || message.author.id === client.user.id) {
-            debug(`Ignorando mensaje propio...`, "Events.MessageCreate");
+            debug(i18next.t("Ignoring_message", {ns: "core", authorId: message.author.id }), "Events.MessageCreate");
             return;
         }
 
         const guildId = message.guild?.id;
         const channelId = message.channel.id;
         const guildReplacementConfig = guildId ? await getGuildReplacementConfig(guildId) : new Map();
-        const originalAuthorId = message.author.id;
-        const isBot = message.author.bot;
+        const originalAuthorId = message.author.id; 
 
         if (guildId) {
             const channelConfig = (await getConfigMap()).get(guildId)?.get(channelId);
             if (channelConfig?.enabled === false) {
-                debug(`Canal: ${channelId} deshabilitado en gremio: ${guildId}`, "Events.MessageCreate");
+                debug(i18next.t("channel_disabled", {ns: "core", channelId }), "Events.MessageCreate");
                 return;
             }
-            if (isBot && channelConfig?.replyBots !== true) {
-                debug(`No respondere a bots en canal: ${channelId} del gremio: ${guildId}`, "Events.MessageCreate");
+            if (channelConfig?.replyBots === false && message.author.bot) {
+                debug(i18next.t("reply_bots_disabled", {ns: "core", channelId }), "Events.MessageCreate");
                 return;
             }
-        } else if (isBot) {
-            debug(`Ignorando mensaje de BOT`, "Events.MessageCreate");
+        } else if (!replyToOtherBots && message.author.bot) {
+            debug(i18next.t("fallback_reply_bots_disabled", {ns: "core" }), "Events.MessageCreate");
             return;
         }
         
@@ -53,52 +53,48 @@ export function startEmbedService(client: Client): void {
                 const urlObject = new URL(originalUrl);
                 domainSite = urlObject.hostname.replace('www.', '');
             } catch (err) {
-                debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate");
+                debug(i18next.t("invalid_url", {ns: "core", url: originalUrl }), "Events.MessageCreate");
                 continue;
             }
-    /* ==================================================== Ajuste para prioridad del API ==================================================== */
-            try {
-                const matchingDomain = apiReplacementDomainsEnv.find(d => domainSite?.endsWith(d)); 
-                if (matchingDomain) {
-                    const apiDomainConfig = guildReplacementConfig.get(matchingDomain);
-                    let apiEnabled = true;
-                    if (apiDomainConfig) {
-                        if (apiDomainConfig.enabled === false) {
-                            debug(`El uso del API esta deshabilitado para el dominio: ${matchingDomain} en el gremio: ${guildId}`, "Events.MessageCreate");
-                            apiEnabled = false;
-                        }
-                    } 
 
-                    if (apiEnabled) {
-                        const apiResult = await apiReplacer.getEmbedUrl(originalUrl);
-                        if (apiResult) {
-                            replacedUrl = apiResult;
-                            debug(`Sitio: ${domainSite} a sido procesado por ApiReplacement`, "Events.MessageCreate");
-                        }
+            for (const [key, replaceFunc] of Object.entries(replacements)) {
+                const manualDomainConfig = guildReplacementConfig.get(key);
+                if (manualDomainConfig && manualDomainConfig.enabled === false) {
+                    debug(i18next.t("api_domain_disabled", {ns: "core", domain: key }), "Events.MessageCreate");
+                    continue;
+                }
+                
+                if (new RegExp(key).test(originalUrl)) {
+                    const result = (replaceFunc as any)(originalUrl.replace(/\|/g, ""));
+                    if (result) {
+                        replacedUrl = result;
+                        break;
                     }
                 }
-            } catch (err) {
-                debug(`Erro en el API: ${(err as Error).message}`, "Events.MessageCreate");
             }
-    /* ==================================================== No API ==================================================== */
+
             if (!replacedUrl) {
-                for (const [key, replaceFunc] of Object.entries(replacements)) {
-                    const manualDomainConfig = guildReplacementConfig.get(key); 
-                    if (manualDomainConfig && manualDomainConfig.enabled === false) {
-                        continue;
-                    }
-                    
-                    if (new RegExp(key).test(originalUrl)) {
-                        const result = (replaceFunc as any)(originalUrl.replace(/\|/g, ""));
-                        if (result) {
-                            replacedUrl = result;
-                            debug(`Se uso el reemplazador local: ${key}`, "Events.MessageCreate");
-                            break; 
+                try {
+                    const matchingDomain = apiReplacementDomainsEnv.find(d => domainSite?.endsWith(d));
+                    if (matchingDomain) {
+                        const apiDomainConfig = guildReplacementConfig.get(matchingDomain);
+                        if (apiDomainConfig) {
+                            debug(i18next.t("config_found", {ns: "core", domain: matchingDomain, enabled: apiDomainConfig.enabled }), "Events.MessageCreate");
+                            if (apiDomainConfig.enabled === false) {
+                                debug(i18next.t("api_domain_disabled", {ns: "core", domain: matchingDomain }), "Events.MessageCreate");
+                                continue;
+                            }
+                        } else {
+                            debug(i18next.t("config_not_found", {ns: "core", domain: matchingDomain }), "Events.MessageCreate");
                         }
+                        
+                        replacedUrl = await apiReplacer.getEmbedUrl(originalUrl);
                     }
+                } catch (err) {
+                    debug(i18next.t("invalid_url", {ns: "core", url: originalUrl }), "Events.MessageCreate");
                 }
             }
-    /* ==================================================== Procesamiento del mensaje ==================================================== */
+
             if (replacedUrl) {
                 const hiddenMessage = message.content.includes("||")
                 let messageContent = i18next.t("format_link", { ns: "core", Site: domainSite, RemUrl: replacedUrl });
@@ -108,23 +104,23 @@ export function startEmbedService(client: Client): void {
                 replacedUrls.push(messageContent);
             }
         }
-    /* ==================================================== Borrado de embed y Emoji ==================================================== */
+
         if (replacedUrls.length > 0) {
             const suppressEmbedsWithRetry = async (msg: Message, maxAttempts = 5, delayMs = 1000) => {
                 for (let attempt = 1; attempt <= maxAttempts; attempt++) {
                     try {
                         await new Promise((resolve) => setTimeout(resolve, delayMs));
                         await msg.suppressEmbeds(true);
-                        debug(`Se eilimino el embed del mensaje en el gremio: ${msg.guild?.id} en ${attempt} intentos`, "Events.MessageCreate");
+                        debug(i18next.t("embeds_suppressed", {ns: "core", attempt }), "Events.MessageCreate");
                         return;
                     } catch (err) {
                         const errMsg: string = (err as Error).message;
                         if (errMsg.includes("Missing Permissions")) {
-                            error(`No pude borrar el embed por falta de permisos!!`, "Events.MessageCreate");
+                            error(i18next.t("suppress_embeds_fail_permissions", {ns: "core" }), "Events.MessageCreate");
                             return;
                         }
                         if (attempt === maxAttempts) {
-                            error(`Se intento borrar el embed ${maxAttempts} veces, pero no se pudo. Error: ${errMsg}`, "Events.MessageCreate");
+                            error(i18next.t("suppress_embeds_fail_retries", {ns: "core", maxAttempts, error: errMsg }), "Events.MessageCreate");
                         }
                     }
                 }
@@ -135,6 +131,7 @@ export function startEmbedService(client: Client): void {
                 const replyContent = currentBatch.join('\n');          
                 try {
                    let botMessage: Message;
+
                     if (i === 0) {
                         botMessage = await message.reply({
                             content: replyContent,
@@ -149,9 +146,9 @@ export function startEmbedService(client: Client): void {
                     }
                     try {
                         await botMessage.react('❌'); 
-                        debug(`Añadiendo reaccion "❌" a mensaje.`, "Events.MessageCreate");
+                        debug("Reaction ❌ added to bot message.", "Events.MessageCreate");
                     } catch (err) {
-                        error(`Ocurrio un error al añadir la reaccion "❌" al mensaje: ${err}`, "Events.MessageCreate");
+                        error(`Failed to react with ❌ on bot message: ${err}`, "Events.MessageCreate");
                     }
                     const filter = (reaction: MessageReaction, user: User) => {
                         return reaction.emoji.name === '❌' && user.id === originalAuthorId;
@@ -160,18 +157,18 @@ export function startEmbedService(client: Client): void {
                     const collector = botMessage.createReactionCollector({ filter, max: 1, time: 20000 });
 
                     collector.on('collect', async (_reaction: MessageReaction) => {
-                        debug(`El autor reacciono con "❌" al mensaje. Borrando mensaje...`, "Events.MessageCreate");
+                        debug(`Reaction ❌ collected. Deleting message...`, "Events.MessageCreate");
                         try {
                             await botMessage.delete();
-                            debug("Se borro el mensaje correctamente", "Events.MessageCreate");
+                            debug("Bot message deleted successfully via reaction.", "Events.MessageCreate");
                         } catch (err) {
                             const errMsg: string = (err as Error).message;
-                            error(`No pude borrar el mensaje reaccionado: ${errMsg}`, "Events.MessageCreate");
+                            error(`Failed to delete message via reaction: ${errMsg}`, "Events.MessageCreate");
                             const failureMessage = await message.channel.send(i18next.t("message_delete_failed", { ns: "core" }));
                             setTimeout(() => {
                                 failureMessage.delete().catch((e: Error) => {
                                     if (e.message.includes("Unknown Message")) return;
-                                    debug(`Tampoco pude borrar la noticacion de error de borrado por reaccion: ${e.message}`, "Events.MessageCreate");
+                                    debug(`Could not delete follow-up failure message: ${e.message}`, "Events.MessageCreate");
                                 });
                             }, 5000);
                         }
@@ -183,7 +180,7 @@ export function startEmbedService(client: Client): void {
                                 const reactionToRemove = botMessage.reactions.cache.get('❌');
                                 if (reactionToRemove) {
                                     await reactionToRemove.remove(); 
-                                    debug("Tiempo agotado, se removio la reaccion ❌", "Events.MessageCreate");
+                                    debug("❌ reaction removed after 20s timeout.", "Events.MessageCreate");
                                 }
                             } catch (err) {
                                 const errMsg: string = (err as Error).message;
@@ -197,7 +194,7 @@ export function startEmbedService(client: Client): void {
                     if (errMsg.includes("Missing Permissions")) {
                         return;
                     }
-                    error(`Error al responder: ${errMsg}`, "Events.MessageCreate");                  
+                    error(i18next.t("reply_fail", {ns: "core", error: errMsg }), "Events.MessageCreate");                   
                 }
             }
         }

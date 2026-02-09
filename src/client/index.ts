@@ -4,22 +4,22 @@ import { getEnvironmentMode } from "../sys/environment";
 import { error, info, initLogger, loggerAvailable } from "../sys/logging";
 import { initializeDatabase } from "../sys/DB-Engine/database";
 import { startEmbedService } from "../sys/embedding/embedService";
-import { startStatusRotation } from "../sys/zGears/setStatus";
+import { startStatusRotation } from "../sys/gear/setStatus";
 import i18next from "i18next";
 import { initI18n } from "../sys/i18n";
-import { validateAllTranslations } from "../sys/i18n/nsKeyCheck";
+import { validateAllTranslations } from "../sys/i18n/langCmndVal";
 import { registerCommands, handleCommandInteraction } from "./eventGear/upCommands";
 import { startWelcomeEvents } from "./eventGear/welcomeEvents";
-import { registerRolemojiEvents, preloadRolemojiMessages } from "./eventGear/rolemojiEvents";
+import { registerRolemojiEvents } from "./eventGear/rolemojiEvents";
 import { startYoutubeService } from "./eventGear/youtubeCheck";
 import { startRedditChecker } from "./eventGear/redditCheck";
 import { startMangadexChecker } from "./eventGear/mangadexChek";
 import { autoCleanupService } from "./eventGear/youtubeTools";
 import { startVoiceChannelService } from "./eventGear/voicEvent";
+import { preloadRolemojiMessages } from "./eventGear/rolemojiEvents";
 import { handleEmbedAutocomplete } from "./commands/embed";
 import { handlePermissionsAutocomplete } from "./commands/permission";
 import lavalinkManager from "./eventGear/lavalinkConnect";
-import urlStatusManager from "../sys/embedding/domainChecker";
 
 /*========= Inicializadores =========*/
 
@@ -34,7 +34,6 @@ const client = createClient();
         await initializeDatabase();     
         await validateAllTranslations();
         if (lavalinkManager) {lavalinkManager.init(client);}
-        urlStatusManager.start();
         await client.login(process.env.DISCORD_BOT_TOKEN);   
         await startWelcomeEvents(client);     
         registerCommands(client);

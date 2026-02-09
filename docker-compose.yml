@@ -17,7 +17,6 @@ services:
       - REDDIT_RSSCHECK_TIME=
       - REDDIT_CLIENT_ID=
       - REDDIT_CLIENT_SECRET=
-      - MANGADEX_CHECK_TIMMER=
       
       - REPLY_OTHER_BOTS=
       - STATUS_TIME_MINUTOS=
@@ -52,17 +51,9 @@ services:
       - API_REPLACEMENT_DOMAINS=
       
       - BOT_STATUS=
-      
-      - LAVALINK_ACTIVE=
-      - LAVALINK_NAME=
-      - LAVALINK_HOST=
-      - LAVALINK_PORT=
-      - LAVALINK_PASSWORD=
 
     depends_on:
       - mariadb
-# Descomenta "- lavalink" si vas a hostear tu propio server lavalink 
-#     - lavalink  
 
     volumes:
       - meltryllis_data/logs:/app/logs
@@ -82,19 +73,6 @@ services:
       - PUID=
     volumes:
       - meltryllis_data/db:/var/lib/mysql
-
-############## Si buscas hostear tu propio server lavalink descomenta esto ##############
-#  lavalink:
-#    image: ghcr.io/lavalink-devs/lavalink:4-alpine
-#    restart: unless-stopped
-#    container_name: meltryllis-lavalink
-#    ports:
-#      - 2333:2333
-#    environment:
-#      - LAVALINK_SERVER_PASSWORD=
-#    volumes:
-#      - meltryllis_data/lavalink/data:/data
-#      - ./application.yml:/opt/Lavalink/application.yml
 
 volumes:
   meltryllis_data:

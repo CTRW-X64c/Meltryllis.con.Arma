@@ -5,8 +5,8 @@ import { error, debug } from "../../sys/logging";
 import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
 import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList} from "../../sys/embedding/EmbedingConfig";
-import { hasPermission } from "../../sys/zGears/mPermission";
-import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../../sys/zGears/neTools";
+import { hasPermission } from "../../sys/gear/managerPermission";
+import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../eventGear/neTools";
 
 const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
 
@@ -267,6 +267,8 @@ export async function ChekDomainsTest(interaction: ChatInputCommandInteraction):
 
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         
+        const showDetailed = interaction.options.getBoolean("detallado") ?? false;
+        
         await interaction.editReply({
             content: i18next.t("test_domaind_verificando", { ns: "test" })
         });
@@ -275,7 +277,7 @@ export async function ChekDomainsTest(interaction: ChatInputCommandInteraction):
         
         const domainStatuses = await checkAllDomains();
         
-        const embed = buildDomainStatusEmbed(domainStatuses);
+        const embed = buildDomainStatusEmbed(domainStatuses, showDetailed);
         
         await interaction.editReply({ 
             content: null, 

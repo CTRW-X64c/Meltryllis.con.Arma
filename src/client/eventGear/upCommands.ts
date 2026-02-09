@@ -8,7 +8,7 @@ import { registerEmbedCommand, handleEmbedCommand } from "../commands/embed";
 import { registerWelcomeCommand, handleWelcomeCommand } from "../commands/welcome";
 import { registerReplybotsCommand, handleReplybotsCommand } from "../commands/replybots";
 import { registerRolemojiCommand, handleRolemojiCommand } from "../commands/rolemoji"
-import { registerOwnerCommands, handleOwnerCommands } from "../../sys/zGears/owner";
+import { registerOwnerCommands, handleOwnerCommands } from "../../sys/gear/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "../commands/youtube";
 import { registerRedditCommand, handleRedditCommand } from "../commands/reddit";
 import { registerPostCommand, handlePostCommand } from "../commands/post";

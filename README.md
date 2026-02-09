@@ -206,12 +206,7 @@ services:
 | `LAVALINK_PORT` | default: 2333 |
 | `LAVALINK_PASSWORD` | default: youshallnotpass |
 
-__Lavalink servers adicionales:__
-LAVALINK_NAME_"<Name>" | LAVALINK_HOST_"<Name>" | LAVALINK_PORT_"<Name>" | LAVALINK_PASSWORD_"<Name>"<br>
-Para añadir mas NODOS solo añade y cambia <Name> por cualquier nombre (alfanumerico) y los datos correspondientes.<br>
-__**Ejemplo: LAVALINK_NAME_JP=ServerJP | LAVALINK_HOST_JP=lavalink.host | LAVALINK_PORT_JP=2333 | LAVALINK_PASSWORD_JP=youshallnotpass**__<br>
-
- &nbsp;**_ "YOUTUBE & REDDIT & MANGADEX CHECK_TIMMER" cuentan con timmer minimo interno para evitar bloqueos de IP _**
+##### **_ "YOUTUBE & REDDIT CHECK_TIMMER" cuentan con timmer minimo interno para evitar bloqueos de IP _**
 
 | Variable BD  | Valores |
 | --- | --- |
@@ -248,7 +243,6 @@ Meltryllis con Arma/
 │   │   │   ├── jointovoice.ts
 │   │   │   ├── mangadex.ts
 │   │   │   ├── music.ts
-│   │   │   ├── permission.st
 │   │   │   ├── post.ts
 │   │   │   ├── reddit.ts
 │   │   │   ├── replybots.ts
@@ -260,6 +254,7 @@ Meltryllis con Arma/
 │   │   ├── /eventGear
 │   │   │   ├── lavalinkConnect.ts
 │   │   │   ├── mangadexCheck.ts
+│   │   │   ├── neTools.ts
 │   │   │   ├── redditCheck.ts
 │   │   │   ├── rolemojiEvents.ts
 │   │   │   ├── upCommands.ts
@@ -301,20 +296,18 @@ Meltryllis con Arma/
 │   │   │   │   ├── Twitter.ts
 │   │   │   │   └── YouTube.ts
 │   │   │   ├── ApiReplacement.ts
-│   │   │   ├── domainChecker.ts
 │   │   │   ├── EmbedingConfig.ts 
 │   │   │   ├── embedService.ts
 │   │   │   ├── index.ts
 │   │   │   └── RuleReplacement.ts
-│   │   ├── /i18n
-│   │   │   ├── index.ts
-│   │   │   └── nsKeyCheck.ts
-│   │   ├── /zGears
-│   │   │   ├── mPermisions.ts
-│   │   │   ├── neTools.ts
+│   │   ├── /gear
+│   │   │   ├── managerPermisions.ts
 │   │   │   ├── owner.ts
 │   │   │   ├── RedditApi.ts
 │   │   │   └── setStatus.ts
+│   │   ├── /i18n
+│   │   │   ├── index.ts
+│   │   │   └── langCmndVal.ts
 │   │   ├── environment.ts
 │   │   └── logging.ts
 │   └── index.ts
