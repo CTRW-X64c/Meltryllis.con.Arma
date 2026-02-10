@@ -6,9 +6,9 @@ import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
 
-const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split(',').map(s => s.trim()) : [];
+const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split('|').map(s => s.trim()) : [];
 const manualSites = replacementMetaList.map((meta) => ({ name: meta.name, value: meta.name }));
-const apiSites = apiReplacementDomainsEnv.map((domain) => ({ name: domain, value: domain }));
+const apiSites = apiReplacementDomainsEnv.map((domain) => ({ name: "Api: " + domain, value: domain }));
 const allSites = [...manualSites, ...apiSites];
 
 // --- Cambio para autocompletar 
