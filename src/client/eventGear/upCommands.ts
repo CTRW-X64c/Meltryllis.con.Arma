@@ -6,7 +6,7 @@ import { registerHolaCommand, handleHolaCommand } from "../commands/hola";
 import { registerWorkCommand, handleWorkCommand } from "../commands/work";
 import { registerEmbedCommand, handleEmbedCommand } from "../commands/embed";
 import { registerWelcomeCommand, handleWelcomeCommand } from "../commands/welcome";
-import { registerReplybotsCommand, handleReplybotsCommand } from "../commands/replybots";
+/*import { registerReplybotsCommand, handleReplybotsCommand } from "../../../beta/replybots";*/
 import { registerRolemojiCommand, handleRolemojiCommand } from "../commands/rolemoji"
 import { registerOwnerCommands, handleOwnerCommands } from "../../sys/zGears/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "../commands/youtube";
@@ -24,7 +24,7 @@ export async function registerCommands(client: Client) {
     ...(await registerHolaCommand()),
     ...(await registerTestCommand()),
     ...(await registerWorkCommand()),
-    ...(await registerReplybotsCommand()),
+    /*...(await registerReplybotsCommand()),*/
     ...(await registerEmbedCommand()),
     ...(await registerWelcomeCommand()),
     ...(await registerRolemojiCommand()),
@@ -62,9 +62,9 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
   } else if (interaction.commandName === "test") {
     await handleTestCommand(interaction);
   } else if (interaction.commandName === "work") {
-    await handleWorkCommand(interaction);
+    await handleWorkCommand(interaction); /*
   } else if (interaction.commandName === "replybots") {
-    await handleReplybotsCommand(interaction);
+    await handleReplybotsCommand(interaction); */
   } else if (interaction.commandName === "embed") {
     await handleEmbedCommand(interaction);
   } else if (interaction.commandName === "welcome") {
@@ -89,3 +89,6 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
     await handlePermissionsCommand(interaction);
   }
 }
+
+/* =============== NOTAS =============== */
+/*  Replybots y Work fusionados en work */
