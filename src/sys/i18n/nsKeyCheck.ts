@@ -22,11 +22,7 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
     ],    
     "hola":[
         "command_hola_description"
-    ],
-    "replybots":[
-        "replybots_command_description",
-        "replybots_command_state_description"
-    ],  
+    ], 
     "rolemoji":[
         "command_rolemoji_description",
         "command_rolemoji_assign_description",
@@ -56,7 +52,8 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
     ],
     "work":[
         "work_command_description",
-        "work_command_state_description"
+        "work_command_state_description",
+        "work_command_mode_description"
     ],
     "youtube":[
         "command_youtube",

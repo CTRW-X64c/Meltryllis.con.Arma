@@ -3,7 +3,7 @@ import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, 
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
-import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../../sys/DB-Engine/links/Rolemoji";11
+import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../../sys/DB-Engine/links/Rolemoji";
 
 function getEmojiKey(emojiString: string): string {
     const customEmojiRegex = /<a?:[a-zA-Z0-9_]+:(\d+)>$/;

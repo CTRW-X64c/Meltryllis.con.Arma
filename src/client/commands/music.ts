@@ -187,7 +187,7 @@ async function handleStop(interaction: ChatInputCommandInteraction, lavalink: La
     const guildId = interaction.guildId!;
     
     if (!player) {
-        await interaction.reply({ content: i18next.t("command_mussic_Stop_01", { ns: "music" }), flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: i18next.t("command_mussic_Stop_01", { ns: "music" })});
         await deletReplyMsg(interaction);
         return;
     }
@@ -212,19 +212,19 @@ async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: La
     const inChannelPlaying = currentPlaying.get(interaction.guildId!);
 
     if (inChannelPlaying && queue.length > 0){
-        await interaction.reply({ content: i18next.t("command_mussic_Skip_01", { ns: "music"}),  flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: i18next.t("command_mussic_Skip_01", { ns: "music"})});
         await player?.stopTrack();
         await deletReplyMsg(interaction);
         return;
     }
 
     if (inChannelPlaying && queue.length === 0){
-        await interaction.reply({ content: i18next.t("command_mussic_Skip_02", { ns: "music" }), flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: i18next.t("command_mussic_Skip_02", { ns: "music" })});
         await deletReplyMsg(interaction);
         return;
     }
 
-    await interaction.reply({ content: i18next.t("command_mussic_Skip_03", { ns: "music" }), flags: MessageFlags.Ephemeral });
+    await interaction.reply({ content: i18next.t("command_mussic_Skip_03", { ns: "music" })});
     await deletReplyMsg(interaction);
 }
 
