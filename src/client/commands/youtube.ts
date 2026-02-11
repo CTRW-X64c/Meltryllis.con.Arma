@@ -1,5 +1,5 @@
 // src/client/commands/youtube.ts
-import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
+import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
 import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/DB-Engine/links/Youtube";
 import { extractChannelIdFromRss, extractVideoId, verifyYouTubeRss } from "../eventGear/youtubeTools";
 import { error, debug } from "../../sys/logging";
@@ -50,11 +50,6 @@ export async function registerYouTubeCommand() {
             .setDescription(i18next.t("command_youtube_id_canal", { ns: "youtube" }))
             .setRequired(true)
         )
-    )
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName("help")
-        .setDescription(i18next.t("command_youtube_help", { ns: "youtube" }))
     );
 
   return [youtube] as SlashCommandBuilder[];
@@ -87,9 +82,6 @@ export async function handleYouTubeCommand(interaction: any) {
         break;
       case "test":
         await testCanal(interaction, guildId);
-        break;
-      case "help":
-        await YThelp(interaction);
         break;
     }
   } catch (err) {
@@ -298,40 +290,5 @@ async function testCanal(interaction: any, guildId: string) {
     await interaction.editReply({ content: i18next.t("command_youtube_canal_test_error", { ns: "youtube" }), flags: MessageFlags.Ephemeral });
   }
 }
-
-// =============== SubHelp =============== //
-async function YThelp(interaction: ChatInputCommandInteraction): Promise<void> {
-  try {
-    const embed = new EmbedBuilder()
-      .setTitle(i18next.t("YT_HelpEmb_titulo", { ns: "youtube" })) 
-      .setDescription(i18next.t("YT_HelpEmb_descripcion", { ns: "youtube" }))
-      .addFields(
-        {
-          name: i18next.t("YT_HelpEmb_Field_Name_1", { ns: "youtube" }),
-          value: i18next.t("YT_HelpEmb_Field_Value_1", { ns: "youtube" }),
-          inline: false
-        },
-        {
-          name: i18next.t("YT_HelpEmb_Field_Name_2", { ns: "youtube" }),
-          value: i18next.t("YT_HelpEmb_Field_Value_2", { ns: "youtube" }),
-          inline: false
-        }
-      )
-      //.setImage("https://i.imgur.com/hBy4KhT.jpeg")
-      .setColor("#ff0000")
-      .setFooter({
-        text: i18next.t("YT_HelpEmb_footer", { ns: "youtube" }),
-      })
-
-    await interaction.editReply({ embeds: [embed] });
-    debug(`Comando de ayuda de YouTube ejecutado`);
-  } catch (err) {
-    error(`Error al ejecutar comando de ayuda de YouTube: ${err}`); 
-    await interaction.editReply({
-      content: (`Ocurrió un error al mostrar la ayuda.`),
-    });
-  }
-}
-
 
 // Aqui solo debe tener comandos

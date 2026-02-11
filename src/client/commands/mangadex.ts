@@ -94,11 +94,6 @@ export async function registerMangadexCommand() {
               .setDescription(i18next.t("command_mangadex_dejar_url", { ns: "mangadex", defaultValue: "URL del manga a eliminar" }))
               .setRequired(true)
           )
-    )
-    .addSubcommand(subcommand =>  
-        subcommand
-          .setName("help")
-          .setDescription(i18next.t("command_mangadex_ayuda_desc", { ns: "mangadex", defaultValue: "Mostrar ayuda sobre el comando" }))
     );
 
     return [mangadex] as SlashCommandBuilder[];
@@ -127,9 +122,6 @@ export async function handleMangadexCommand(interaction: ChatInputCommandInterac
         break;
             case "dejar":
             await dejarManga(interaction, guildId);
-        break;
-            case "ayuda":
-            await mangadexHelp(interaction);
         break;
     }
   } catch (err) {
@@ -279,44 +271,5 @@ async function dejarManga(interaction: ChatInputCommandInteraction, guildId: str
   } catch (err) {
     error(`Error eliminando manga: ${err}` );
     await interaction.editReply({ content: i18next.t("command_error") });
-  }
-}
-
-// =============== help =============== //
-
-async function mangadexHelp(interaction: ChatInputCommandInteraction): Promise<void> {
-  try {
-    const embed = new EmbedBuilder()
-      .setTitle(i18next.t("mangadex_HelpEmb_titulo", { ns: "mangadex" })) 
-      .setDescription(i18next.t("mangadex_HelpEmb_descripcion", { ns: "mangadex" }))
-      .addFields(
-        {
-          name: i18next.t("mangadex_HelpEmb_Field_Name_1", { ns: "mangadex" }),
-          value: i18next.t("mangadex_HelpEmb_Field_Value_1", { ns: "mangadex" }),
-          inline: false
-        },
-        {
-          name: i18next.t("mangadex_HelpEmb_Field_Name_2", { ns: "mangadex" }),
-          value: i18next.t("mangadex_HelpEmb_Field_Value_2", { ns: "mangadex" }),
-          inline: false
-        },
-        {
-          name: i18next.t("mangadex_HelpEmb_Field_Name_3", { ns: "mangadex" }),
-          value: i18next.t("mangadex_HelpEmb_Field_Value_3", { ns: "mangadex" }),
-          inline: false
-        }    
-      )
-      .setColor(0xFF6740)
-      .setFooter({
-        text: i18next.t("mangadex_HelpEmb_footer", { ns: "mangadex" }),
-      })
-
-    await interaction.editReply({ embeds: [embed] });
-    debug(`Comando de ayuda de mangadex ejecutado`);
-  } catch (err) {
-    error(`Error al ejecutar comando de ayuda de mangadex: ${err}`); 
-    await interaction.editReply({
-      content: i18next.t("command_error_help", { ns: "mangadex" }),
-    });
   }
 }

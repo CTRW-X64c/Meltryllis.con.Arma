@@ -1,5 +1,5 @@
 // src/client/commands/rolemoji.ts
-import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel, PermissionsBitField } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
@@ -57,13 +57,8 @@ export async function registerRolemojiCommand(): Promise<SlashCommandBuilder[]> 
             subcommand
                 .setName("list")
                 .setDescription(i18next.t("command_rolemoji_list_description", { ns: "rolemoji" }))
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("help")
-                .setDescription(i18next.t("command_rolemoji_help_description", { ns: "rolemoji" }))
         );
-        
+
     return [rolemojiCommand] as SlashCommandBuilder[];
 }
 
@@ -98,10 +93,6 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
             
             case "list":
                 await ComList(interaction, guildId);
-                break;
-            
-            case "help":
-                await ComHelp(interaction);
                 break;
             
             default:
@@ -203,74 +194,5 @@ async function ComList(interaction: ChatInputCommandInteraction, guildId: string
         }
         embed.setDescription(description);
     }
-    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-}
-
-//Subcomando "Help"
-async function ComHelp(interaction: ChatInputCommandInteraction): Promise<void> {
-    const channel = interaction.channel;
-    const guild = interaction.guild;
-    
-    if (!guild || !channel || !('permissionsFor' in channel)) {
-        await interaction.reply({ 
-            content: i18next.t("command_guild_only_error", { ns: "rolemoji" }), 
-            flags: MessageFlags.Ephemeral 
-        });
-        return;
-    }
-    
-    const botMember = guild.members.me;
-    if (!botMember) {
-        await interaction.reply({
-            content: i18next.t("test_error_permission_user", { ns: "rolemoji" }), 
-            flags: MessageFlags.Ephemeral
-        });
-        return;
-    }
-    
-    const channelPermissions = channel.permissionsFor(botMember);
-    const ManageRoles = botMember.permissions.has(PermissionsBitField.Flags.ManageRoles);
-    const AddReactions = channelPermissions.has(PermissionsBitField.Flags.AddReactions);
-    const ExternalEmojis = channelPermissions.has(PermissionsBitField.Flags.UseExternalEmojis);
-    
-    const embed = new EmbedBuilder()
-        .setColor("#0099ff")
-        .setTitle(i18next.t("command_rolemoji_help_title", { ns: "rolemoji" }))
-        .setDescription(i18next.t("command_rolemoji_help_description", { ns: "rolemoji" }))
-        .addFields(
-            {
-                name: i18next.t("embed_rolemoji_paso_1", { ns: "rolemoji" }),
-                value: i18next.t("embed_rolemoji_fix_1", { ns: "rolemoji" }),
-            }, 
-            {
-                name: i18next.t("manage_roles_permission", { ns: "rolemoji" }),
-                value: ManageRoles ? i18next.t("allowed_permission", { ns: "rolemoji" }) : i18next.t("missing_permission", { ns: "rolemoji" }),
-                inline: true,
-            },
-            {
-                name: i18next.t("add_reactions_permission", { ns: "rolemoji" }),
-                value: AddReactions ? i18next.t("allowed_permission", { ns: "rolemoji" }) : i18next.t("missing_permission", { ns: "rolemoji" }),
-                inline: true,
-            },
-            {
-                name: i18next.t("use_external_emojis_permission", { ns: "rolemoji" }),
-                value: ExternalEmojis ? i18next.t("allowed_permission", { ns: "rolemoji" }) : i18next.t("missing_permission", { ns: "rolemoji" }),
-                inline: true,
-            },
-            {
-                name: i18next.t("embed_rolemoji_paso_2", { ns: "rolemoji" }),
-                value: i18next.t("embed_rolemoji_fix_2", { ns: "rolemoji" }),
-                inline: false,
-            }, 
-            {
-                name: i18next.t("embed_rolemoji_paso_3", { ns: "rolemoji" }),
-                value: i18next.t("embed_rolemoji_fix_3", { ns: "rolemoji" }),
-                inline: false,
-            }
-        )
-        .setFooter({ text: i18next.t("command_rolemoji_help_footer", { ns: "rolemoji" }) })
-        .setImage("https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/RolemojiHelp.png")
-        .setTimestamp();
-        
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }

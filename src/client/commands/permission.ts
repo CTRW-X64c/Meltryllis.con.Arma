@@ -79,11 +79,6 @@ export async function registerPermissionsCommand(commandsList: { name: string, d
             subcommand
                 .setName("limpiar")
                 .setDescription(i18next.t("command_permissions_clear_description", { ns: "permissions" }))
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("help")
-                .setDescription(i18next.t("command_permissions_help_description", { ns: "permissions" }))
         );
 
     return [permissions] as SlashCommandBuilder[];
@@ -117,10 +112,7 @@ export async function handlePermissionsCommand(interaction: ChatInputCommandInte
                 break;
             case "limpiar":
                 await clearPerms(interaction, guildId);
-                break;
-            case "help":
-                await helpPerm(interaction);
-                break;        
+                break;     
         }
     } catch (err) {
         error(`Error ejecutando comando Permisos: ${err}`);
@@ -399,38 +391,3 @@ async function clearPerms(interaction: ChatInputCommandInteraction, guildId: str
     }
 }
 
-
-// =============== Help =============== //
-
-async function helpPerm(interaction: ChatInputCommandInteraction) {
-    const embed = new EmbedBuilder()
-        .setTitle(i18next.t("command_permissions_help_title", { ns: "permissions" }))
-        .setColor(0x5865F2)
-        .setDescription(i18next.t("command_permissions_help_desc", { ns: "permissions" }))
-        .addFields(
-            {
-                name: i18next.t("command_permissions_help_add_title", { ns: "permissions" }),
-                value: i18next.t("command_permissions_help_add_desc", { ns: "permissions" }),
-                inline: false
-            },
-            {
-                name: i18next.t("command_permissions_help_list_title", { ns: "permissions" }),
-                value: i18next.t("command_permissions_help_list_desc", { ns: "permissions" }),
-                inline: false
-            },
-            {
-                name: i18next.t("command_permissions_help_remove_title", { ns: "permissions" }),
-                value: i18next.t("command_permissions_help_remove_desc", { ns: "permissions" }),
-                inline: false
-            },
-            {
-                name: i18next.t("command_permissions_help_clear_title", { ns: "permissions" }),
-                value: i18next.t("command_permissions_help_clear_desc", { ns: "permissions" }),
-                inline: false
-            },
-        )
-        .setFooter({ text: i18next.t("footer_text_help", { ns: "permissions" })})
-        .setTimestamp();
-
-    await interaction.editReply({ embeds: [embed] });
-}
