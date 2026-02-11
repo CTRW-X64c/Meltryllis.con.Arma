@@ -38,9 +38,9 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
     "test":[
         "command_test_description",
         "test_command_mode_description",
-        "test_command_mode_channel",
-        "test_command_mode_guild",
-        "test_command_mode_embed",
+        "test_permission_guild",
+        "test_work_by_channel",
+        "test_show_embed_config",
         "test_commands_mode_domainds"
     ],
     "welcome":[

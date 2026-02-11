@@ -104,7 +104,7 @@ class AutoCleanupService {
     const parsedDays = rawRssTime ? parseInt(rawRssTime, 10) : NaN;
     const days = !isNaN(parsedDays) ? Math.max(parsedDays, MIN_TIMMER) : DEFAULT_Timmer;
     const cleanUpTimmer = days * MStoDias;  
-    const initialDelay = 300000;
+    const initialDelay = 60 * 60 * 1000;
     
     info(`🔄 Iniciando servicio de limpieza automática (intervalo: ${days} días)`, 'AutoCleanupService');
 
@@ -216,8 +216,7 @@ class AutoCleanupService {
         clearTimeout(timeout);
         const errorMsg = getErrorMessage(parseError).toLowerCase();
         
-        const isInvalid = errorMsg.includes('404') || errorMsg.includes('not found') || errorMsg.includes('403') || 
-            errorMsg.includes('forbidden') || errorMsg.includes('timeout') || errorMsg.includes('abort');
+        const isInvalid = errorMsg.includes('404') || errorMsg.includes('not found');
         
         if (isInvalid) {
           debug(`Feed inválido detectado: ${feed.youtube_channel_name} - ${errorMsg}`, 'AutoCleanupService');
