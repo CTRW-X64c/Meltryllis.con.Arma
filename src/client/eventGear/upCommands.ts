@@ -43,7 +43,7 @@ export async function registerCommands(client: Client) {
 
 
   client.application?.commands.set(commands)
-    .then(() => info("Comandos /hola, /test, /embed, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice, /mangadex, /permisos y /owner registrados con éxito", "Commands.Register"))
+    .then(() => info("Comandos /help, /test, /embed, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice, /mangadex, /permisos y /owner registrados con éxito", "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 
@@ -57,7 +57,7 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
       await handleMusicInteraction(interaction);
       break;
   }
-  if (interaction.commandName === "hola") {
+  if (interaction.commandName === "help") {
     await handleHolaCommand(interaction);
   } else if (interaction.commandName === "test") {
     await handleTestCommand(interaction);

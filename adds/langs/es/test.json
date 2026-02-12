@@ -1,23 +1,16 @@
 {
     "ATS1": "Command Builder",
-        "command_test_description": "Ping a dominios embed & check de mis permisos",
+        "command_test_description": "Permissos, configuraciones y estado de los dominios",
         "test_command_mode_description": "Modo de chequeo",
-        "test_command_mode_channel": "Canal",
-        "test_command_mode_guild": "Servidor",
-        "test_command_mode_embed": "Embedding",
-        "test_commands_mode_domainds": "Check Domains",
-        
+        "test_permission_guild": "Permisos generales en el Servidor",
+        "test_work_by_channel": "Funcionamiento por Canal",
+        "test_show_embed_config": "Embedding configuraciones",
+        "test_commands_mode_domainds": "Revisa el estado de los dominios",
+
     "ATS2": "Contenido del Embed y Respuestas",
         "test_command_title": "Pasando lista de permisos",
         "test_command_all_permissions": "¡Todo en regla para funcionar!",
         "test_command_missing_permissions": "Faltan permisos. No puedo hacer mi chamba correctamente 😔; Recuerda, en canales privados ocupo que me asignen un Rol con los permisos para funcionar!!",
-        "permission_send_messages": "Enviar Mensajes:",
-        "permission_embed_links": "Insertar Enlaces:",
-        "permission_manage_messages": "Gestionar Mensajes:",
-        "permission_read_message_history": "Leer Historial de Mensajes:",
-        "permission_manage_roles": "🛠️ Gestionar roles:",
-        "permission_add_reactions": "➕ Agregar reacciones:",
-        "permission_use_external_emojis": "Usar emojis externos:",
         "test_command_working_here": "Trabajando aquí",
         "test_command_reply_bots": "Respondiendo a Bots",
         "test_command_instructions": "Instrucciones",
@@ -32,6 +25,7 @@
         "field_add_api": "Gestionados por EmbedEZ ",
         "field_add_api_value": "Solo se pueden deshabilitar o habilitar.",
         "status_allowed": "✅ Permitido",
+        "status_allowed_admin": "**⚠️ASIGNADO⚠️**",
         "status_missing": "❌ Faltante",
         "required_permission": "Permiso Requerido: {{permission_status}}",
         "all_status_allowed": "✅ Todos los permisos OK",
@@ -39,7 +33,7 @@
         "field_api_enabled": "✅ Habilitado",
         "field_api_disabled": "❌ Deshabilitado",
         "test_command_guild_description": "**Estado de todos los canales:**",
-        "test_command_channel_description": "Revisando, revisando, revisando...",
+        "test_command_channel_description": "Revisando... los permisos pueden cambiar en canales privados. \nPuedes usar el modo \"Funcionamiento por Canal\" para generar una lista completa.",
         "test_error_permission": "No se pudo obtener los permisos del canal.",
         "test_error_permission_user": "No se pudo obtener el usuario en el bot.",
         "test_error_verify_permission": "No se pudieron verificar los permisos del bot.",
@@ -47,12 +41,25 @@
         "dont_gg": "No se pudo obtener el servidor.",
         "test_command_invalid_mode": "Modo inválido, revisa los inputs del comando.",
         "command_error": "Ocurrió un error al ejecutar el comando.",
+        "test_command_footer": "Canal privado?, Esto provoca que no pueda ver el canal!!",
 
     "ATS3": "Contenido del Embed y Respuestas",
 
         "test_domaind_error": "❌ Este comando tiene un cooldown. Inténtalo de nuevo en {{a1}}.",
         "test_domaind_verificando": "🔄 Verificando estado de dominios... Esto puede tomar unos segundos.",
-        "command_error_verificando": "❌ Error al verificar dominios: {{a1}}"
-        
+        "command_error_verificando": "❌ Error al verificar dominios: {{a1}}",
 
+    "ATS4": "Mapa de permisos",
+        "permission_view_channel": "Canal Privado? - Ver Canal:",
+        "permission_send_messages": "Embed system - Enviar Mensajes:",
+        "permission_embed_links": "Embed system - Insertar Enlaces:",
+        "permission_manage_messages": "Embed system - Gestionar Mensajes:",
+        "permission_read_message_history": "Embed system - Ver Historial de Mensajes:",
+        "permission_add_reactions": "/rolemoji & Embed system - Agregar reacciones:",
+        "permission_role_manager": "/rolemoji - Gestionar roles:",
+        "permission_channel_manager": "/jointovoice - Gestionar canales:",
+        "permission_connect_voice": "Comandos de musica - Conectar a canal de voz: \n Solo publicos",
+
+        "permission_administrator": "‍‍```ADVETRTENCIA PERMISO DE ADMINISTRADOR ASIGNADO!!!```. \n*ESTO ME DA PODER DE HACER LO QUE QUIERA, DAJALO BAJO TU PROPIO RIESGO!!*",
+        "permission_manage_guild": "```GESTOR DE SERVER ASIGNADO, NO RECOMENDADO ASIGNAR!!``` \nEste permiso no me sirve para mis comandos, busca o crea un rol con los permisos de arriba!!"
 }

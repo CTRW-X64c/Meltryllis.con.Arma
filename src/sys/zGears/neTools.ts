@@ -48,13 +48,14 @@ async function checkDomain(domain: { name: string; url: string; expectedStatus: 
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
+         const header = { 'User-Agent': 'MeltryllistHealthCheck/1.0' }
         
         const response = await fetch(domain.url, {
             method: 'HEAD',
             signal: controller.signal,
-            headers: { 'User-Agent': 'MeltryllistHealthCheck/1.0' }
+            headers: header,
         }).catch(() => {
-            return fetch(domain.url, { method: 'GET', signal: controller.signal });
+            return fetch(domain.url, { method: 'GET', signal: controller.signal, headers: header});
         });
         
         clearTimeout(timeoutId);

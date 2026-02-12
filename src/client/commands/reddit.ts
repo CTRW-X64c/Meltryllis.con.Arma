@@ -97,8 +97,8 @@ export async function registerRedditCommand() {
                 .addStringOption(option =>
                     option.setName("url_reddit")
                         .setDescription(i18next.t("command_reddit_id_canal", { ns: "reddit" }))
-                        .setRequired(true)
-                ))
+                        .setRequired(true))
+        )
         .addSubcommand(subcommand =>
             subcommand
                 .setName("test")
@@ -107,11 +107,8 @@ export async function registerRedditCommand() {
                     option.setName("url_reddit")
                         .setDescription(i18next.t("command_reddit_id_canal", { ns: "reddit" }))
                         .setRequired(true)
-                ))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("help")
-                .setDescription(i18next.t("command_reddit_help", { ns: "reddit" })));
+                )
+        );
 
     return [reddit] as SlashCommandBuilder[];
 }
@@ -142,9 +139,6 @@ export async function handleRedditCommand(interaction: ChatInputCommandInteracti
                 break;
             case "test":
                 await TestReddit(interaction, guildId);
-                break;
-            case "help":
-                await RedditHelp(interaction);
                 break;
         }
     } catch (err: any) {
@@ -349,31 +343,4 @@ async function TestReddit(interaction: ChatInputCommandInteraction, guildId: str
         error(`Error en prueba de ${displayName}: ${err}`);
         await interaction.editReply({ content: i18next.t("command_reddit_test_error", { ns: "reddit" })});
     }
-}
-
-// =============== SubHelp =============== //
-async function RedditHelp(interaction: ChatInputCommandInteraction) {
-    const embed = new EmbedBuilder()
-        .setTitle(i18next.t("command_reddit_HelpEmb_titulo", { ns: "reddit" }))
-        .setColor(0xFF4500)
-        .setDescription(i18next.t("command_reddit_HelpEmb_descripcion", { ns: "reddit" }))
-        .addFields(
-            {
-            name: i18next.t("command_reddit_HelpEmb_Field_Name_1", { ns: "reddit" }),
-            value: i18next.t("command_reddit_HelpEmb_Field_Value_1", { ns: "reddit" }),
-            },
-            { 
-            name: i18next.t("command_reddit_HelpEmb_Field_Name_2", { ns: "reddit" }),
-            value: i18next.t("command_reddit_HelpEmb_Field_Value_2", { ns: "reddit" }),
-            },
-            { 
-            name: i18next.t("command_reddit_HelpEmb_Field_Name_3", { ns: "reddit" }),
-            value: i18next.t("command_reddit_HelpEmb_Field_Value_3", { ns: "reddit" }),
-            },
-            { 
-            name: i18next.t("command_reddit_HelpEmb_Field_Name_4", { ns: "reddit" }),
-            value: i18next.t("command_reddit_HelpEmb_Field_Value_4", { ns: "reddit" }),
-            }
-        );
-    await interaction.editReply({ embeds: [embed] });
 }
