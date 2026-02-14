@@ -97,7 +97,7 @@ async function info(interaction: ChatInputCommandInteraction): Promise<void> {
         inline: false
       }
     )
-    .setImage("https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/banner-v2.jpg")
+    .setImage("https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/RemodelCommands/Pict/embedding.gif")
     .setColor(parseInt(randomcolorembed(), 16))
     .setFooter({text: i18next.t("info.footer_text", { ns: "hola" })})
     .setTimestamp();
