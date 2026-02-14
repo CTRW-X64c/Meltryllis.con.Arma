@@ -48,18 +48,6 @@
     "command_permissions_cleanup_cancelled": "Eliminacion cancelada!!",
     "command_permissions_cleanup_result": "Todos los permisos han sido eliminados!",
     "command_permissions_cleanup_timeout": "Tiempo de espera agotado!",
-    "command_permissions_cleanup_error": "❌ Error al limpiar los permisos.",
-
-    "command_permissions_help_title": "**Sistema de Permisos!**",
-    "command_permissions_help_desc": "Controla quién puede usar cada comando del bot en este servidor. \n **Es muy importante checar a quien le das permisos!!**",
-    "command_permissions_help_add_title": "/permission añadir",
-    "command_permissions_help_add_desc": "Autoriza a un rol o usuario para usar un comando.",
-    "command_permissions_help_remove_title": "/permission remover",
-    "command_permissions_help_remove_desc": "Permite eliminar los permisos que tenga un usuario o rol.",
-    "command_permissions_help_list_title": "/permission listar",
-    "command_permissions_help_list_desc": "Lista todos los comandos que esten asignados a un rol o usuario.",
-    "command_permissions_help_clear_title": "/permission limpiar",
-    "command_permissions_help_clear_desc": "Elimina todos los permisos del servidor.",
-    "footer_text_help": "Solo los administradores y el dueño del servido pueden usar este comando."
+    "command_permissions_cleanup_error": "❌ Error al limpiar los permisos."
 
 }

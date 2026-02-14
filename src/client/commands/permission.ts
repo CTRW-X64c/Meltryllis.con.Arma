@@ -28,7 +28,7 @@ export async function registerPermissionsCommand(commandsList: { name: string, d
     const permissions = new SlashCommandBuilder()
         .setName("permisos")
         .setDescription(i18next.t("command_permissions_description", { ns: "permissions" }))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addSubcommand(subcommand =>
             subcommand
                 .setName("añadir")
@@ -88,7 +88,7 @@ export async function handlePermissionsCommand(interaction: ChatInputCommandInte
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id; 
+    const isAdmin = memberPermissions?.has(PermissionFlagsBits.Administrator) || interaction.guild?.ownerId === interaction.user.id; 
     if (!isAdmin) {
         await interaction.editReply({
             content: i18next.t("command_permission_error", { ns: "permissions" })

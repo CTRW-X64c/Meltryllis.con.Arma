@@ -75,8 +75,6 @@ function createClient(): Client {
         info(i18next.t("guilds_count", {ns: "core", guildCount: guildCount, pluralGuilds: guildCount === 1 ? "guild" : "guilds"}), "Events.ClientReady");
         const guildNames = eventClient.guilds.cache.map(guild => guild.name).join(", ");
         info(i18next.t("servers_list", {ns: "core", guildNames:guildNames}));
-        const replyToOtherBots = process.env.REPLY_OTHER_BOTS === "true";
-        info(i18next.t("reply_to_bots_config", {ns: "core", config:replyToOtherBots}), "Events.MessageCreate");
         preloadRolemojiMessages(client);        
     });
     

@@ -47,19 +47,7 @@
         "command_reddit_lista_value":"No hay subreddits aquí.",
         "command_reddit_lista_footer":"`Usa \"/reddit dejar\" para eliminar una suscripción.`",
 
-    "ATS5":"Embed Builder Help",
-        "command_reddit_HelpEmb_titulo":"Ayuda del Comando de Reddit",
-        "command_reddit_HelpEmb_descripcion":"Información sobre cómo usar los comandos de Reddit.",
-        "command_reddit_HelpEmb_Field_Name_1":"/reddit seguir",
-        "command_reddit_HelpEmb_Field_Value_1":"Puedes usar la URL completa o nombre del subreddit/user `ej: r/subreddirt|u/username`.",
-        "command_reddit_HelpEmb_Field_Name_2":"/reddit lista",
-        "command_reddit_HelpEmb_Field_Value_2":"Muestra los subreddits/user que estás siguiendo.",
-        "command_reddit_HelpEmb_Field_Name_3":"/reddit dejar",
-        "command_reddit_HelpEmb_Field_Value_3":"Deja de recibir seguir un subreddit/user usando su URL o r/subbreddit|u/username.",
-        "command_reddit_HelpEmb_Field_Name_4":"/reddit test",
-        "command_reddit_HelpEmb_Field_Value_4":"Publica el último post de un subreddit usando su URL o r/subbreddit|u/username.",
-
-    "ATS6":"Embed Builder Help",
+    "ATS6":"Embed Builder post",
         "Reduit_pioste":"Último post de {{a1}}. \n**POST:** [{{a2}}]({{a3}})",
         "Reduit_pioste_nsfw":"**[NSFW POST EN CANAL SFW!!]** \nÚltimo post de {{a1}}. \n**POST!!!:** ||[{{a2}}]({{a3}})||"
  }

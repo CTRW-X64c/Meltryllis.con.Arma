@@ -1,8 +1,12 @@
-{
-    "ATS1": "Command Builder",
+{   
+    "can_run_yes":"✅ Puedes ejecutar el comando",
+    "can_run_no": "❌ No puedes ejecutarlo, NO ERES ADMIN o NO TE DIERON PERMISO",
+    "comBuild":{
         "command_hola_description": "Informacion de los comandos.",
-
-    "ATS2": "Contenido del Embed",
+        "command_hola_idioma_description":"Selecciona un comando para una mejor ayuda!",
+        "default_switch_error": "La ayuda de este comando aun no esta disponible y solo esta aqui por los loles"
+    },
+    "info":{
         "embed_title": "¡Hola!",
         "embed_description": "Estoy aquí para ayudarte con los Embeds en Discord, ¡porque la verdad muchos apestan!",
         "field_invite_name": "Enlace de Invitación",
@@ -10,44 +14,147 @@
         "field_issue_name": "¿Algo anda mal?",
         "field_issue_value": "En canales @everyone no necesito más permisos que los que pido al ser invitada; en canales privados usa /test para ver qué permisos faltan y asignármelos.\n - Si no ves los comandos es porque requiren permisos de Administrador. \n - Discord solo procesa máximo 5 links por mensaje así que se divide automáticamente en batch de 5 links y puedes borrar el repost reaccionando a ❌ antes de que desaparezca (20s).",
 
-        "field_test_name": "Comando: /test",
-        "field_test_value": "Permite rivisar configuraciones, dominions y opermisos",
-
-        "field_work_name": "Comando: /work",
-        "field_work_value": "Permite habilitar que conteste a bots y desactivar el embeding en el canal",
-
-        "field_embed_name": "Comando: /embedmanager",
-        "field_embed_value": "Permite gestionar los dominios y funcionamiento para el embedding",
-
-        "field_welcome_name": "Comando: /welcome set",
-        "field_welcome_value": "Permite establecer un mensaje de bienvenida",
-        
-        "field_rolemoji_name": "Comando: /rolemoji",
-        "field_rolemoji_value": "Permite crear, eliminar y listar reacciones ligada a un mensaje para asignar un Rol",
-        
-        "field_follow_name": "Comando /youtube | /reddit | /mangadex",
-        "field_follow_value": "Permite hacer seguimiento de contenido.",
-
-        "field_post_name":"Comando /post",
-        "field_post_value": "Permite enviar/editar mensaje en mi nombre.",
-
-        "field_cleanup_name":"Comando /cleanup",
-        "field_cleanup_value":"Permite borrar mensajes batch maximos de 100 y 3 seamanas de antiguedad (limite por el API de Discord)", 
-
-        "field_voice_name": "Comando /jointovoice",
-        "field_voice_value": "Permite crear un canala maestro del cual se generaran canales temporales al unirse.",
-
-        "field_music_name": "Comando /play | /skip | /stop | /queue",
-        "field_music_value": "Comandos de musica",
-
         "field_permisos_name": "GESTOR DE PERMISOS DE COMANDOS!!",
-        "field_permisos_value": "PERMITE A USUARIOS/ROLES USAR COMANDOS ESPESIFICOS!! \n **ESTE COMANDO NO PUEDE SER ASIGNADO A NINGUN ROL O USUARIO, Y SOLO PUEDE SER USADO POR ADMINISTRADORES O EL DUEÑO DEL SERVER**",
-        
-        "field_invite_value": "[Meltryllis con Arma!](https://discord.com/oauth2/authorize?client_id=847989699083632671&scope=bot&permissions=268790848)",
-        "field_terms_value": "[Declaración](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md)",
-        "footer_text": "Las configuraciones se guardan por server.",
+        "field_permisos_value": "PERMITE A USUARIOS/ROLES USAR COMANDOS ESPESIFICOS!! \n **ESTE COMANDO NO PUEDE SER ASIGNADO A NINGUN ROL O USUARIO, Y SOLO PUEDE SER USADO POR ADMINISTRADORES O EL DUEÑO DEL SERVER** \n\n\n",
 
-    "ATS3": "Errores de Comando",
-        "command_error": "Ocurrió un error al ejecutar el comando.",
-        "default_switch_error": "La ayuda de este comando aun no esta disponible y solo esta aqui por los loles"
+        "field_invite_value": "[Meltryllis con Arma!](https://discord.com/oauth2/authorize?client_id=847989699083632671&scope=bot&permissions=20277312)",
+        "field_terms_value": "[Declaración](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md)",
+        "footer_text": "SI QUIERES MAS AYUDA DE CADA COMANDO PUEDES USAR /help <comando>."
+    },
+    "mangadex":{
+        "HelpEmb_titulo": "Ayuyda Mangadex",
+        "HelpEmb_descripcion": "Este comando te permite seguir mangas de [Mangadex](https://mangadex.org/); se puede filtrar por idioma pero esta limitado a ingles, Español latino o Español, si no se espesficia mostrara todo idoma en que publiquen el manga.",
+        "HelpEmb_Field_Name_1": "/mangadex seguir <url_Manga> <canal> <idioma> ",
+        "HelpEmb_Field_Value_1": "url_Manga: URL del manga que quieres seguir. \n canal: Canal en el que se publicaran las updates. \n idioma: Idioma de lo capitulos que quieres seguir",
+        "HelpEmb_Field_Name_2": "/mangadex lista",
+        "HelpEmb_Field_Value_2": "Proporciona una lista de los mangas que estas siguiendo junto con su ID de registro que sirve para borrarlos",
+        "HelpEmb_Field_Name_3": "/mangadex dejar <manga_id>",
+        "HelpEmb_Field_Value_3": "Permite borrar los mangas que ya no quieres seguir! \n manga_id: puedes obtenerlo con el comando /mangadex lista",
+        "HelpEmb_footer": "Mangadex & MDRSS"
+    },
+    "permisos":{
+        "help_title": "**Sistema de Permisos!**",
+        "help_desc": "Controla quién puede usar cada comando del bot en este servidor. \n **Es muy importante checar a quien le das permisos!!**",
+        "help_add_title": "/permission añadir",
+        "help_add_desc": "Autoriza a un rol o usuario para usar un comando.",
+        "help_remove_title": "/permission remover",
+        "help_remove_desc": "Permite eliminar los permisos que tenga un usuario o rol.",
+        "help_list_title": "/permission listar",
+        "help_list_desc": "Lista todos los comandos que esten asignados a un rol o usuario.",
+        "help_clear_title": "/permission limpiar",
+        "help_clear_desc": "Elimina todos los permisos del servidor.",
+        "footer_text_help": "Solo los administradores y el dueño del servido pueden usar este comando.",
+        "run_yes": "✅ Puedes ejecutar el comando",
+        "run_no": "❌ EXCLUSIVO DE ADMINS O EL DUEÑO DEL SERVIDOR"
+    },
+    "reddit":{
+        "HelpEmb_titulo":"Ayuda del Comando de Reddit",
+        "HelpEmb_descripcion":"Información sobre cómo usar los comandos de Reddit.",
+        "HelpEmb_Field_Name_1":"/reddit seguir",
+        "HelpEmb_Field_Value_1":"Puedes usar la URL completa o nombre del subreddit/user `ej: r/subreddirt|u/username`.",
+        "HelpEmb_Field_Name_2":"/reddit lista",
+        "HelpEmb_Field_Value_2":"Muestra los subreddits/user que estás siguiendo.",
+        "HelpEmb_Field_Name_3":"/reddit dejar",
+        "HelpEmb_Field_Value_3":"Deja de recibir seguir un subreddit/user usando su URL o r/subbreddit|u/username.",
+        "HelpEmb_Field_Name_4":"/reddit test",
+        "HelpEmb_Field_Value_4":"Publica el último post de un subreddit usando su URL o r/subbreddit|u/username."
+    },
+    "rolemoji":{
+        "only_error": "¡Este comando solo puede ser usado en servidores!",
+        "error_user": "Error en ejecutar!!",
+        "manage_roles_permission": "🛠️ Gestionar roles:",
+        "add_reactions_permission": "➕ Agregar reacciones:",
+        "use_external_emojis_permission": "Usar emojis externos:",
+        "allowed_permission": "✅ Permitido",
+        "missing_permission": "❌ Faltante",
+
+        "help_title": "Ayuda de Rolemoji",
+        "help_description": "No funciona?, sigue estos pasos:",
+        "paso_1": "1.- Permisos:",
+        "fix_1": "*Los permisos de relacionados a mensajes son por canal y el de Roles es general.*\nAcontinuacion los permisos con los que cuento:\n",
+        "paso_2": "\n2.- ID de mensaje:",
+        "fix_2": "Si no ves \"copiar id del mensaje\" tienes desactivado el modo desarrollador.\n\n *Esto esta en Ajustes de Usuario ⚙️ > Avanzado > Modo Desarrollador.*\n",
+        "paso_3": "3.- No asigna uno o varios roles?:",
+        "fix_3": "Discord maneja una jerarquía de roles por posición; es decir solo puedo asignar roles que esten por debajo de mi rol mas arriba.\n\nTeniendo en cuanta que mi rol es \"Meltryllis con Arma!\" y es el unico o el que esta mas arriba asi es como quedaria los que puedo asignar:",
+        "help_footer": "Reacciona y obtén tu rol!"
+    },
+    "youtube":{
+        "titulo":"Ayuda del Comando de YouTube",
+        "descripcion":"Aquí encontrarás información sobre cómo usar los comandos de YouTube.",
+        "Field_Name_1":"Pasos para seguir un canal",
+        "Field_Value_1":"1. Ve al canal de YouTube en tu navegador.\n2. Haz clic derecho en la página y selecciona 'Ver código fuente de la página'.\n3. Busca (Ctrl+F) `\"title=RSS\" href=` o `rssUrl` para encontrar la URL del feed RSS.\n4. Usa esa URL en el comando `/youtube seguir`.",
+        "Field_Name_2":"Comandos Disponibles",
+        "Field_Value_2":"`/youtube seguir`: Añade un canal.\n`/youtube lista`: Muestra los canales seguidos.\n`/youtube dejar`: Elimina un canal.\n`/youtube test`: Publica el último video de un canal para probar.",
+        "footer":"💡 /youtube dejar id_canal:ID - • - /youtube test id_canal:ID"
+    },
+    "clean":{
+        "title":"Comando /cleanup",
+        "name_1": "Uso y limitaciones:",
+        "value_1": "Este comando permite borrar mensaje en ecanales espesificos usando un mensaje de referencia, ya se apara borrar los que estan antes o despues de el por medio de su id, tambien puede borrar mesnaje solo de bot o usuarios, por defaul borra sin revisar el autor \n\n Por limitaciones del API de discord solo se pueden borrar 100 mensajes a la vez con un maximo de 3 semanas de antiguedad",
+        "footer":"/cleanup start:<valor> mesanje_id:<id> count:<1-100> type:<bot/user/all>"
+    },
+    "embed":{
+        "title":"Comando /embed configurar",
+        "description":"Configuraciones sobre el remplazamiento, desactivacion y customizacion de los dominios de los embeds, API o \"locales\" \n El embeding prioriza primero el API, en caso de no estar disponible o fuese desactivada el sitio pasara al embeding \"local\"",
+        "name_1":"Dominios API:",
+        "value_1":"Los dominios API no pueden ser customizados, unicamente se pueden desactivar o activar, actuamente usamos el Api de [Embedez](https://embedez.com/) y se diferencian en el listado de sitios porque empiezan por Api:dominio",
+        "name_2":"Dominios \"locales\"",
+        "value_2":"Los dominios locales son supervisados en intervalos de 10min para verificar si estan disponibles y en caso de no estarlo cambiara a uno alterno o al dominio original. \n - Los dominios locales se pueden desactivar o customizar con otro dominio; los dominios custom no se pueden autoswitchear si no esta disponible.",
+        "footer":"Tienes 20s para reaccionar a ❌ y borrar el post"
+    },
+    "jointovoice":{
+        "title":"Ayuda del comando /jointovoice",
+        "name_1": "/jointovoice set!!",
+        "value_1": "Comando principal, permite establecer un canal como \"Master\" del cual se copiaran sus permisos para crear uno temporal. \n Cada usuario puede tener maximo 2 canales activos y los cacanales temporales se auto eliminan despues de 5s vacios",
+        "name_2": "/jointovoice cleanup | status | disable ",
+        "value_2": "Cleanup: Borra todos los canales temporales existentes \n Status: Muestra la configuracion \n Disable: Desactiva la creacion de canales, (se vulve activar usando **set**)",
+        "footer": "Unete para tener tu propio canal de voz!!"
+    },
+    "musica":{
+        "title":"Comando /play",
+        "description": "Si no tienes permiso \"❌\" puedes pedir algun admin que te permiso via /permisos, ya sea inidivdual o rol",
+        "can_run_yes":"✅",
+        "can_run_no": "❌",
+        "name_1": "Puedes usar /play:",
+        "name_2": "Puedes usar /skip:",
+        "name_3": "Puedes usar /stop:",
+        "name_4": "Puedes usar /queue:",
+        "name_5": "Comandos basicos para poner musica, Tips:",
+        "value_5":"- Si quieres agregar listas usa /play... queue:yes. \n- Para borrar la lista usa /queue clean:true \n- Despues de 10s sola en el canal se detiene la reproduccion",
+        "footer": "🎵 Comandos de musica! 🎵"
+    },
+    "post":{
+        "title":"Comando /post",
+        "description":"Permite enviar mensajes en mi nombre o copiar, responder, editar mensajes.",
+        "name_1":"/post: msg | copy",
+        "value_1":"Permite enviar mensajes desde cero o copiar desde un mensaje ya existente.",
+        "name_2":"Puedes usar /post reply:",
+        "value_2":"Puedo repsonder mensaje por ti \"reply\", puedes activar o desactivar si a quien respondes reciva notificacion de respuesta.",
+        "name_3":"Puedes usar /post edit:",
+        "value_3":"Puedes editar mensajes que ya habia enviado, se debe escribir desde cero.",
+        "footer":"Publicacion de mensajes!"
+    },
+    "test":{
+       "title":"Ayuda del comando /test",
+       "description":"Permite revisar los configuraciones de los canales del server y permisos \n Si tienes canales privados se suele tener conflicto con el permiso \"ver canal\" haciendo que no pueda trabajar en esos canales",
+       "name_1":"modo: Permisos generales en el Servidor:",
+       "value_1":"Permite ver los permisos que tengo para hacer mis funciones correctamente",
+       "name_2":"modo: Funcionamiento por canal:",
+       "value_2":"Lista y revisa las configuraciones y permisos de cada canal del server, como si reponder a bots o ignorar canales",
+       "name_3":"modo: Embeddings configuraciones",
+       "value_3":"Muestra tus configuraciones de embbedig; **dominios** customs o desactivados ya sea del Api o Local y quien lo configuro",
+       "name_4":"modo: Revisa el estado de los dominios:",
+       "value_4":"Revisa todos los dominios de embedding para comprobar su estado, **exepto los custom**",
+       "footer":"Configuraciones!!"
+    },
+    "welcome":{
+        "title":"Ayuda del comando /welcome",
+        "description":"Puedes asignar un canal en el que se enviaran un mensaje de bienvenida con banner a los nuevos integrantes y de salida. \n En tu mensaje puedes usar \"<user>\" para mencionar a quien se une; \nej. `Hola <user> bienvenido al server`",
+        "footer":"Registro de entradas y salidas"
+    },
+    "work":{
+        "title":"Comando /work",
+        "description":"Funcionamiento del embeding canales. \n - **Modo:** workhere: Permite desactivar el funcionamiento en el canal donde se ejecuta el comando. \n - **Modo:** replybots: permite que reponda a bots en el conal donde se ejecuta el comando. `(por defecto esta desactivado)`",
+        "name_1":"Comportamiento en canales"
+    }
 }

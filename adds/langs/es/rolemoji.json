@@ -9,17 +9,6 @@
         "command_rolemoji_remove_id_description": "Usa el ID del RolEmoji que quieras eliminar, usa /rolemoji list para ver el ID",
         "command_rolemoji_list_description": "Muestra los RolEmoji",
 
-    "ATS2": "Contenido del Embed de Ayuda",
-        "command_rolemoji_help_title": "Ayuda de Rolemoji",
-        "command_rolemoji_help_description": "No funciona?, sigue estos pasos:",
-        "embed_rolemoji_paso_1": "1.- Permisos:",
-        "embed_rolemoji_fix_1": "*Los permisos de relacionados a mensajes son por canal y el de Roles es general.*\nAcontinuacion los permisos con los que cuento:\n",
-        "embed_rolemoji_paso_2": "\n2.- ID de mensaje:",
-        "embed_rolemoji_fix_2": "Si no ves \"copiar id del mensaje\" tienes desactivado el modo desarrollador.\n\n *Esto esta en Ajustes de Usuario ⚙️ > Avanzado > Modo Desarrollador.*\n",
-        "embed_rolemoji_paso_3": "3.- No asigna uno o varios roles?:",
-        "embed_rolemoji_fix_3": "Discord maneja una jerarquía de roles por posición; es decir solo puedo asignar roles que esten por debajo de mi rol mas arriba.\n\nTeniendo en cuanta que mi rol es \"Meltryllis con Arma!\" y es el unico o el que esta mas arriba asi es como quedaria los que puedo asignar:",
-        "command_rolemoji_help_footer": "Reacciona y obtén tu rol!",
-
     "ATS3": "Respuestas de Comando y Errores",
         "command_rolemoji_assign_success": "El Rol: {{role}} fue assignado correctamente al Emoji: {{emoji}}",
         "command_rolemoji_remove_failed": "No se encontró ningún RolEmoji con el ID:{{id}}.",
@@ -34,12 +23,5 @@
         "command_guild_only_error": "¡Este comando solo puede ser usado en servidores!",
         "command_subcommand_not_found": "Este subcomando no existe.",
         "command_error": "Ocurrió un error al ejecutar el comando.",
-        "command_rolemoji_fetch_error": "Error al obtener o reaccionar al mensaje.",
-        "test_error_permission": "Donde estas tratando de ejecutar el comando?!!",
-        "test_error_permission_user": "Eh?! Algo salió mal! Olvidé mis permisos!!",
-        "manage_roles_permission": "🛠️ Gestionar roles:",
-        "add_reactions_permission": "➕ Agregar reacciones:",
-        "use_external_emojis_permission": "Usar emojis externos:",
-        "allowed_permission": "✅ Permitido",
-        "missing_permission": "❌ Faltante"
+        "command_rolemoji_fetch_error": "Error al obtener o reaccionar al mensaje."
 }

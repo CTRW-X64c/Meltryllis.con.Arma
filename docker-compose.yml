@@ -17,9 +17,8 @@ services:
       - REDDIT_RSSCHECK_TIME=
       - REDDIT_CLIENT_ID=
       - REDDIT_CLIENT_SECRET=
-      - MANGADEX_CHECK_TIMMER=
+      - MANGADEX_CHECK_TIMME=
       
-      - REPLY_OTHER_BOTS=
       - STATUS_TIME_MINUTOS=
       - WELCOME_BANNER_URL=
       - PUID=

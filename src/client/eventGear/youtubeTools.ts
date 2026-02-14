@@ -4,6 +4,16 @@ import i18next from 'i18next';
 import { debug, error, info } from '../../sys/logging';
 import { getAllYouTubeFeeds, YouTubeFeed, removeYouTubeFeed } from '../../sys/DB-Engine/links/Youtube';
 
+const parser = new Parser({
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+    }
+});
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 /* =====================================  Youtube  ===================================== */
 export function extractChannelIdFromRss(rssUrl: string): string | null {
   const match = rssUrl.match(/channel_id=([^&]+)/);
@@ -30,9 +40,7 @@ export function extractVideoId(video: any): string | null {
 
 export async function verifyYouTubeRss(rssUrl: string): Promise<{ isValid: boolean; channelName: string; error?: string }> {
     try {
-        const parser = new Parser();
         const feed = await parser.parseURL(rssUrl);
-        
         if (!feed.title) {
             return { 
                 isValid: false, 
@@ -89,7 +97,7 @@ class AutoCleanupService {
   private cleanupInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    this.parser = new Parser();
+    this.parser = parser;
   }
 
   start(): void {
@@ -155,6 +163,9 @@ class AutoCleanupService {
       info(`Escaneando ${allFeeds.length} feeds...`, 'AutoCleanupService');
 
       for (const feed of allFeeds) {
+        const delay = Math.floor(Math.random() * 4000) + 4000;
+        await wait(delay);
+
         try {
           const isValid = await this.verifyFeedValidity(feed);
           
@@ -163,8 +174,6 @@ class AutoCleanupService {
             results.cleaned++;
             info(`🧹 Eliminado: ${feed.youtube_channel_name} (${feed.youtube_channel_id})`, 'AutoCleanupService');
           }
-
-          await new Promise(resolve => setTimeout(resolve, 2500));
           
         } catch (feedError) {
           const errorMsg = `Error con feed ${feed.youtube_channel_name}: ${getErrorMessage(feedError)}`;
