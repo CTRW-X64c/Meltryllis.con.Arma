@@ -15,7 +15,7 @@ import { registerRolemojiEvents, preloadRolemojiMessages } from "./eventGear/rol
 import { startYoutubeService } from "./eventGear/youtubeCheck";
 import { startRedditChecker } from "./eventGear/redditCheck";
 import { startMangadexChecker } from "./eventGear/mangadexChek";
-import { autoCleanupService } from "./eventGear/youtubeTools";
+//import { autoCleanupService } from "./eventGear/youtubeTools";
 import { startVoiceChannelService } from "./eventGear/voicEvent";
 import { handleEmbedAutocomplete } from "./commands/embed";
 import { handlePermissionsAutocomplete } from "./commands/permission";
@@ -44,7 +44,7 @@ const client = createClient();
         startVoiceChannelService(client);
         startStatusRotation(client);
         startEmbedService(client);
-        autoCleanupService.start();
+        //autoCleanupService.start();
         startMangadexChecker(client);
         logInfo(`✅ Inicializacion completada!!`);
         logInfo(`Idioma por default de los comandos: ${locale}`);

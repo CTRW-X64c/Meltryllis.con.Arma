@@ -1,8 +1,8 @@
 // src/client/coreCommands/yTools.ts
 import Parser from 'rss-parser';
 import i18next from 'i18next';
-import { debug, error, info } from '../../sys/logging';
-import { getAllYouTubeFeeds, YouTubeFeed, removeYouTubeFeed } from '../../sys/DB-Engine/links/Youtube';
+//import { debug, error, info } from '../../sys/logging';
+//import { getAllYouTubeFeeds, YouTubeFeed, removeYouTubeFeed } from '../../sys/DB-Engine/links/Youtube';
 
 const parser = new Parser({
     headers: {
@@ -12,7 +12,7 @@ const parser = new Parser({
     }
 });
 
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+//const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 /* =====================================  Youtube  ===================================== */
 export function extractChannelIdFromRss(rssUrl: string): string | null {
@@ -77,7 +77,7 @@ export async function verifyYouTubeRss(rssUrl: string): Promise<{ isValid: boole
     }
 }
 /* =====================================  AutoCLeanYoutube  ===================================== */
-
+/*
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
@@ -248,4 +248,4 @@ class AutoCleanupService {
   }
 }
 
-export const autoCleanupService = new AutoCleanupService();
+export const autoCleanupService = new AutoCleanupService(); */
