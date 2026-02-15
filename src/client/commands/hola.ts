@@ -360,7 +360,8 @@ async function helpJoin(interaction: ChatInputCommandInteraction): Promise<void>
 
 async function helpMusic(interaction: ChatInputCommandInteraction): Promise<void> {
   try{
-    if (process.env.LAVALINK_ACTIVE === 'OFF'){
+    const lavalinkUp = process.env.LAVALINK_NAME && process.env.LAVALINK_HOST && process.env.LAVALINK_PASSWORD;
+    if (!lavalinkUp) {
       await interaction.reply({
         content: i18next.t("musica.lavalink_off", { ns: "hola" }),
         flags: MessageFlags.Ephemeral });
