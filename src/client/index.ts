@@ -5,6 +5,7 @@ import { error, info, initLogger, loggerAvailable } from "../sys/logging";
 import { initializeDatabase } from "../sys/DB-Engine/database";
 import { startEmbedService } from "../sys/embedding/embedService";
 import { startStatusRotation } from "../sys/zGears/setStatus";
+import urlStatusManager from "../sys/embedding/domainChecker";
 import i18next from "i18next";
 import { initI18n } from "../sys/i18n";
 import { validateAllTranslations } from "../sys/i18n/nsKeyCheck";
@@ -19,7 +20,6 @@ import { startVoiceChannelService } from "./eventGear/voicEvent";
 import { handleEmbedAutocomplete } from "./commands/embed";
 import { handlePermissionsAutocomplete } from "./commands/permission";
 import lavalinkManager from "./eventGear/lavalinkConnect";
-import urlStatusManager from "../sys/embedding/domainChecker";
 
 /*========= Inicializadores =========*/
 
