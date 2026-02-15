@@ -127,28 +127,23 @@ async function helpClean(interaction: ChatInputCommandInteraction): Promise<void
 async function helpManga(interaction: ChatInputCommandInteraction): Promise<void> {
   
   const embed = new EmbedBuilder()
-  .setTitle(i18next.t("mangadex.HelpEmb_titulo", { ns: "hola" })) 
-  .setDescription((await hasPermission(interaction, "mangadex") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("mangadex.HelpEmb_descripcion", { ns: "hola" }))
-  .addFields(
-    {
-      name: i18next.t("mangadex.HelpEmb_Field_Name_1", { ns: "hola" }),
-      value: i18next.t("mangadex.HelpEmb_Field_Value_1", { ns: "hola" }),
-      inline: false
-    },
-    {
-      name: i18next.t("mangadex.HelpEmb_Field_Name_2", { ns: "hola" }),
-      value: i18next.t("mangadex.HelpEmb_Field_Value_2", { ns: "hola" }),
-      inline: false
-    },
-    {
-      name: i18next.t("mangadex.HelpEmb_Field_Name_3", { ns: "hola" }),
-      value: i18next.t("mangadex.HelpEmb_Field_Value_3", { ns: "hola" }),
-      inline: false
-    }    
-  )
-  .setColor(0xFF6740)
-  .setFooter({text: i18next.t("mangadex.HelpEmb_footer", { ns: "hola" }),});
-await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral});
+    .setTitle(i18next.t("mangadex.HelpEmb_titulo", { ns: "hola" })) 
+    .setDescription((await hasPermission(interaction, "mangadex") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("mangadex.HelpEmb_descripcion", { ns: "hola" }))
+    .addFields(
+      {
+        name: i18next.t("mangadex.HelpEmb_Field_Name_1", { ns: "hola" }),
+        value: i18next.t("mangadex.HelpEmb_Field_Value_1", { ns: "hola" }),
+        inline: false
+      },
+      {
+        name: i18next.t("mangadex.HelpEmb_Field_Name_2", { ns: "hola" }),
+        value: i18next.t("mangadex.HelpEmb_Field_Value_2", { ns: "hola" }),
+        inline: false
+      }  
+    )
+    .setColor(0xFF6740)
+    .setFooter({text: i18next.t("mangadex.HelpEmb_footer", { ns: "hola" }),});
+  await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral});
 }
 
 // ============================================= permisos ============================================= //
@@ -185,9 +180,8 @@ async function helpPermisos(interaction: ChatInputCommandInteraction): Promise<v
     )
     .setFooter({ text: i18next.t("permisos.footer_text_help", { ns: "hola" })})
     .setTimestamp();
-
-    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral});
-  } catch (e) {}
+  await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral});
+  } catch (e) {error(`Error al ejecutar comando /help: ${e}`);  }
 }
 
 // ============================================= reddit ============================================= //
@@ -221,6 +215,7 @@ async function helpReddit(interaction: ChatInputCommandInteraction): Promise<voi
 // ============================================= rolemoji ============================================= //
 
 async function helpRolemoji(interaction: ChatInputCommandInteraction): Promise<void> {
+  try {  
     const channel = interaction.channel;
     const guild = interaction.guild;
     
@@ -286,6 +281,7 @@ async function helpRolemoji(interaction: ChatInputCommandInteraction): Promise<v
         .setTimestamp();
         
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+  } catch (e) {error(`Error al ejecutar comando /help: ${e}`);  }
 }
 
 // ============================================= youtube ============================================= //
@@ -363,41 +359,51 @@ async function helpJoin(interaction: ChatInputCommandInteraction): Promise<void>
 // ============================================= musica ============================================= //
 
 async function helpMusic(interaction: ChatInputCommandInteraction): Promise<void> {
-  const embed = new EmbedBuilder()
-      .setColor(parseInt(randomcolorembed(), 16))
-      .setTitle(i18next.t("musica.title", { ns: "hola" }))
-      .setDescription(i18next.t("musica.description", { ns: "hola" }))
-      .addFields(
-        {
-          name: i18next.t("musica.name_1", { ns: "hola" }),
-          value: await hasPermission(interaction, "play") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
-          inline: true
-        },
-        {
-          name: i18next.t("musica.name_2", { ns: "hola" }),
-          value: await hasPermission(interaction, "skip") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
-          inline: true
-        },
-        {
-          name: i18next.t("musica.name_3", { ns: "hola" }),
-          value: await hasPermission(interaction, "stop") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
-          inline: true
-        },
-        {
-          name: i18next.t("musica.name_4", { ns: "hola" }),
-          value: await hasPermission(interaction, "queue") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
-          inline: true
-        },
-        {
-          name: i18next.t("musica.name_5", { ns: "hola" }),
-          value: i18next.t("musica.value_5", { ns: "hola" }),
-          inline: false
-        }
-      )
-      .setFooter({ text: i18next.t("musica.footer", { ns: "hola" }) })
-      .setTimestamp();    
-    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+  try{
+    if (process.env.LAVALINK_ACTIVE === 'OFF'){
+      await interaction.reply({
+        content: i18next.t("musica.lavalink_off", { ns: "hola" }),
+        flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const embed = new EmbedBuilder()
+        .setColor(parseInt(randomcolorembed(), 16))
+        .setTitle(i18next.t("musica.title", { ns: "hola" }))
+        .setDescription(i18next.t("musica.description", { ns: "hola" }))
+        .addFields(
+          {
+            name: i18next.t("musica.name_1", { ns: "hola" }),
+            value: await hasPermission(interaction, "play") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
+            inline: true
+          },
+          {
+            name: i18next.t("musica.name_2", { ns: "hola" }),
+            value: await hasPermission(interaction, "skip") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
+            inline: true
+          },
+          {
+            name: i18next.t("musica.name_3", { ns: "hola" }),
+            value: await hasPermission(interaction, "stop") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
+            inline: true
+          },
+          {
+            name: i18next.t("musica.name_4", { ns: "hola" }),
+            value: await hasPermission(interaction, "queue") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
+            inline: true
+          },
+          {
+            name: i18next.t("musica.name_5", { ns: "hola" }),
+            value: i18next.t("musica.value_5", { ns: "hola" }),
+            inline: false
+          }
+        )
+        .setFooter({ text: i18next.t("musica.footer", { ns: "hola" }) })
+        .setTimestamp();    
+      await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+  } catch (e) {error(`Error al ejecutar comando /help: ${e}`);  }
 }
+
 
 // ============================================= post ============================================= //
 

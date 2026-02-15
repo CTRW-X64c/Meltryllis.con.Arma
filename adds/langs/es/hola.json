@@ -111,6 +111,7 @@
         "footer": "Unete para tener tu propio canal de voz!!"
     },
     "musica":{
+        "lavalink_off":"Lo siento mi Host desactivo la reproduccion de muisca!!",
         "title":"Comando /play",
         "description": "Si no tienes permiso \"❌\" puedes pedir algun admin que te permiso via /permisos, ya sea inidivdual o rol",
         "can_run_yes":"✅",
