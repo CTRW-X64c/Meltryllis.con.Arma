@@ -10,15 +10,11 @@
         "embed_title": "¡Hola!",
         "embed_description": "Estoy aquí para ayudarte con los Embeds en Discord, ¡porque la verdad muchos apestan!",
         "field_invite_name": "Enlace de Invitación",
+        "field_invite_value": "[Meltryllis con Arma!](https://discord.com/oauth2/authorize?client_id=847989699083632671&scope=bot&permissions=20277312)",
         "field_terms_name": "Términos de Uso y Privacidad",
+        "field_terms_value": "[Declaración](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md)",
         "field_issue_name": "¿Algo anda mal?",
         "field_issue_value": "En canales @everyone no necesito más permisos que los que pido al ser invitada; en canales privados usa /test para ver qué permisos faltan y asignármelos.\n - Si no ves los comandos es porque requiren permisos de Administrador. \n - Discord solo procesa máximo 5 links por mensaje así que se divide automáticamente en batch de 5 links y puedes borrar el repost reaccionando a ❌ antes de que desaparezca (20s).",
-
-        "field_permisos_name": "GESTOR DE PERMISOS DE COMANDOS!!",
-        "field_permisos_value": "PERMITE A USUARIOS/ROLES USAR COMANDOS ESPESIFICOS!! \n **ESTE COMANDO NO PUEDE SER ASIGNADO A NINGUN ROL O USUARIO, Y SOLO PUEDE SER USADO POR ADMINISTRADORES O EL DUEÑO DEL SERVER** \n\n\n",
-
-        "field_invite_value": "[Meltryllis con Arma!](https://discord.com/oauth2/authorize?client_id=847989699083632671&scope=bot&permissions=20277312)",
-        "field_terms_value": "[Declaración](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md)",
         "footer_text": "SI QUIERES MAS AYUDA DE CADA COMANDO PUEDES USAR /help <comando>."
     },
     "mangadex":{
@@ -137,7 +133,7 @@
     },
     "test":{
        "title":"Ayuda del comando /test",
-       "description":"Permite revisar los configuraciones de los canales del server y permisos \n Si tienes canales privados se suele tener conflicto con el permiso \"ver canal\" haciendo que no pueda trabajar en esos canales",
+       "description":"Permite revisar los configuraciones de los canales del server y permisos \n Si tienes canales privados se suele tener conflicto con el permiso **\"ver canal\"** haciendo que no pueda trabajar en esos canales",
        "name_1":"modo: Permisos generales en el Servidor:",
        "value_1":"Permite ver los permisos que tengo para hacer mis funciones correctamente",
        "name_2":"modo: Funcionamiento por canal:",
@@ -156,6 +152,6 @@
     "work":{
         "title":"Comando /work",
         "description":"Funcionamiento del embeding canales. \n - **Modo:** workhere: Permite desactivar el funcionamiento en el canal donde se ejecuta el comando. \n - **Modo:** replybots: permite que reponda a bots en el conal donde se ejecuta el comando. `(por defecto esta desactivado)`",
-        "name_1":"Comportamiento en canales"
+        "footer":"Comportamiento en canales"
     }
 }

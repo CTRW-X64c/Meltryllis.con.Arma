@@ -69,7 +69,7 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
 async function info(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
     .setTitle(i18next.t("info.embed_title", { ns: "hola" }))
-    .setDescription(i18next.t("info.embed_description"))
+    .setDescription(i18next.t("info.embed_description", { ns: "hola" }))
     .addFields(
       {
         name: i18next.t("info.field_invite_name", { ns: "hola" }),
@@ -84,16 +84,6 @@ async function info(interaction: ChatInputCommandInteraction): Promise<void> {
       {
         name: i18next.t("info.field_issue_name", { ns: "hola" }),
         value: i18next.t("info.field_issue_value", { ns: "hola" }),
-        inline: false
-      },
-      {
-        name: i18next.t("info.field_permisos_name", { ns: "hola" }),
-        value: i18next.t("info.field_permisos_value", { ns: "hola" }),
-        inline: false
-      },
-      {
-        name: i18next.t("info.field_helpy_name", { ns: "hola" }),
-        value: i18next.t("info.field_helpy_value", { ns: "hola" }),
         inline: false
       }
     )
@@ -405,14 +395,13 @@ async function helpMusic(interaction: ChatInputCommandInteraction): Promise<void
   } catch (e) {error(`Error al ejecutar comando /help: ${e}`);  }
 }
 
-
 // ============================================= post ============================================= //
 
 async function helpPost(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
       .setColor(parseInt(randomcolorembed(), 16))
       .setTitle(i18next.t("post.title", { ns: "hola" }))
-      .setDescription(await hasPermission(interaction, "post") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" }) + '\n\n' + i18next.t("post.description", { ns: "hola" }))
+      .setDescription((await hasPermission(interaction, "post") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("post.description", { ns: "hola" }))
       .addFields(
         {
           name: i18next.t("post.name_1", { ns: "hola" }),
@@ -441,7 +430,7 @@ async function helpTest(interaction: ChatInputCommandInteraction): Promise<void>
   const embed = new EmbedBuilder()
       .setColor(parseInt(randomcolorembed(), 16))
       .setTitle(i18next.t("test.title", { ns: "hola" }))
-      .setDescription(await hasPermission(interaction, "test") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" }) + '\n\n' + i18next.t("test.description", { ns: "hola" }))
+      .setDescription((await hasPermission(interaction, "test") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("test.description", { ns: "hola" }))
       .addFields(
         {
           name: i18next.t("test.name_1", { ns: "hola" }),
@@ -475,7 +464,7 @@ async function helpWelcome(interaction: ChatInputCommandInteraction): Promise<vo
   const embed = new EmbedBuilder()
       .setColor(parseInt(randomcolorembed(), 16))
       .setTitle(i18next.t("welcome.title", { ns: "hola" }))
-      .setDescription(await hasPermission(interaction, "welcome") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" }) + '\n\n' + i18next.t("welcome.description", { ns: "hola" }))
+      .setDescription((await hasPermission(interaction, "welcome") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("welcome.description", { ns: "hola" }))
       .setFooter({ text: i18next.t("welcome.footer", { ns: "hola" }) })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -487,7 +476,7 @@ async function helpWork(interaction: ChatInputCommandInteraction): Promise<void>
   const embed = new EmbedBuilder()
       .setColor(parseInt(randomcolorembed(), 16))
       .setTitle(i18next.t("work.title", { ns: "hola" }))
-      .setDescription(await hasPermission(interaction, "work") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" }) + '\n\n' + i18next.t("work.description", { ns: "hola" }))
+      .setDescription((await hasPermission(interaction, "work") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("work.description", { ns: "hola" }))
       .setFooter({ text: i18next.t("work.footer", { ns: "hola" }) })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
