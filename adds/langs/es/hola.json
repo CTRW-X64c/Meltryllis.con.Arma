@@ -108,14 +108,11 @@
     },
     "musica":{
         "lavalink_off":"Lo siento mi Host desactivo la reproduccion de muisca!!",
-        "title":"Comando /play",
-        "description": "Si no tienes permiso \"❌\" puedes pedir algun admin que te permiso via /permisos, ya sea inidivdual o rol",
+        "title":"Comandos de Musica",
+        "description": "Si no tienes permiso \"❌\" puedes pedir algun admin que te permiso via **/permisos**, ya sea inidivdual o rol",
         "can_run_yes":"✅",
         "can_run_no": "❌",
-        "name_1": "Puedes usar /play:",
-        "name_2": "Puedes usar /skip:",
-        "name_3": "Puedes usar /stop:",
-        "name_4": "Puedes usar /queue:",
+        "name_1": "Puedes usar /play | /skip | /stop | /queue:",
         "name_5": "Comandos basicos para poner musica, Tips:",
         "value_5":"- Si quieres agregar listas usa /play... queue:yes. \n- Para borrar la lista usa /queue clean:true \n- Despues de 10s sola en el canal se detiene la reproduccion",
         "footer": "🎵 Comandos de musica! 🎵"

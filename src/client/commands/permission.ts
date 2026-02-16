@@ -19,11 +19,14 @@ export async function handlePermissionsAutocomplete(interaction: AutocompleteInt
 }
 
 export async function registerPermissionsCommand(commandsList: { name: string, description: string }[] = []) {
-    configurableCommands = commandsList.filter(cmd => cmd.name !== 'hola' && cmd.name !== 'owner' && cmd.name !== 'permisos');
-    commandChoices = configurableCommands.map(cmd => ({
-        name: `/${cmd.name} - ${cmd.description}`,
-        value: cmd.name
-    }));
+    configurableCommands = commandsList.filter(cmd => cmd.name !== 'hola' && cmd.name !== 'owner' && cmd.name !== 'permisos' && cmd.name !== 'play' && cmd.name !== 'skip' && cmd.name !== 'stop' && cmd.name !== 'queue');
+    commandChoices = [
+        ...configurableCommands.map(cmd => ({
+            name: `/${cmd.name} - ${cmd.description}`,
+            value: cmd.name
+        })),
+        { name: "Musica - /play /skip /stop /queue", value: "lavalinkMusic" }
+    ];
 
     const permissions = new SlashCommandBuilder()
         .setName("permisos")

@@ -365,22 +365,7 @@ async function helpMusic(interaction: ChatInputCommandInteraction): Promise<void
         .addFields(
           {
             name: i18next.t("musica.name_1", { ns: "hola" }),
-            value: await hasPermission(interaction, "play") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
-            inline: true
-          },
-          {
-            name: i18next.t("musica.name_2", { ns: "hola" }),
-            value: await hasPermission(interaction, "skip") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
-            inline: true
-          },
-          {
-            name: i18next.t("musica.name_3", { ns: "hola" }),
-            value: await hasPermission(interaction, "stop") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
-            inline: true
-          },
-          {
-            name: i18next.t("musica.name_4", { ns: "hola" }),
-            value: await hasPermission(interaction, "queue") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
+            value: await hasPermission(interaction, "lavalinkMusic") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
             inline: true
           },
           {

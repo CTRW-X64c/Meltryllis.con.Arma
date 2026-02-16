@@ -43,7 +43,7 @@ export async function handleMusicInteraction(interaction: ChatInputCommandIntera
         return;
     }
 
-    const isAllowed = hasPermission(interaction, interaction.commandName);
+    const isAllowed = hasPermission(interaction, "lavalinkMusic");
     if (!isAllowed) {
         await interaction.reply({
             content: i18next.t("command_permission_error_permission", { ns: "music" }),
