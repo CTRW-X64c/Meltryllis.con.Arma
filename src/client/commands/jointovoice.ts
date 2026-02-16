@@ -44,7 +44,7 @@ export async function registerJoinToCreateCommand(): Promise<SlashCommandBuilder
 }
 
 export async function handleJoinToCreateCommand(interaction: ChatInputCommandInteraction): Promise<void> {
-    const isAllowed = hasPermission(interaction, interaction.commandName);
+    const isAllowed = await hasPermission(interaction, interaction.commandName);
     if (!isAllowed) {
         await interaction.reply({
             content: i18next.t("command_permission_error", { ns: "jointocreate" }),
