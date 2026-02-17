@@ -93,7 +93,6 @@ services:
       - LOCALE=
     #Configuraciones
       - DEBUG_MODE=
-      - REPLY_OTHER_BOTS=
       - WELCOME_BANNER_URL= 
       - PUID=
       - PGID=
@@ -181,7 +180,6 @@ services:
 | `OWNER_BOT_ID`  | Tu ID de Usuario de discord  |
 | `LANGS_SUPPORTED` | Idiomas que soporta tu bot |
 | `LOCALE` | Idioma por default que tendra el bot |
-| `REPLY_OTHER_BOTS` | "true \| false" Responder a Bots |
 | `DEBUG_MODE` | "Debug mode *0* \| Produccion *>0*" |
 | `YOUTUBE_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:5m |
 | `AUTO_CLEAN_YOUTUBE_TIMMER` | Tiempo entre purgas de la BD Youtube |

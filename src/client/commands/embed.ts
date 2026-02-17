@@ -71,7 +71,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
             return;
         }
 
-        const isAllowed = hasPermission(interaction, interaction.commandName);
+        const isAllowed = await hasPermission(interaction, interaction.commandName);
         if (!isAllowed) {
             await interaction.reply({
                 content: i18next.t("no_permission", { ns: "embed" }),

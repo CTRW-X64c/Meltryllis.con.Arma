@@ -6,7 +6,15 @@ import { Client, TextChannel } from 'discord.js';
 import { extractVideoId } from './youtubeTools';
 import i18next from 'i18next';
 
-const parser = new Parser();
+const parser = new Parser({
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+    }
+});
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   class YTRssService {
   private client: Client;
@@ -25,8 +33,7 @@ const parser = new Parser();
     this.isChecking = true;
     
     try {
-      const guilds = this.client.guilds.cache.values();
-      
+      const guilds = Array.from(this.client.guilds.cache.values());
       for (const guild of guilds) {
         try {
           await this.checkGuildFeeds(guild.id);
@@ -43,6 +50,9 @@ const parser = new Parser();
     const feeds = await getYouTubeFeeds(guildId);
     
     for (const feed of feeds) {
+      const delay = Math.floor(Math.random() * 4000) + 3000;
+      await wait(delay);
+
       try {
         await this.checkFeed(feed);
       } catch (err) {
@@ -121,7 +131,7 @@ const parser = new Parser();
 // Inicializador de timer y espera al inicio. 
 export function startYoutubeService(client: Client): void {
   const MStoMin = 60000;
-  const DEFAULT_Timmer = 10;
+  const DEFAULT_Timmer = 15; // Aumentado a 15 para prevenir bloqueos
   const MIN_TIMMER = 5;
   const rawRssTime = process.env.YOUTUBE_CHECK_TIMMER;
   const parsedMinutes = rawRssTime ? parseInt(rawRssTime, 10) : NaN;

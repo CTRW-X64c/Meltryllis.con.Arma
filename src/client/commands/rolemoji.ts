@@ -64,7 +64,7 @@ export async function registerRolemojiCommand(): Promise<SlashCommandBuilder[]> 
 
 export async function handleRolemojiCommand(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
-        const isAllowed = hasPermission(interaction, interaction.commandName);
+        const isAllowed = await hasPermission(interaction, interaction.commandName);
         if (!isAllowed) {
             await interaction.reply({
                 content: i18next.t("command_permission_error", { ns: "rolemoji" }),

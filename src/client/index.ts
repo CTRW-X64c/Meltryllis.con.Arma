@@ -5,6 +5,7 @@ import { error, info, initLogger, loggerAvailable } from "../sys/logging";
 import { initializeDatabase } from "../sys/DB-Engine/database";
 import { startEmbedService } from "../sys/embedding/embedService";
 import { startStatusRotation } from "../sys/zGears/setStatus";
+import urlStatusManager from "../sys/embedding/domainChecker";
 import i18next from "i18next";
 import { initI18n } from "../sys/i18n";
 import { validateAllTranslations } from "../sys/i18n/nsKeyCheck";
@@ -14,12 +15,11 @@ import { registerRolemojiEvents, preloadRolemojiMessages } from "./eventGear/rol
 import { startYoutubeService } from "./eventGear/youtubeCheck";
 import { startRedditChecker } from "./eventGear/redditCheck";
 import { startMangadexChecker } from "./eventGear/mangadexChek";
-import { autoCleanupService } from "./eventGear/youtubeTools";
+//import { autoCleanupService } from "./eventGear/youtubeTools";
 import { startVoiceChannelService } from "./eventGear/voicEvent";
 import { handleEmbedAutocomplete } from "./commands/embed";
 import { handlePermissionsAutocomplete } from "./commands/permission";
 import lavalinkManager from "./eventGear/lavalinkConnect";
-import urlStatusManager from "../sys/embedding/domainChecker";
 
 /*========= Inicializadores =========*/
 
@@ -44,7 +44,7 @@ const client = createClient();
         startVoiceChannelService(client);
         startStatusRotation(client);
         startEmbedService(client);
-        autoCleanupService.start();
+        //autoCleanupService.start();
         startMangadexChecker(client);
         logInfo(`✅ Inicializacion completada!!`);
         logInfo(`Idioma por default de los comandos: ${locale}`);
@@ -75,8 +75,6 @@ function createClient(): Client {
         info(i18next.t("guilds_count", {ns: "core", guildCount: guildCount, pluralGuilds: guildCount === 1 ? "guild" : "guilds"}), "Events.ClientReady");
         const guildNames = eventClient.guilds.cache.map(guild => guild.name).join(", ");
         info(i18next.t("servers_list", {ns: "core", guildNames:guildNames}));
-        const replyToOtherBots = process.env.REPLY_OTHER_BOTS === "true";
-        info(i18next.t("reply_to_bots_config", {ns: "core", config:replyToOtherBots}), "Events.MessageCreate");
         preloadRolemojiMessages(client);        
     });
     

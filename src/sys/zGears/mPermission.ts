@@ -6,7 +6,7 @@ import { getCommandPermissions } from "../DB-Engine/links/Permission";
 export async function hasPermission( interaction: ChatInputCommandInteraction, commandName: string ): Promise<boolean> {
     const { guild, user, member, memberPermissions } = interaction;
     if (!guild || !member) return false;
-    if (user.id === guild.ownerId || memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
+    if (user.id === guild.ownerId || memberPermissions?.has(PermissionFlagsBits.Administrator)) {
         return true;
     }
     

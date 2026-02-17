@@ -23,6 +23,12 @@ export function startEmbedService(client: Client): void {
         const guildReplacementConfig = guildId ? await getGuildReplacementConfig(guildId) : new Map();
         const originalAuthorId = message.author.id;
         const isBot = message.author.bot;
+        const noEmb = message.content.startsWith(">!");
+        
+        if (noEmb) {
+            debug(`Ignorando mensaje empieza con >!`, "Events.MessageCreate");
+            return;
+        }
 
         if (guildId) {
             const channelConfig = (await getConfigMap()).get(guildId)?.get(channelId);

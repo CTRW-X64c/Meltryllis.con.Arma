@@ -1,12 +1,11 @@
 // src/client/coreCommands/upCommands.ts
-import { Client, ChatInputCommandInteraction } from "discord.js";
 import { error, info } from "../../sys/logging";
+import { Client, ChatInputCommandInteraction } from "discord.js";
 import { registerTestCommand, handleTestCommand } from "../commands/test";
 import { registerHolaCommand, handleHolaCommand } from "../commands/hola";
 import { registerWorkCommand, handleWorkCommand } from "../commands/work";
 import { registerEmbedCommand, handleEmbedCommand } from "../commands/embed";
 import { registerWelcomeCommand, handleWelcomeCommand } from "../commands/welcome";
-/*import { registerReplybotsCommand, handleReplybotsCommand } from "../../../beta/replybots";*/
 import { registerRolemojiCommand, handleRolemojiCommand } from "../commands/rolemoji"
 import { registerOwnerCommands, handleOwnerCommands } from "../../sys/zGears/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "../commands/youtube";
@@ -18,13 +17,13 @@ import { registerMangadexCommand, handleMangadexCommand } from "../commands/mang
 import { registerPermissionsCommand, handlePermissionsCommand } from "../commands/permission";
 import { registerMusicCommands, handleMusicInteraction } from "../commands/music";
 
+/* ================================= Registro de comandos ================================= */
 
 export async function registerCommands(client: Client) { 
   const commands = [
     ...(await registerHolaCommand()),
     ...(await registerTestCommand()),
     ...(await registerWorkCommand()),
-    /*...(await registerReplybotsCommand()),*/
     ...(await registerEmbedCommand()),
     ...(await registerWelcomeCommand()),
     ...(await registerRolemojiCommand()),
@@ -41,11 +40,12 @@ export async function registerCommands(client: Client) {
   const permissionsCommand = await registerPermissionsCommand(commands as any);
   commands.push(...permissionsCommand);
 
-
   client.application?.commands.set(commands)
     .then(() => info("Comandos /help, /test, /embed, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice, /mangadex, /permisos y /owner registrados con éxito", "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
+
+/* ================================= Registro de interacciones ================================= */
 
 export async function handleCommandInteraction(interaction: ChatInputCommandInteraction) {
   const { commandName } = interaction;
@@ -62,9 +62,7 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
   } else if (interaction.commandName === "test") {
     await handleTestCommand(interaction);
   } else if (interaction.commandName === "work") {
-    await handleWorkCommand(interaction); /*
-  } else if (interaction.commandName === "replybots") {
-    await handleReplybotsCommand(interaction); */
+    await handleWorkCommand(interaction);
   } else if (interaction.commandName === "embed") {
     await handleEmbedCommand(interaction);
   } else if (interaction.commandName === "welcome") {
@@ -89,6 +87,3 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
     await handlePermissionsCommand(interaction);
   }
 }
-
-/* =============== NOTAS =============== */
-/*  Replybots y Work fusionados en work */

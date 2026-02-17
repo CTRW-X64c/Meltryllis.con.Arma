@@ -38,15 +38,6 @@
         "YT_embed_list_value": "Lista Vacia",
         "YT_embed_footer":"`💡 /youtube dejar id_canal:ID - • - /youtube test id_canal:ID`",
 
-    "ATS4":"Embed Builder Help",
-        "YT_HelpEmb_titulo":"Ayuda del Comando de YouTube",
-        "YT_HelpEmb_descripcion":"Aquí encontrarás información sobre cómo usar los comandos de YouTube.",
-        "YT_HelpEmb_Field_Name_1":"Pasos para seguir un canal",
-        "YT_HelpEmb_Field_Value_1":"1. Ve al canal de YouTube en tu navegador.\n2. Haz clic derecho en la página y selecciona 'Ver código fuente de la página'.\n3. Busca (Ctrl+F) `\"title=RSS\" href=` o `rssUrl` para encontrar la URL del feed RSS.\n4. Usa esa URL en el comando `/youtube seguir`.",
-        "YT_HelpEmb_Field_Name_2":"Comandos Disponibles",
-        "YT_HelpEmb_Field_Value_2":"`/youtube seguir`: Añade un canal.\n`/youtube lista`: Muestra los canales seguidos.\n`/youtube dejar`: Elimina un canal.\n`/youtube test`: Publica el último video de un canal para probar.",
-        "YT_HelpEmb_footer":"💡 /youtube dejar id_canal:ID - • - /youtube test id_canal:ID",
- 
     "ATS5":"youtubeCheck",
         "error_404": "Error 404: El canal no existe o la URL es incorrecta",
         "error_403": "Error 403: Acceso denegado",

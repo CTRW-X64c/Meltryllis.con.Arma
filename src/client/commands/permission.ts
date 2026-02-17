@@ -19,16 +19,19 @@ export async function handlePermissionsAutocomplete(interaction: AutocompleteInt
 }
 
 export async function registerPermissionsCommand(commandsList: { name: string, description: string }[] = []) {
-    configurableCommands = commandsList.filter(cmd => cmd.name !== 'hola' && cmd.name !== 'owner' && cmd.name !== 'permisos');
-    commandChoices = configurableCommands.map(cmd => ({
-        name: `/${cmd.name} - ${cmd.description}`,
-        value: cmd.name
-    }));
+    configurableCommands = commandsList.filter(cmd => cmd.name !== 'hola' && cmd.name !== 'owner' && cmd.name !== 'permisos' && cmd.name !== 'play' && cmd.name !== 'skip' && cmd.name !== 'stop' && cmd.name !== 'queue');
+    commandChoices = [
+        ...configurableCommands.map(cmd => ({
+            name: `/${cmd.name} - ${cmd.description}`,
+            value: cmd.name
+        })),
+        { name: "Musica - /play /skip /stop /queue", value: "lavalinkMusic" }
+    ];
 
     const permissions = new SlashCommandBuilder()
         .setName("permisos")
         .setDescription(i18next.t("command_permissions_description", { ns: "permissions" }))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addSubcommand(subcommand =>
             subcommand
                 .setName("añadir")
@@ -88,7 +91,7 @@ export async function handlePermissionsCommand(interaction: ChatInputCommandInte
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.ManageGuild) || interaction.guild?.ownerId === interaction.user.id; 
+    const isAdmin = memberPermissions?.has(PermissionFlagsBits.Administrator) || interaction.guild?.ownerId === interaction.user.id; 
     if (!isAdmin) {
         await interaction.editReply({
             content: i18next.t("command_permission_error", { ns: "permissions" })

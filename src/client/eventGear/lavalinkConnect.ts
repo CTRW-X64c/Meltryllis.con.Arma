@@ -109,8 +109,9 @@ export class LavalinkManager {
 }
 
 function createLavalinkInstance(): LavalinkManager | null {
-    if (process.env.LAVALINK_ACTIVE === 'OFF') {
-        console.log('❌ [Lavalink] Desactivado por configuración (.env).');
+    const lavalinkUp = process.env.LAVALINK_NAME && process.env.LAVALINK_HOST && process.env.LAVALINK_PASSWORD;
+    if (!lavalinkUp) {
+        console.log('❌ [Lavalink] Desactivado, quiza falta NAME, HOST o PASSWORD; si es intencional ignora esto');
         return null;
     }
     console.log('✅ [Lavalink] Módulo Activado.');

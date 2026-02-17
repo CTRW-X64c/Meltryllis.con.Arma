@@ -57,7 +57,7 @@ export async function registerYouTubeCommand() {
 
 export async function handleYouTubeCommand(interaction: any) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  const isAllowed = hasPermission(interaction, interaction.commandName);
+  const isAllowed = await hasPermission(interaction, interaction.commandName);
   if (!isAllowed) {
     await interaction.editReply({
       content: i18next.t("command_permission_error", { ns: "rolemoji" }),

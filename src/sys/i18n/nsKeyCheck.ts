@@ -21,7 +21,8 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "embed_command_custom_url"
     ],    
     "hola":[
-        "command_hola_description"
+        "comBuild.command_hola_description",
+        "comBuild.command_hola_idioma_description"
     ], 
     "rolemoji":[
         "command_rolemoji_description",
@@ -32,8 +33,6 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "command_rolemoji_remove_description",
         "command_rolemoji_remove_id_description",
         "command_rolemoji_list_description",
-        "command_rolemoji_help_title",
-        "command_rolemoji_help_description"
     ],
     "test":[
         "command_test_description",

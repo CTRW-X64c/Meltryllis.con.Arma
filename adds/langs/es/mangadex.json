@@ -30,15 +30,5 @@
         "command_mangadex_dejar_fallo": "❌ No encontré ese manga en tu lista. Asegúrate de poner la URL exacta.",
         "command_error": "Ocurrió un error al ejecutar el comando.",
 
-        "mangadex_HelpEmb_titulo": "Ayuyda Mangadex",
-        "mangadex_HelpEmb_descripcion": "Este comando te permite seguir mangas de (Mangadex)[https://mangadex.org/] por idioma o general",
-        "mangadex_HelpEmb_Field_Name_1": "/mangadex seguir <url_Manga> <canal> <idioma> ",
-        "mangadex_HelpEmb_Field_Value_1": "url_Manga: URL del manga que quieres seguir. \n canal: Canal en el que se publicaran las updates. \n idioma: Idioma de lo capitulos que quieres seguir",
-        "mangadex_HelpEmb_Field_Name_2": "/mangadex lista",
-        "mangadex_HelpEmb_Field_Value_2": "Proporciona una lista de los mangas que estas siguiendo junto con su ID de registro que sirve para borrarlos",
-        "mangadex_HelpEmb_Field_Name_3": "/mangadex dejar <manga_id>",
-        "mangadex_HelpEmb_Field_Value_3": "Permite borrar los mangas que ya no quieres seguir! \n manga_id: puedes obtenerlo con el comando /mangadex lista",
-        "mangadex_HelpEmb_footer": "(Mangadex)[https://mangadex.org] & (MDRSS)[https://mdrss.tijlvdb.me]",
-
         "command_error_help": "Ocurrió un error al ejecutar el comando!!"
 }
