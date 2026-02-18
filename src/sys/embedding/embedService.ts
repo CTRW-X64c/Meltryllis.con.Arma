@@ -7,7 +7,10 @@ import ApiReplacement from "./ApiReplacement";
 import { debug, error } from "../logging";
 import i18next from "i18next";
 
-const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split('|').map(s => s.trim()) : [];
+const apiDomains = [
+    ...(process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : []),
+    ...(process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [])
+    ];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
 const MAX_EMBEDS = 5;
 
@@ -64,7 +67,7 @@ export function startEmbedService(client: Client): void {
             }
     /* ==================================================== Ajuste para prioridad del API ==================================================== */
             try {
-                const matchingDomain = apiReplacementDomainsEnv.find(d => domainSite?.endsWith(d)); 
+                const matchingDomain = apiDomains.find(d => domainSite?.endsWith(d)); 
                 if (matchingDomain) {
                     const apiDomainConfig = guildReplacementConfig.get(matchingDomain);
                     let apiEnabled = true;
@@ -116,7 +119,7 @@ export function startEmbedService(client: Client): void {
         }
     /* ==================================================== Borrado de embed y Emoji ==================================================== */
         if (replacedUrls.length > 0) {
-            const suppressEmbedsWithRetry = async (msg: Message, maxAttempts = 5, delayMs = 1000) => {
+            const suppressEmbedsWithRetry = async (msg: Message, maxAttempts = 5, delayMs = 2000) => {
                 for (let attempt = 1; attempt <= maxAttempts; attempt++) {
                     try {
                         await new Promise((resolve) => setTimeout(resolve, delayMs));

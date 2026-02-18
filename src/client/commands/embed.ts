@@ -6,15 +6,16 @@ import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
 
-const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split('|').map(s => s.trim()) : [];
-const manualSites = replacementMetaList.map((meta) => ({ name: meta.name, value: meta.name }));
-const apiSites = apiReplacementDomainsEnv.map((domain) => ({ name: "Api: " + domain, value: domain }));
-const allSites = [...manualSites, ...apiSites];
+const localSites = replacementMetaList.map((meta) => ({ name: "Local: " + meta.name, value: meta.name }));  //cambio estetico para separa los sitios NSFW & SFW del APi y locales 
+const dominiosAPIsfw = process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : [];
+const apiSitesSFW = dominiosAPIsfw.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
+const dominiosAPInsfw = process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [];
+const apiSitesNSFW = dominiosAPInsfw.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
+const allSites = [...localSites, ...apiSitesSFW, ...apiSitesNSFW];
 
 // --- Cambio para autocompletar 
 export async function handleEmbedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const focusedValue = interaction.options.getFocused().toLowerCase();
-    
+    const focusedValue = interaction.options.getFocused().toLowerCase();  
     const filtered = allSites.filter(choice => 
         choice.name.toLowerCase().includes(focusedValue)
     );
@@ -83,7 +84,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         const site = interaction.options.getString("sitio", true);
         const action = interaction.options.getString("modo", true);
         const customUrlInput = interaction.options.getString("personalizar", false);
-        const isApiDomain = apiReplacementDomainsEnv.includes(site);
+        const isApiDomain = dominiosAPIsfw.includes(site) || dominiosAPInsfw.includes(site);
 
         let customUrl: string | null = null;
         let enabled = true;

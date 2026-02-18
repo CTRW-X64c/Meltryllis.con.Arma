@@ -93,9 +93,9 @@
         "title":"Comando /embed configurar",
         "description":"Configuraciones sobre el remplazamiento, desactivacion y customizacion de los dominios de los embeds, API o \"locales\" \n El embeding prioriza primero el API, en caso de no estar disponible o fuese desactivada el sitio pasara al embeding \"local\"",
         "name_1":"Dominios API:",
-        "value_1":"Los dominios API no pueden ser customizados, unicamente se pueden desactivar o activar, actuamente usamos el Api de [Embedez](https://embedez.com/) y se diferencian en el listado de sitios porque empiezan por Api:dominio",
+        "value_1":"Los dominios API no pueden ser customizados, unicamente se pueden desactivar o activar, actuamente usamos el Api de [Embedez](https://embedez.com/) y se diferencian en el listado de sitios porque empiezan por SFW.Api/NSFW.Api:dominio.",
         "name_2":"Dominios \"locales\"",
-        "value_2":"Los dominios locales son supervisados en intervalos de 10min para verificar si estan disponibles y en caso de no estarlo cambiara a uno alterno o al dominio original. \n - Los dominios locales se pueden desactivar o customizar con otro dominio; los dominios custom no se pueden autoswitchear si no esta disponible.",
+        "value_2":"Los dominios locales son supervisados en intervalos de 10min para verificar si estan disponibles y en caso de no estarlo cambiara a uno alterno o al dominio original. \n - Los dominios locales se pueden desactivar o customizar con otro dominio; los dominios custom no se pueden autoswitchear si no esta disponible. \n\n Discord limita el listado a solo 25, puedes poner NSFW/SFW/Local para ver los dominios disponibles. \n `SFW: Suelen ser redes sociales. ej: Tiktok/Reddit` \n `NSFW: suelen ser paginas de imagenes. ej: Danbooru/yande.re`",
         "footer":"Tienes 20s para reaccionar a ❌ y borrar el post"
     },
     "jointovoice":{

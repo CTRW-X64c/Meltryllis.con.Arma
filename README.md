@@ -131,7 +131,8 @@ services:
       - FURAFF_FIX_URL=
       - IMGUR_FIX_URL=
       - IWARA_FIX_URL=
-      - API_REPLACEMENT_DOMAINS=
+      - EMBEDEZ_SFW= #Los sitios que embedez soporta (SFW) https://embedez.com/api
+      - EMBEDEZ_NSFW= #Los sitios que embedez soporta (NSFW) https://embedez.com/api
     #Configuraciones Bot 
       - BOT_STATUS=
       - STATUS_TIME_MINUTOS=
@@ -195,7 +196,7 @@ services:
 | `DB_PASSWORD` | Password BD \| MYSQL_PASSWORD |
 | `DB_DATABASE` | Nombre BD \| MYSQL_DATABASE |
 | `"Sitio"_FIX_URL` | Dominio a remplazar |
-| `API_REPLACEMENT_DOMAINS` | Sitios soportados por [Embedez](https://embedez.com/) |
+| `EMBEDEZ_NSFW/EMBEDEZ_SFW` | Sitios soportados por [Embedez](https://embedez.com/api) |
 | `BOT_STATUS` | estado \| tipo de actividad |
 | `STATUS_TIME_MINUTOS` | Tiempo de Rotacion de *BOT_STATUS* |
 | `LAVALINK_ACTIVE` | OFF = desactiva Lavalink y sus comandos |

@@ -24,12 +24,12 @@ services:
       - PUID=
       - PGID=
       - TZ=
-      
+    # DB configs 
       - DB_HOST=
       - DB_USER=
       - DB_PASSWORD=
       - DB_DATABASE=
-      
+    # Dominios de remplazo local
       - BILILI_FIX_URL=
       - BSKY_FIX_URL=
       - DEVIAN_FIX_URL=
@@ -46,13 +46,13 @@ services:
       - TWITTER_FIX_URL=
       - TWITCH_FIX_URL=
       - YOUTUBE_FIX_URL=
-      
+    #Sitios soportados por Embedez - https://embedez.com/api
       - EMBEDEZ_API_FIX_URL=
-      - API_REPLACEMENT_DOMAINS=
+      - EMBEDEZ_SFW=tiktok.com|reddit.com|ifunny.co|snapchat.com|imgur.com|pinterest.com
+      - EMBEDEZ_NSFW=danbooru.donmai.us|derpibooru.org|e621.net|e926.net|gelbooru.com|rule34.xxx|safebooru.org|hypnohub.net|konachan.com|yande.re|rule34.paheal.net|xbooru.com|tbib.org
       
       - BOT_STATUS=
-      
-      - LAVALINK_ACTIVE=
+    #Lavalink configs  
       - LAVALINK_NAME=
       - LAVALINK_HOST=
       - LAVALINK_PORT=
