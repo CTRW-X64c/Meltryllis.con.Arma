@@ -367,7 +367,7 @@ async function helpMusic(interaction: ChatInputCommandInteraction): Promise<void
         .addFields(
           {
             name: i18next.t("musica.name_1", { ns: "hola" }),
-            value: await hasPermission(interaction, "lavalinkMusic") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
+            value: await hasPermission(interaction, "play /stop /skip /queue") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
             inline: true
           },
           {

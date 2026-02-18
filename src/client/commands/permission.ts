@@ -25,7 +25,7 @@ export async function registerPermissionsCommand(commandsList: { name: string, d
             name: `/${cmd.name} - ${cmd.description}`,
             value: cmd.name
         })),
-        { name: "Musica - /play /skip /stop /queue", value: "lavalinkMusic" }
+        { name: "Musica - /play /skip /stop /queue", value: "play /stop /skip /queue" }
     ];
 
     const permissions = new SlashCommandBuilder()
