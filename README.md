@@ -15,9 +15,8 @@ Meltryllis inicialmente fue pensada para embedding de Link y poco a poco se le f
 Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok, Imgur & Threads. <br>
 __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar o desactivar usando el comando **/embed***!__
 
----
-
-## Comandos: 
+<details> <summary> Comandos </summary>
+ 
  - /hola = Info del bot y ayuda sobre los comandos.
  - /embed configurar = Desactivar & Cambiar Dominio.
  - /rolemoji: 
@@ -66,10 +65,13 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
     - remove: Quita los permisos de un rol/usurio.
     - limpiar: Quita todos los permisos del server.
     - help: Proporciona ayuda sobre sobre los comandos.
-  - /comandos de musica [ PLAY | STOP | QUEUE | SKIP ]
+  - Comandos de musica [ /PLAY | /STOP | /QUEUE | /SKIP ]
 
+</details>
 
----    
+## Seccion tecnica
+
+<details> <summary>🐳 Valores para variables</summary>
 
 ## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
 
@@ -173,7 +175,8 @@ services:
 #EN CASO DE USAR UN LAVALINK EXTERNO BORRA ESTO
 
 ```
-<details> <summary>🐳 Valores para variables</summary>
+
+<summary>🐳 Valores para variables</summary><br>
  
 | Variable Bot | Valores |
 | --- | --- |
