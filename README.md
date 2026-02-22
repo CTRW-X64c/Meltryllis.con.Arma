@@ -1,6 +1,8 @@
 # Meltryllis con Arma!
 Meltryllis inicialmente fue pensada para embedding de Link y poco a poco se le fue añadiendo funciones; con el tiempo estaremos teniendo mas funciones. <br>
- ## Dominios que usamos en los Embedigs:<br>
+<details> <summary> Dominios que usamos </summary><br>
+
+ Estos son los sitios y dominios que usamos para el remplazo de manera local.
  |  |  |
  | ---- | ----- |
 | &nbsp; __Bilibili:__ &nbsp;vxbilibili.com<br> | &nbsp; __Bsky:__ &nbsp;bskyx.app<br> |
@@ -12,9 +14,10 @@ Meltryllis inicialmente fue pensada para embedding de Link y poco a poco se le f
 | &nbsp; __Tumblr:__ &nbsp;txtumblr.com<br> | &nbsp; __Twitch:__ &nbsp;fxtwitch.seria.moe<br> |
 | &nbsp; __Twitter:__ &nbsp;fixvx.com<br> | &nbsp; __YouTube:__ &nbsp;youtu.be<br> |
 
-Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok, Imgur & Threads. <br>
-__*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar o desactivar usando el comando **/embed***!__
+Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok, Imgur, Threads, danbooru, yande.re... <br><br>
+Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dominios o el API de embedez, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar o desactivar usando el comando ***/embed configurar***!
 
+</details>
 <details> <summary> Comandos </summary>
  
  - /hola = Info del bot y ayuda sobre los comandos.
@@ -29,8 +32,9 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
     - Channel/Guild = Revisa por canal o todo el server, (max 24 canales), donde funciona el bot.
     - Embed = para ver las configuraciones de los embeddings. 
     - Chekdomainds = Pingea a los dominios de los embeds. (solo los default)
- - /work = Activa/Desactiva el funcionar en un canal.
- - /replybots = Activa/Desactiva el responder a otros bots, por default esta activo.
+ - /work:
+    - workhere = permite desactivar la funcion de embed en el canal.
+    - replybot = habilita que procese link provenientes de bots en el canal.
  - /youtube:
     - help = Proporciona ayuda sobre sobre los comandos.
     - lista = Muestra todos los canales que se suiguen en el server.
@@ -69,9 +73,9 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
 
 </details>
 
-## Seccion tecnica
+## 💾​ Seccion tecnica 
 
-<details> <summary>🐳 Valores para variables</summary>
+<details> <summary> ⚙️​ Variables de configuraciones </summary>
 
 ## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
 
