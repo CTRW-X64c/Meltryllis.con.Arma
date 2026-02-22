@@ -1,5 +1,6 @@
 # Meltryllis con Arma!
 Meltryllis inicialmente fue pensada para embedding de Link y poco a poco se le fue añadiendo funciones; con el tiempo estaremos teniendo mas funciones. <br>
+
 <details> <summary> Dominios que usamos </summary><br>
 
  Estos son los sitios y dominios que usamos para el remplazo de manera local.
@@ -73,11 +74,11 @@ Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dom
 
 </details>
 
-## 💾​ Seccion tecnica 
+## 💾​ Seccion tecnica
 
 <details> <summary> ⚙️​ Variables de configuraciones </summary>
 
-## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
+## [![Docker](https://img.shields.io/badge/Docker-Última%20versión-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://hub.docker.com/r/nowaru124/meltryllis/tags)
 
 ![Docker](Pict/DockerHub.JPG)
 
