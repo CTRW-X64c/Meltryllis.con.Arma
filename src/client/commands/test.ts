@@ -4,7 +4,7 @@ import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
 import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
-import { replacementMetaList} from "../../sys/embedding/EmbedingConfig";
+import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../../sys/zGears/neTools";
 

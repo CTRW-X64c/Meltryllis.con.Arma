@@ -2,7 +2,7 @@
 import { replacementMetaList } from "./EmbedingConfig";
 import urlStatusManager from "./domainChecker"; 
 
-export function buildReplacements(guildConfig: Map<string, { custom_url: string | null; enabled: boolean }>): {
+export default function buildReplacements(guildConfig: Map<string, { custom_url: string | null; enabled: boolean }>): {
   [identifier: string]: (messageContent: string) => string | null;
 } {
 

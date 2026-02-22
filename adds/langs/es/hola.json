@@ -14,7 +14,7 @@
         "field_terms_name": "Términos de Uso y Privacidad",
         "field_terms_value": "[Declaración](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md)",
         "field_issue_name": "¿Algo anda mal?",
-        "field_issue_value": "En canales @everyone no necesito más permisos que los que pido al ser invitada; en canales privados usa /test para ver qué permisos faltan y asignármelos.\n - Si no ves los comandos es porque requiren permisos de Administrador. \n - Discord solo procesa máximo 5 links por mensaje así que se divide automáticamente en batch de 5 links y puedes borrar el repost reaccionando a ❌ antes de que desaparezca (20s). \n\n - Puedes poner `>!` al inicio del mensaje para evitar el embedding!",
+        "field_issue_value": "En canales @everyone no necesito más permisos que los que pido al ser invitada; en canales privados usa /test para ver qué permisos faltan y asignármelos.\n - Si no ves los comandos es porque requiren permisos de Administrador. \n - Discord solo procesa máximo 5 links por mensaje así que se divide automáticamente en batch de 5 links y puedes borrar el repost reaccionando a ❌ antes de que desaparezca (20s). \n\n - Puedes poner `$$` al inicio del mensaje para evitar el embedding!",
         "footer_text": "SI QUIERES MAS AYUDA DE CADA COMANDO PUEDES USAR /help <comando>."
     },
     "mangadex":{

@@ -3,7 +3,7 @@ import { Client, Events, GatewayIntentBits, Interaction } from "discord.js";
 import { getEnvironmentMode } from "../sys/environment";
 import { error, info, initLogger, loggerAvailable } from "../sys/logging";
 import { initializeDatabase } from "../sys/DB-Engine/database";
-import { startEmbedService } from "../sys/embedding/embedService";
+import startEmbedService from "../sys/embedding/embedService";
 import { startStatusRotation } from "../sys/zGears/setStatus";
 import urlStatusManager from "../sys/embedding/domainChecker";
 import i18next from "i18next";

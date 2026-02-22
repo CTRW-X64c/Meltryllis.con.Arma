@@ -3,7 +3,7 @@ import { replacementMetaList } from "./EmbedingConfig";
 
 class UrlStatusManager {
     private activeUrls: Map<string, string> = new Map();
-    private readonly CHECK_INTERVAL = 10 * 60 * 1000; // 10 minutos entre checks
+    private readonly CHECK_INTERVAL = 5 * 60 * 1000; // 10 minutos entre checks (originalmente) -> reducido a 5 
 
     constructor() {
         this.loadDefaults();

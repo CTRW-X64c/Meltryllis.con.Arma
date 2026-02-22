@@ -48,6 +48,10 @@
         "command_reddit_lista_footer":"`Usa \"/reddit dejar\" para eliminar una suscripción.`",
 
     "ATS6":"Embed Builder post",
+        "Reduit_baneado":"`{{a1}} ha sido baneado o borrado. \n Se a eliminado del feed`",
+        "Reduit_privado":"`{{a1}} se volvio privado. \n Se a eliminado del feed`",
+        "Reduit_cuarentena":"`{{a1}} fue marcado como inapropiado y solo puede ser visualizado desde navegador|app. \n Se a eliminado del feed`",
+        
         "Reduit_pioste":"Último post de {{a1}}. \n**POST:** [{{a2}}]({{a3}})",
         "Reduit_pioste_nsfw":"**[NSFW POST EN CANAL SFW!!]** \nÚltimo post de {{a1}}. \n**POST!!!:** ||[{{a2}}]({{a3}})||"
- }
+}

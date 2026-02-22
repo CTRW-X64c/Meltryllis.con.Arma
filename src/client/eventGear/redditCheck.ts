@@ -1,7 +1,7 @@
 // src/client/coreCommands/redditCheck.ts
 import { Client, TextChannel } from 'discord.js';
-import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed } from '../../sys/DB-Engine/links/Reddit';
-import { info, error, debug } from '../../sys/logging';
+import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed, removeRedditFeed } from '../../sys/DB-Engine/links/Reddit';
+import { info, debug, error } from '../../sys/logging';
 import i18next from 'i18next';
 import { redditApi } from '../../sys/zGears/RedditApi';
 import urlStatusManager from '../../sys/embedding/domainChecker';
@@ -12,18 +12,19 @@ export interface RedditApiResponse {
             data: RedditPost;
         }[];
     };
+    reason?: string;
 }
 
 interface RedditPost {
     title: string;
     permalink: string;
     post_hint?: string;
-    is_gallery: boolean;
-    is_video: boolean;
+    is_gallery?: boolean;
+    is_video?: boolean;
     name: string;
-    pinned: boolean;
+    pinned?: boolean;
     stickied?: boolean;
-    over_18: boolean;
+    over_18?: boolean;
 }
 
 const BATCH_SIZE = 99;
@@ -37,9 +38,7 @@ function getSubredditNameFromUrl(input: string): string | null {
         
         if (subredditMatch) return subredditMatch[1];
         if (userMatch) return userMatch[1];
-    } catch (e) {
-        // Si falla el URL parsing, intentamos con regex directo
-    }
+    } catch (e) { /* Si falla el URL parsing, intentamos con regex directo */ }
 
     const urlMatch = input.match(/(?:reddit\.com\/(?:r|user|u)\/|^(?:r|u)\/)([a-zA-Z0-9_-]+)/);
     if (urlMatch) return urlMatch[1];
@@ -65,8 +64,9 @@ function getDisplayNameFromUrl(url: string): string {
 }
 
 async function processSingleFeed(client: Client, feed: RedditFeed) {
+    const displayName = getDisplayNameFromUrl(feed.subreddit_url);
+    const resourceName = getSubredditNameFromUrl(feed.subreddit_url);
     try {
-        const resourceName = getSubredditNameFromUrl(feed.subreddit_url);
         if (!resourceName) {
             error(`[Reddit Checker]: URL inválida en BD: ${feed.subreddit_url}`);
             return;
@@ -76,6 +76,36 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
         const resourceType = isUser ? 'user' : 'subreddit';  
         const jsonData = await redditApi.getPosts(resourceName, resourceType, 20);
         
+        /* ====================================== CHEQUEO DE DISPONIBILIDAD ====================================== */
+
+        if (jsonData?.reason === 'banned' || jsonData?.reason === 'private' || jsonData?.reason === 'quarantined') {
+            try {
+                const removed = await removeRedditFeed(feed.guild_id, feed.subreddit_name);
+                const channel = await client.channels.fetch(feed.channel_id) as TextChannel;
+                if (removed && channel) {
+                    switch (jsonData.reason) {
+                        case 'banned':
+                            await channel.send(i18next.t("Reduit_baneado", { ns: "reddit", a1: displayName }));
+                            break;
+                        case 'private':
+                            await channel.send(i18next.t("Reduit_privado", { ns: "reddit", a1: displayName }));
+                            break;
+                        case 'quarantined':
+                            await channel.send(i18next.t("Reduit_cuarentena", { ns: "reddit", a1: displayName }));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                debug(`[Reddit Checker]: Se eliminó ${displayName} por razón: ${jsonData.reason}.`); 
+            } catch (err) { 
+                error(`[Reddit Checker]: Error al eliminar ${displayName}: ${err}`); 
+            }
+            return; 
+        }
+
+        /* ====================================== AQUI CONTINUA NORMAL ====================================== */
+
         if (!jsonData?.data?.children || !Array.isArray(jsonData.data.children)) {
             throw new Error('Estructura de respuesta inválida de Reddit API');
         }
@@ -104,7 +134,6 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
         }
 
         if (newPosts.length > 0) {
-            const displayName = getDisplayNameFromUrl(feed.subreddit_url);
             debug(`[Reddit Checker]: ¡${newPosts.length} post(s) nuevo(s) en ${displayName}`);
             newPosts.reverse(); 
 
@@ -115,8 +144,12 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
             }
             const textChannel = channel as TextChannel;
             
-            for (const post of newPosts) { 
-                const upEmbeddingDomain = urlStatusManager.getActiveUrl("REDDIT_FIX_URL");
+            for (const post of newPosts) {
+                let apiDomain = urlStatusManager.getActiveUrl("APIs_FIX_URL");
+                    if (process.env.EMBEDEZ_REDDITCHECK === "0" || !apiDomain?.includes("embedez.com")) {apiDomain = null;}
+                const redditDomain = urlStatusManager.getActiveUrl("REDDIT_FIX_URL");
+                const upEmbeddingDomain = apiDomain ? `${apiDomain}?q=https://www.reddit.com` : redditDomain;
+                
                 const hint = post.post_hint;
                 const noHint = post.is_gallery || post.is_video;
                 switch (feed.filter_mode) {
@@ -171,7 +204,6 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
             await updateRedditFeedLastPost(feed.id, latestPostId, feed.guild_id);
         }
     } catch (err) {
-        const displayName = getDisplayNameFromUrl(feed.subreddit_url);
         error(`[Reddit Checker]: Error procesando el feed de ${displayName}: ${err}`);
     }
 }

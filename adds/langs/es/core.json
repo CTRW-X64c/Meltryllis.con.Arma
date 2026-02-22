@@ -32,5 +32,11 @@
         "button_disabled_log": "Botón deshabilitado.",
         "disable_button_fail": "❗ Error al deshabilitar el botón: {{error}}.",
         "reply_fail": "❗ Error al responder: {{error}}.",
-        "main_exception": "❗ Excepción en el proceso principal: {{errorName}}: {{errorMessage}}"
+        "main_exception": "❗ Excepción en el proceso principal: {{errorName}}: {{errorMessage}}",
+
+    "ATS3": "embeding client",
+        "embClien_msgFail":"Discord no genero el embed. \n Usa `$$` al inico del mensaje si no quieres que lo procese. `Este mensaje se borrara en 10s`",
+        "embClien_msgFail_fb": "Enlace \"compartir\" de Facebook `facebook.com/share/...` tiende a fallar mucho; mejor usa el link directo `facebook.com/rell|/video|/post...`!! \n `Este mensaje se borrara en 10s`",
+        "embClien_try": "🔄 Reintentando embeding. Intento: {{a1}} 🔄",
+        "embClien_emojErr": "Me faltan permisos. \"usa /test para verificar los permisos\""
 }
