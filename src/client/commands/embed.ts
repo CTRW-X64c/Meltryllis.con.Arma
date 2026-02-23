@@ -14,7 +14,7 @@ const apiSitesNSFW = dominiosAPInsfw.map((domain) => ({ name: "Api.NSFW: " + dom
 const allSites = [...localSites, ...apiSitesSFW, ...apiSitesNSFW];
 
 // --- Cambio para autocompletar 
-export async function handleEmbedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
+export async function embedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const focusedValue = interaction.options.getFocused().toLowerCase();  
     const filtered = allSites.filter(choice => 
         choice.name.toLowerCase().includes(focusedValue)

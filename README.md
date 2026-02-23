@@ -274,7 +274,6 @@ Meltryllis con Arma/
 │   │   │   ├── welcomeEvents.ts
 │   │   │   ├── youtubeCheck.ts
 │   │   │   └── youtubeTools.ts
-│   │   ├── _resources.ts
 │   │   └── index.ts
 │   ├── /sys
 │   │   ├── /BD-Engine

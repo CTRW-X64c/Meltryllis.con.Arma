@@ -144,7 +144,7 @@ export default function startEmbedService(client: Client): void {
                             return; 
                         }
                         if (attempt === 4) {
-                            debug(`Final attempt to suppress embed for msg ${msg} failed: ${errMsg}`, "Events.MessageCreate");
+                            debug(`No se puedo borrar el embed del mensaje original, Error: ${errMsg}`, "Events.MessageCreate");
                         }
                     }
                 }
@@ -182,18 +182,14 @@ export default function startEmbedService(client: Client): void {
                             embMessage = freshMessage;
                             debug(`Embed generado correctamente en intento ${attempt}`, "Events.MessageCreate");
                             break;
-                        } else {
-                            if (attempt === mxRetry && freshMessage?.embeds.length === 0) {
-                                try {
-                                    if (editMessage?.editable) {
-                                    let failureMsg = await editMessage.edit({ content: i18next.t("embClien_msgFail", { ns: "core" }), allowedMentions: { repliedUser: true } });
-                                        if (editMessage.content.includes("facebed.com/share")) {
-                                            failureMsg = await editMessage.edit({ content: i18next.t("embClien_msgFail_fb", { ns: "core" }), allowedMentions: { repliedUser: true } });}
-                                    setTimeout(() => failureMsg.delete().catch(() => {}), 10000);
-                                    error(`Discord no genero el embed tras ${attempt} intentos. Gremio: ${message.guild?.name} | embURL: ${replyContent}`, "Events.MessageCreate");
-                                    }
-                                }  catch (e) { error(`No se pudo notificar el fallo del embeding.  Err: ${e}`) }
-                            }
+                        } else if (attempt === mxRetry && freshMessage?.deletable && freshMessage.editable) {
+                            try {
+                                let failMsg = i18next.t("embClien_msgFail", { ns: "core"});
+                                    if (freshMessage.content.includes("facebed.com/share")) {failMsg = i18next.t("embClien_msgFail_fb", { ns: "core" })};
+                                const failureMsg = await freshMessage.edit({ content: failMsg , allowedMentions: { repliedUser: true } });
+                                setTimeout(() => failureMsg.delete().catch(() => {}), 10000);
+                                error(`Discord no genero el embed tras ${attempt} intentos. Gremio: ${message.guild?.name} | embURL: ${replyContent}`, "Events.MessageCreate");
+                            }  catch (e) { }
                         }
                     } catch (err) {
                         error(`Error fatal en intento de envío ${attempt}: ${err}`, "Events.MessageCreate");

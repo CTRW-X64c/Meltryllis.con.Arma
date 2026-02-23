@@ -4,7 +4,6 @@ import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { getConfigMap, setChannelConfig } from "../../sys/DB-Engine/links/ReplyBots";
-import { ChannelConfig } from "../_resources";
 
 export async function registerWorkCommand(): Promise<SlashCommandBuilder[]> {
   const workCommand = new SlashCommandBuilder()
@@ -55,7 +54,14 @@ export async function handleWorkCommand(interaction: ChatInputCommandInteraction
   }
 }
 
-/* =============== WORKHERE  =============== */
+/* =============== INTERFAZ =============== */
+
+interface ChannelConfig {
+  enabled: boolean;
+  replyBots: boolean;
+}
+
+/* =============== WORKHERE =============== */
 
 async function where(interaction: ChatInputCommandInteraction): Promise<void> {
   try {
@@ -108,7 +114,7 @@ async function where(interaction: ChatInputCommandInteraction): Promise<void> {
   }
 }
 
-/* =============== REPLYBOTS  =============== */
+/* =============== REPLYBOTS =============== */
 
 async function replybots(interaction: ChatInputCommandInteraction): Promise<void> {
   try {

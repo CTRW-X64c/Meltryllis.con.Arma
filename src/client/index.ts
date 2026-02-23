@@ -9,16 +9,13 @@ import urlStatusManager from "../sys/embedding/domainChecker";
 import i18next from "i18next";
 import { initI18n } from "../sys/i18n";
 import { validateAllTranslations } from "../sys/i18n/nsKeyCheck";
-import { registerCommands, handleCommandInteraction } from "./eventGear/upCommands";
+import { registerCommands, handleCommandInteraction, autoComplete } from "./eventGear/upCommands";
 import { startWelcomeEvents } from "./eventGear/welcomeEvents";
 import { registerRolemojiEvents, preloadRolemojiMessages } from "./eventGear/rolemojiEvents";
 import { startYoutubeService } from "./eventGear/youtubeCheck";
 import { startRedditChecker } from "./eventGear/redditCheck";
 import { startMangadexChecker } from "./eventGear/mangadexChek";
-//import { autoCleanupService } from "./eventGear/youtubeTools";
 import { startVoiceChannelService } from "./eventGear/voicEvent";
-import { handleEmbedAutocomplete } from "./commands/embed";
-import { handlePermissionsAutocomplete } from "./commands/permission";
 import lavalinkManager from "./eventGear/lavalinkConnect";
 
 /*========= Inicializadores =========*/
@@ -44,7 +41,6 @@ const client = createClient();
         startVoiceChannelService(client);
         startStatusRotation(client);
         startEmbedService(client);
-        //autoCleanupService.start();
         startMangadexChecker(client);
         logInfo(`✅ Inicializacion completada!!`);
         logInfo(`Idioma por default de los comandos: ${locale}`);
@@ -81,16 +77,11 @@ function createClient(): Client {
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         if (interaction.isChatInputCommand()) {
             await handleCommandInteraction(interaction);
+            return;
         }
         if (interaction.isAutocomplete()) {
-            switch (interaction.commandName) {
-                case "embed":
-                    await handleEmbedAutocomplete(interaction);
-                    break;
-                case "permisos":
-                    await handlePermissionsAutocomplete(interaction);
-                    break;
-            }
+            await autoComplete(interaction);
+            return;
         }
     });
     return client;

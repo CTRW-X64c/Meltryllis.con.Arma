@@ -8,7 +8,7 @@ import i18next from "i18next";
 let configurableCommands: { name: string, description: string }[] = [];
 let commandChoices: { name: string, value: string }[] = [];
 
-export async function handlePermissionsAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
+export async function permisosAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const permlist = interaction.options.getFocused().toLowerCase();
     const filtered = commandChoices.filter(choice => 
         choice.name.toLowerCase().includes(permlist)
