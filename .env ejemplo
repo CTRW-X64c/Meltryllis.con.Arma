@@ -16,7 +16,6 @@ REDDIT_CLIENT_SECRET=
 WELCOME_BANNER_URL=
 
 #Lavalink
-LAVALINK_ACTIVE=
 LAVALINK_NAME=
 LAVALINK_HOST=
 LAVALINK_PORT=
@@ -41,7 +40,8 @@ TWITCH_FIX_URL=
 YOUTUBE_FIX_URL=
 
 EMBEDEZ_API_FIX_URL=
-API_REPLACEMENT_DOMAINS=
+EMBEDEZ_SFW=tiktok.com|reddit.com|ifunny.co|snapchat.com|imgur.com|pinterest.com
+EMBEDEZ_NSFW=danbooru.donmai.us|derpibooru.org|e621.net|e926.net|gelbooru.com|rule34.xxx|safebooru.org|hypnohub.net|konachan.com|yande.re|rule34.paheal.netxbooru.com|tbib.org
 
 #Base de datos
 DB_HOST=

@@ -53,11 +53,15 @@ const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       const delay = Math.floor(Math.random() * 4000) + 3000;
       await wait(delay);
 
-      try {
+    try {
         await this.checkFeed(feed);
-      } catch (err) {
-        error(`Erro al checar el feed "${feed.youtube_channel_name}" en el gremio ${guildId}: ${err}`,);
-      }
+      } catch (err) { /* Esto nunca quedara libre de fallos pero funciona, asi que bueno*/
+        const errMsg = (err as Error).message || "";
+        const statusCode = (err as any)?.statusCode;
+        if (statusCode !== 404 && statusCode !== 500 && !errMsg.includes("404") && !errMsg.includes("500")) {
+          error(`Erro al checar el feed: "${feed.youtube_channel_name}" en el gremio: ${guildId}; ${errMsg}`);
+        }
+      } 
     }
   }
 

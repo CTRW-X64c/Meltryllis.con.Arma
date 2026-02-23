@@ -1,6 +1,9 @@
 # Meltryllis con Arma!
 Meltryllis inicialmente fue pensada para embedding de Link y poco a poco se le fue añadiendo funciones; con el tiempo estaremos teniendo mas funciones. <br>
- ## Dominios que usamos en los Embedigs:<br>
+
+<details> <summary> Dominios que usamos </summary><br>
+
+ Estos son los sitios y dominios que usamos para el remplazo de manera local.
  |  |  |
  | ---- | ----- |
 | &nbsp; __Bilibili:__ &nbsp;vxbilibili.com<br> | &nbsp; __Bsky:__ &nbsp;bskyx.app<br> |
@@ -12,12 +15,12 @@ Meltryllis inicialmente fue pensada para embedding de Link y poco a poco se le f
 | &nbsp; __Tumblr:__ &nbsp;txtumblr.com<br> | &nbsp; __Twitch:__ &nbsp;fxtwitch.seria.moe<br> |
 | &nbsp; __Twitter:__ &nbsp;fixvx.com<br> | &nbsp; __YouTube:__ &nbsp;youtu.be<br> |
 
-Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok, Imgur & Threads. <br>
-__*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar o desactivar usando el comando **/embed***!__
+Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok, Imgur, Threads, danbooru, yande.re... <br><br>
+Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dominios o el API de embedez, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar o desactivar usando el comando ***/embed configurar***!
 
----
-
-## Comandos: 
+</details>
+<details> <summary> Comandos </summary>
+ 
  - /hola = Info del bot y ayuda sobre los comandos.
  - /embed configurar = Desactivar & Cambiar Dominio.
  - /rolemoji: 
@@ -30,8 +33,9 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
     - Channel/Guild = Revisa por canal o todo el server, (max 24 canales), donde funciona el bot.
     - Embed = para ver las configuraciones de los embeddings. 
     - Chekdomainds = Pingea a los dominios de los embeds. (solo los default)
- - /work = Activa/Desactiva el funcionar en un canal.
- - /replybots = Activa/Desactiva el responder a otros bots, por default esta activo.
+ - /work:
+    - workhere = permite desactivar la funcion de embed en el canal.
+    - replybot = habilita que procese link provenientes de bots en el canal.
  - /youtube:
     - help = Proporciona ayuda sobre sobre los comandos.
     - lista = Muestra todos los canales que se suiguen en el server.
@@ -66,12 +70,15 @@ __*Nosotros no tenemos ninguna injerencia o control sobre estos dominios, en cas
     - remove: Quita los permisos de un rol/usurio.
     - limpiar: Quita todos los permisos del server.
     - help: Proporciona ayuda sobre sobre los comandos.
-  - /comandos de musica [ PLAY | STOP | QUEUE | SKIP ]
+  - Comandos de musica [ /PLAY | /STOP | /QUEUE | /SKIP ]
 
+</details>
 
----    
+## 💾​ Seccion tecnica
 
-## [Imagen en Docker Hub](https://hub.docker.com/r/nowaru124/meltryllis)
+<details> <summary> ⚙️​ Variables de configuraciones </summary>
+
+## [![Docker](https://img.shields.io/badge/Docker-Última%20versión-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://hub.docker.com/r/nowaru124/meltryllis/tags)
 
 ![Docker](Pict/DockerHub.JPG)
 
@@ -131,7 +138,8 @@ services:
       - FURAFF_FIX_URL=
       - IMGUR_FIX_URL=
       - IWARA_FIX_URL=
-      - API_REPLACEMENT_DOMAINS=
+      - EMBEDEZ_SFW= #Los sitios que embedez soporta (SFW) https://embedez.com/api
+      - EMBEDEZ_NSFW= #Los sitios que embedez soporta (NSFW) https://embedez.com/api
     #Configuraciones Bot 
       - BOT_STATUS=
       - STATUS_TIME_MINUTOS=
@@ -172,7 +180,8 @@ services:
 #EN CASO DE USAR UN LAVALINK EXTERNO BORRA ESTO
 
 ```
-<details> <summary>🐳 Valores para variables</summary>
+
+<summary>🐳 Valores para variables</summary><br>
  
 | Variable Bot | Valores |
 | --- | --- |
@@ -195,7 +204,7 @@ services:
 | `DB_PASSWORD` | Password BD \| MYSQL_PASSWORD |
 | `DB_DATABASE` | Nombre BD \| MYSQL_DATABASE |
 | `"Sitio"_FIX_URL` | Dominio a remplazar |
-| `API_REPLACEMENT_DOMAINS` | Sitios soportados por [Embedez](https://embedez.com/) |
+| `EMBEDEZ_NSFW/EMBEDEZ_SFW` | Sitios soportados por [Embedez](https://embedez.com/api) |
 | `BOT_STATUS` | estado \| tipo de actividad |
 | `STATUS_TIME_MINUTOS` | Tiempo de Rotacion de *BOT_STATUS* |
 | `LAVALINK_ACTIVE` | OFF = desactiva Lavalink y sus comandos |
@@ -265,7 +274,6 @@ Meltryllis con Arma/
 │   │   │   ├── welcomeEvents.ts
 │   │   │   ├── youtubeCheck.ts
 │   │   │   └── youtubeTools.ts
-│   │   ├── _resources.ts
 │   │   └── index.ts
 │   ├── /sys
 │   │   ├── /BD-Engine

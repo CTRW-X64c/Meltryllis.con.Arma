@@ -16,7 +16,7 @@ import Twitch from "./webs/Twitch";
 import Twitter from "./webs/Twitter";
 import YouTube from "./webs/YouTube";
 
-export interface ReplacementMeta {
+interface ReplacementMeta {
   name: string;
   envVar: string;
   Class: new (...args: any[]) => { replaceURLs: (content: string, base?: string) => string | null };

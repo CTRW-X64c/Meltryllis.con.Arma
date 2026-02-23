@@ -2,9 +2,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, PermissionFlagsBits} from "discord.js";
 import i18next from "i18next";
 import { error } from "../../sys/logging";
-import { randomcolorembed } from "../_resources";
 import { hasPermission } from "../../sys/zGears/mPermission";
-
 
 export async function registerHolaCommand(): Promise<SlashCommandBuilder[]> {
   const holaCommand = new SlashCommandBuilder()
@@ -17,7 +15,6 @@ export async function registerHolaCommand(): Promise<SlashCommandBuilder[]> {
       .setRequired(false)
       .addChoices(
         { name: "info", value: "00" },
-        { name: "REPORT!!", value: "0X" },
         { name: "/cleanup", value: "01" },
         { name: "/embed", value: "02" },
         { name: "/jointovoice", value: "03" },
@@ -37,12 +34,16 @@ export async function registerHolaCommand(): Promise<SlashCommandBuilder[]> {
   return [holaCommand] as SlashCommandBuilder[];
 }
 
+function randomcolorembed(): string {
+  const color = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase();
+  return `0x${color.padStart(6, '0')}`;
+}
+
 export async function handleHolaCommand(interaction: ChatInputCommandInteraction): Promise<void> {
   try {
     const opHelp = interaction.options.getString("command") || "00";
     switch (opHelp) {   
       case "00":  await info(interaction);  break;
-      case "0X":  await report(interaction);  break;
       case "01":  await helpClean(interaction);  break;
       case "02":  await helpEmbed(interaction);  break;
       case "03":  await helpJoin(interaction);  break;
@@ -367,7 +368,7 @@ async function helpMusic(interaction: ChatInputCommandInteraction): Promise<void
         .addFields(
           {
             name: i18next.t("musica.name_1", { ns: "hola" }),
-            value: await hasPermission(interaction, "lavalinkMusic") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
+            value: await hasPermission(interaction, "play /stop /skip /queue") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
             inline: true
           },
           {
@@ -467,14 +468,4 @@ async function helpWork(interaction: ChatInputCommandInteraction): Promise<void>
       .setFooter({ text: i18next.t("work.footer", { ns: "hola" }) })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-}
-
-
-
-/// ============================================= REPORT!! ============================================= ///
-
-async function report(interaction: ChatInputCommandInteraction): Promise<void> {
-  try {
-await interaction.reply({ content:"COMANDO EN CONSTRUCCION!!", flags: MessageFlags.Ephemeral });
-  } catch (e) {error(`${e}`);  }
 }

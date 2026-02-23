@@ -8,7 +8,7 @@ import i18next from "i18next";
 let configurableCommands: { name: string, description: string }[] = [];
 let commandChoices: { name: string, value: string }[] = [];
 
-export async function handlePermissionsAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
+export async function permisosAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const permlist = interaction.options.getFocused().toLowerCase();
     const filtered = commandChoices.filter(choice => 
         choice.name.toLowerCase().includes(permlist)
@@ -25,7 +25,7 @@ export async function registerPermissionsCommand(commandsList: { name: string, d
             name: `/${cmd.name} - ${cmd.description}`,
             value: cmd.name
         })),
-        { name: "Musica - /play /skip /stop /queue", value: "lavalinkMusic" }
+        { name: "Musica - /play /skip /stop /queue", value: "play /stop /skip /queue" }
     ];
 
     const permissions = new SlashCommandBuilder()

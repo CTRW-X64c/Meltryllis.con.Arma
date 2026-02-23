@@ -4,11 +4,14 @@ import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
 import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
-import { replacementMetaList} from "../../sys/embedding/EmbedingConfig";
+import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../../sys/zGears/neTools";
 
-const apiReplacementDomainsEnv = process.env.API_REPLACEMENT_DOMAINS ? process.env.API_REPLACEMENT_DOMAINS.split('|').map(s => s.trim()) : [];
+const apiDomains = [
+    ...(process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : []),
+    ...(process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [])
+    ];
 
 export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
   const testCommand = new SlashCommandBuilder()
@@ -272,7 +275,7 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
     value: i18next.t("field_add_api_value", { ns: "test" })
   });
 
-  apiReplacementDomainsEnv.forEach(domain => {
+  apiDomains.forEach(domain => {
     const config = replacementConfig.get(domain);
     const status = (config === undefined || config.enabled) ? 
       i18next.t("field_api_enabled", { ns: "test" }) : 
