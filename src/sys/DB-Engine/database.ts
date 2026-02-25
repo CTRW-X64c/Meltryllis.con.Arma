@@ -155,6 +155,7 @@ export async function initializeDatabase(): Promise<void> {
             target_id VARCHAR(50) NOT NULL,
             target_type ENUM('USER', 'ROLE') NOT NULL,
             command_name VARCHAR(50) NOT NULL,
+            user_give_perm VARCHAR(50) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE KEY unique_perm (guild_id, target_id, command_name)
           )

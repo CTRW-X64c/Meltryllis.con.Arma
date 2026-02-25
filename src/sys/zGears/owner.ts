@@ -39,7 +39,7 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
 }
 
 export async function handleOwnerCommands(interaction: ChatInputCommandInteraction): Promise<void> {
-    if (interaction.user.id !== process.env.OWNER_BOT_ID) {
+    if (interaction.user.id !== process.env.HOST_DISCORD_USER_ID) {
         await interaction.reply({
             content: "Este comando es de uso exclusivo del desarrollador.",
             flags: MessageFlags.Ephemeral

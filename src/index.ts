@@ -11,8 +11,13 @@ async function start() {
     initLogger(environmentMode);
 
     const token = process.env.DISCORD_BOT_TOKEN;
+    const ownerId = process.env.HOST_DISCORD_USER_ID;
+    
     if (!token) {
         error("❌ Falta Token en \"DISCORD_BOT_TOKEN=\", checa tu archivo .env o docker-compose > environment:", "startup");
+        process.exit(1);
+    } else if (!ownerId)  {
+        error("❌ Falta ID de dueño en \"HOST_DISCORD_USER_ID=\", checa tu archivo .env o docker-compose > environment:", "startup");
         process.exit(1);
     }
 

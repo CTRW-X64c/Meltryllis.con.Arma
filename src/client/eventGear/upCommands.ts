@@ -1,8 +1,9 @@
 // src/client/coreCommands/upCommands.ts
 import { error, info } from "../../sys/logging";
-import { Client, ChatInputCommandInteraction, AutocompleteInteraction, MessageFlags } from "discord.js";
+import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags } from "discord.js";
+import { helpRepo } from "../../sys/zGears/formularios";
 import { registerTestCommand, handleTestCommand } from "../commands/test";
-import { registerHolaCommand, handleHolaCommand } from "../commands/hola";
+import { registerHolaCommand, handleHolaCommand, helpAutocomplete } from "../commands/hola";
 import { registerWorkCommand, handleWorkCommand } from "../commands/work";
 import { registerEmbedCommand, handleEmbedCommand, embedAutocomplete } from "../commands/embed";
 import { registerWelcomeCommand, handleWelcomeCommand } from "../commands/welcome";
@@ -99,5 +100,16 @@ export async function autoComplete(interaction: AutocompleteInteraction) {
       await embedAutocomplete(interaction); break;
     case "permisos":
       await permisosAutocomplete(interaction); break;
+    case "help":
+      await helpAutocomplete(interaction); break;
+  }
+}
+
+/* ================================= Formularios ================================= */
+
+export async function modalesSystem(interaction: ModalSubmitInteraction) {
+  switch (interaction.customId) {
+    case 'helpRepo':
+      await helpRepo(interaction); break;
   }
 }

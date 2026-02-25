@@ -32,10 +32,11 @@
 
     "command_permissions_list_by_command": "No se encuentran usuarios/roles asignados al comando: /{{a1}}",
     "command_permissions_list_error": "No hay ningun permiso asignado",
+    "asig_por": "Asignado por:",
     "command_permissions_no_permissions": "No se encontraron permisos asignados",
 
-    "command_permissions_list_by_command_emb": "Mostrando usuarios/roles asignados al comando: /{{a1}}",
-    "command_permissions_list_all_command_emb": "Mostrando todos los comandos usuarios/roles asignados",
+    "command_permissions_list_by_command_emb": "Mostrando los usuarios/roles con permiso para: /{{a1}}",
+    "command_permissions_list_all_command_emb": "Mostrando todos los permisos a usuarios/roles asignados",
 
     "command_permissions_total_footer": "Total de permisos: {{a1}}",
     "command_permissions_total_footer_complete": "Total de permisos: {{a1}} Total de Comandos: {{a2}}",

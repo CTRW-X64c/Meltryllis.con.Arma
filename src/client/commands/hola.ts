@@ -1,8 +1,35 @@
 // src/client/commands/hola.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, PermissionFlagsBits} from "discord.js";
+import { ChatInputCommandInteraction,  SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, PermissionFlagsBits, AutocompleteInteraction, 
+  /* Modal */ TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder} from "discord.js";
 import i18next from "i18next";
 import { error } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
+
+export async function helpAutocomplete(interaction: AutocompleteInteraction) {
+  const helpList = [
+  { name: "info", value: "00" },
+  { name: "REPORTAR PROBLEMA!! (solo admin)", value: "0X" },
+  { name: "/cleanup", value: "01" },
+  { name: "/embed", value: "02" },
+  { name: "/jointovoice", value: "03" },
+  { name: "/mangadex", value: "04" },
+  { name: "Musica: /play /stop /skip /queue", value: "05" },
+  { name: "/permisos", value: "06" },
+  { name: "/post", value: "07" },
+  { name: "/reddit", value: "08" },
+  { name: "/rolemoji", value: "09" },
+  { name: "/test", value: "10" },
+  { name: "/welcome", value: "11" },
+  { name: "/work", value: "12" },
+  { name: "/youtube", value: "13" },
+  ];
+
+  const focusedValue = interaction.options.getFocused();
+  const filtered = helpList.filter(list => list.name.toLowerCase().includes(focusedValue.toLowerCase()));
+  await interaction.respond(
+    filtered.slice(0, 25).map(list => ({ name: list.name, value: list.value }))
+  );
+}
 
 export async function registerHolaCommand(): Promise<SlashCommandBuilder[]> {
   const holaCommand = new SlashCommandBuilder()
@@ -13,22 +40,7 @@ export async function registerHolaCommand(): Promise<SlashCommandBuilder[]> {
       .setName("command")
       .setDescription(i18next.t("comBuild.command_hola_idioma_description", { ns: "hola" }))
       .setRequired(false)
-      .addChoices(
-        { name: "info", value: "00" },
-        { name: "/cleanup", value: "01" },
-        { name: "/embed", value: "02" },
-        { name: "/jointovoice", value: "03" },
-        { name: "/mangadex", value: "04" },
-        { name: "Musica: /play /stop /skip /queue", value: "05" },
-        { name: "/permisos", value: "06" },
-        { name: "/post", value: "07" },
-        { name: "/reddit", value: "08" },
-        { name: "/rolemoji", value: "09" },
-        { name: "/test", value: "10" },
-        { name: "/welcome", value: "11" },
-        { name: "/work", value: "12" },
-        { name: "/youtube", value: "13" },
-      )
+      .setAutocomplete(true)
     );
 
   return [holaCommand] as SlashCommandBuilder[];
@@ -44,6 +56,7 @@ export async function handleHolaCommand(interaction: ChatInputCommandInteraction
     const opHelp = interaction.options.getString("command") || "00";
     switch (opHelp) {   
       case "00":  await info(interaction);  break;
+      case "0X":  await Report(interaction);  break;
       case "01":  await helpClean(interaction);  break;
       case "02":  await helpEmbed(interaction);  break;
       case "03":  await helpJoin(interaction);  break;
@@ -468,4 +481,29 @@ async function helpWork(interaction: ChatInputCommandInteraction): Promise<void>
       .setFooter({ text: i18next.t("work.footer", { ns: "hola" }) })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+}
+
+// ============================================= Report ============================================= //
+
+async function Report(interaction: ChatInputCommandInteraction): Promise<void> {
+  const isAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.Administrator) || interaction.guild?.ownerId === interaction.user.id;
+  if (!isAdmin){
+    await interaction.reply({ content: "No eres administrador", flags: MessageFlags.Ephemeral });
+    return;
+  }
+
+  const modal = new ModalBuilder()
+    .setCustomId('helpRepo')
+    .setTitle('Reporte de falla o problema');
+  const reportIn = new TextInputBuilder()
+    .setCustomId('report_content')
+    .setLabel('Describe el problema brevemente')
+    .setPlaceholder('Ej: El comando de youtube no está enviando los videos...')
+    .setStyle(TextInputStyle.Paragraph)
+    .setMinLength(10)
+    .setMaxLength(500) 
+    .setRequired(true);
+  const eMod = new ActionRowBuilder<TextInputBuilder>().addComponents(reportIn);
+  modal.addComponents(eMod);
+  await interaction.showModal(modal);
 }

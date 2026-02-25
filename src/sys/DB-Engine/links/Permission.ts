@@ -7,6 +7,7 @@ export interface PermissionEntry {
     target_id: string;
     target_type: 'USER' | 'ROLE';
     command_name: string;
+    user_give_perm: string;
 }
 
 const permCache = new Map<string, Map<string, Set<string>>>();
@@ -57,12 +58,12 @@ export async function getCommandPermissions(guildId: string, commandName: string
 }
 
 
-export async function addCommandPermission(guildId: string, targetId: string, type: 'USER' | 'ROLE', commandName: string): Promise<boolean> {
+export async function addCommandPermission(guildId: string, targetId: string, type: 'USER' | 'ROLE', commandName: string, userGivePerm: string): Promise<boolean> {
     try {
         const pool = await getPool();
         await pool.query(
-            "INSERT INTO command_permissions (guild_id, target_id, target_type, command_name) VALUES (?, ?, ?, ?)",
-            [guildId, targetId, type, commandName]
+            "INSERT INTO command_permissions (guild_id, target_id, target_type, command_name, user_give_perm) VALUES (?, ?, ?, ?, ?)",
+            [guildId, targetId, type, commandName, userGivePerm]
         );
         
         invalidatePermCache(guildId, commandName);
@@ -102,7 +103,7 @@ export async function removeCommandPermission(guildId: string, targetId: string,
 export async function listCommandPermissions(guildId: string, commandName?: string): Promise<PermissionEntry[]> {
     try {
         const pool = await getPool();
-        let query = "SELECT target_id, target_type, command_name FROM command_permissions WHERE guild_id = ?";
+        let query = "SELECT target_id, target_type, command_name, user_give_perm FROM command_permissions WHERE guild_id = ?";
         const params: any[] = [guildId];
         
         if (commandName) {
@@ -122,40 +123,6 @@ export async function listCommandPermissions(guildId: string, commandName?: stri
     }
 }
 
-
-export async function getAllowedCommands(guildId: string, targetId: string): Promise<Set<string>> {
-    try {
-        const pool = await getPool();
-        const [rows] = await pool.query(
-            "SELECT DISTINCT command_name FROM command_permissions WHERE guild_id = ? AND target_id = ?",
-            [guildId, targetId]
-        );
-        
-        const commands = new Set<string>();
-        (rows as any[]).forEach(row => commands.add(row.command_name));
-        
-        return commands;
-    } catch (err) {
-        error(`Error obteniendo comandos permitidos: ${err}`, "DB.Permissions");
-        return new Set();
-    }
-}
-
-
-export async function hasSpecificPermission(guildId: string, targetId: string, commandName: string): Promise<boolean> {
-    try {
-        const pool = await getPool();
-        const [rows] = await pool.query(
-            "SELECT 1 FROM command_permissions WHERE guild_id = ? AND target_id = ? AND command_name = ? LIMIT 1",
-            [guildId, targetId, commandName]
-        );
-        
-        return (rows as any[]).length > 0;
-    } catch (err) {
-        error(`Error verificando permiso específico: ${err}`, "DB.Permissions");
-        return false;
-    }
-}
 
 export async function clearGuildPermissions(guildId: string): Promise<boolean> {
     try {

@@ -9,7 +9,7 @@ import urlStatusManager from "../sys/embedding/domainChecker";
 import i18next from "i18next";
 import { initI18n } from "../sys/i18n";
 import { validateAllTranslations } from "../sys/i18n/nsKeyCheck";
-import { registerCommands, handleCommandInteraction, autoComplete } from "./eventGear/upCommands";
+import { registerCommands, handleCommandInteraction, autoComplete, modalesSystem } from "./eventGear/upCommands";
 import { startWelcomeEvents } from "./eventGear/welcomeEvents";
 import { registerRolemojiEvents, preloadRolemojiMessages } from "./eventGear/rolemojiEvents";
 import { startYoutubeService } from "./eventGear/youtubeCheck";
@@ -26,6 +26,8 @@ const client = createClient();
     try {
         if (!process.env.DISCORD_BOT_TOKEN) {
             throw new Error("DISCORD_BOT_TOKEN no está definido")};
+        if (!process.env.HOST_DISCORD_USER_ID) {
+            throw new Error("HOST_DISCORD_USER_ID no está definido")};
         initLogger(getEnvironmentMode());
         await initI18n(locale);
         await initializeDatabase();     
@@ -81,6 +83,10 @@ function createClient(): Client {
         }
         if (interaction.isAutocomplete()) {
             await autoComplete(interaction);
+            return;
+        }
+        if (interaction.isModalSubmit()) {
+            await modalesSystem(interaction);
             return;
         }
     });

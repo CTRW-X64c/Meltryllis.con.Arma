@@ -142,9 +142,10 @@ async function addPerm(interaction: ChatInputCommandInteraction, guildId: string
     const commandInfo = configurableCommands.find(cmd => cmd.name === commandName);
     const commandDisplay = commandInfo ? `\`/${commandInfo.name}\` (${commandInfo.description})` : `\`/${commandName}\``;
     const i18Type = type === 'ROLE' ? 'rol' : 'usuario';
+    const userGivePerm = interaction.user.id;
 
     try {
-        const success = await addCommandPermission(guildId, targetId, type, commandName);
+        const success = await addCommandPermission(guildId, targetId, type, commandName, userGivePerm);
             
         if (success) {
             await interaction.editReply({
@@ -232,7 +233,7 @@ async function listPerm(interaction: ChatInputCommandInteraction, guildId: strin
             let content = "";
             
             if (roles.length > 0) {
-                const roleMentions = roles.map(r => `<@&${r.target_id}>`).join(" ");
+                const roleMentions = roles.map(r => `<@&${r.target_id}>` + ` - ${i18next.t("asig_por", { ns: "permissions" })}` + ` <@${r.user_give_perm}>`).join("\n  ");
                 let limitedRoleMentions = roleMentions;
                 if (roleMentions.length > 800) {
                     limitedRoleMentions = roleMentions.substring(0, 797) + '...';
@@ -241,7 +242,7 @@ async function listPerm(interaction: ChatInputCommandInteraction, guildId: strin
             }
             
             if (users.length > 0) {
-                const userMentions = users.map(u => `<@${u.target_id}>`).join(" ");
+                const userMentions = users.map(u => `<@${u.target_id}>` + ` - ${i18next.t("asig_por", { ns: "permissions" })}` + ` <@${u.user_give_perm}>`).join("\n  ");
                 let limitedUserMentions = userMentions;
                 if (userMentions.length > 800) {
                     limitedUserMentions = userMentions.substring(0, 797) + '...';
@@ -296,13 +297,13 @@ async function listPerm(interaction: ChatInputCommandInteraction, guildId: strin
                 description += `${commandDisplay}\n`;
                 
                 if (roles.length > 0) {
-                    const roleMentions = roles.slice(0, 3).map(r => `<@&${r.target_id}>`).join(" ");
+                    const roleMentions = roles.slice(0, 3).map(r => `<@&${r.target_id}>` +  ` - ${i18next.t("asig_por", { ns: "permissions" })}` + ` <@${r.user_give_perm}>`).join(" ");
                     const extraRoles = roles.length > 3 ? ` +${roles.length - 3} más` : '';
                     description += `• 👥 **${roles.length} rol(es):** ${roleMentions}${extraRoles}\n`;
                 }
                 
                 if (users.length > 0) {
-                    const userMentions = users.slice(0, 3).map(u => `<@${u.target_id}>`).join(" ");
+                    const userMentions = users.slice(0, 3).map(u => `<@${u.target_id}>` +  ` - ${i18next.t("asig_por", { ns: "permissions" })}` + ` <@${u.user_give_perm}>`).join(" ");
                     const extraUsers = users.length > 3 ? ` +${users.length - 3} más` : '';
                     description += `• 👤 **${users.length} usuario(s):** ${userMentions}${extraUsers}\n`;
                 }
