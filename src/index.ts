@@ -22,11 +22,12 @@ async function start() {
     }
 
     try {
-        info("🔐 Validando token...", "startup");
+        info("🔐 Validando token e Id de usuario...", "startup");
         const testClient = new Client({ intents: [] });
         await testClient.login(token);
+        const owner = await testClient.users.fetch(ownerId);
         await testClient.destroy();
-        info("✅ Token válido.", "startup");
+        info(`✅ Token e Id válidos | 🆔 OwnerName: ${owner.username}`, "startup") 
 
     } catch (err: unknown) {
         const errMessage = err instanceof Error ? err.message : String(err);
@@ -36,8 +37,10 @@ async function start() {
         } else if (errMessage.includes("Privileged Gateway Intents")) {
             error("❌ LOS 'PRIVILEGED GATEWAY INTENTS' NO ESTÁN HABILITADOS!!", "startup");
             error("📋 \"Revisa https://discord.com/developers/applications/ > App > Bot: Presence Intent\" Habilita los 'Privileged Gateway Intents'.", "startup");
+        } else if (errMessage.includes("Unknown User") || errMessage.includes("NUMBER_TYPE_MAX")) {
+            error("El ID user es incorrecto!!")
         } else {
-            error(`❌ HUBO UN PROBLEMA CON EL TOKEN!! ERROR CODE: ${errMessage}`, "startup");
+            error(`❌ HUBO UN PROBLEMA CON EL TOKEN & ID DE USUARIO!! ERROR CODE: ${errMessage}`, "startup");
         }
         process.exit(1);
     }

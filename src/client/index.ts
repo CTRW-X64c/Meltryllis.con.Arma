@@ -6,7 +6,6 @@ import { initializeDatabase } from "../sys/DB-Engine/database";
 import startEmbedService from "../sys/embedding/embedService";
 import { startStatusRotation } from "../sys/zGears/setStatus";
 import urlStatusManager from "../sys/embedding/domainChecker";
-import i18next from "i18next";
 import { initI18n } from "../sys/i18n";
 import { validateAllTranslations } from "../sys/i18n/nsKeyCheck";
 import { registerCommands, handleCommandInteraction, autoComplete, modalesSystem } from "./eventGear/upCommands";
@@ -24,17 +23,13 @@ async function main(): Promise<void> {
 const locale = (process.env.LOCALE ?? "es");
 const client = createClient();
     try {
-        if (!process.env.DISCORD_BOT_TOKEN) {
-            throw new Error("DISCORD_BOT_TOKEN no está definido")};
-        if (!process.env.HOST_DISCORD_USER_ID) {
-            throw new Error("HOST_DISCORD_USER_ID no está definido")};
         initLogger(getEnvironmentMode());
         await initI18n(locale);
         await initializeDatabase();     
         await validateAllTranslations();
         if (lavalinkManager) {lavalinkManager.init(client);}
         urlStatusManager.start();
-        await client.login(process.env.DISCORD_BOT_TOKEN);   
+        await client.login(process.env.DISCORD_BOT_TOKEN); /* Algunos ocupan ir antes del login, como lavalink */
         await startWelcomeEvents(client);     
         registerCommands(client);
         registerRolemojiEvents(client);
@@ -44,9 +39,7 @@ const client = createClient();
         startStatusRotation(client);
         startEmbedService(client);
         startMangadexChecker(client);
-        logInfo(`✅ Inicializacion completada!!`);
-        logInfo(`Idioma por default de los comandos: ${locale}`);
-        
+        logInfo(`✅ Inicializacion completada!! | 🌐 Idioma de los comandos: ${locale}`);
     } catch (error) {
         logFatalError(error);
         process.exit(1);
@@ -68,12 +61,10 @@ function createClient(): Client {
     });
 
     client.once(Events.ClientReady, async (eventClient) => {
-        info(i18next.t("login_success", {ns: "core", userTag: eventClient.user.tag }), "Events.ClientReady");
+        info(`🔌 Conectada como: ${eventClient.user.tag}`, "Events.ClientReady");
         const guildCount = eventClient.guilds.cache.size;
-        info(i18next.t("guilds_count", {ns: "core", guildCount: guildCount, pluralGuilds: guildCount === 1 ? "guild" : "guilds"}), "Events.ClientReady");
-        const guildNames = eventClient.guilds.cache.map(guild => guild.name).join(", ");
-        info(i18next.t("servers_list", {ns: "core", guildNames:guildNames}));
-        preloadRolemojiMessages(client);        
+        info(`Actualmente en ${guildCount} ${guildCount === 1 ? "server!" : "servidores!"}`, "Events.ClientReady");
+        preloadRolemojiMessages(client);
     });
     
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {
@@ -129,7 +120,7 @@ function logFatalError(error: unknown): void {
 main().catch((e: Error) => {
     const errorObj = e as Error;
     if (loggerAvailable()) {
-        error(i18next.t("main_exception", {ns: "core", errorName: errorObj.name, errorMessage: errorObj.message }), "Main");
+        error(`Excepción en el proceso principal: ${errorObj.name}: ${errorObj.message}`, "Main");
     } else {
         console.error(`Unhandled exception: ${errorObj.name}: ${errorObj.message}`);
     }
