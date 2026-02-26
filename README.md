@@ -95,6 +95,7 @@ services:
     #Cosas del Owner
       - DISCORD_BOT_TOKEN=
       - HOST_DISCORD_USER_ID=
+      - REPORT_CHANNEL_ID=
     #Idiomas
       - LANGS_SUPPORTED=
       - LOCALE=
@@ -187,6 +188,7 @@ services:
 | --- | --- |
 | `DISCORD_BOT_TOKEN` | TOKEN de tu bot |
 | `HOST_DISCORD_USER_ID`  | Tu ID de Usuario de discord  |
+| `REPORT_CHANNEL_ID` | guildId \| channelId |
 | `LANGS_SUPPORTED` | Idiomas que soporta tu bot |
 | `LOCALE` | Idioma por default que tendra el bot |
 | `DEBUG_MODE` | "Debug mode *0* \| Produccion *>0*" |
@@ -316,6 +318,7 @@ Meltryllis con Arma/
 │   │   │   ├── index.ts
 │   │   │   └── nsKeyCheck.ts
 │   │   ├── /zGears
+│   │   │   ├── auxiliares.ts
 │   │   │   ├── formularios.ts
 │   │   │   ├── mPermisions.ts
 │   │   │   ├── neTools.ts

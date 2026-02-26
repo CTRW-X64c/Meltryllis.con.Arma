@@ -6,7 +6,8 @@ import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
 import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
-import { checkAllDomains, buildDomainStatusEmbed, checkDomainTest, startDomainTestCooldown } from "../../sys/zGears/neTools";
+import { checkAllDomains, buildDomainStatusEmbed } from "../../sys/zGears/neTools";
+import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
 
 const apiDomains = [
     ...(process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : []),
@@ -295,8 +296,8 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
 
 export async function ChekDomainsTest(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
-
-        const cooldown = checkDomainTest();
+        const idCooldown = "netCommand"
+        const cooldown = checkCooldown(interaction.guildId!, idCooldown);
         if (cooldown.onCooldown) {
             await interaction.reply({
                 content: i18next.t("test_domaind_error", { ns: "test" , a1: cooldown.timeLeft }),
@@ -311,7 +312,7 @@ export async function ChekDomainsTest(interaction: ChatInputCommandInteraction):
             content: i18next.t("test_domaind_verificando", { ns: "test" })
         });
 
-        startDomainTestCooldown();
+        startCooldown(interaction.guildId!, idCooldown);
         
         const domainStatuses = await checkAllDomains();
         

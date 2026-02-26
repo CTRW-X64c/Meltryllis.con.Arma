@@ -150,5 +150,18 @@
         "title":"Comando /work",
         "description":"Funcionamiento del embeding canales. \n - **Modo:** workhere: Permite desactivar el funcionamiento en el canal donde se ejecuta el comando. \n - **Modo:** replybots: permite que reponda a bots en el conal donde se ejecuta el comando. `(por defecto esta desactivado)`",
         "footer":"Comportamiento en canales"
+    },
+    "report":{
+        "no_admin":"No eres administrador",
+        "modal_title": "Reporte de falla o problema",
+        "modal_label": "Describe el problema brevemente",
+        "modal_pholder": "El comando o funcion no esta haciendo lo que debería hacer...",
+        "modal_no_guild": "Se requiere que se mande desde el server que presenta el problema!!",
+        "modal_sent_success": "✅ ¡Reporte enviado con éxito al desarrollador!\nCopia del mensaje de reporte:",
+        "modal_sent_fail": "❌ Error al enviar el reporte. Intenta de nuevo más tarde.",
+        "modal_autor": "Reporte de {{a1}}",
+        "modal_name_A1": "Servidor:",
+        "modal_name_B1": "Reporte:",
+        "onCooldown": "Actualemnte en cooldown, Tiempo restante: {{a1}}"
     }
 }

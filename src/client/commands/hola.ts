@@ -3,6 +3,7 @@ import { ChatInputCommandInteraction,  SlashCommandBuilder, EmbedBuilder, Messag
   /* Modal */ TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder} from "discord.js";
 import i18next from "i18next";
 import { error } from "../../sys/logging";
+import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
 import { hasPermission } from "../../sys/zGears/mPermission";
 
 export async function helpAutocomplete(interaction: AutocompleteInteraction) {
@@ -487,18 +488,26 @@ async function helpWork(interaction: ChatInputCommandInteraction): Promise<void>
 
 async function Report(interaction: ChatInputCommandInteraction): Promise<void> {
   const isAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.Administrator) || interaction.guild?.ownerId === interaction.user.id;
-  if (!isAdmin){
-    await interaction.reply({ content: "No eres administrador", flags: MessageFlags.Ephemeral });
-    return;
+  const idGuild = interaction.guildId;
+  const idCooldown = "repCommand"
+  if (!idGuild) { 
+    await interaction.reply({ content: (i18next.t("report.modal_no_guild", { ns: "hola"})), flags: MessageFlags.Ephemeral }); return;
+  } else if (!isAdmin) {
+    await interaction.reply({ content: i18next.t("report.no_admin", { ns: "hola" }), flags: MessageFlags.Ephemeral });  return;
   }
+
+  const cooldown = checkCooldown(idGuild, idCooldown);
+  if (cooldown.onCooldown) {
+    await interaction.reply({ content: i18next.t("report.onCooldown", { ns: "hola" , a1: cooldown.timeLeft }), flags: MessageFlags.Ephemeral}); return; }
+  startCooldown(idGuild, idCooldown);
 
   const modal = new ModalBuilder()
     .setCustomId('helpRepo')
-    .setTitle('Reporte de falla o problema');
+    .setTitle(i18next.t("report.modal_title", { ns: "hola" }));
   const reportIn = new TextInputBuilder()
     .setCustomId('report_content')
-    .setLabel('Describe el problema brevemente')
-    .setPlaceholder('Ej: El comando de youtube no está enviando los videos...')
+    .setLabel(i18next.t("report.modal_label", { ns: "hola" }))
+    .setPlaceholder(i18next.t("report.modal_pholder", { ns: "hola" }))
     .setStyle(TextInputStyle.Paragraph)
     .setMinLength(10)
     .setMaxLength(500) 

@@ -148,21 +148,3 @@ export function buildDomainStatusEmbed(domainStatuses: DomainStatus[]): EmbedBui
     
     return embed;
 }
-
-let testCheckCooldown = 0;
-const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutos
-
-export function checkDomainTest(): { onCooldown: boolean; timeLeft: string } {
-    const timeRemaining = (testCheckCooldown + COOLDOWN_MS) - Date.now();
-    
-    if (timeRemaining > 0) {
-        const minutesLeft = Math.ceil(timeRemaining / 60000);
-        return { onCooldown: true, timeLeft: `${minutesLeft} minuto(s)` };
-    }
-    
-    return { onCooldown: false, timeLeft: '' };
-}
-
-export function startDomainTestCooldown() {
-    testCheckCooldown = Date.now();
-}
