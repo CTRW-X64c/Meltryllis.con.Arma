@@ -8,7 +8,7 @@ const hrs = 60 * minutos;
 const cooldownsMap = new Map<string, number>();
 const COOLDOWN_TIMES: Record<string, number> = {
     "default": 1 * hrs + 30 * minutos,
-    "repCommand": 1 * minutos,
+    "repCommand": 60 * minutos,
     "netCommand": 30 * minutos
 };
 
