@@ -1,5 +1,5 @@
 // src/sys/DB-Engine/links/Permissions.ts
-import { getPool } from "../database";
+import getPool from "../database";
 import { ResultSetHeader } from "mysql2/promise";
 import { error, debug } from "../../logging";
 
@@ -12,7 +12,7 @@ export interface PermissionEntry {
 
 const permCache = new Map<string, Map<string, Set<string>>>();
 
-export function invalidatePermCache(guildId: string, commandName?: string) {
+function invalidatePermCache(guildId: string, commandName?: string) {
     if (commandName) {
         const guildCache = permCache.get(guildId);
         if (guildCache) {
@@ -24,7 +24,6 @@ export function invalidatePermCache(guildId: string, commandName?: string) {
         debug(`[BD.Permissions] Renovando toda la cache del guild: ${guildId}`, "Database");
     }
 }
-
 
 export async function getCommandPermissions(guildId: string, commandName: string): Promise<Set<string>> {
     let guildCache = permCache.get(guildId);
@@ -40,8 +39,7 @@ export async function getCommandPermissions(guildId: string, commandName: string
 
     try {
         const pool = await getPool();
-        const [rows] = await pool.query(
-            "SELECT target_id FROM command_permissions WHERE guild_id = ? AND command_name = ?",
+        const [rows] = await pool.query( "SELECT target_id FROM command_permissions WHERE guild_id = ? AND command_name = ?",
             [guildId, commandName]
         );
 
@@ -57,12 +55,10 @@ export async function getCommandPermissions(guildId: string, commandName: string
     }
 }
 
-
 export async function addCommandPermission(guildId: string, targetId: string, type: 'USER' | 'ROLE', commandName: string, userGivePerm: string): Promise<boolean> {
     try {
         const pool = await getPool();
-        await pool.query(
-            "INSERT INTO command_permissions (guild_id, target_id, target_type, command_name, user_give_perm) VALUES (?, ?, ?, ?, ?)",
+        await pool.query( "INSERT INTO command_permissions (guild_id, target_id, target_type, command_name, user_give_perm) VALUES (?, ?, ?, ?, ?)",
             [guildId, targetId, type, commandName, userGivePerm]
         );
         
@@ -76,12 +72,10 @@ export async function addCommandPermission(guildId: string, targetId: string, ty
     }
 }
 
-
 export async function removeCommandPermission(guildId: string, targetId: string, commandName: string): Promise<boolean> {
     try {
         const pool = await getPool();
-        const [result] = await pool.query(
-            "DELETE FROM command_permissions WHERE guild_id = ? AND target_id = ? AND command_name = ?",
+        const [result] = await pool.query( "DELETE FROM command_permissions WHERE guild_id = ? AND target_id = ? AND command_name = ?",
             [guildId, targetId, commandName]
         );
         
@@ -98,7 +92,6 @@ export async function removeCommandPermission(guildId: string, targetId: string,
         throw err;
     }
 }
-
 
 export async function listCommandPermissions(guildId: string, commandName?: string): Promise<PermissionEntry[]> {
     try {
@@ -123,12 +116,10 @@ export async function listCommandPermissions(guildId: string, commandName?: stri
     }
 }
 
-
 export async function clearGuildPermissions(guildId: string): Promise<boolean> {
     try {
         const pool = await getPool();
-        await pool.query(
-            "DELETE FROM command_permissions WHERE guild_id = ?",
+        await pool.query( "DELETE FROM command_permissions WHERE guild_id = ?",
             [guildId]
         );
         

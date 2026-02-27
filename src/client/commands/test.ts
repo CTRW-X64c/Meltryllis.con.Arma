@@ -9,10 +9,8 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 import { checkAllDomains, buildDomainStatusEmbed } from "../../sys/zGears/neTools";
 import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
 
-const apiDomains = [
-    ...(process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : []),
-    ...(process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [])
-    ];
+const sfwDomains = process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : [];
+const nsfwDomains = process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [];
 
 export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
   const testCommand = new SlashCommandBuilder()
@@ -243,15 +241,34 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
   if (!guildId) {
     throw new Error(i18next.t("dont_gg", { ns: "test" }));
   }
-
+  
   const replacementConfig = await getGuildReplacementConfig(guildId);
   embed.setDescription(i18next.t("not_replacement", { ns: "test" }));
 
-  // Sección para los reemplazos manuales
+  const addCategoryFields = (title: string, lines: string[]) => {
+    if (lines.length === 0) return;
+    
+    let currentText = "";
+    let partNumber = 1;
+
+    for (const line of lines) {
+      if (currentText.length + line.length + '\n'.length > 1000) {
+        embed.addFields({ name: `${title} (Pt. ${partNumber})`, value: currentText, inline: false });
+        currentText = line + "\n";
+        partNumber++;
+      } else {
+        currentText += line + "\n";
+      }
+    }
+    if (currentText.length > 0) {
+      embed.addFields({ name: partNumber > 1 ? `${title} (Pt. ${partNumber})` : title, value: currentText, inline: false });
+    }
+  };
+/* Lista Locales */
+  const localLines: string[] = [];
   replacementMetaList.forEach(meta => {
     const config = replacementConfig.get(meta.name);
     let status: string;
-    
     if (config === undefined) {
       status = i18next.t("rem_list_1", { ns: "test" });
     } else if (!config.enabled) {
@@ -262,34 +279,30 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
     } else {
       status = i18next.t("rem_list_1", { ns: "test" });
     }
-    
-    embed.addFields({
-      name: meta.name,
-      value: status,
-      inline: false,
-    });
+    localLines.push(`**${meta.name}:** \u200b \u200b \u200b${status}`);
   });
-  
-  // Sección para los reemplazos por API
-  embed.addFields({ 
-    name: i18next.t("field_add_api", { ns: "test" }), 
-    value: i18next.t("field_add_api_value", { ns: "test" })
-  });
-
-  apiDomains.forEach(domain => {
+  addCategoryFields("🛠️ Reemplazos Locales", localLines);
+/* Lista SFW */
+  const sfwLines: string[] = [];
+  sfwDomains.forEach(domain => {
     const config = replacementConfig.get(domain);
     const status = (config === undefined || config.enabled) ? 
       i18next.t("field_api_enabled", { ns: "test" }) : 
       i18next.t("field_api_disabled", { ns: "test" });
-
-    embed.addFields({
-      name: domain,
-      value: status,
-      inline: false,
-    });
+    sfwLines.push(`**${domain}:** \u200b \u200b \u200b${status}`);
   });
-
-  embed.setColor("#0099ff");
+  addCategoryFields("🌐 API SFW", sfwLines);
+/* Lista SFW */
+  const nsfwLines: string[] = [];
+  nsfwDomains.forEach(domain => {
+    const config = replacementConfig.get(domain);
+    const status = (config === undefined || config.enabled) ? 
+      i18next.t("field_api_enabled", { ns: "test" }) : 
+      i18next.t("field_api_disabled", { ns: "test" });
+    nsfwLines.push(`**${domain}:** \u200b \u200b \u200b ${status}`);
+  });
+  addCategoryFields("🔞 API NSFW", nsfwLines);
+  embed.setColor(0x0099FF);
 }
 
 /* ========================= NeTest ========================= */

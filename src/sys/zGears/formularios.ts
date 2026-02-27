@@ -9,7 +9,7 @@ export async function helpRepo(interaction: ModalSubmitInteraction) {
   const toSend = process.env.HOST_DISCORD_USER_ID!;
   const ownerUser = await interaction.client.users.fetch(toSend);
   const reporMsg = interaction.fields.getTextInputValue('report_content');
-  const gName = interaction.guild!.name;
+  const gName = interaction.guild!;
   const uData = interaction.user;
   const reportConfig = await ChannelReports(interaction.client);
   try {
@@ -18,7 +18,8 @@ export async function helpRepo(interaction: ModalSubmitInteraction) {
         new EmbedBuilder()
         .setAuthor({name:(i18next.t("report.modal_autor", { ns: "hola" , a1: uData.username})), iconURL: uData.displayAvatarURL()})
         .addFields(
-          { name: (i18next.t("report.modal_name_A1", { ns: "hola" })), value: gName, inline: true },
+          { name: (i18next.t("report.modal_name_A1", { ns: "hola" })), value: `Name: ${gName.name} \n Id: ${gName.id}`, inline: true },
+          { name: (`\u200B`), value: (`\u200B`)},
           { name: (i18next.t("report.modal_name_B1", { ns: "hola" })), value: reporMsg }
         )
         .setTimestamp()

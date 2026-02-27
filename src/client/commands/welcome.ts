@@ -3,7 +3,7 @@ import { SlashCommandBuilder, MessageFlags, PermissionFlagsBits, ChatInputComman
 import i18next from "i18next";
 import { error } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
-import { setWelcomeConfig, getWelcomeConfig } from "../../sys/DB-Engine/links/Welcome";
+import { setWelcomeConfig, getWelcomeConfig, removeWelcomeConfig } from "../../sys/DB-Engine/links/Welcome";
 
 export async function registerWelcomeCommand(): Promise<SlashCommandBuilder[]> {
     const welcomeCommand = new SlashCommandBuilder()
@@ -14,6 +14,12 @@ export async function registerWelcomeCommand(): Promise<SlashCommandBuilder[]> {
             subcommand
                 .setName("set")
                 .setDescription(i18next.t("command_welcome_config_description", { ns: "welcome" }))
+                .addStringOption((option) =>
+                    option
+                        .setName("message")
+                        .setDescription(i18next.t("command_welcome_message_description", { ns: "welcome" }))
+                        .setRequired(false)
+                )
                 .addChannelOption((option) =>
                     option
                         .setName("channel")
@@ -23,14 +29,8 @@ export async function registerWelcomeCommand(): Promise<SlashCommandBuilder[]> {
                 )
                 .addBooleanOption((option) =>
                     option
-                        .setName("enabled")
+                        .setName("borrar")
                         .setDescription(i18next.t("command_welcome_enabled_description", { ns: "welcome" }))
-                        .setRequired(false)
-                )
-                .addStringOption((option) =>
-                    option
-                        .setName("message")
-                        .setDescription(i18next.t("command_welcome_message_description", { ns: "welcome" }))
                         .setRequired(false)
                 )
         );
@@ -41,25 +41,26 @@ export async function handleWelcomeCommand(interaction: ChatInputCommandInteract
     try {
         const isAllowed = await hasPermission(interaction, interaction.commandName);
         if (!isAllowed) {
-            await interaction.reply({
-                content: i18next.t("command_permission_error", { ns: "rolemoji" }),
-                flags: MessageFlags.Ephemeral,
-            });
-            return;
+            await interaction.reply({ content: i18next.t("command_permission_error", { ns: "rolemoji" }), flags: MessageFlags.Ephemeral}); return;
         }
 
         const channel = interaction.options.getChannel("channel");
-        const enabled = interaction.options.getBoolean("enabled");
+        const shouldDelete = interaction.options.getBoolean("borrar") || false;
         const messageContent = interaction.options.getString("message");
-        const subcommand = interaction.options.getSubcommand();
         const guildId = interaction.guildId!;
 
-        if (subcommand === "configurar") {
+        if (shouldDelete === true) {
+            await removeWelcomeConfig(guildId);
+            await interaction.reply({content: i18next.t("command_welcome_config_removed", { ns: "welcome" }),flags: MessageFlags.Ephemeral});
+            return;
+        }
+
+        if (shouldDelete === false) {
             const currentConfig = await getWelcomeConfig(guildId);
             
             const newConfig = {
                 channelId: channel ? channel.id : currentConfig.channelId,
-                enabled: enabled !== null ? enabled : currentConfig.enabled,
+                enabled: currentConfig.enabled,
                 customMessage: messageContent !== null ? messageContent : currentConfig.customMessage
             };
 

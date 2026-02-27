@@ -1,7 +1,7 @@
 // src/sys/DB-Engine/links/Youtube.ts
-import { getPool } from "../database";
-import {ResultSetHeader} from "mysql2/promise";
-import {debug, error} from "../../logging";
+import { ResultSetHeader } from "mysql2/promise";
+import getPool from "../database";
+import { debug, error } from "../../logging";
 
 export interface YouTubeFeed {
   id: number;
@@ -16,17 +16,19 @@ export interface YouTubeFeed {
 
 const youtubeFeedCache = new Map<string, YouTubeFeed[]>();
 
-export function invalidateGuildCache(guildId: string): void {
+function invalidateGuildCache(guildId: string): void {
   youtubeFeedCache.delete(guildId);
-  debug(`[BD.Youtube] Renovando la cache del guild: ${guildId}`, "Database");
+  debug(`[BD.Youtube] Invalidando caché del guild: ${guildId}`, "Database");
 }
 
 export async function getYouTubeFeeds(guildId: string): Promise<YouTubeFeed[]> {
   if (youtubeFeedCache.has(guildId)) {
-    debug(`[BD.Youtube] Retornando la cahce el guild: ${guildId}`, "Database");
+    debug(`[BD.Youtube] Cache HIT para guild: ${guildId}`, "Database");
     return [...youtubeFeedCache.get(guildId)!];
   }
 
+  debug(`[BD.Youtube] Cache MISS para guild: ${guildId}, consultando BD`, "Database");
+  
   try {
     const pool = await getPool();
     const [rows] = await pool.query(
@@ -46,10 +48,10 @@ export async function getYouTubeFeeds(guildId: string): Promise<YouTubeFeed[]> {
     }));
 
     youtubeFeedCache.set(guildId, feeds);
-    debug(`[BD.Youtube] Obteniendo YouTube feeds para el guild: ${guildId}`, "Database");
+    debug(`[BD.Youtube] Caché actualizada para guild: ${guildId} (${feeds.length} feeds)`, "Database");
     return feeds;
   } catch (err) {
-    error(`[BD.Youtube] Error al cargar cache del guild: ${guildId}, ERROR!: ${err}`, "Database");
+    error(`[BD.Youtube] Error al cargar feeds: ${err}`, "Database");
     throw err;
   }
 }
@@ -63,10 +65,13 @@ export async function addYouTubeFeed(feed: Omit<YouTubeFeed, 'id' | 'created_at'
     );
 
     const header = result as ResultSetHeader;
-    youtubeFeedCache.delete(feed.guild_id); 
+    
+    invalidateGuildCache(feed.guild_id);
+    
+    debug(`[BD.Youtube] Feed agregado (ID: ${header.insertId}) para guild: ${feed.guild_id}`, "Database");
     return header.insertId;
   } catch (err) {
-    error(`[BD.Youtube] Error al agregar feed, ERROR!: ${err}`, "Database");
+    error(`[BD.Youtube] Error al agregar feed: ${err}`, "Database");
     throw err;
   }
 }
@@ -79,10 +84,11 @@ export async function updateYouTubeFeedLastVideo(id: number, lastVideoId: string
       [lastVideoId, id]
     );
 
-    youtubeFeedCache.delete(guildId);
-    debug(`[BD.Youtube] Actualizado el ultimo feed del gremio: ${guildId}, invalidated cache`, "Database");
+    invalidateGuildCache(guildId);
+    
+    debug(`[BD.Youtube] Último video actualizado para feed ${id} en guild: ${guildId}`, "Database");
   } catch (err) {
-    error(`[BD.Youtube] Error al actualizar el ultimo feed del gremio: ${guildId}, ERROR!: ${err}`, "Database");
+    error(`[BD.Youtube] Error al actualizar feed: ${err}`, "Database");
     throw err;
   }
 }
@@ -96,34 +102,16 @@ export async function removeYouTubeFeed(guildId: string, youtubeChannelId: strin
     );
 
     const header = result as ResultSetHeader;
-    youtubeFeedCache.delete(guildId);
-    debug(`[BD.Youtube] Eliminado YouTube feed para el guild ${guildId}, Renovando cache!`, "Database");
-    return header.affectedRows > 0;
+      if (header.affectedRows > 0) {
+      invalidateGuildCache(guildId);
+      debug(`[BD.Youtube] Feed eliminado para guild: ${guildId}, canal YouTube: ${youtubeChannelId}`, "Database");
+      return true;
+    }
+    
+    debug(`[BD.Youtube] No se encontró feed para eliminar en guild: ${guildId}, canal YouTube: ${youtubeChannelId}`, "Database");
+    return false;
   } catch (err) {
-    error(`[BD.Youtube] Error al eliminar YouTube feed: ${err}`, "Database");
-    throw err;
-  }
-}
-
-export async function getAllYouTubeFeeds(): Promise<YouTubeFeed[]> {
-  try {
-    const pool = await getPool();
-    const [rows] = await pool.query(
-      "SELECT id, guild_id, channel_id, youtube_channel_id, youtube_channel_name, rss_url, last_video_id, created_at FROM youtube_feeds"
-    );
-
-    return (rows as any[]).map(row => ({
-      id: row.id,
-      guild_id: row.guild_id,
-      channel_id: row.channel_id,
-      youtube_channel_id: row.youtube_channel_id,
-      youtube_channel_name: row.youtube_channel_name,
-      rss_url: row.rss_url,
-      last_video_id: row.last_video_id,
-      created_at: new Date(row.created_at)
-    }));
-  } catch (err) {
-    error(`[BD.Youtube] Error al ontener la lista de feeds, ERROR!: ${err}`, "Database");
+    error(`[BD.Youtube] Error al eliminar feed: ${err}`, "Database");
     throw err;
   }
 }

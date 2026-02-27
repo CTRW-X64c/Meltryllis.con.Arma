@@ -178,7 +178,7 @@ export async function initializeDatabase(): Promise<void> {
   return initializationPromise;
 }
 
-export async function getPool(): Promise<Pool> {
+export default async function getPool(): Promise<Pool> {
   if (pool) return pool;
   if (initializationPromise) {
       debug("⚠️ Solicitud de DB recibida durante inicialización, esperando...", "Database");
