@@ -98,7 +98,7 @@ async function handleGuildDelete(guild: Guild): Promise<void> {
     }
     
   } catch (err) {
-    error(`Error general en GuildDelete para ${guild.name}: ${err}`, "GuildDelete");
+  error(`Error general en GuildDelete para ${guild.name}: ${err}`, "GuildDelete");
   }
 }
 
@@ -106,31 +106,32 @@ async function handleGuildDelete(guild: Guild): Promise<void> {
 
 async function deleteGuildConfig(guild: Guild): Promise<boolean> {
   try {
-  info(`🧹 Iniciando limpieza de base de datos para el gremio: ${guild.name}`, "GuildCleanup");
-  const resultados = await Promise.allSettled([
-    removeVoiceConfig(guild.id),
-    clearGuildPermissions(guild.id),
-    removeWelcomeConfig(guild.id),
-    deleteAllEmbedConfig(guild.id),
-    delleteAllMangadexConfig(guild.id),
-    delleteAllRedditConfig(guild.id),
-    delleteAllReplyBotsConfig(guild.id),
-    delleteAllRolemojiConfig(guild.id),
-    deleteAllYoutubeConfig(guild.id)
-  ]);
+    info(`🧹 Iniciando limpieza de base de datos para el gremio: ${guild.name}`, "GuildCleanup");
+    
+    const resultados = await Promise.allSettled([
+      removeVoiceConfig(guild.id),
+      clearGuildPermissions(guild.id),
+      removeWelcomeConfig(guild.id),
+      deleteAllEmbedConfig(guild.id),
+      delleteAllMangadexConfig(guild.id),
+      delleteAllRedditConfig(guild.id),
+      delleteAllReplyBotsConfig(guild.id),
+      delleteAllRolemojiConfig(guild.id),
+      deleteAllYoutubeConfig(guild.id)
+    ]);
 
-  resultados.forEach((resultado, index) => {
-    const sistemas = ['JoinToVoice', 'Permisos', 'Welcome', 'Embed', 'Mangadex', 'Reddit', 'ReplyBots', 'Rolemoji', 'Youtube'];
+    resultados.forEach((resultado, index) => {
+      const sistemas = ['JoinToVoice', 'Permisos', 'Welcome', 'Embed', 'Mangadex', 'Reddit', 'ReplyBots', 'Rolemoji', 'Youtube'];
     if (resultado.status === 'rejected') {
       error(`Fallo al borrar configuración de ${sistemas[index]} para el guild ${guild.id}: ${resultado.reason}`, "GuildCleanup");
     } else {
       info(`✅ Configuración de ${sistemas[index]} borrada para el guild ${guild.id}`, "GuildCleanup");
-    }
-  });
+      }
+    });
   info(`✅ Proceso de limpieza finalizado para: ${guild.name} (ID: ${guild.id})`, "GuildCleanup");
   return resultados.every(r => r.status === 'fulfilled');
-} catch (err) {
-  error("Error al realizar limpieza!!")
+  } catch (err) {
+  error("Error al realizar limpieza!!", "GuildCleanup")
   return false;
   }
 }
