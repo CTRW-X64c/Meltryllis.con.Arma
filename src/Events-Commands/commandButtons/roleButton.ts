@@ -18,7 +18,7 @@ export async function registerRoleButtonCommand(): Promise<SlashCommandBuilder[]
     /* 1er boton */
     .addRoleOption(option => 
         option.setName("first_rol")
-        .setDescription("El rol que se dará al aceptar")
+        .setDescription("Rol que dara el boton")
         .setRequired(true))
     .addStringOption(option =>
         option.setName("first_text_on_button")
