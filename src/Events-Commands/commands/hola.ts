@@ -1,9 +1,8 @@
 // src/Events-Commands/commands/hola.ts
-import { ChatInputCommandInteraction,  SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, PermissionFlagsBits, AutocompleteInteraction, 
-  /* Modal */ TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder} from "discord.js";
+import { ChatInputCommandInteraction,  SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, PermissionFlagsBits, AutocompleteInteraction } from "discord.js";
 import i18next from "i18next";
 import { error } from "../../sys/logging";
-import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
+import { Report } from "../commandModales/reportHelp";
 import { hasPermission } from "../../sys/zGears/mPermission";
 
 export async function helpAutocomplete(interaction: AutocompleteInteraction) {
@@ -484,35 +483,4 @@ async function helpWork(interaction: ChatInputCommandInteraction): Promise<void>
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
 
-// ============================================= Report ============================================= //
-
-async function Report(interaction: ChatInputCommandInteraction): Promise<void> {
-  const isAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.Administrator) || interaction.guild?.ownerId === interaction.user.id;
-  const idGuild = interaction.guildId;
-  const idCooldown = "repCommand"
-  if (!idGuild) { 
-    await interaction.reply({ content: (i18next.t("report.modal_no_guild", { ns: "hola"})), flags: MessageFlags.Ephemeral }); return;
-  } else if (!isAdmin) {
-    await interaction.reply({ content: i18next.t("report.no_admin", { ns: "hola" }), flags: MessageFlags.Ephemeral });  return;
-  }
-
-  const cooldown = checkCooldown(idGuild, idCooldown);
-  if (cooldown.onCooldown) {
-    await interaction.reply({ content: i18next.t("report.onCooldown", { ns: "hola" , a1: cooldown.timeLeft }), flags: MessageFlags.Ephemeral}); return; }
-  startCooldown(idGuild, idCooldown);
-
-  const modal = new ModalBuilder()
-    .setCustomId('helpRepo')
-    .setTitle(i18next.t("report.modal_title", { ns: "hola" }));
-  const reportIn = new TextInputBuilder()
-    .setCustomId('report_content')
-    .setLabel(i18next.t("report.modal_label", { ns: "hola" }))
-    .setPlaceholder(i18next.t("report.modal_pholder", { ns: "hola" }))
-    .setStyle(TextInputStyle.Paragraph)
-    .setMinLength(10)
-    .setMaxLength(500) 
-    .setRequired(true);
-  const eMod = new ActionRowBuilder<TextInputBuilder>().addComponents(reportIn);
-  modal.addComponents(eMod);
-  await interaction.showModal(modal);
-}
+// ============================================= FIN ============================================= //
