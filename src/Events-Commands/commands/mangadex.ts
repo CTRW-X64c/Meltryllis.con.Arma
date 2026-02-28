@@ -1,5 +1,5 @@
-// src/client/commands/mangadex.ts
-import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, TextChannel, EmbedBuilder } from "discord.js";
+// src/Events-Commands/commands/mangadex.ts
+import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, TextChannel, EmbedBuilder, ChannelType } from "discord.js";
 import { AddMangadexFeed, getMangadexFeeds, MangadexFeed, removeMangadexFeed} from "../../sys/DB-Engine/links/Mangadex"; // Asumo que esto ya existe
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
@@ -67,6 +67,7 @@ export async function registerMangadexCommand() {
           option.setName("canal")
             .setDescription(i18next.t("command_mangadex_canal", { ns: "mangadex" }))
             .setRequired(true)
+            .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
         )
         .addStringOption(option =>
           option.setName("idioma")

@@ -1,5 +1,5 @@
-// src/client/commands/youtube.ts
-import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
+// src/Events-Commands/commands/youtube.ts
+import { ChannelType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
 import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/DB-Engine/links/Youtube";
 import { extractChannelIdFromRss, extractVideoId, verifyYouTubeRss } from "../eventGear/youtubeTools";
 import { error, debug } from "../../sys/logging";
@@ -22,6 +22,7 @@ export async function registerYouTubeCommand() {
         )
         .addChannelOption(option =>
           option.setName("canal")
+            .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
             .setDescription(i18next.t("command_youtube_canal", { ns: "youtube" }))
             .setRequired(true)
         )

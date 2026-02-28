@@ -115,3 +115,19 @@ export async function removeYouTubeFeed(guildId: string, youtubeChannelId: strin
     throw err;
   }
 }
+
+
+export async function deleteAllYoutubeConfig(guildId: string): Promise<void> {
+  try {
+    const pool = await getPool();
+    await pool.query(
+      "DELETE FROM youtube_feeds WHERE guild_id = ?",
+      [guildId]
+    );
+
+    invalidateGuildCache(guildId);
+    debug(`[BD.Youtube] Todas las configuraciones eliminadas para guild: ${guildId}`, "Database");
+  } catch (err) {
+    error(`[BD.Youtube] Error al borrar las configuraciones de guild: ${guildId} Error: ${err}`, "Database");
+  }
+}

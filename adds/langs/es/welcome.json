@@ -10,5 +10,7 @@
         "command_welcome_config_set": "Se establecio la configuracion",
         "command_permission_error": "No tienes permisos para usar este comando.",
         "command_error": "Ocurrió un error al ejecutar el comando.",
-        "command_welcome_config_removed": "Se borro la configuracion de /welcome"
+        "command_welcome_config_removed": "Se borro la configuracion de /welcome",
+        "no_choises_selected": "No se selecciono ninguna opcion, minimo borrar o canal",
+        "command_not_doing_nothing":"No habia configuracion previa!!"
 }

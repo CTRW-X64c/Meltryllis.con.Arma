@@ -127,3 +127,18 @@ export async function getAllRedditFeeds(): Promise<RedditFeed[]> {
     throw err;
   }
 }
+
+export async function delleteAllRedditConfig(guildId: string): Promise<void> {
+  try {
+    const pool = await getPool();
+    await pool.query(
+      "DELETE FROM guild_replacements WHERE guild_id = ?",
+      [guildId]
+    );
+
+    invalidateGuildCache(guildId)
+    debug(`[BD.Reddit] Invalidando caché del guild: ${guildId}`, "Database");
+  } catch (err) {
+    error(`[BD.Reddit] Error al borrar las configuraciones de guild: ${guildId} Error: ${err}`, "Database");
+  }
+}

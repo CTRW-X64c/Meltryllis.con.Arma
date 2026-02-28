@@ -1,4 +1,4 @@
-// src/client/commands/owner.ts
+// src/Events-Commands/commands/owner.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction } from "discord.js";
 import { debug, error, } from "../logging";
 import { Buffer } from 'node:buffer';

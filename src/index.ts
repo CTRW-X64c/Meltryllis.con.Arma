@@ -46,7 +46,7 @@ async function start() {
     }
 
     info(`🚀 Iniciando bot en modo: ${environmentMode}`, "startup");   
-    const manager = new ShardingManager("./comp/client/index.js", {
+    const manager = new ShardingManager("./comp/sys/core.js", {
         token: token,
     });
 

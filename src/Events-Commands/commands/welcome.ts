@@ -1,4 +1,4 @@
-// src/client/commands/welcome.ts
+// src/Events-Commands/commands/welcome.ts
 import { SlashCommandBuilder, MessageFlags, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType } from "discord.js";
 import i18next from "i18next";
 import { error } from "../../sys/logging";
@@ -24,7 +24,7 @@ export async function registerWelcomeCommand(): Promise<SlashCommandBuilder[]> {
                     option
                         .setName("channel")
                         .setDescription(i18next.t("command_welcome_channel_description", { ns: "welcome" }))
-                        .addChannelTypes(ChannelType.GuildText)
+                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
                         .setRequired(false)
                 )
                 .addBooleanOption((option) =>
@@ -41,41 +41,41 @@ export async function handleWelcomeCommand(interaction: ChatInputCommandInteract
     try {
         const isAllowed = await hasPermission(interaction, interaction.commandName);
         if (!isAllowed) {
-            await interaction.reply({ content: i18next.t("command_permission_error", { ns: "rolemoji" }), flags: MessageFlags.Ephemeral}); return;
+            await interaction.reply({ content: i18next.t("command_permission_error", { ns: "rolemoji" }), flags: MessageFlags.Ephemeral }); return;
         }
-
-        const channel = interaction.options.getChannel("channel");
+         
+const channelOption = interaction.options.getChannel("channel"); 
         const shouldDelete = interaction.options.getBoolean("borrar") || false;
         const messageContent = interaction.options.getString("message");
         const guildId = interaction.guildId!;
-
-        if (shouldDelete === true) {
-            await removeWelcomeConfig(guildId);
-            await interaction.reply({content: i18next.t("command_welcome_config_removed", { ns: "welcome" }),flags: MessageFlags.Ephemeral});
+        
+        if (!shouldDelete && !channelOption && messageContent === null) {
+            await interaction.reply({content: i18next.t("no_choises_selected", { ns: "welcome" }), flags: MessageFlags.Ephemeral });
             return;
         }
 
-        if (shouldDelete === false) {
-            const currentConfig = await getWelcomeConfig(guildId);
-            
-            const newConfig = {
-                channelId: channel ? channel.id : currentConfig.channelId,
-                enabled: currentConfig.enabled,
-                customMessage: messageContent !== null ? messageContent : currentConfig.customMessage
-            };
-
-            await setWelcomeConfig(guildId, newConfig);
-
-            await interaction.reply({
-                content: i18next.t("command_welcome_config_set", { ns: "welcome" }),
-                flags: MessageFlags.Ephemeral,
-            });
+        const oldConfig = await getWelcomeConfig(guildId);
+        if (shouldDelete === true) {
+            if (!oldConfig.channelId) { 
+                await interaction.reply({content: i18next.t("command_not_doing_nothing", { ns: "welcome" }), flags: MessageFlags.Ephemeral });
+                return;
+            }
+            await removeWelcomeConfig(guildId);
+            await interaction.reply({content: i18next.t("command_welcome_config_removed", { ns: "welcome" }), flags: MessageFlags.Ephemeral });
+            return;
         }
+
+        const newConfig = {
+            channelId: channelOption ? channelOption.id : oldConfig.channelId,
+            enabled: true,
+            customMessage: messageContent !== null ? messageContent : oldConfig.customMessage
+        };
+
+        await setWelcomeConfig(guildId, newConfig);
+        await interaction.reply({content: i18next.t("command_welcome_config_set", { ns: "welcome" }), flags: MessageFlags.Ephemeral });
+
     } catch (err) {
         error(`Error al ejecutar comando /welcome: ${err}`, "WelcomeCommand");
-        await interaction.reply({
-            content: i18next.t("command_error", { ns: "welcome" }),
-            flags: MessageFlags.Ephemeral,
-        });
+        await interaction.reply({ content: i18next.t("command_error", { ns: "welcome" }), flags: MessageFlags.Ephemeral });
     }
 }

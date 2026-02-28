@@ -1,7 +1,7 @@
-// src/client/models.ts
+// src/Events-Commands/commandModales/reportHelp.ts
 import { EmbedBuilder, MessageFlags, ModalSubmitInteraction, TextChannel } from "discord.js";
 import i18next from "i18next";
-import { ChannelReports } from "./auxiliares";
+import { ChannelReports } from "../../sys/zGears/auxiliares";
 
 /* ================================= /help report ================================= */
 

@@ -1,4 +1,4 @@
-// src/client/commands/cleanup.ts
+// src/Events-Commands/commands/cleanup.ts 
 import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, MessageFlags, TextChannel, Collection, Snowflake, Message } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";

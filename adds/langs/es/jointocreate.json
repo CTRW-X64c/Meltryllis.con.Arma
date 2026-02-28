@@ -1,12 +1,13 @@
 {
     "ATS1": "Command Builder",
         "command_jointocreate_description": "Permite crear canales temporales de voz apartir de un canal de voz maestro",
-        "command_jointocreate_set_description": "Marca ID del canal maestro",
-        "command_jointocreate_canal_description": "ID del canal maestro",
-        "command_jointocreate_disable_description": "Desactiva el sistema de canales",
-        "command_jointocreate_status_description": "Muestra el estatus de /jointocreate",
-        "command_jointocreate_cleanup_description": "Borra canales residuales",
-        "command_jointocreate_forzar_description": "Forza el borrado de los canales",
+        "command_jointocreate_usage": "modo de configuracion",
+        "command_join_chanel_set": "Selecciona el canal de voz a configurar",
+
+        "command_join_set": "set - \"Establece canal maestro\"",
+        "command_join_disable": "disable - \"Desactiva el sistema\"",
+        "command_join_status": "status - \"Muestra el estado del sistema\"",
+        "command_join_cleanup": "cleanup - \"Borra los canales temporales activos\"",
         
     "ATS2": "Mensajes de sys",
 

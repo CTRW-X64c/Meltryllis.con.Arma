@@ -110,12 +110,12 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
     ],
     "jointocreate":[
         "command_jointocreate_description",
-        "command_jointocreate_set_description",
-        "command_jointocreate_canal_description",
-        "command_jointocreate_disable_description",
-        "command_jointocreate_status_description",
-        "command_jointocreate_cleanup_description",
-        "command_jointocreate_forzar_description"
+        "command_jointocreate_usage",
+        "command_join_chanel_set",
+        "command_join_set",
+        "command_join_disable",
+        "command_join_status",
+        "command_join_cleanup"
     ],
     "mangadex":[
         "command_mangadex",

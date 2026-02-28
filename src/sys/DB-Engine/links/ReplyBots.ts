@@ -64,3 +64,19 @@ export async function setChannelConfig(guildId: string, channelId: string, confi
     throw err;
   }
 }
+
+export async function delleteAllReplyBotsConfig(guildId: string): Promise<void> {
+  try {
+    const pool = await getPool();
+    await pool.query(
+      "DELETE FROM guild_replacements WHERE guild_id = ?",
+      [guildId]
+    );
+
+    configMapCache.delete(guildId)
+    debug(`[BD.ReplyBots] Invalidando caché del guild: ${guildId}`, "Database");
+  } catch (err) {
+    error(`[BD.ReplyBots] Error al borrar las configuraciones de guild: ${guildId} Error: ${err}`, "Database");
+  }
+}
+

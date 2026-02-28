@@ -1,9 +1,9 @@
-// src/client/commands/jointovoice.ts
+// src/Events-Commands/commands/jointovoice.ts
 import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, MessageFlags, ChannelType, VoiceChannel,
     /*botnes*/  ButtonBuilder, ButtonStyle, ActionRowBuilder, ButtonInteraction} from "discord.js";
 import { error, info, debug } from "../../sys/logging";
 import i18next from "i18next";
-import { getVoiceConfig, setVoiceConfig, getAllTempVoiceChannels, getGuildTempChannelCount } from "../../sys/DB-Engine/links/JointoVoice";
+import { getVoiceConfig, setVoiceConfig, getAllTempVoiceChannels, getGuildTempChannelCount, removeVoiceConfig } from "../../sys/DB-Engine/links/JointoVoice";
 import { hasPermission } from "../../sys/zGears/mPermission";
 
 
@@ -12,33 +12,22 @@ export async function registerJoinToCreateCommand(): Promise<SlashCommandBuilder
         .setName("jointovoice")
         .setDescription(i18next.t("command_jointocreate_description", { ns: "jointocreate" }))
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("set")
-                .setDescription(i18next.t("command_jointocreate_set_description", { ns: "jointocreate" }))
-                .addChannelOption(option =>
-                    option
-                        .setName("canal")
-                        .setDescription(i18next.t("command_jointocreate_canal_description", { ns: "jointocreate" }))
-                        .setRequired(true)
-                        .addChannelTypes(ChannelType.GuildVoice)
-                )
+        .addStringOption(op =>
+            op.setName("modo")
+            .setDescription(i18next.t("command_jointocreate_usage", { ns: "jointocreate" }))
+            .setRequired(true)
+            .addChoices(
+                { name: i18next.t("command_join_set", { ns: "jointocreate" }), value: "set" },
+                { name: i18next.t("command_join_disable", { ns: "jointocreate" }), value: "disable" },
+                { name: i18next.t("command_join_status", { ns: "jointocreate" }), value: "status" },
+                { name: i18next.t("command_join_cleanup", { ns: "jointocreate" }), value: "cleanup" })
+            )
+        .addChannelOption(op =>
+            op.setName("channel")
+            .setDescription(i18next.t("command_join_chanel_set", { ns: "jointocreate" }))
+            .setRequired(false)
+            .addChannelTypes(ChannelType.GuildVoice)
         )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("disable")
-                .setDescription(i18next.t("command_jointocreate_disable_description", { ns: "jointocreate" }))
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("status")
-                .setDescription(i18next.t("command_jointocreate_status_description", { ns: "jointocreate" }))
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("cleanup")
-                .setDescription(i18next.t("command_jointocreate_cleanup_description", { ns: "jointocreate" }))
-        );
 
     return [jointovoice] as SlashCommandBuilder[];
 }
@@ -53,14 +42,14 @@ export async function handleJoinToCreateCommand(interaction: ChatInputCommandInt
         return;
     }
 
-    const subcommand = interaction.options.getSubcommand();
+    const modoConfig = interaction.options.getString("modo");
     const guildId = interaction.guildId;
     if (!guildId) {
             await interaction.reply({ content: i18next.t("jointocreate_guild_error", { ns: "jointocreate" }), flags: MessageFlags.Ephemeral });
             return;
         }
 
-    switch (subcommand) {
+    switch (modoConfig) {
         case "set":
             await setMasterChannel(interaction, guildId);
             break;
@@ -82,12 +71,9 @@ async function setMasterChannel(interaction: ChatInputCommandInteraction, guildI
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
-        const channel = interaction.options.getChannel("canal") as VoiceChannel;
-        
-        if (!channel || channel.type !== ChannelType.GuildVoice) {
-            await interaction.editReply({
-                content: i18next.t("command_jointocreate_error_not_voice", { ns: "jointocreate" })
-            });
+        const channel = interaction.options.getChannel("channel") as VoiceChannel;
+        if (!channel) {
+            await interaction.editReply(" ❌ En modo SET se necesita espesificar un canal de voz");
             return;
         }
 
@@ -128,7 +114,7 @@ async function disableSystem(interaction: ChatInputCommandInteraction, guildId: 
             return;
         }
 
-        await setVoiceConfig(guildId, config.channelId, false);
+        await removeVoiceConfig(guildId);
 
         await interaction.editReply({
             content: i18next.t("command_jointocreate_disable_success", { ns: "jointocreate" })

@@ -1,26 +1,27 @@
-// src/client/coreCommands/upCommands.ts
-import { error, info } from "../../sys/logging";
-import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags } from "discord.js";
-import { helpRepo } from "../../sys/zGears/formularios";
-import { registerTestCommand, handleTestCommand } from "../commands/test";
-import { registerHolaCommand, handleHolaCommand, helpAutocomplete } from "../commands/hola";
-import { registerWorkCommand, handleWorkCommand } from "../commands/work";
-import { registerEmbedCommand, handleEmbedCommand, embedAutocomplete } from "../commands/embed";
-import { registerWelcomeCommand, handleWelcomeCommand } from "../commands/welcome";
-import { registerRolemojiCommand, handleRolemojiCommand } from "../commands/rolemoji"
-import { registerOwnerCommands, handleOwnerCommands } from "../../sys/zGears/owner";
-import { registerYouTubeCommand, handleYouTubeCommand } from "../commands/youtube";
-import { registerRedditCommand, handleRedditCommand } from "../commands/reddit";
-import { registerPostCommand, handlePostCommand } from "../commands/post";
-import { registerCleanUpCommand, handleCleanUpCommand } from "../commands/cleanup";
-import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "../commands/jointovoice";
-import { registerMangadexCommand, handleMangadexCommand } from "../commands/mangadex";
-import { registerPermissionsCommand, handlePermissionsCommand, permisosAutocomplete } from "../commands/permission";
-import { registerMusicCommands, handleMusicInteraction } from "../commands/music";
+// src/Events-Commands/upCommands.ts
+import { error, info } from "../sys/logging";
+import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags, ButtonInteraction } from "discord.js";
+import { helpRepo } from "./commandModales/reportHelp";
+import { registerTestCommand, handleTestCommand } from "./commands/test";
+import { registerHolaCommand, handleHolaCommand, helpAutocomplete } from "./commands/hola";
+import { registerWorkCommand, handleWorkCommand } from "./commands/work";
+import { registerEmbedCommand, handleEmbedCommand, embedAutocomplete } from "./commands/embed";
+import { registerWelcomeCommand, handleWelcomeCommand } from "./commands/welcome";
+import { registerRolemojiCommand, handleRolemojiCommand } from "./commands/rolemoji"
+import { registerOwnerCommands, handleOwnerCommands } from "../sys/zGears/owner";
+import { registerYouTubeCommand, handleYouTubeCommand } from "./commands/youtube";
+import { registerRedditCommand, handleRedditCommand } from "./commands/reddit";
+import { registerPostCommand, handlePostCommand } from "./commands/post";
+import { registerCleanUpCommand, handleCleanUpCommand } from "./commands/cleanup";
+import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "./commands/jointovoice";
+import { registerMangadexCommand, handleMangadexCommand } from "./commands/mangadex";
+import { registerPermissionsCommand, handlePermissionsCommand, permisosAutocomplete } from "./commands/permission";
+import { registerMusicCommands, handleMusicInteraction } from "./commands/music";
+import { registerRoleButtonCommand, handleRoleButtonCommand, roleButton } from "./commandButtons/roleButton";
 
 /* ================================= Registro de comandos ================================= */
 
-export async function registerCommands(client: Client) { 
+export async function sysUpRegister(client: Client) { 
   const commands = [
     ...(await registerHolaCommand()),
     ...(await registerTestCommand()),
@@ -36,6 +37,7 @@ export async function registerCommands(client: Client) {
     ...(await registerJoinToCreateCommand()),
     ...(await registerMangadexCommand()),
     ...(await registerMusicCommands()),
+    ...(await registerRoleButtonCommand()),
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -48,7 +50,7 @@ export async function registerCommands(client: Client) {
 
 /* ================================= Registro de interacciones ================================= */
 
-export async function handleCommandInteraction(interaction: ChatInputCommandInteraction) {
+export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
   switch (interaction.commandName) {
     case 'play':  case 'stop':  case 'skip':  case 'queue':
       await handleMusicInteraction(interaction);  break;
@@ -80,6 +82,8 @@ export async function handleCommandInteraction(interaction: ChatInputCommandInte
       await handleMangadexCommand(interaction); break;
     case 'permisos':
       await handlePermissionsCommand(interaction);  break;
+    case 'rolebutton':
+      await handleRoleButtonCommand(interaction); break;
     default:
       defSwitch(interaction); break;
   }
@@ -94,7 +98,7 @@ async function defSwitch(interaction: ChatInputCommandInteraction) {
 
 /* ================================= Autocompletado ================================= */
 
-export async function autoComplete(interaction: AutocompleteInteraction) {
+export async function sysUpAutoComplete(interaction: AutocompleteInteraction) {
   switch (interaction.commandName) {
     case "embed":
       await embedAutocomplete(interaction); break;
@@ -107,9 +111,18 @@ export async function autoComplete(interaction: AutocompleteInteraction) {
 
 /* ================================= Formularios ================================= */
 
-export async function modalesSystem(interaction: ModalSubmitInteraction) {
+export async function sysUpModals(interaction: ModalSubmitInteraction) {
   switch (interaction.customId) {
     case 'helpRepo':
       await helpRepo(interaction); break;
+  }
+}
+
+/* ================================= Botones ================================= */
+
+export async function sysUpButtons(interaction: ButtonInteraction) {
+  if (interaction.customId.startsWith("roleButton_")) {
+    await roleButton(interaction);
+    return;
   }
 }

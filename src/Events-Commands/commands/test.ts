@@ -1,4 +1,4 @@
-// src/client/commands/test.ts
+// src/Events-Commands/commands/test.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, TextChannel, PermissionFlagsBits} from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";

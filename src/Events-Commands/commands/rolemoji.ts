@@ -1,4 +1,4 @@
-// src/client/commands/rolemoji.ts
+// src/Events-Commands/commands/rolemoji.ts
 import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";

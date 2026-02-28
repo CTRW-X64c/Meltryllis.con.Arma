@@ -52,12 +52,30 @@ export async function setVoiceConfig(guildId: string, channelId: string, enabled
 
     voiceConfigCache.delete(guildId);
     debug(`[BD.JointoVoice] Invalidando caché de configuración del gremio: ${guildId}`, "Database");
+  } catch (err) {
+    error(`[BD.JointoVoice] Error al guardar configuración: ${err}`, "Database");
+    throw err;
+  }
+}
+
+export async function removeVoiceConfig(guildId: string): Promise<void> {
+  try {
+    const pool = await getPool();
+    await pool.query(
+      "DELETE FROM voice_configs WHERE guild_id = ? ",
+      [guildId]
+    );
+
+    voiceConfigCache.delete(guildId);
+    debug(`[BD.JointoVoice] Invalidando caché de configuración del gremio: ${guildId}`, "Database");
     debug(`[BD.JointoVoice] Config guardada en BD y caché invalidada para guild: ${guildId}`, "Database");
   } catch (err) {
     error(`[BD.JointoVoice] Error al guardar configuración: ${err}`, "Database");
     throw err;
   }
 }
+
+/* =========================================== Seccion de Canales Temporales =========================================== */
 
 export async function addTempVoiceChannel(channelId: string, guildId: string, ownerId: string): Promise<void> {
   try {

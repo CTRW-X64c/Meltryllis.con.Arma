@@ -1,4 +1,4 @@
-// src/client/commands/hola.ts
+// src/Events-Commands/commands/hola.ts
 import { ChatInputCommandInteraction,  SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, PermissionFlagsBits, AutocompleteInteraction, 
   /* Modal */ TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder} from "discord.js";
 import i18next from "i18next";

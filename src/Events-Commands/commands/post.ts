@@ -1,5 +1,5 @@
-// src/client/commands/post.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, TextChannel, Message, Attachment } from "discord.js";
+// src/Events-Commands/commands/post.ts
+import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, TextChannel, Message, Attachment, ChannelType } from "discord.js";
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
@@ -18,6 +18,7 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                         .setName("canal")
                         .setDescription(i18next.t("command_post_canal_description", { ns: "post" }))
                         .setRequired(true)
+                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
                 )
                 .addBooleanOption(option =>
                     option
@@ -41,12 +42,14 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                         .setName("canal_destino")
                         .setDescription(i18next.t("command_post_canal_description", { ns: "post" }))
                         .setRequired(true)
+                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
                 )
                 .addChannelOption(option =>
                     option
                         .setName("canal_origen")
                         .setDescription(i18next.t("command_post_canal_origen_description", { ns: "post" }))
                         .setRequired(false)
+                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
                 )
                 .addBooleanOption(option =>
                     option
@@ -70,6 +73,7 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                         .setName("canal_mensaje")
                         .setDescription(i18next.t("command_post_nuevo_mensaje_description", { ns: "post" }))
                         .setRequired(true)
+                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
                 )
                 .addBooleanOption(option =>
                     option
@@ -93,6 +97,7 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                         .setName("canal_mensaje")
                         .setDescription(i18next.t("command_post_canal_mensaje_reply_description", { ns: "post" }))
                         .setRequired(true)
+                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
                 )
                 .addBooleanOption(option =>
                     option

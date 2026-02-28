@@ -2,13 +2,14 @@
 import winston, { Logger } from "winston";
 import { EnvironmentMode } from "./environment";
 
+const now = new Date();
+const fixHour = String(now.getHours()).padStart(2, '0');
+const logDir = `logs/${now.toLocaleDateString('en-CA')} [${fixHour}hrs]`;
+
 let logger: Logger | null = null;
 
-export function initLogger(
-  environmentMode: EnvironmentMode,
-): void {
+export function initLogger( environmentMode: EnvironmentMode ): void {
   const logLevel = environmentMode === "development" ? "debug" : "info";
-
   const clientFormat = winston.format.cli();
   const fileFormat = winston.format.combine(
     winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
@@ -21,10 +22,11 @@ export function initLogger(
     level: logLevel,
     transports: [
       new winston.transports.Console({level: logLevel,  format: clientFormat,}),
-      new winston.transports.File({level: logLevel, format: fileFormat, filename: `logs/combined.log`,}),
-      new winston.transports.File({level: "error", format: fileFormat, filename: `logs/error.log`,}),
-      new winston.transports.File({level: "info", format: fileFormat, filename: `logs/info.log`,}),
-      new winston.transports.File({level: "debug", format: fileFormat, filename: `logs/debug.log`,}),
+      new winston.transports.File({level: logLevel, format: fileFormat, filename: `${logDir}/combined.log`,}),
+      new winston.transports.File({level: "error", format: fileFormat, filename: `${logDir}/error.log`,}),
+      new winston.transports.File({level: "info", format: fileFormat, filename: `${logDir}/info.log`,}),
+      new winston.transports.File({level: "debug", format: fileFormat, filename: `${logDir}/debug.log`,}),
+      new winston.transports.File({level: "warn", format: fileFormat, filename: `${logDir}/warn.log`,}),
     ],
   });
 }

@@ -1,21 +1,22 @@
-// src/client/core.ts
+// src/sys/core.ts
 import { Client, Events, GatewayIntentBits, Interaction } from "discord.js";
-import { getEnvironmentMode } from "../sys/environment";
-import { error, info, initLogger, loggerAvailable } from "../sys/logging";
-import { initializeDatabase } from "../sys/DB-Engine/database";
-import startEmbedService from "../sys/embedding/embedService";
-import { startStatusRotation } from "../sys/zGears/setStatus";
-import urlStatusManager from "../sys/embedding/domainChecker";
-import { initI18n } from "../sys/i18n";
-import { validateAllTranslations } from "../sys/i18n/nsKeyCheck";
-import { registerCommands, handleCommandInteraction, autoComplete, modalesSystem } from "./eventGear/upCommands";
-import { startWelcomeEvents } from "./eventGear/welcomeEvents";
-import { registerRolemojiEvents, preloadRolemojiMessages } from "./eventGear/rolemojiEvents";
-import { startYoutubeService } from "./eventGear/youtubeCheck";
-import { startRedditChecker } from "./eventGear/redditCheck";
-import { startMangadexChecker } from "./eventGear/mangadexChek";
-import { startVoiceChannelService } from "./eventGear/voicEvent";
-import lavalinkManager from "./eventGear/lavalinkConnect";
+import { sysUpRegister, sysUpCommands, sysUpAutoComplete, sysUpModals, sysUpButtons} from "../Events-Commands/upCommands";
+import { getEnvironmentMode } from "./environment";
+import { error, info, initLogger, loggerAvailable } from "./logging";
+import { initializeDatabase } from "./DB-Engine/database";
+import startEmbedService from "./embedding/embedService";
+import { startStatusRotation } from "./zGears/setStatus";
+import urlStatusManager from "./embedding/domainChecker";
+import { initI18n } from "./i18n";
+import { validateAllTranslations } from "./i18n/nsKeyCheck";
+import { startWelcomeEvents } from "../Events-Commands/eventGear/welcomeEvents";
+import { registerRolemojiEvents, preloadRolemojiMessages } from "../Events-Commands/eventGear/rolemojiEvents";
+import { startYoutubeService } from "../Events-Commands/eventGear/youtubeCheck";
+import { startRedditChecker } from "../Events-Commands/eventGear/redditCheck";
+import { startMangadexChecker } from "../Events-Commands/eventGear/mangadexChek";
+import { startVoiceChannelService } from "../Events-Commands/eventGear/voicEvent";
+import lavalinkManager from "../Events-Commands/eventGear/lavalinkConnect";
+import registerIOevent from "./zGears/IO-Server";
 
 /*========= Inicializadores =========*/
 
@@ -31,7 +32,8 @@ const client = createClient();
         urlStatusManager.start();
         await client.login(process.env.DISCORD_BOT_TOKEN); /* Algunos ocupan ir antes del login, como lavalink */
         await startWelcomeEvents(client);     
-        registerCommands(client);
+        sysUpRegister(client);
+        await registerIOevent(client);
         registerRolemojiEvents(client);
         startYoutubeService(client); // by nep  
         startRedditChecker(client);  // by nowa
@@ -69,15 +71,19 @@ function createClient(): Client {
     
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         if (interaction.isChatInputCommand()) {
-            await handleCommandInteraction(interaction);
+            await sysUpCommands(interaction);
             return;
         }
         if (interaction.isAutocomplete()) {
-            await autoComplete(interaction);
+            await sysUpAutoComplete(interaction);
             return;
         }
         if (interaction.isModalSubmit()) {
-            await modalesSystem(interaction);
+            await sysUpModals(interaction);
+            return;
+        }
+        if (interaction.isButton()) {
+            await sysUpButtons(interaction);
             return;
         }
     });

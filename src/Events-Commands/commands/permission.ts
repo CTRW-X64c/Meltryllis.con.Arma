@@ -1,4 +1,4 @@
-// src/client/commands/permissions.ts
+// src/Events-Commands/commands/permissions.ts
 import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, AutocompleteInteraction, 
   /*Botones*/ ButtonBuilder, ButtonStyle, ActionRowBuilder, ButtonInteraction } from "discord.js";
 import { addCommandPermission, removeCommandPermission, listCommandPermissions, clearGuildPermissions, PermissionEntry } from "../../sys/DB-Engine/links/Permission"; 

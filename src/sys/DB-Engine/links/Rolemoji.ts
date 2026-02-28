@@ -97,3 +97,19 @@ export async function getRoleAssignment( guildId: string, messageId: string, emo
     throw err;
   }
 }
+
+export async function delleteAllRolemojiConfig(guildId: string): Promise<void> {
+  try {
+    const pool = await getPool();
+    await pool.query(
+      "DELETE FROM guild_replacements WHERE guild_id = ?",
+      [guildId]
+    );
+
+    invalidateGuildCache(guildId)
+    debug(`[BD.Rolemoji] Invalidando caché del guild: ${guildId}`, "Database");
+  } catch (err) {
+    error(`[BD.Rolemoji] Error al borrar las configuraciones de guild: ${guildId} Error: ${err}`, "Database");
+  }
+}
+

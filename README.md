@@ -249,7 +249,11 @@ Meltryllis con Arma/
 ├── /logs
 │   └── {logLevel}.log
 ├── /src
-│   ├── /client
+│   ├── /Events-Commands
+│   │   ├── /commandsButtons
+│   │   │   └── roleButton.ts
+│   │   ├── /commandsModales
+│   │   │   └── reportHelp.ts
 │   │   ├── /commands
 │   │   │   ├── cleanup.ts
 │   │   │   ├── embed.ts
@@ -271,12 +275,11 @@ Meltryllis con Arma/
 │   │   │   ├── mangadexCheck.ts
 │   │   │   ├── redditCheck.ts
 │   │   │   ├── rolemojiEvents.ts
-│   │   │   ├── upCommands.ts
 │   │   │   ├── voiceEvents.ts
 │   │   │   ├── welcomeEvents.ts
 │   │   │   ├── youtubeCheck.ts
 │   │   │   └── youtubeTools.ts
-│   │   └── index.ts
+│   │   └── upCommands.ts
 │   ├── /sys
 │   │   ├── /BD-Engine
 │   │   │   ├── /links
@@ -325,6 +328,7 @@ Meltryllis con Arma/
 │   │   │   ├── owner.ts
 │   │   │   ├── RedditApi.ts
 │   │   │   └── setStatus.ts
+│   │   ├── core.ts
 │   │   ├── environment.ts
 │   │   └── logging.ts
 │   └── index.ts

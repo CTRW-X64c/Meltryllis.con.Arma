@@ -1,5 +1,5 @@
-// src/client/commands/reddit.ts
-import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, TextChannel } from "discord.js";
+// src/Events-Commands/commands/reddit.ts
+import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, TextChannel } from "discord.js";
 import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed} from "../../sys/DB-Engine/links/Reddit";
 import { RedditApiResponse } from "../eventGear/redditCheck";
 import { error, debug} from "../../sys/logging";
@@ -73,6 +73,7 @@ export async function registerRedditCommand() {
                 )
                 .addChannelOption(option =>
                     option.setName("canal")
+                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
                         .setDescription(i18next.t("command_reddit_canal", { ns: "reddit" }))
                         .setRequired(true)
                 )
