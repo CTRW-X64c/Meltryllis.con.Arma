@@ -3,7 +3,7 @@ import { error, info } from "../sys/logging";
 import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags, ButtonInteraction } from "discord.js";
 import { helpRepo } from "./commandModales/reportHelp";
 import { registerTestCommand, handleTestCommand } from "./commands/test";
-import { registerHolaCommand, handleHolaCommand, helpAutocomplete } from "./commands/hola";
+import { registerHelpCommand, handleHelpCommand, helpAutocomplete } from "./commands/help";
 import { registerWorkCommand, handleWorkCommand } from "./commands/work";
 import { registerEmbedCommand, handleEmbedCommand, embedAutocomplete } from "./commands/embed";
 import { registerWelcomeCommand, handleWelcomeCommand } from "./commands/welcome";
@@ -23,7 +23,7 @@ import { registerRoleButtonCommand, handleRoleButtonCommand, roleButton } from "
 
 export async function sysUpRegister(client: Client) { 
   const commands = [
-    ...(await registerHolaCommand()),
+    ...(await registerHelpCommand()),
     ...(await registerTestCommand()),
     ...(await registerWorkCommand()),
     ...(await registerEmbedCommand()),
@@ -55,7 +55,7 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
     case 'play':  case 'stop':  case 'skip':  case 'queue':
       await handleMusicInteraction(interaction);  break;
     case 'help':
-      await handleHolaCommand(interaction); break;
+      await handleHelpCommand(interaction); break;
     case 'test':
       await handleTestCommand(interaction); break;
     case 'work':

@@ -1,4 +1,4 @@
-// src/Events-Commands/commands/hola.ts
+// src/Events-Commands/commands/help.ts
 import { ChatInputCommandInteraction,  SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, PermissionFlagsBits, AutocompleteInteraction } from "discord.js";
 import i18next from "i18next";
 import { error } from "../../sys/logging";
@@ -31,7 +31,7 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
   );
 }
 
-export async function registerHolaCommand(): Promise<SlashCommandBuilder[]> {
+export async function registerHelpCommand(): Promise<SlashCommandBuilder[]> {
   const holaCommand = new SlashCommandBuilder()
     .setName("help")
     .setDescription(i18next.t("comBuild.command_hola_description", { ns: "hola" }))
@@ -51,7 +51,7 @@ function randomcolorembed(): string {
   return `0x${color.padStart(6, '0')}`;
 }
 
-export async function handleHolaCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+export async function handleHelpCommand(interaction: ChatInputCommandInteraction): Promise<void> {
   try {
     const opHelp = interaction.options.getString("command") || "00";
     switch (opHelp) {   
