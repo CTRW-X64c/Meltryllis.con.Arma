@@ -257,7 +257,7 @@ Meltryllis con Arma/
 │   │   ├── /commands
 │   │   │   ├── cleanup.ts
 │   │   │   ├── embed.ts
-│   │   │   ├── hola.ts
+│   │   │   ├── help.ts
 │   │   │   ├── jointovoice.ts
 │   │   │   ├── mangadex.ts
 │   │   │   ├── music.ts
