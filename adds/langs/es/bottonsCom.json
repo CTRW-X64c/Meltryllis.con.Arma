@@ -1,0 +1,17 @@
+{
+    "reportHelp":{
+        "no_admin":"No eres administrador",
+        "modal_title": "Reporte de falla o problema",
+        "modal_label": "Describe el problema brevemente",
+        "modal_pholder": "El comando o función no está haciendo lo que debería hacer...",
+        "modal_no_guild": "¡Se requiere que se envíe desde el server que presenta el problema!",
+        "modal_sent_success": "✅ ¡Reporte enviado con éxito al desarrollador!\nCopia del mensaje de reporte:",
+        "modal_sent_fail": "❌ Error al enviar el reporte. Intenta de nuevo más tarde.",
+        "modal_autor": "Reporte de {{a1}}",
+        "modal_name_A1": "Servidor:",
+        "modal_name_B1": "Reporte:",
+        "onCooldown": "Actualmente en cooldown, Tiempo restante: {{a1}}",
+        "modal_sent_error": "❌ Error al enviar el reporte."
+    }
+
+}
