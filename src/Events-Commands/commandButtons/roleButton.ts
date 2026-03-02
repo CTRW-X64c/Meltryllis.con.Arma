@@ -102,7 +102,7 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
     }
 
     if (!interaction.channel || !interaction.channel.isTextBased() || interaction.channel.isDMBased()) {
-        await interaction.reply({ content: "❌ Este comando solo se puede usar en canales de texto.", flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: i18next.t("common:Errores.noChannel"), flags: MessageFlags.Ephemeral });
         return;
     }
 

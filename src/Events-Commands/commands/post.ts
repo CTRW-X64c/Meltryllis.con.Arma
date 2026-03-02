@@ -188,7 +188,7 @@ async function PostMsg(interaction: ChatInputCommandInteraction): Promise<void> 
     
     if (!targetChannel || !targetChannel.isTextBased()) {
         await interaction.reply({
-            content: i18next.t("post:interacciones.canal_error"),
+            content: i18next.t("common:Errores.noChannel"),
             flags: MessageFlags.Ephemeral
         });
         return;
@@ -301,7 +301,7 @@ async function PostCopy(interaction: ChatInputCommandInteraction): Promise<void>
 
         if (!sourceChannel?.isTextBased() || !targetChannel?.isTextBased()) {
             await interaction.editReply({
-                content: i18next.t("post:interacciones.canal_error")
+                content: i18next.t("common:Errores.noChannel")
             });
             return;
         }
@@ -378,7 +378,7 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
 
         if (!targetChannel?.isTextBased()) {
             await interaction.editReply({
-                content: i18next.t("post:interacciones.canal_error")
+                content: i18next.t("common:Errores.noChannel")
             });
             return;
         }
@@ -502,7 +502,7 @@ async function PostReply(interaction: ChatInputCommandInteraction): Promise<void
 
         if (!messageChannel?.isTextBased()) {
             await interaction.editReply({
-                content: i18next.t("post:interacciones.canal_error")
+                content: i18next.t("common:Errores.noChannel")
             });
             return;
         }

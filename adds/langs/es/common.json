@@ -1,7 +1,9 @@
 {   
     "Errores": {
-        "isAllowed": "❌ No te han asiganmado permisos para ejecutar este comando ❌",
-        "isAdmin": "❌ Uso exclusivo para Administradores!! ❌"
+        "isAllowed": "⛔⛔ No te han asiganmado permisos para ejecutar este comando ⛔⛔",
+        "isAdmin": "⛔⛔ Uso exclusivo para Administradores!! ⛔⛔",
+
+        "noChannel":"⛔⛔ Este comando solo funciona en canales de texto del servidor ⛔⛔"
     },
         
     "embedService": {

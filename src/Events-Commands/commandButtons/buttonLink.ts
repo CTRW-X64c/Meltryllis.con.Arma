@@ -73,15 +73,15 @@ export async function handleButtonLinkCommand(interaction: ChatInputCommandInter
     
     if (!isAllowed) {
         await interaction.reply({
-            content: i18next.t("command_permission_error", { ns: "rolemoji" }),
-            flags: MessageFlags.Ephemeral,
+        content: i18next.t("common:Errores.noChannel"),
+        flags: MessageFlags.Ephemeral, 
         });
         return;
     }
     
     if (!channel || !channel.isTextBased() || channel.isDMBased()) {
         await interaction.reply({
-            content: "❌ Este comando solo funciona en canales de texto del servidor.",
+            content: i18next.t("common:Errores.noChannel"),
             flags: MessageFlags.Ephemeral,
         });
         return;

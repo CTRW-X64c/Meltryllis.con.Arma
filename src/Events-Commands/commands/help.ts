@@ -227,7 +227,7 @@ async function helpRolemoji(interaction: ChatInputCommandInteraction): Promise<v
     
     if (!guild || !channel || !('permissionsFor' in channel)) {
         await interaction.reply({ 
-            content: i18next.t("help:rolemoji.only_error"), 
+            content: i18next.t("common:Errores.noChannel"),
             flags: MessageFlags.Ephemeral 
         });
         return;

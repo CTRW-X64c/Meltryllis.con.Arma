@@ -58,7 +58,7 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
         const channel = interaction.channel;
         if (!channel || !channel.isTextBased() || channel.isDMBased()) {
             await interaction.reply({
-                content: i18next.t("cleanup:interacciones.text_channel_only"),
+                content: i18next.t("common:Errores.noChannel"),
                 flags: MessageFlags.Ephemeral,
             });
             return;

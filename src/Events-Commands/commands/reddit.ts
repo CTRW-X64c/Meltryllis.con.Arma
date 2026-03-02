@@ -158,7 +158,7 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guildId: st
     const nsfwStatus = checkIfNSFW(discordChannel);
 
     if (!discordChannel || !discordChannel.isTextBased()) {
-        await interaction.editReply({ content: i18next.t("reddit:interacciones.canal_error")});
+        await interaction.editReply({ content: i18next.t("common:Errores.noChannel")});
         return;
     }
     
@@ -327,7 +327,7 @@ async function TestReddit(interaction: ChatInputCommandInteraction, guildId: str
         const canalClickeable = `<#${feed.channel_id}>`;
         const channel = interaction.guild?.channels.cache.get(feed.channel_id);
         if (!channel || !channel.isTextBased()) {
-            await interaction.editReply({ content: i18next.t("reddit:interacciones.test_noexisteCH", { a1: canalClickeable })});
+            await interaction.editReply({ content: i18next.t("common:Errores.noChannel", { a1: canalClickeable })});
             return;
         }
         

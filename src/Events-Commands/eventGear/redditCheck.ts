@@ -176,9 +176,10 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 const formattedUrl = `https://${upEmbeddingDomain}${permalink}`;
                 const MAX_LENGTH = 50;
                 const originalTitle = post.title ?? "Sin Título";
-                const truncatedTitle = originalTitle.length > MAX_LENGTH
-                    ? originalTitle.substring(0, MAX_LENGTH)
-                    + "..." : originalTitle;
+                const chapterTitle = originalTitle.replace(displayName, "").trim().replace(/^:/, "").trim();
+                const truncatedTitle = chapterTitle.length > MAX_LENGTH
+                    ? chapterTitle.substring(0, MAX_LENGTH)
+                    + "..." : chapterTitle;
                 const emojiRegex = /<a?:[a-zA-Z0-9_]+:\d+>|[\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\p{Emoji_Component}\u{200D}]+/gu;  
                 const safeTitle = truncatedTitle
                     .replace(/\[/g, '')
@@ -191,7 +192,6 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 let messageContent;
                 if (nsfwCheck) {
                     messageContent = i18next.t("reddit:check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
-                    debug(`[Reddit Checker]: Post NSFW protegido en #<${feed.channel_id}> de ${displayName}`);
                 } else {
                     messageContent = i18next.t("reddit:check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
                 }

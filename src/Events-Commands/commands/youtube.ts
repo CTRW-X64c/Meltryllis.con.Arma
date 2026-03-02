@@ -98,7 +98,7 @@ async function seguirCanal(interaction: any, guildId: string) {
   const discordChannel = interaction.guild.channels.cache.get(discordChannelInput.id);
 
   if (!discordChannel || !discordChannel.isTextBased()) {
-    await interaction.editReply({ content: i18next.t("youtube:interacciones.canal_error"), flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: i18next.t("common:Errores.noChannel"), flags: MessageFlags.Ephemeral });
     return;
   }
 
@@ -271,7 +271,7 @@ async function testCanal(interaction: any, guildId: string) {
     const channel = guild.channels.cache.get(feed.channel_id);
     
     if (!channel || !channel.isTextBased()) {
-      await interaction.editReply({ content: i18next.t("youtube:interacciones.canal_test_noexiste"), flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: i18next.t("common:Errores.noChannel"), flags: MessageFlags.Ephemeral });
       return;
     }
 
