@@ -10,146 +10,46 @@ type TranslationConfig = {
 const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
 //Agrega todos los i18next.t que esten dentro de la funcion "SlashCommandBuilder"
     "embed":[
-        "command_embed_description",
-        "command_embed_config",
-        "embed_command_site_description",
-        "embed_command_action_description",
-        "subcommand_enable",
-        "subcommand_disable",
-        "subcommand_custom",
-        "subcommand_default",
-        "embed_command_custom_url"
+        "slashBuilder.*"
     ],    
     "hola":[
-        "comBuild.command_hola_description",
-        "comBuild.command_hola_idioma_description"
+        "comBuild.*"
     ], 
     "rolemoji":[
-        "command_rolemoji_description",
-        "command_rolemoji_assign_description",
-        "command_rolemoji_message_id_description", 
-        "command_rolemoji_emoji_description",
-        "command_rolemoji_role_description",
-        "command_rolemoji_remove_description",
-        "command_rolemoji_remove_id_description",
-        "command_rolemoji_list_description",
+        "slashBuilder.*"
     ],
     "test":[
-        "command_test_description",
-        "test_command_mode_description",
-        "test_permission_guild",
-        "test_work_by_channel",
-        "test_show_embed_config",
-        "test_commands_mode_domainds"
+        "slashBuilder.*"
     ],
     "welcome":[
-        "command_welcome_description",
-        "command_welcome_config_description",
-        "command_welcome_channel_description",
-        "command_welcome_enabled_description",
-        "command_welcome_message_description"
+       "slashBuilder.*"
     ],
     "work":[
-        "work_command_description",
-        "work_command_state_description",
-        "work_command_mode_description"
+        "slashBuilder.*"
     ],
     "youtube":[
-        "command_youtube",
-        "command_youtube_descripcion",
-        "command_youtube_seguir",
-        "command_youtube_canal",
-        "command_youtube_lista",
-        "command_youtube_dejar",
-        "command_youtube_id_canal",
-        "command_youtube_test",
-        "command_youtube_test_id_canal",
-        "command_youtube_help"
+        "slashBuilder.*"
     ],
     "reddit":[
-        "command_reddit",
-        "command_reddit_descripcion",
-        "command_reddit_seguir",
-        "command_reddit_canal",
-        "command_reddit_filtro",
-        "command_reddit_sin_filtro",
-        "command_reddit_filtro_multimedia",
-        "command_reddit_filtro_texto",
-        "command_reddit_lista",
-        "command_reddit_id_canal",
-        "command_reddit_dejar",
-        "command_reddit_test",
-        "command_reddit_help"
+        "slashBuilder.*"
     ],
     "post":[
-        "command_post_description",
-        "command_post_post_msg_description",
-        "command_post_canal_description",
-        "command_post_copy_description",
-        "command_post_mensaje_description",
-        "command_post_canal_origen_description",
-        "command_post_edit_description",
-        "command_post_mensaje_edit_description",
-        "command_post_nuevo_mensaje_description",
-        "command_post_borrar_msg_description",
-        "command_post_borrar_copy_description",
-        "command_post_borrar_edit_description",
-        "command_post_borrar_reply_description"
+        "slashBuilder.*"
     ],
     "cleanup":[
-        "command_cleanup_description",
-        "command_cleanup_start_description",
-        "command_cleanup_before_option",
-        "command_cleanup_after_option",
-        "command_cleanup_message_id_description",
-        "command_cleanup_count_description",
-        "command_cleanup_type_description",
-        "command_cleanup_users_option",
-        "command_cleanup_bots_option",
-        "command_cleanup_any_option"
+        "slashBuilder.*"
     ],
     "jointocreate":[
-        "command_jointocreate_description",
-        "command_jointocreate_usage",
-        "command_join_chanel_set",
-        "command_join_set",
-        "command_join_disable",
-        "command_join_status",
-        "command_join_cleanup"
+        "slashBuilder.*"
     ],
     "mangadex":[
-        "command_mangadex",
-        "command_mangadex_descripcion",
-        "command_mangadex_seguir",
-        "command_mangadex_canal",
-        "command_mangadex_idioma",
-        "command_mangadex_lista_desc",
-        "command_mangadex_dejar_desc",
-        "command_mangadex_dejar_url",
-        "command_mangadex_ayuda_desc"
+        "slashBuilder.*"
     ],
     "permissions":[
-        "command_permissions_description",
-        "command_permissions_add_description",
-        "command_permissions_add_option_description",
-        "command_permissions_add_description",
-        "command_permissions_option_rol",
-        "command_permissions_option_usuario",
-        "command_permissions_remove_description",
-        "command_permissions_remove_option_description",
-        "command_permissions_list_description",
-        "command_permissions_list_option_description",
-        "command_permissions_list_option_detallado",
-        "command_permissions_clear_description",
-        "command_permissions_help_description"
+        "slashBuilder.*"
     ],
     "music":[
-        "command_mussic_play_01",
-        "command_mussic_play_02",
-        "command_mussic_stop_01",
-        "command_mussic_skip_01",
-        "command_mussic_queue_01",
-        "command_mussic_queue_02"
+        "slashBuilder.*"
     ]
 
     // Agrega más namespaces según necesites
@@ -161,6 +61,39 @@ export async function validateAllTranslations(): Promise<void> {
     let totalErrors = 0;
     const missingTranslations: string[] = [];
 
+    const collectLeafKeys = (obj: any, prefix: string): string[] => {
+        if (obj === null || typeof obj !== 'object') {
+            return [];
+        }
+    
+        return Object.keys(obj).flatMap(key => {
+            const fullKey = prefix ? `${prefix}.${key}` : key;
+            const value = obj[key];
+            if (typeof value === 'object' && value !== null) {
+                return collectLeafKeys(value, fullKey);
+            }
+            return fullKey;
+        });
+    }
+
+    const getKeysFromPath = (lng: string, ns: string, path: string): string[] => {
+        const resource = i18next.getResourceBundle(lng, ns);
+        if (!resource) return [];
+    
+        const pathPrefix = path.replace('.*', '');
+        let obj = resource;
+    
+        if (pathPrefix) {
+            const pathParts = pathPrefix.split('.');
+            for (const part of pathParts) {
+                if (typeof obj !== 'object' || obj === null || !obj[part]) return [];
+                obj = obj[part];
+            }
+        }
+    
+        return collectLeafKeys(obj, pathPrefix);
+    };
+
     for (const language of SUPPORTED_LANGUAGES) {
         info(`🌐 Validando idioma: ${language.toUpperCase()}`);
         let languageErrors = 0;
@@ -171,7 +104,14 @@ export async function validateAllTranslations(): Promise<void> {
             let namespaceErrors = 0;
             let namespaceMissing = 0;
             
-            keys.forEach(key => {
+            const expandedKeys = keys.flatMap(key => {
+                if (key.endsWith('.*')) {
+                    return getKeysFromPath(language, namespace, key);
+                }
+                return key;
+            });
+
+            expandedKeys.forEach(key => {
                 const translationExists = i18next.exists(key, { ns: namespace });
                 
                 if (!translationExists) {
@@ -223,7 +163,7 @@ export async function validateAllTranslations(): Promise<void> {
         
         error("🚫 Corrige los errores antes de continuar\n");
         process.exit(1);
-    } else {1
+    } else {
         info("✅ RESUMEN: Todas las traducciones son válidas\n");
     }
 }

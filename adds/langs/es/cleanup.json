@@ -1,32 +1,35 @@
-
 {
-    "ATS1": "Command Builder",
-        "command_cleanup_description": "Permite eliminar mensajes en batch",
-        "command_cleanup_start_description": "Dónde empezar a eliminar",
-        "command_cleanup_before_option": "Eliminar anteriores al mensaje",
-        "command_cleanup_after_option": "Eliminar apartir del mensaje",
-        "command_cleanup_message_id_description": "ID del mensaje de referencia",
-        "command_cleanup_count_description": "Cantidad de mensajes a eliminar (1-100)",
-        "command_cleanup_type_description": "Tipo de mensajes a eliminar",
-        "command_cleanup_users_option": "Borrar mensaje de solo usuarios",
-        "command_cleanup_bots_option": "Borrar mensaje de solo bots",
-        "command_cleanup_any_option": "Borrar todos los mensajes",
-        
-    "ATS2": "Respuestas",
-
-        "command_permission_error": "❌ Necesitas el permiso 'Gestionar mensajes' para usar este comando.",
-        "command_cleanup_text_channel_only": "❌ Este comando solo puede usarse en canales de texto.",
-        "command_cleanup_invalid_message_id": "❌ Formato de ID de mensaje inválido.",
-        "command_cleanup_message_not_found": "❌ No se encontró ningún mensaje con ese ID en este canal.",
-        "command_cleanup_no_messages_found": "❌ No se encontraron mensajes para eliminar con los criterios especificados.",
-        "command_cleanup_success": "✅ Se eliminaron **{{a1}}** mensajes **{{a2}}** del mensaje especificado.",
-        "command_cleanup_before": "antes",
-        "command_cleanup_after": "después",
-        "command_cleanup_filtered_by": "Filtrado por: **{{a1}}**",
-        "command_cleanup_old_messages_warning":"No se pudieron borrar algunos mensaje muy viejos!!",
-        "cleanup_type_users": "Solo usuarios",
-        "cleanup_type_bots": "Solo bots",
-        "cleanup_type_any": "Todos los mensajes",
-        "command_cleanup_breakdown": "👤 **Usuarios**: {{a1}}\n🤖 **Bots**: {{a2}}",
-        "command_cleanup_error": "❌ Ocurrió un error al intentar eliminar los mensajes."
+    "slashBuilder":{
+        "description": "Permite eliminar mensajes en batch",
+        "start_description": "Dónde empezar a eliminar",
+        "before_option": "Eliminar anteriores al mensaje",
+        "after_option": "Eliminar apartir del mensaje",
+        "message_id_description": "ID del mensaje de referencia",
+        "count_description": "Cantidad de mensajes a eliminar (1-100)",
+        "type_description": "Tipo de mensajes a eliminar",
+        "users_option": "Borrar mensaje de solo usuarios",
+        "bots_option": "Borrar mensaje de solo bots",
+        "any_option": "Borrar todos los mensajes"
+    },
+    
+    "interacciones":{
+        "permission_error": "❌ Necesitas el permiso 'Gestionar mensajes' para usar este comando.",
+        "text_channel_only": "❌ Este comando solo puede usarse en canales de texto.",
+        "invalid_message_id": "❌ Formato de ID de mensaje inválido.",
+        "message_not_found": "❌ No se encontró ningún mensaje con ese ID en este canal.",
+        "no_messages_found": "❌ No se encontraron mensajes para eliminar con los criterios especificados.",
+        "success": "✅ Se eliminaron **{{a1}}** mensajes **{{a2}}** del mensaje especificado.",
+        "before": "antes",
+        "after": "después",
+        "filtered_by": "Filtrado por: **{{a1}}**",
+        "old_messages_warning":"No se pudieron borrar algunos mensaje muy viejos!!",
+        "type_users": "Solo usuarios",
+        "type_bots": "Solo bots",
+        "type_any": "Todos los mensajes",
+        "breakdown": "👤 **Usuarios**: {{a1}}\n🤖 **Bots**: {{a2}}",
+        "error": "❌ Ocurrió un error al intentar eliminar los mensajes."
+    }  
 }
+
+
+    

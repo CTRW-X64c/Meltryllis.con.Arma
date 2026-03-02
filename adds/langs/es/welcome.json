@@ -1,16 +1,20 @@
+
 {
-    "ATS1": "Command Builder",
-        "command_welcome_description": "Establece un mensaje de Bienvenida y Salida", 
-        "command_welcome_config_description": "Establece un canal para la Bienvenida",
-        "command_welcome_channel_description": "Establece canal para mostrar el mensaje de Bienvenida/salida",
-        "command_welcome_enabled_description": "Borra la configuracion de /welcome",
-        "command_welcome_message_description": "Escribe tu mensaje de Bienvenida, usa <user> para mencionar, tambien pudes usar #canal",
+    "slashBuilder":{
+        "description": "Establece un mensaje de Bienvenida y Salida", 
+        "config_description": "Establece un canal para la Bienvenida",
+        "channel_description": "Establece canal para mostrar el mensaje de Bienvenida/salida",
+        "enabled_description": "Borra la configuracion de /welcome",
+        "message_description": "Escribe tu mensaje de Bienvenida, usa <user> para mencionar, tambien pudes usar #canal"
+    },
+
         
-    "ATS2": "Respuestas de Comando",
-        "command_welcome_config_set": "Se establecio la configuracion",
-        "command_permission_error": "No tienes permisos para usar este comando.",
-        "command_error": "Ocurrió un error al ejecutar el comando.",
-        "command_welcome_config_removed": "Se borro la configuracion de /welcome",
+    "interacciones": {
+        "welcome_config_set": "Se establecio la configuracion",
+        "permission_error": "No tienes permisos para usar este comando.",
+        "error": "Ocurrió un error al ejecutar el comando.",
+        "config_removed": "Se borro la configuracion de /welcome",
         "no_choises_selected": "No se selecciono ninguna opcion, minimo borrar o canal",
-        "command_not_doing_nothing":"No habia configuracion previa!!"
+        "not_doing_nothing":"No habia configuracion previa!!"
+    }
 }

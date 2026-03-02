@@ -9,14 +9,14 @@ export async function registerWorkCommand(): Promise<SlashCommandBuilder[]> {
   const workCommand = new SlashCommandBuilder()
     .setName("work")
     .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
-    .setDescription(i18next.t("work_command_description", { ns: "work" }))
+    .setDescription(i18next.t("work:slashBuilder.description"))
     .addStringOption((option) => option
-        .setName("mode").setDescription(i18next.t("work_command_state_description", { ns: "work" }))
+        .setName("mode").setDescription(i18next.t("work:slashBuilder.state_description"))
         .setRequired(true)
         .addChoices({ name: "workhere", value: "where" }, { name: "replybots", value: "rbots" })
       )
     .addStringOption((option) => option
-        .setName("turn").setDescription(i18next.t("work_command_mode_description", { ns: "work" }))
+        .setName("turn").setDescription(i18next.t("work:slashBuilder.mode_description"))
         .setRequired(true)
         .addChoices({ name: "on", value: "on" }, { name: "off", value: "off" }));
 
@@ -28,7 +28,7 @@ export async function handleWorkCommand(interaction: ChatInputCommandInteraction
     const isAllowed = await hasPermission(interaction, interaction.commandName);
     if (!isAllowed) {
       await interaction.reply({
-        content: i18next.t("command_permission_error", { ns: "work" }),
+        content: i18next.t("common:Errores.isAllowed"),
         flags: MessageFlags.Ephemeral,
       });
       return;
@@ -44,7 +44,7 @@ export async function handleWorkCommand(interaction: ChatInputCommandInteraction
         break;
       default:
         await interaction.reply({
-          content: i18next.t("work_command_invalid_state", { ns: "work" }),
+          content: i18next.t("work:interacciones.command_error"),
           flags: MessageFlags.Ephemeral,
         });
         break;
@@ -70,7 +70,7 @@ async function where(interaction: ChatInputCommandInteraction): Promise<void> {
     const channelId = interaction.channel?.id;
 
     if (!guildId || !channelId) {
-      throw new Error(i18next.t("error_identifying_channel", { ns: "work" }));
+      throw new Error(i18next.t("work:interacciones.error_identifying_channel"));
     }
 
     const configMap = await getConfigMap(); // Usar await
@@ -86,17 +86,17 @@ async function where(interaction: ChatInputCommandInteraction): Promise<void> {
 
     if (isEnabled) {
       if (currentConfig?.enabled === true) {
-        response = i18next.t("work_command_already_on", { ns: "work" });
+        response = i18next.t("work:interacciones.already_on");
       } else {
         setChannelConfig(guildId, channelId, { enabled: true, replyBots: currentConfig?.replyBots ?? false });
-        response = i18next.t("work_command_on_success", { ns: "work" }) || "Bueno, estoy de regreso 😎";
+        response = i18next.t("work:interacciones.on_success") || "Bueno, estoy de regreso 😎";
       }
     } else {
       if (currentConfig?.enabled === false) {
-        response = i18next.t("work_command_already_off", { ns: "work" });
+        response = i18next.t("work:interacciones.already_off");
       } else {
         setChannelConfig(guildId, channelId, { enabled: false, replyBots: currentConfig?.replyBots ?? false });
-        response = i18next.t("work_command_off_success", { ns: "work" });
+        response = i18next.t("work:interacciones.off_success");
       }
     }
 
@@ -108,7 +108,7 @@ async function where(interaction: ChatInputCommandInteraction): Promise<void> {
   } catch (err) {
     error(`Error al ejecutar comando /work: ${err}`); //<=
     await interaction.reply({
-      content: i18next.t("command_error", { ns: "work" }),
+      content: i18next.t("work:interacciones.command_error"),
       flags: MessageFlags.Ephemeral,
     });
   }
@@ -123,7 +123,7 @@ async function replybots(interaction: ChatInputCommandInteraction): Promise<void
     const channelId = interaction.channel?.id;
 
     if (!guildId || !channelId) {
-      throw new Error(i18next.t("error_identifying_server", { ns: "work" }));
+      throw new Error(i18next.t("work:interaccionesRole.identifying_server"));
     }
 
     const configMap = await getConfigMap(); 
@@ -139,17 +139,17 @@ async function replybots(interaction: ChatInputCommandInteraction): Promise<void
 
     if (isReplyBots) {
       if (currentConfig?.replyBots === true) {
-        response = i18next.t("replybots_command_already_on", { ns: "work" });
+        response = i18next.t("work:interaccionesRole.already_on");
       } else {
         setChannelConfig(guildId, channelId, { enabled: currentConfig?.enabled ?? true, replyBots: true });
-        response = i18next.t("replybots_command_on_success", { ns: "work" });
+        response = i18next.t("work:interaccionesRole.on_success");
       }
     } else {
       if (currentConfig?.replyBots === false) {
-        response = i18next.t("replybots_command_already_off", { ns: "work" });
+        response = i18next.t("work:interaccionesRole.already_off");
       } else {
         setChannelConfig(guildId, channelId, { enabled: currentConfig?.enabled ?? true, replyBots: false });
-        response = i18next.t("replybots_command_off_success", { ns: "work" });
+        response = i18next.t("work:interaccionesRole.off_success");
       }
     }
 
@@ -161,7 +161,7 @@ async function replybots(interaction: ChatInputCommandInteraction): Promise<void
   } catch (err) {
     error(`Error al ejecutar comando /replybots: ${err}`); 
     await interaction.reply({
-      content: i18next.t("command_error", { ns: "work" }),
+      content: i18next.t("work:interacciones.command_error"),
       flags: MessageFlags.Ephemeral,
     });
   }

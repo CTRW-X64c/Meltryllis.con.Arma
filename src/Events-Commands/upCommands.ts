@@ -18,6 +18,8 @@ import { registerMangadexCommand, handleMangadexCommand } from "./commands/manga
 import { registerPermissionsCommand, handlePermissionsCommand, permisosAutocomplete } from "./commands/permission";
 import { registerMusicCommands, handleMusicInteraction } from "./commands/music";
 import { registerRoleButtonCommand, handleRoleButtonCommand, roleButton } from "./commandButtons/roleButton";
+import { registerButtonLinkCommand, handleButtonLinkCommand } from "./commandButtons/buttonLink";
+
 
 /* ================================= Registro de comandos ================================= */
 
@@ -38,6 +40,7 @@ export async function sysUpRegister(client: Client) {
     ...(await registerMangadexCommand()),
     ...(await registerMusicCommands()),
     ...(await registerRoleButtonCommand()),
+    ...(await registerButtonLinkCommand()),
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -84,6 +87,8 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handlePermissionsCommand(interaction);  break;
     case 'rolebutton':
       await handleRoleButtonCommand(interaction); break;
+    case 'linkonbutton':
+      await handleButtonLinkCommand(interaction); break;
     default:
       defSwitch(interaction); break;
   }

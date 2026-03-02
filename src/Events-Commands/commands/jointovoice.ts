@@ -10,21 +10,21 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 export async function registerJoinToCreateCommand(): Promise<SlashCommandBuilder[]> {
     const jointovoice = new SlashCommandBuilder()
         .setName("jointovoice")
-        .setDescription(i18next.t("command_jointocreate_description", { ns: "jointocreate" }))
+        .setDescription(i18next.t("jointocreate:slashBuilder.jointocreate_description"))
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addStringOption(op =>
             op.setName("modo")
-            .setDescription(i18next.t("command_jointocreate_usage", { ns: "jointocreate" }))
+            .setDescription(i18next.t("jointocreate:slashBuilder.jointocreate_usage"))
             .setRequired(true)
             .addChoices(
-                { name: i18next.t("command_join_set", { ns: "jointocreate" }), value: "set" },
-                { name: i18next.t("command_join_disable", { ns: "jointocreate" }), value: "disable" },
-                { name: i18next.t("command_join_status", { ns: "jointocreate" }), value: "status" },
-                { name: i18next.t("command_join_cleanup", { ns: "jointocreate" }), value: "cleanup" })
+                { name: i18next.t("jointocreate:slashBuilder.join_set"), value: "set" },
+                { name: i18next.t("jointocreate:slashBuilder.join_disable"), value: "disable" },
+                { name: i18next.t("jointocreate:slashBuilder.join_status"), value: "status" },
+                { name: i18next.t("jointocreate:slashBuilder.join_cleanup"), value: "cleanup" })
             )
         .addChannelOption(op =>
             op.setName("channel")
-            .setDescription(i18next.t("command_join_chanel_set", { ns: "jointocreate" }))
+            .setDescription(i18next.t("jointocreate:slashBuilder.join_chanel_set"))
             .setRequired(false)
             .addChannelTypes(ChannelType.GuildVoice)
         )
@@ -36,7 +36,7 @@ export async function handleJoinToCreateCommand(interaction: ChatInputCommandInt
     const isAllowed = await hasPermission(interaction, interaction.commandName);
     if (!isAllowed) {
         await interaction.reply({
-            content: i18next.t("command_permission_error", { ns: "jointocreate" }),
+            content: i18next.t("common:Errores.isAllowed"),
             flags: MessageFlags.Ephemeral
         });
         return;
@@ -45,7 +45,7 @@ export async function handleJoinToCreateCommand(interaction: ChatInputCommandInt
     const modoConfig = interaction.options.getString("modo");
     const guildId = interaction.guildId;
     if (!guildId) {
-            await interaction.reply({ content: i18next.t("jointocreate_guild_error", { ns: "jointocreate" }), flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: i18next.t("jointocreate:interacciones.guild_error"), flags: MessageFlags.Ephemeral });
             return;
         }
 
@@ -80,21 +80,21 @@ async function setMasterChannel(interaction: ChatInputCommandInteraction, guildI
         const botPermissions = channel.permissionsFor(interaction.client.user!);
         if (!botPermissions?.has(['ViewChannel', 'Connect', 'ManageChannels'])) {
             await interaction.editReply({
-                content: i18next.t("command_jointocreate_error_bot_permissions", { ns: "jointocreate" })
+                content: i18next.t("jointocreate:interacciones.error_bot_permissions")
             });
             return;
         }
         await setVoiceConfig(guildId, channel.id, true);
 
         await interaction.editReply({
-            content: i18next.t("command_jointocreate_set_success", {ns: "jointocreate", a1: channel.toString()})
+            content: i18next.t("jointocreate:interacciones.set_success", {ns: "jointocreate", a1: channel.toString()})
         });
 
         info(`Canal maestro de Join to Create establecido en ${channel.name} (${channel.id}) en servidor ${guildId}`, "JoinToCreate");
     } catch (err) {
         error(`Error estableciendo canal maestro: ${err}`, "JoinToCreate");
         await interaction.editReply({
-            content: i18next.t("command_jointocreate_set_error", { ns: "jointocreate" })
+            content: i18next.t("jointocreate:interacciones.set_error")
         });
     }
 }
@@ -109,7 +109,7 @@ async function disableSystem(interaction: ChatInputCommandInteraction, guildId: 
         
         if (!config) {
             await interaction.editReply({
-                content: i18next.t("command_jointocreate_error_not_configured", { ns: "jointocreate" })
+                content: i18next.t("jointocreate:interacciones.error_not_configured")
             });
             return;
         }
@@ -117,7 +117,7 @@ async function disableSystem(interaction: ChatInputCommandInteraction, guildId: 
         await removeVoiceConfig(guildId);
 
         await interaction.editReply({
-            content: i18next.t("command_jointocreate_disable_success", { ns: "jointocreate" })
+            content: i18next.t("jointocreate:interacciones.disable_success")
         });
 
         info(`Sistema Join to Create desactivado en servidor ${guildId}`, "JoinToCreate");
@@ -125,7 +125,7 @@ async function disableSystem(interaction: ChatInputCommandInteraction, guildId: 
     } catch (err) {
         error(`Error desactivando sistema: ${err}`, "JoinToCreate");
         await interaction.editReply({
-            content: i18next.t("command_jointocreate_disable_error", { ns: "jointocreate" })
+            content: i18next.t("jointocreate:interacciones.disable_error")
         });
     }
 }
@@ -141,7 +141,7 @@ async function showStatus(interaction: ChatInputCommandInteraction, guildId: str
 
         if (!config) {
             await interaction.editReply({
-                content: i18next.t("command_jointocreate_error_not_configured", { ns: "jointocreate" })
+                content: i18next.t("jointocreate:interacciones.error_not_configured")
             });
             return;
         }
@@ -160,7 +160,7 @@ async function showStatus(interaction: ChatInputCommandInteraction, guildId: str
     } catch (err) {
         error(`Error mostrando estado: ${err}`, "JoinToCreate");
         await interaction.editReply({
-            content: i18next.t("command_jointocreate_status_error", { ns: "jointocreate" })
+            content: i18next.t("jointocreate:interacciones.status_error")
         });
     }
 }
@@ -181,7 +181,7 @@ async function cleanupChannels(interaction: ChatInputCommandInteraction, guildId
     const actionRow = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(cancelButton, confirmButton);
 
-    const confirmMessage = i18next.t("command_jointocreate_cleanup_confirm", { ns: "jointocreate" });
+    const confirmMessage = i18next.t("jointocreate:interacciones.cleanup_confirm");
     
     await interaction.reply({
         content: confirmMessage,
@@ -198,7 +198,7 @@ async function cleanupChannels(interaction: ChatInputCommandInteraction, guildId
 
         if (buttonInteraction.customId === 'cancel_delete') {
             await buttonInteraction.update({
-                content: i18next.t("command_jointocreate_cleanup_cancelled", { ns: "jointocreate" }),
+                content: i18next.t("jointocreate:interacciones.cleanup_cancelled"),
                 components: []
             });
             return;
@@ -227,7 +227,7 @@ async function cleanupChannels(interaction: ChatInputCommandInteraction, guildId
 
             // Actualizar mensaje con resultados
             await buttonInteraction.editReply({
-                content: i18next.t("command_jointocreate_cleanup_result", { 
+                content: i18next.t("jointocreate:interacciones.cleanup_result", { 
                     ns: "jointocreate", 
                     a1: deletedCount, 
                     a2: errorCount
@@ -242,13 +242,13 @@ async function cleanupChannels(interaction: ChatInputCommandInteraction, guildId
         // Timeout o error
         if (err instanceof Error && err.message.includes('time')) {
             await interaction.editReply({
-                content: i18next.t("command_jointocreate_cleanup_timeout", { ns: "jointocreate" }),
+                content: i18next.t("jointocreate:interacciones.cleanup_timeout"),
                 components: []
             });
         } else {
             error(`Error en limpieza: ${err}`, "JoinToCreate");
             await interaction.editReply({
-                content: i18next.t("command_jointocreate_cleanup_error", { ns: "jointocreate" }),
+                content: i18next.t("jointocreate:interacciones.cleanup_error"),
                 components: []
             });
         }

@@ -34,11 +34,11 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
 export async function registerHelpCommand(): Promise<SlashCommandBuilder[]> {
   const holaCommand = new SlashCommandBuilder()
     .setName("help")
-    .setDescription(i18next.t("comBuild.command_hola_description", { ns: "hola" }))
+    .setDescription(i18next.t("help:comBuild.command_hola_description"))
     .addStringOption((op) =>
     op
       .setName("command")
-      .setDescription(i18next.t("comBuild.command_hola_idioma_description", { ns: "hola" }))
+      .setDescription(i18next.t("help:comBuild.command_hola_idioma_description"))
       .setRequired(false)
       .setAutocomplete(true)
     );
@@ -72,7 +72,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
       case "13":  await helpYoutube(interaction); break;
 
       default:
-        await interaction.reply({content: i18next.t("comBuild.default_switch_error", { ns: "hola" }), flags: MessageFlags.Ephemeral,});
+        await interaction.reply({content: i18next.t("help:comBuild.default_switch_error"), flags: MessageFlags.Ephemeral,});
         break;
       }
     } catch (e) {
@@ -84,28 +84,28 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
 
 async function info(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
-    .setTitle(i18next.t("info.embed_title", { ns: "hola" }))
-    .setDescription(i18next.t("info.embed_description", { ns: "hola" }))
+    .setTitle(i18next.t("help:info.embed_title"))
+    .setDescription(i18next.t("help:info.embed_description"))
     .addFields(
       {
-        name: i18next.t("info.field_invite_name", { ns: "hola" }),
-        value: i18next.t("info.field_invite_value", { ns: "hola" }),
+        name: i18next.t("help:info.field_invite_name"),
+        value: i18next.t("help:info.field_invite_value"),
         inline: true
       },
       {
-        name: i18next.t("info.field_terms_name", { ns: "hola" }),
-        value: i18next.t("info.field_terms_value", { ns: "hola" }),
+        name: i18next.t("help:info.field_terms_name"),
+        value: i18next.t("help:info.field_terms_value"),
         inline: true
       },
       {
-        name: i18next.t("info.field_issue_name", { ns: "hola" }),
-        value: i18next.t("info.field_issue_value", { ns: "hola" }),
+        name: i18next.t("help:info.field_issue_name"),
+        value: i18next.t("help:info.field_issue_value"),
         inline: false
       }
     )
     .setImage("https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/RemodelCommands/Pict/embedd.gif")
     .setColor(parseInt(randomcolorembed(), 16))
-    .setFooter({text: i18next.t("info.footer_text", { ns: "hola" })})
+    .setFooter({text: i18next.t("help:info.footer_text")})
     .setTimestamp();
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
@@ -115,15 +115,15 @@ async function info(interaction: ChatInputCommandInteraction): Promise<void> {
 async function helpClean(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
       .setColor("#0099ff")
-      .setTitle(i18next.t("clean.title", { ns: "hola" }))
-      .setDescription(await hasPermission(interaction, "cleanup") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" }))
+      .setTitle(i18next.t("help:clean.title"))
+      .setDescription(await hasPermission(interaction, "cleanup") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no"))
       .addFields(
         {
-          name: i18next.t("clean.name_1", { ns: "hola" }),
-          value: i18next.t("clean.value_1", { ns: "hola" }),
+          name: i18next.t("help:clean.name_1"),
+          value: i18next.t("help:clean.value_1"),
         }, 
       )
-      .setFooter({ text: i18next.t("clean.footer", { ns: "hola" }) })
+      .setFooter({ text: i18next.t("help:clean.footer") })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
@@ -133,22 +133,22 @@ async function helpClean(interaction: ChatInputCommandInteraction): Promise<void
 async function helpManga(interaction: ChatInputCommandInteraction): Promise<void> {
   
   const embed = new EmbedBuilder()
-    .setTitle(i18next.t("mangadex.HelpEmb_titulo", { ns: "hola" })) 
-    .setDescription((await hasPermission(interaction, "mangadex") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("mangadex.HelpEmb_descripcion", { ns: "hola" }))
+    .setTitle(i18next.t("help:mangadex.HelpEmb_titulo")) 
+    .setDescription((await hasPermission(interaction, "mangadex") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:mangadex.HelpEmb_descripcion"))
     .addFields(
       {
-        name: i18next.t("mangadex.HelpEmb_Field_Name_1", { ns: "hola" }),
-        value: i18next.t("mangadex.HelpEmb_Field_Value_1", { ns: "hola" }),
+        name: i18next.t("help:mangadex.HelpEmb_Field_Name_1"),
+        value: i18next.t("help:mangadex.HelpEmb_Field_Value_1"),
         inline: false
       },
       {
-        name: i18next.t("mangadex.HelpEmb_Field_Name_2", { ns: "hola" }),
-        value: i18next.t("mangadex.HelpEmb_Field_Value_2", { ns: "hola" }),
+        name: i18next.t("help:mangadex.HelpEmb_Field_Name_2"),
+        value: i18next.t("help:mangadex.HelpEmb_Field_Value_2"),
         inline: false
       }  
     )
     .setColor(0xFF6740)
-    .setFooter({text: i18next.t("mangadex.HelpEmb_footer", { ns: "hola" }),});
+    .setFooter({text: i18next.t("help:mangadex.HelpEmb_footer"),});
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral});
 }
 
@@ -159,32 +159,32 @@ async function helpPermisos(interaction: ChatInputCommandInteraction): Promise<v
   const { guild, user, memberPermissions } = interaction;
   const isAdmin = user.id === guild?.ownerId || memberPermissions?.has(PermissionFlagsBits.Administrator)
   const embed = new EmbedBuilder()
-    .setTitle(i18next.t("permisos.help_title", { ns: "hola" }))
+    .setTitle(i18next.t("help:permisos.help_title"))
     .setColor(parseInt(randomcolorembed(), 16))
-    .setDescription((isAdmin ? i18next.t("permisos.run_yes", { ns: "hola" }) : i18next.t("permisos.run_no", { ns: "hola" })) + '\n\n' + i18next.t("permisos.help_desc", { ns: "hola" }))
+    .setDescription((isAdmin ? i18next.t("help:permisos.run_yes") : i18next.t("help:permisos.run_no")) + '\n\n' + i18next.t("help:permisos.help_desc"))
     .addFields(
       {
-        name: i18next.t("permisos.help_add_title", { ns: "hola" }),
-        value: i18next.t("permisos.help_add_desc", { ns: "hola" }),
+        name: i18next.t("help:permisos.help_add_title"),
+        value: i18next.t("help:permisos.help_add_desc"),
         inline: false
       },
       {
-        name: i18next.t("permisos.help_list_title", { ns: "hola" }),
-        value: i18next.t("permisos.help_list_desc", { ns: "hola" }),
+        name: i18next.t("help:permisos.help_list_title"),
+        value: i18next.t("help:permisos.help_list_desc"),
         inline: false
       },
       {
-        name: i18next.t("permisos.help_remove_title", { ns: "hola" }),
-        value: i18next.t("permisos.help_remove_desc", { ns: "hola" }),
+        name: i18next.t("help:permisos.help_remove_title"),
+        value: i18next.t("help:permisos.help_remove_desc"),
         inline: false
       },
       {
-        name: i18next.t("permisos.help_clear_title", { ns: "hola" }),
-        value: i18next.t("permisos.help_clear_desc", { ns: "hola" }),
+        name: i18next.t("help:permisos.help_clear_title"),
+        value: i18next.t("help:permisos.help_clear_desc"),
         inline: false
       },
     )
-    .setFooter({ text: i18next.t("permisos.footer_text_help", { ns: "hola" })})
+    .setFooter({ text: i18next.t("help:permisos.footer_text_help")})
     .setTimestamp();
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral});
   } catch (e) {error(`Error al ejecutar comando /help: ${e}`);  }
@@ -194,25 +194,25 @@ async function helpPermisos(interaction: ChatInputCommandInteraction): Promise<v
 
 async function helpReddit(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
-    .setTitle(i18next.t("reddit.HelpEmb_titulo", { ns: "hola" }))
+    .setTitle(i18next.t("help:reddit.HelpEmb_titulo"))
     .setColor(0xFF4500)
-    .setDescription((await hasPermission(interaction, "reddit") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("reddit.HelpEmb_descripcion", { ns: "hola" }))
+    .setDescription((await hasPermission(interaction, "reddit") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:reddit.HelpEmb_descripcion"))
     .addFields(
       {
-        name: i18next.t("reddit.HelpEmb_Field_Name_1", { ns: "hola" }),
-        value: i18next.t("reddit.HelpEmb_Field_Value_1", { ns: "hola" }),
+        name: i18next.t("help:reddit.HelpEmb_Field_Name_1"),
+        value: i18next.t("help:reddit.HelpEmb_Field_Value_1"),
       },
       { 
-        name: i18next.t("reddit.HelpEmb_Field_Name_2", { ns: "hola" }),
-        value: i18next.t("reddit.HelpEmb_Field_Value_2", { ns: "hola" }),
+        name: i18next.t("help:reddit.HelpEmb_Field_Name_2"),
+        value: i18next.t("help:reddit.HelpEmb_Field_Value_2"),
       },
       { 
-        name: i18next.t("reddit.HelpEmb_Field_Name_3", { ns: "hola" }),
-        value: i18next.t("reddit.HelpEmb_Field_Value_3", { ns: "hola" }),
+        name: i18next.t("help:reddit.HelpEmb_Field_Name_3"),
+        value: i18next.t("help:reddit.HelpEmb_Field_Value_3"),
       },
       { 
-        name: i18next.t("reddit.HelpEmb_Field_Name_4", { ns: "hola" }),
-        value: i18next.t("reddit.HelpEmb_Field_Value_4", { ns: "hola" }),
+        name: i18next.t("help:reddit.HelpEmb_Field_Name_4"),
+        value: i18next.t("help:reddit.HelpEmb_Field_Value_4"),
       }
     );
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral});
@@ -227,7 +227,7 @@ async function helpRolemoji(interaction: ChatInputCommandInteraction): Promise<v
     
     if (!guild || !channel || !('permissionsFor' in channel)) {
         await interaction.reply({ 
-            content: i18next.t("rolemoji.only_error", { ns: "hola" }), 
+            content: i18next.t("help:rolemoji.only_error"), 
             flags: MessageFlags.Ephemeral 
         });
         return;
@@ -236,7 +236,7 @@ async function helpRolemoji(interaction: ChatInputCommandInteraction): Promise<v
     const botMember = guild.members.me;
     if (!botMember) {
         await interaction.reply({
-            content: i18next.t("rolemoji.error_user", { ns: "hola" }), 
+            content: i18next.t("help:rolemoji.error_user"), 
             flags: MessageFlags.Ephemeral
         });
         return;
@@ -249,40 +249,40 @@ async function helpRolemoji(interaction: ChatInputCommandInteraction): Promise<v
     
     const embed = new EmbedBuilder()
         .setColor(parseInt(randomcolorembed(), 16))
-        .setTitle(i18next.t("rolemoji.help_title", { ns: "hola" }))
-        .setDescription((await hasPermission(interaction, "rolemoji") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("rolemoji.help_description", { ns: "hola" }))
+        .setTitle(i18next.t("help:rolemoji.help_title"))
+        .setDescription((await hasPermission(interaction, "rolemoji") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:rolemoji.help_description"))
         .addFields(
             {
-                name: i18next.t("rolemoji.paso_1", { ns: "hola" }),
-                value: i18next.t("rolemoji.fix_1", { ns: "hola" }),
+                name: i18next.t("help:rolemoji.paso_1"),
+                value: i18next.t("help:rolemoji.fix_1"),
             }, 
             {
-                name: i18next.t("rolemoji.manage_roles_permission", { ns: "hola" }),
-                value: ManageRoles ? i18next.t("rolemoji.allowed_permission", { ns: "hola" }) : i18next.t("rolemoji.missing_permission", { ns: "hola" }),
+                name: i18next.t("help:rolemoji.manage_roles_permission"),
+                value: ManageRoles ? i18next.t("help:rolemoji.allowed_permission") : i18next.t("help:rolemoji.missing_permission"),
                 inline: true,
             },
             {
-                name: i18next.t("rolemoji.add_reactions_permission", { ns: "hola" }),
-                value: AddReactions ? i18next.t("rolemoji.allowed_permission", { ns: "hola" }) : i18next.t("rolemoji.missing_permission", { ns: "hola" }),
+                name: i18next.t("help:rolemoji.add_reactions_permission"),
+                value: AddReactions ? i18next.t("help:rolemoji.allowed_permission") : i18next.t("help:rolemoji.missing_permission"),
                 inline: true,
             },
             {
-                name: i18next.t("rolemoji.use_external_emojis_permission", { ns: "hola" }),
-                value: ExternalEmojis ? i18next.t("rolemoji.allowed_permission", { ns: "hola" }) : i18next.t("rolemoji.missing_permission", { ns: "hola" }),
+                name: i18next.t("help:rolemoji.use_external_emojis_permission"),
+                value: ExternalEmojis ? i18next.t("help:rolemoji.allowed_permission") : i18next.t("help:rolemoji.missing_permission"),
                 inline: true,
             },
             {
-                name: i18next.t("rolemoji.paso_2", { ns: "hola" }),
-                value: i18next.t("rolemoji.fix_2", { ns: "hola" }),
+                name: i18next.t("help:rolemoji.paso_2"),
+                value: i18next.t("help:rolemoji.fix_2"),
                 inline: false,
             }, 
             {
-                name: i18next.t("rolemoji.paso_3", { ns: "hola" }),
-                value: i18next.t("rolemoji.fix_3", { ns: "hola" }),
+                name: i18next.t("help:rolemoji.paso_3"),
+                value: i18next.t("help:rolemoji.fix_3"),
                 inline: false,
             }
         )
-        .setFooter({ text: i18next.t("rolemoji.help_footer", { ns: "hola" }) })
+        .setFooter({ text: i18next.t("help:rolemoji.help_footer") })
         .setImage("https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/RolemojiHelp.png")
         .setTimestamp();
         
@@ -294,23 +294,23 @@ async function helpRolemoji(interaction: ChatInputCommandInteraction): Promise<v
 
 async function helpYoutube(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
-    .setTitle(i18next.t("youtube.titulo", { ns: "hola" })) 
-    .setDescription((await hasPermission(interaction, "youtube") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("youtube.descripcion", { ns: "hola" }))
+    .setTitle(i18next.t("help:youtube.titulo")) 
+    .setDescription((await hasPermission(interaction, "youtube") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:youtube.descripcion"))
     .addFields(
       {
-        name: i18next.t("youtube.Field_Name_1", { ns: "hola" }),
-        value: i18next.t("youtube.Field_Value_1", { ns: "hola" }),
+        name: i18next.t("help:youtube.Field_Name_1"),
+        value: i18next.t("help:youtube.Field_Value_1"),
         inline: false
       },
       {
-        name: i18next.t("youtube.Field_Name_2", { ns: "hola" }),
-        value: i18next.t("youtube.Field_Value_2", { ns: "hola" }),
+        name: i18next.t("help:youtube.Field_Name_2"),
+        value: i18next.t("help:youtube.Field_Value_2"),
         inline: false
       }
     )
     //.setImage("https://i.imgur.com/hBy4KhT.jpeg")
     .setColor("#ff0000")
-    .setFooter({text: i18next.t("youtube.footer", { ns: "hola" }),});
+    .setFooter({text: i18next.t("help:youtube.footer"),});
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral});
 } 
 
@@ -319,21 +319,21 @@ async function helpYoutube(interaction: ChatInputCommandInteraction): Promise<vo
 async function helpEmbed(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
       .setColor(parseInt(randomcolorembed(), 16))
-      .setTitle(i18next.t("embed.title", { ns: "hola" }))
-      .setDescription((await hasPermission(interaction, "embed") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("embed.description", { ns: "hola" }))
+      .setTitle(i18next.t("help:embed.title"))
+      .setDescription((await hasPermission(interaction, "embed") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:embed.description"))
       .addFields(
         {
-          name: i18next.t("embed.name_1", { ns: "hola" }),
-          value: i18next.t("embed.value_1", { ns: "hola" }),
+          name: i18next.t("help:embed.name_1"),
+          value: i18next.t("help:embed.value_1"),
           inline: false
         },
         {
-          name: i18next.t("embed.name_2", { ns: "hola" }),
-          value: i18next.t("embed.value_2", { ns: "hola" }),
+          name: i18next.t("help:embed.name_2"),
+          value: i18next.t("help:embed.value_2"),
           inline: false
         }
       )
-      .setFooter({ text: i18next.t("embed.footer", { ns: "hola" }) })
+      .setFooter({ text: i18next.t("help:embed.footer") })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
@@ -343,21 +343,21 @@ async function helpEmbed(interaction: ChatInputCommandInteraction): Promise<void
 async function helpJoin(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
       .setColor(parseInt(randomcolorembed(), 16))
-      .setTitle(i18next.t("jointovoice.title", { ns: "hola" }))
-      .setDescription((await hasPermission(interaction, "jointovoice") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n')
+      .setTitle(i18next.t("help:jointovoice.title"))
+      .setDescription((await hasPermission(interaction, "jointovoice") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n')
       .addFields(
         {
-          name: i18next.t("jointovoice.name_1", { ns: "hola" }),
-          value: i18next.t("jointovoice.value_1", { ns: "hola" }),
+          name: i18next.t("help:jointovoice.name_1"),
+          value: i18next.t("help:jointovoice.value_1"),
           inline: false
         },
         {
-          name: i18next.t("jointovoice.name_2", { ns: "hola" }),
-          value: i18next.t("jointovoice.value_2", { ns: "hola" }),
+          name: i18next.t("help:jointovoice.name_2"),
+          value: i18next.t("help:jointovoice.value_2"),
           inline: false
         }
       )
-      .setFooter({ text: i18next.t("jointovoice.footer", { ns: "hola" }) })
+      .setFooter({ text: i18next.t("help:jointovoice.footer") })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
@@ -369,28 +369,28 @@ async function helpMusic(interaction: ChatInputCommandInteraction): Promise<void
     const lavalinkUp = process.env.LAVALINK_NAME && process.env.LAVALINK_HOST && process.env.LAVALINK_PASSWORD;
     if (!lavalinkUp) {
       await interaction.reply({
-        content: i18next.t("musica.lavalink_off", { ns: "hola" }),
+        content: i18next.t("help:musica.lavalink_off"),
         flags: MessageFlags.Ephemeral });
         return;
     }
 
     const embed = new EmbedBuilder()
         .setColor(parseInt(randomcolorembed(), 16))
-        .setTitle(i18next.t("musica.title", { ns: "hola" }))
-        .setDescription(i18next.t("musica.description", { ns: "hola" }))
+        .setTitle(i18next.t("help:musica.title"))
+        .setDescription(i18next.t("help:musica.description"))
         .addFields(
           {
-            name: i18next.t("musica.name_1", { ns: "hola" }),
-            value: await hasPermission(interaction, "play /stop /skip /queue") ? i18next.t("musica.can_run_yes", { ns: "hola" }) : i18next.t("musica.can_run_no", { ns: "hola" }),
+            name: i18next.t("help:musica.name_1"),
+            value: await hasPermission(interaction, "play /stop /skip /queue") ? i18next.t("help:musica.can_run_yes") : i18next.t("help:musica.can_run_no"),
             inline: true
           },
           {
-            name: i18next.t("musica.name_5", { ns: "hola" }),
-            value: i18next.t("musica.value_5", { ns: "hola" }),
+            name: i18next.t("help:musica.name_5"),
+            value: i18next.t("help:musica.value_5"),
             inline: false
           }
         )
-        .setFooter({ text: i18next.t("musica.footer", { ns: "hola" }) })
+        .setFooter({ text: i18next.t("help:musica.footer") })
         .setTimestamp();    
       await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   } catch (e) {error(`Error al ejecutar comando /help: ${e}`);  }
@@ -401,26 +401,26 @@ async function helpMusic(interaction: ChatInputCommandInteraction): Promise<void
 async function helpPost(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
       .setColor(parseInt(randomcolorembed(), 16))
-      .setTitle(i18next.t("post.title", { ns: "hola" }))
-      .setDescription((await hasPermission(interaction, "post") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("post.description", { ns: "hola" }))
+      .setTitle(i18next.t("help:post.title"))
+      .setDescription((await hasPermission(interaction, "post") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:post.description"))
       .addFields(
         {
-          name: i18next.t("post.name_1", { ns: "hola" }),
-          value: i18next.t("post.value_1", { ns: "hola" }),
+          name: i18next.t("help:post.name_1"),
+          value: i18next.t("help:post.value_1"),
           inline: false
         },
         {
-          name: i18next.t("post.name_2", { ns: "hola" }),
-          value: i18next.t("post.value_2", { ns: "hola" }),
+          name: i18next.t("help:post.name_2"),
+          value: i18next.t("help:post.value_2"),
           inline: false
         },
         {
-          name: i18next.t("post.name_3", { ns: "hola" }),
-          value: i18next.t("post.value_3", { ns: "hola" }),
+          name: i18next.t("help:post.name_3"),
+          value: i18next.t("help:post.value_3"),
           inline: false
         }
       )
-      .setFooter({ text: i18next.t("post.footer", { ns: "hola" }) })
+      .setFooter({ text: i18next.t("help:post.footer") })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
@@ -430,31 +430,31 @@ async function helpPost(interaction: ChatInputCommandInteraction): Promise<void>
 async function helpTest(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
       .setColor(parseInt(randomcolorembed(), 16))
-      .setTitle(i18next.t("test.title", { ns: "hola" }))
-      .setDescription((await hasPermission(interaction, "test") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("test.description", { ns: "hola" }))
+      .setTitle(i18next.t("help:test.title"))
+      .setDescription((await hasPermission(interaction, "test") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:test.description"))
       .addFields(
         {
-          name: i18next.t("test.name_1", { ns: "hola" }),
-          value: i18next.t("test.value_1", { ns: "hola" }),
+          name: i18next.t("help:test.name_1"),
+          value: i18next.t("help:test.value_1"),
           inline: false
         },
         {
-          name: i18next.t("test.name_2", { ns: "hola" }),
-          value: i18next.t("test.value_2", { ns: "hola" }),
+          name: i18next.t("help:test.name_2"),
+          value: i18next.t("help:test.value_2"),
           inline: false
         },
         {
-          name: i18next.t("test.name_3", { ns: "hola" }),
-          value: i18next.t("test.value_3", { ns: "hola" }),
+          name: i18next.t("help:test.name_3"),
+          value: i18next.t("help:test.value_3"),
           inline: false
         },
         {
-          name: i18next.t("test.name_4", { ns: "hola" }),
-          value: i18next.t("test.value_4", { ns: "hola" }),
+          name: i18next.t("help:test.name_4"),
+          value: i18next.t("help:test.value_4"),
           inline: false
         }
       )
-      .setFooter({ text: i18next.t("test.footer", { ns: "hola" }) })
+      .setFooter({ text: i18next.t("help:test.footer") })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
@@ -464,9 +464,9 @@ async function helpTest(interaction: ChatInputCommandInteraction): Promise<void>
 async function helpWelcome(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
       .setColor(parseInt(randomcolorembed(), 16))
-      .setTitle(i18next.t("welcome.title", { ns: "hola" }))
-      .setDescription((await hasPermission(interaction, "welcome") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("welcome.description", { ns: "hola" }))
-      .setFooter({ text: i18next.t("welcome.footer", { ns: "hola" }) })
+      .setTitle(i18next.t("help:welcome.title"))
+      .setDescription((await hasPermission(interaction, "welcome") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:welcome.description"))
+      .setFooter({ text: i18next.t("help:welcome.footer") })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
@@ -476,9 +476,9 @@ async function helpWelcome(interaction: ChatInputCommandInteraction): Promise<vo
 async function helpWork(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
       .setColor(parseInt(randomcolorembed(), 16))
-      .setTitle(i18next.t("work.title", { ns: "hola" }))
-      .setDescription((await hasPermission(interaction, "work") ? i18next.t("can_run_yes", { ns: "hola" }) : i18next.t("can_run_no", { ns: "hola" })) + '\n\n' + i18next.t("work.description", { ns: "hola" }))
-      .setFooter({ text: i18next.t("work.footer", { ns: "hola" }) })
+      .setTitle(i18next.t("help:work.title"))
+      .setDescription((await hasPermission(interaction, "work") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:work.description"))
+      .setFooter({ text: i18next.t("help:work.footer") })
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }

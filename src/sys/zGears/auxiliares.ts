@@ -1,5 +1,6 @@
 // sc/sys/auxiliares.ts
 import { Client } from "discord.js";
+import { error } from "../logging";
 
 /* ======================================== TIMMERS ======================================== */
 
@@ -52,7 +53,7 @@ export async function ChannelReports(client: Client): Promise<{chReport: boolean
     const ownerId = process.env.HOST_DISCORD_USER_ID;
     const reportIds = process.env.REPORT_CHANNEL_ID;
     if (!ownerId || !reportIds) { /* Check de env */
-        console.error("Falta el ID del dueño del bot o los IDs del canal de reporte en las variables de entorno.");
+        error("Falta el ID del dueño del bot o los IDs del canal de reporte en las variables de entorno.");
         cachedReportConfig = { chReport: false, chReportId: '' };
         return cachedReportConfig;
     }
@@ -66,21 +67,21 @@ export async function ChannelReports(client: Client): Promise<{chReport: boolean
     try {
         const guild = await client.guilds.fetch(guildId); /* Chek de server*/
         if (guild.ownerId !== ownerId) {
-            console.error("El dueño del bot no es el dueño del servidor especificado.");
+            error("El dueño del bot no es el dueño del servidor especificado.");
             cachedReportConfig = { chReport: false, chReportId: '' };
             return cachedReportConfig;
         }
 
         const channel = await guild.channels.fetch(channelId); /* Check de canal */
         if (!channel) {
-            console.error(`El canal con ID ${channelId} no se encontró en el servidor.`);
+            error(`El canal con ID ${channelId} no se encontró en el servidor.`);
             cachedReportConfig = { chReport: false, chReportId: '' };
             return cachedReportConfig;
         }
         cachedReportConfig = { chReport: true, chReportId: channel.id };
         return cachedReportConfig;
     } catch (e) {
-        console.error(`Error al verificar el canal de reportes: ${e}`);
+        error(`Error al verificar el canal de reportes: ${e}`);
         cachedReportConfig = { chReport: false, chReportId: '' };
         return cachedReportConfig;
     }

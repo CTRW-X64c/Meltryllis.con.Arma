@@ -1,34 +1,31 @@
 {
-    "ATS1": "Command Builder",
-        "command_mangadex": "Permite seguir mangas de Mangadex",
-        "command_mangadex_descripcion": "Comandos para seguir mangas de Mangadex",
-        "command_mangadex_seguir": "URL del manga que queires seguir",
-        "command_mangadex_canal": "Canal en el que se publicaran las updates",
-        "command_mangadex_idioma": "Idioma de lo capitulos que quieres seguir",
-
-        "command_mangadex_lista_desc": "Lista de los mangas que estas siguiendo",
-
-        "command_mangadex_dejar_desc": "Cancela el seguimiento del manga",
-        "command_mangadex_dejar_url": "ID del manga para dejar de seguir, USA /mangadex lista para ver los ID",
-
-        "command_mangadex_ayuda_desc": "Explicacion de los comnados",
-
-    "ATS2": "Contenido del Embed",
-        "command_reddit_canal_error": "Error en ejecutar el comando.",
-        "command_mangadex_seguir_success": "Manga agregado correctamente",
-        "command_mangadex_seguir_existente_error": "No puedes añadir el mismo manga con el mismo idioma dos veces!",
-        "command_mangadex_seguir_error": "Ocurrio un error al intentar seguir el manga!",
-
-        "command_mangadex_lista_vacia": "No estas siguiendo ningun manga",
+    "slashBuilder": {
+        "mangadex": "Permite seguir mangas de Mangadex",
+        "mangadex_descripcion": "Comandos para seguir mangas de Mangadex",
+        "mangadex_seguir": "URL del manga que queires seguir",
+        "mangadex_canal": "Canal en el que se publicaran las updates",
+        "mangadex_idioma": "Idioma de lo capitulos que quieres seguir",
+        "mangadex_lista_desc": "Lista de los mangas que estas siguiendo",
+        "mangadex_dejar_desc": "Cancela el seguimiento del manga",
+        "mangadex_dejar_url": "ID del manga para dejar de seguir, USA /mangadex lista para ver los ID",
+        "mangadex_ayuda_desc": "Explicacion de los comnados"
+    },
+    
+    "interacciones": {
+        "command_error": "Ocurrió un error al ejecutar el comando.",
+        "reddit_canal_error": "Error en ejecutar el comando.",
+        "seguir_success": "Manga agregado correctamente",
+        "seguir_existente_error": "No puedes añadir el mismo manga con el mismo idioma dos veces!",
+        "seguir_error": "Ocurrio un error al intentar seguir el manga!",
+        "lista_vacia": "No estas siguiendo ningun manga",
         "manga_embed_titulo": "📚 Mangas Seguidos en {{a1}}",
         "manga_embed_descripcion": "Mangas seguiendo: {{a1}} \n MANGA ID | TITULO DE MANGA | IDIOMA",
         "manga_embed_list_value": "Lista Vacia",
         "manga_embed_list_entry": "• 🆔: `{{a1}}` | `{{a2}}` | Idioma: {{a3}}",
         "manga_embed_footer": "Mangadex & (MDRSS)[https://mdrss.tijlvdb.me]",
-
-        "command_mangadex_dejar_exito": "✅ Manga eliminado correctamente.!!",
-        "command_mangadex_dejar_fallo": "❌ No encontré ese manga en tu lista. Asegúrate de poner la URL exacta.",
-        "command_error": "Ocurrió un error al ejecutar el comando.",
-
-        "command_error_help": "Ocurrió un error al ejecutar el comando!!"
+        "dejar_exito": "✅ Manga eliminado correctamente.!!",
+        "dejar_fallo": "❌ No encontré ese manga en tu lista. Asegúrate de poner la URL exacta.",
+        "error": "Ocurrió un error al ejecutar el comando.",
+        "error_help": "Ocurrió un error al ejecutar el comando!!"
+    }
 }

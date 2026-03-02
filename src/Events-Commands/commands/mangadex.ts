@@ -53,25 +53,25 @@ export async function registerMangadexCommand() {
   const mangadex = new SlashCommandBuilder()
     .setName("mangadex")
     .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
-    .setDescription(i18next.t("command_mangadex", { ns: "mangadex" }))
+    .setDescription(i18next.t("mangadex:slashBuilder.mangadex"))
     .addSubcommand(subcommand =>
       subcommand
         .setName("seguir")
-        .setDescription(i18next.t("command_mangadex_descripcion", { ns: "mangadex" }))
+        .setDescription(i18next.t("mangadex:slashBuilder.mangadex_descripcion"))
         .addStringOption(option =>
           option.setName("manga_url")
-            .setDescription(i18next.t("command_mangadex_seguir", { ns: "mangadex" }))
+            .setDescription(i18next.t("mangadex:slashBuilder.mangadex_seguir"))
             .setRequired(true)
         )
         .addChannelOption(option =>
           option.setName("canal")
-            .setDescription(i18next.t("command_mangadex_canal", { ns: "mangadex" }))
+            .setDescription(i18next.t("mangadex:slashBuilder.mangadex_canal"))
             .setRequired(true)
             .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
         )
         .addStringOption(option =>
           option.setName("idioma")
-            .setDescription(i18next.t("command_mangadex_idioma", { ns: "mangadex" }))
+            .setDescription(i18next.t("mangadex:slashBuilder.mangadex_idioma"))
             .setRequired(true)
             .addChoices(
               { name: "Inglés", value: "en" },
@@ -84,15 +84,15 @@ export async function registerMangadexCommand() {
     .addSubcommand(subcommand =>
         subcommand
           .setName("lista")
-          .setDescription(i18next.t("command_mangadex_lista_desc", { ns: "mangadex", defaultValue: "Ver mangas seguidos" }))
+          .setDescription(i18next.t("mangadex:slashBuilder.mangadex_lista_desc", { defaultValue: "Ver mangas seguidos" }))
     )
     .addSubcommand(subcommand =>
         subcommand
           .setName("dejar")
-          .setDescription(i18next.t("command_mangadex_dejar_desc", { ns: "mangadex", defaultValue: "Dejar de seguir un manga" }))
+          .setDescription(i18next.t("mangadex:slashBuilder.mangadex_dejar_desc", { defaultValue: "Dejar de seguir un manga" }))
           .addStringOption(option =>
             option.setName("id_manga")
-              .setDescription(i18next.t("command_mangadex_dejar_url", { ns: "mangadex", defaultValue: "URL del manga a eliminar" }))
+              .setDescription(i18next.t("mangadex:slashBuilder.mangadex_dejar_url", { defaultValue: "URL del manga a eliminar" }))
               .setRequired(true)
           )
     );
@@ -105,7 +105,7 @@ export async function handleMangadexCommand(interaction: ChatInputCommandInterac
     const isAllowed = await hasPermission(interaction, interaction.commandName);
     if (!isAllowed) {
         await interaction.editReply({
-            content: i18next.t("command_permission_error", { ns: "rolemoji" }),
+            content: i18next.t("common:Errores.isAllowed"),
         });
         return;
     }
@@ -127,7 +127,7 @@ export async function handleMangadexCommand(interaction: ChatInputCommandInterac
     }
   } catch (err) {
     error(`Error ejecutando comando Mangadex: ${err}`);
-    await interaction.editReply({ content: i18next.t("command_error")});
+    await interaction.editReply({ content: i18next.t("mangadex:interacciones.command_error")});
   }
 }
 
@@ -140,7 +140,7 @@ async function seguirManga(interaction: ChatInputCommandInteraction, guildId: st
 
     const discordChannel = interaction.guild!.channels.cache.get(discordChannelInput.id) as TextChannel;
     if (!discordChannel || !discordChannel.isTextBased()) {
-        await interaction.editReply({ content: i18next.t("command_reddit_canal_error", { ns: "reddit" })});
+        await interaction.editReply({ content: i18next.t("mangadex:interacciones.reddit_canal_error")});
         return;
     }
 
@@ -175,7 +175,7 @@ async function seguirManga(interaction: ChatInputCommandInteraction, guildId: st
         });
 
         await interaction.editReply({ 
-            content: i18next.t("command_mangadex_seguir_success", { ns: "mangadex", a1: mangaName, a2: discordChannel.toString() }),
+            content: i18next.t("mangadex:interacciones.seguir_success", { a1: mangaName, a2: discordChannel.toString() }),
         });
         
         debug(`Nuevo manga seguido: ${mangaName} (${langChoice}) en ${guildId}`);
@@ -190,10 +190,10 @@ async function seguirManga(interaction: ChatInputCommandInteraction, guildId: st
         err.message?.includes('idx_unique_rss_guild_channel');
     
     if (isDuplicateError) {
-        await interaction.editReply({ content: i18next.t("command_mangadex_seguir_existente_error", { ns: "mangadex" }) });
+        await interaction.editReply({ content: i18next.t("mangadex:interacciones.seguir_existente_error") });
         return;
     }
-    await interaction.editReply({ content: i18next.t("command_mangadex_seguir_error", { ns: "mangadex" })});
+    await interaction.editReply({ content: i18next.t("mangadex:interacciones.seguir_error")});
 }}
 
 // =============== Lista =============== //
@@ -202,7 +202,7 @@ async function listaManga(interaction: ChatInputCommandInteraction, guildId: str
     const feeds = await getMangadexFeeds(guildId);
 
     if (!feeds || feeds.length === 0) {
-        await interaction.editReply({ content: i18next.t("command_mangadex_lista_vacia", { ns: "mangadex" }) });
+        await interaction.editReply({ content: i18next.t("mangadex:interacciones.lista_vacia") });
         return;
     }
     const feedsPorCanal = new Map<string, { canalName: string, feeds: MangadexFeed[] }>();
@@ -222,8 +222,8 @@ async function listaManga(interaction: ChatInputCommandInteraction, guildId: str
     }
 
     const embed = new EmbedBuilder()
-        .setTitle(i18next.t("manga_embed_titulo", { ns: "mangadex", a1: guildName }))
-        .setDescription(i18next.t("manga_embed_descripcion", { ns: "mangadex", a1: feeds.length}))
+        .setTitle(i18next.t("mangadex:interacciones.manga_embed_titulo", { a1: guildName }))
+        .setDescription(i18next.t("mangadex:interacciones.manga_embed_descripcion", { a1: feeds.length}))
         .setColor(0xFF6740);
 
     for (const [channelId, grupo] of feedsPorCanal) {
@@ -232,7 +232,7 @@ async function listaManga(interaction: ChatInputCommandInteraction, guildId: str
             const originalName = feed.manga_title ?? "Sin Título";
             const shortTitle = originalName.length > 50 ? originalName.substring(0, 50) + "..." : originalName;
             const flag = feed.language === 'es' ? '🇪🇸' : feed.language === 'es-la' ? '🇲🇽' : feed.language === 'en' ? '🇺🇸' : '🌐';
-            return i18next.t("manga_embed_list_entry",{ ns: "mangadex",a1: feed.id, a2: shortTitle, a3: flag});
+            return i18next.t("mangadex:interacciones.manga_embed_list_entry",{a1: feed.id, a2: shortTitle, a3: flag});
         });
 
         /* Seccionador de embeds */
@@ -244,13 +244,13 @@ async function listaManga(interaction: ChatInputCommandInteraction, guildId: str
 
             embed.addFields({
                 name: nombreCampo, 
-                value: bloque || i18next.t("manga_embed_list_value", { ns: "mangadex" }),
+                value: bloque || i18next.t("mangadex:interacciones.manga_embed_list_value"),
                 inline: false
             });
         }
     }
 
-    embed.setFooter({text: i18next.t("manga_embed_footer", { ns: "mangadex" })});
+    embed.setFooter({text: i18next.t("mangadex:interacciones.manga_embed_footer")});
 
     await interaction.editReply({ embeds: [embed] });
 }
@@ -264,13 +264,13 @@ async function dejarManga(interaction: ChatInputCommandInteraction, guildId: str
     const removed = await removeMangadexFeed(guildId, mangaIdToDelete);
     
     if (removed) {
-      await interaction.editReply({ content: i18next.t("command_mangadex_dejar_exito", { ns: "mangadex"})});
+      await interaction.editReply({ content: i18next.t("mangadex:interacciones.dejar_exito")});
       debug(`Manga eliminado: ${mangaIdToDelete} del servidor ${guildId}` );
     } else {
-      await interaction.editReply({ content: i18next.t("command_mangadex_dejar_fallo", { ns: "mangadex" })});
+      await interaction.editReply({ content: i18next.t("mangadex:interacciones.dejar_fallo")});
     }
   } catch (err) {
     error(`Error eliminando manga: ${err}` );
-    await interaction.editReply({ content: i18next.t("command_error") });
+    await interaction.editReply({ content: i18next.t("mangadex:interacciones.error") });
   }
 }

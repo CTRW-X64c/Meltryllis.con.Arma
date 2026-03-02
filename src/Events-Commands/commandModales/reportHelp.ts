@@ -10,23 +10,23 @@ export async function Report(interaction: ChatInputCommandInteraction): Promise<
   const idGuild = interaction.guildId;
   const idCooldown = "repCommand"
   if (!idGuild) { 
-    await interaction.reply({ content: (i18next.t("report.modal_no_guild", { ns: "hola"})), flags: MessageFlags.Ephemeral }); return;
+    await interaction.reply({ content: (i18next.t("report.modal_no_guild", { ns: "help"})), flags: MessageFlags.Ephemeral }); return;
   } else if (!isAdmin) {
-    await interaction.reply({ content: i18next.t("report.no_admin", { ns: "hola" }), flags: MessageFlags.Ephemeral });  return;
+    await interaction.reply({ content: i18next.t("report.no_admin", { ns: "help" }), flags: MessageFlags.Ephemeral });  return;
   }
 
   const cooldown = checkCooldown(idGuild, idCooldown);
   if (cooldown.onCooldown) {
-    await interaction.reply({ content: i18next.t("report.onCooldown", { ns: "hola" , a1: cooldown.timeLeft }), flags: MessageFlags.Ephemeral}); return; }
+    await interaction.reply({ content: i18next.t("report.onCooldown", { ns: "help" , a1: cooldown.timeLeft }), flags: MessageFlags.Ephemeral}); return; }
   startCooldown(idGuild, idCooldown);
 
   const modal = new ModalBuilder()
     .setCustomId('helpRepo')
-    .setTitle(i18next.t("report.modal_title", { ns: "hola" }));
+    .setTitle(i18next.t("report.modal_title", { ns: "help" }));
   const reportIn = new TextInputBuilder()
     .setCustomId('report_content')
-    .setLabel(i18next.t("report.modal_label", { ns: "hola" }))
-    .setPlaceholder(i18next.t("report.modal_pholder", { ns: "hola" }))
+    .setLabel(i18next.t("report.modal_label", { ns: "help" }))
+    .setPlaceholder(i18next.t("report.modal_pholder", { ns: "help" }))
     .setStyle(TextInputStyle.Paragraph)
     .setMinLength(10)
     .setMaxLength(500) 
@@ -49,11 +49,11 @@ export async function helpRepo(interaction: ModalSubmitInteraction) {
     const embMsg = {
       embeds: [
         new EmbedBuilder()
-        .setAuthor({name:(i18next.t("report.modal_autor", { ns: "hola" , a1: uData.username})), iconURL: uData.displayAvatarURL()})
+        .setAuthor({name:(i18next.t("report.modal_autor", { ns: "help" , a1: uData.username})), iconURL: uData.displayAvatarURL()})
         .addFields(
-          { name: (i18next.t("report.modal_name_A1", { ns: "hola" })), value: `Name: ${gName.name} \n Id: ${gName.id}`, inline: true },
+          { name: (i18next.t("report.modal_name_A1", { ns: "help" })), value: `Name: ${gName.name} \n Id: ${gName.id}`, inline: true },
           { name: (`\u200B`), value: (`\u200B`)},
-          { name: (i18next.t("report.modal_name_B1", { ns: "hola" })), value: reporMsg }
+          { name: (i18next.t("report.modal_name_B1", { ns: "help" })), value: reporMsg }
         )
         .setTimestamp()
         .setFooter({text:`Dev: ${ownerUser.username}`, iconURL: ownerUser.displayAvatarURL()})
@@ -67,9 +67,9 @@ export async function helpRepo(interaction: ModalSubmitInteraction) {
     } else {
       await ownerUser.send(embMsg);
     }
-    await interaction.reply({ content: (i18next.t("report.modal_sent_success", { ns: "hola"})), embeds: embMsg.embeds, flags: MessageFlags.Ephemeral });
+    await interaction.reply({ content: (i18next.t("report.modal_sent_success", { ns: "help"})), embeds: embMsg.embeds, flags: MessageFlags.Ephemeral });
   } catch (e) {
     console.error(`Error al enviar reporte desde modal: ${e}`);
-    await interaction.reply({ content: (i18next.t("report.modal_sent_error", { ns: "hola"})), flags: MessageFlags.Ephemeral });
+    await interaction.reply({ content: (i18next.t("report.modal_sent_error", { ns: "help"})), flags: MessageFlags.Ephemeral });
   }
 }
