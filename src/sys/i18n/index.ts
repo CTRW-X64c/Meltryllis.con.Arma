@@ -15,7 +15,7 @@ export async function initI18n(locale?: string): Promise<void> {
     supportedLngs: SUPPORTED_LANGUAGES,
     fallbackLng: "es",
     lng: locale || "es",
-    ns: [ "common", "embed", "help", "reddit", "rolemoji", "test", "welcome", "work", "youtube", "neTools", "post", "cleanup", "jointocreate", "mangadex", "permissions", "music", "bottonsCom" ],
+    ns: [ "common", "embed", "help", "reddit", "rolemoji", "test", "welcome", "work", "youtube", "neTools", "post", "cleanup", "jointocreate", "mangadex", "permissions", "music", "botones" ],
     defaultNS: "common",
     saveMissing: true,
     interpolation: {

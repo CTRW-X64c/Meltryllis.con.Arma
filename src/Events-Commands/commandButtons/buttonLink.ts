@@ -100,7 +100,7 @@ export async function handleButtonLinkCommand(interaction: ChatInputCommandInter
     try {
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             await interaction.reply({
-                content: i18next.t("bottonsCom:buttonLink.errorFortmat"),
+                content: i18next.t("botones:buttonLink.errorFortmat"),
                 flags: MessageFlags.Ephemeral
             });
             return;
@@ -142,27 +142,27 @@ export async function handleButtonLinkCommand(interaction: ChatInputCommandInter
         await channel.send({ content: "\u200B", components: [row]});
 
         const buttonUp = (text: string | null, url: string | null) => {    
-            if (!text && !url) return i18next.t("bottonsCom:buttonLink.no_use");
-            if (!text) return i18next.t("bottonsCom:buttonLink.no_text");
-            if (!url) return i18next.t("bottonsCom:buttonLink.no_url");
+            if (!text && !url) return i18next.t("botones:buttonLink.no_use");
+            if (!text) return i18next.t("botones:buttonLink.no_text");
+            if (!url) return i18next.t("botones:buttonLink.no_url");
                 const urlOk = url.startsWith("http://") || url.startsWith("https://");
             if (!urlOk)
-                return i18next.t("bottonsCom:buttonLink.no_url_valid");
-            return i18next.t("bottonsCom:buttonLink.use");
+                return i18next.t("botones:buttonLink.no_url_valid");
+            return i18next.t("botones:buttonLink.use");
         };
 
         const results = [ buttonUp(secondButtonText, secondUrl), buttonUp(thirdButtonText, thirdUrl), buttonUp(fourthButtonText, fourthUrl), buttonUp(fifthButtonText, fifthUrl) ];
-        const cantidad = results.filter(res => res === i18next.t("bottonsCom:buttonLink.use")).length + 1;
-        const footerText = cantidad === 1 ? i18next.t("bottonsCom:buttonLink.foote_01") : i18next.t("bottonsCom:buttonLink.foote_02", {a1: cantidad});
+        const cantidad = results.filter(res => res === i18next.t("botones:buttonLink.use")).length + 1;
+        const footerText = cantidad === 1 ? i18next.t("botones:buttonLink.foote_01") : i18next.t("botones:buttonLink.foote_02", {a1: cantidad});
         
         const embed = new EmbedBuilder()
-            .setTitle(i18next.t("bottonsCom:buttonLink.greatLiank")) 
-            .setDescription(i18next.t("bottonsCom:buttonLink.post_report"))
+            .setTitle(i18next.t("botones:buttonLink.greatLiank")) 
+            .setDescription(i18next.t("botones:buttonLink.post_report"))
             .setFields(
-                { name: i18next.t("bottonsCom:buttonLink.b2"), value: buttonUp(secondButtonText, secondUrl), inline: true },
-                { name: i18next.t("bottonsCom:buttonLink.b3"), value: buttonUp(thirdButtonText, thirdUrl), inline: true },
-                { name: i18next.t("bottonsCom:buttonLink.b4"), value: buttonUp(fourthButtonText, fourthUrl), inline: true },
-                { name: i18next.t("bottonsCom:buttonLink.b5"), value: buttonUp(fifthButtonText, fifthUrl), inline: true }
+                { name: i18next.t("botones:buttonLink.b2"), value: buttonUp(secondButtonText, secondUrl), inline: true },
+                { name: i18next.t("botones:buttonLink.b3"), value: buttonUp(thirdButtonText, thirdUrl), inline: true },
+                { name: i18next.t("botones:buttonLink.b4"), value: buttonUp(fourthButtonText, fourthUrl), inline: true },
+                { name: i18next.t("botones:buttonLink.b5"), value: buttonUp(fifthButtonText, fifthUrl), inline: true }
             )
             .setColor(0x00FF00)
             .setFooter({text: footerText});
@@ -171,6 +171,6 @@ export async function handleButtonLinkCommand(interaction: ChatInputCommandInter
 
     } catch (error) {
         console.error("Error al crear botón de link:", error);
-        await interaction.reply({ content: i18next.t("bottonsCom:errores.errorButton"), flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: i18next.t("botones:errores.errorButton"), flags: MessageFlags.Ephemeral });
     }
 }

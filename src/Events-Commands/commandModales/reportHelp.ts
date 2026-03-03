@@ -10,23 +10,23 @@ export async function Report(interaction: ChatInputCommandInteraction): Promise<
   const idGuild = interaction.guildId;
   const idCooldown = "repCommand"
   if (!idGuild) { 
-    await interaction.reply({ content: (i18next.t("bottonsCom:reportHelp.modal_no_guild")), flags: MessageFlags.Ephemeral }); return;
+    await interaction.reply({ content: (i18next.t("botones:reportHelp.modal_no_guild")), flags: MessageFlags.Ephemeral }); return;
   } else if (!isAdmin) {
-    await interaction.reply({ content: i18next.t("bottonsCom:reportHelp.no_admin"), flags: MessageFlags.Ephemeral });  return;
+    await interaction.reply({ content: i18next.t("botones:reportHelp.no_admin"), flags: MessageFlags.Ephemeral });  return;
   }
 
   const cooldown = checkCooldown(idGuild, idCooldown);
   if (cooldown.onCooldown) {
-    await interaction.reply({ content: i18next.t("bottonsCom:reportHelp.onCooldown", { a1: cooldown.timeLeft }), flags: MessageFlags.Ephemeral}); return; }
+    await interaction.reply({ content: i18next.t("botones:reportHelp.onCooldown", { a1: cooldown.timeLeft }), flags: MessageFlags.Ephemeral}); return; }
   startCooldown(idGuild, idCooldown);
 
   const modal = new ModalBuilder()
     .setCustomId('helpRepo')
-    .setTitle(i18next.t("bottonsCom:reportHelp.modal_title"));
+    .setTitle(i18next.t("botones:reportHelp.modal_title"));
   const reportIn = new TextInputBuilder()
     .setCustomId('report_content')
-    .setLabel(i18next.t("bottonsCom:reportHelp.modal_label"))
-    .setPlaceholder(i18next.t("bottonsCom:reportHelp.modal_pholder"))
+    .setLabel(i18next.t("botones:reportHelp.modal_label"))
+    .setPlaceholder(i18next.t("botones:reportHelp.modal_pholder"))
     .setStyle(TextInputStyle.Paragraph)
     .setMinLength(10)
     .setMaxLength(500) 
@@ -49,11 +49,11 @@ export async function helpRepo(interaction: ModalSubmitInteraction) {
     const embMsg = {
       embeds: [
         new EmbedBuilder()
-        .setAuthor({name:(i18next.t("bottonsCom:reportHelp.modal_autor", { a1: uData.username})), iconURL: uData.displayAvatarURL()})
+        .setAuthor({name:(i18next.t("botones:reportHelp.modal_autor", { a1: uData.username})), iconURL: uData.displayAvatarURL()})
         .addFields(
-          { name: (i18next.t("bottonsCom:reportHelp.modal_name_A1")), value: `Name: ${gName.name} \n Id: ${gName.id}`, inline: true },
+          { name: (i18next.t("botones:reportHelp.modal_name_A1")), value: `Name: ${gName.name} \n Id: ${gName.id}`, inline: true },
           { name: (`\u200B`), value: (`\u200B`)},
-          { name: (i18next.t("bottonsCom:reportHelp.modal_name_B1")), value: reporMsg }
+          { name: (i18next.t("botones:reportHelp.modal_name_B1")), value: reporMsg }
         )
         .setTimestamp()
         .setFooter({text:`Dev: ${ownerUser.username}`, iconURL: ownerUser.displayAvatarURL()})
@@ -67,9 +67,9 @@ export async function helpRepo(interaction: ModalSubmitInteraction) {
     } else {
       await ownerUser.send(embMsg);
     }
-    await interaction.reply({ content: (i18next.t("bottonsCom:reportHelp.modal_sent_success")), embeds: embMsg.embeds, flags: MessageFlags.Ephemeral });
+    await interaction.reply({ content: (i18next.t("botones:reportHelp.modal_sent_success")), embeds: embMsg.embeds, flags: MessageFlags.Ephemeral });
   } catch (e) {
     console.error(`Error al enviar reporte desde modal: ${e}`);
-    await interaction.reply({ content: (i18next.t("bottonsCom:reportHelp.modal_sent_error")), flags: MessageFlags.Ephemeral });
+    await interaction.reply({ content: (i18next.t("botones:reportHelp.modal_sent_error")), flags: MessageFlags.Ephemeral });
   }
 }

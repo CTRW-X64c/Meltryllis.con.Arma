@@ -129,7 +129,7 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
 
     const channel = interaction.channel as TextChannel;
     await interaction.reply({ 
-        content: i18next.t("bottonsCom:roleButton.catchmsg"), 
+        content: i18next.t("botones:roleButton.catchmsg"), 
         flags: MessageFlags.Ephemeral 
     });
 
@@ -182,20 +182,20 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
         await channel.send({ content: m.content || " ", files: attachments, components: [row] });
 
         const buttonUp = (text: string | null, rol: string | null) => {    
-            if (!text && !rol) return i18next.t("bottonsCom:buttonLink.no_use");
-            if (!text) return i18next.t("bottonsCom:roleButton.no_text");
-            if (!rol) return i18next.t("bottonsCom:roleButton.no_rol");
-            return i18next.t("bottonsCom:buttonLink.use");
+            if (!text && !rol) return i18next.t("botones:buttonLink.no_use");
+            if (!text) return i18next.t("botones:roleButton.no_text");
+            if (!rol) return i18next.t("botones:roleButton.no_rol");
+            return i18next.t("botones:buttonLink.use");
         };
 
         const emb = new EmbedBuilder()
-            .setTitle(i18next.t("bottonsCom:roleButton.success"))
-            .setDescription(i18next.t("bottonsCom:buttonLink.post_report"))
+            .setTitle(i18next.t("botones:roleButton.success"))
+            .setDescription(i18next.t("botones:buttonLink.post_report"))
             .setFields(
-                {name: i18next.t("bottonsCom:buttonLink.b2"), value: buttonUp(secondButtonText, secondRol?.id ?? null), inline: true},
-                {name: i18next.t("bottonsCom:buttonLink.b3"), value: buttonUp(thirdButtonText, thirdRol?.id ?? null), inline: true},
-                {name: i18next.t("bottonsCom:buttonLink.b4"), value: buttonUp(fourthButtonText, fourthRol?.id ?? null), inline: true},
-                {name: i18next.t("bottonsCom:buttonLink.b5"), value: buttonUp(fifthButtonText, fifthRol?.id ?? null), inline: true}
+                {name: i18next.t("botones:buttonLink.b2"), value: buttonUp(secondButtonText, secondRol?.id ?? null), inline: true},
+                {name: i18next.t("botones:buttonLink.b3"), value: buttonUp(thirdButtonText, thirdRol?.id ?? null), inline: true},
+                {name: i18next.t("botones:buttonLink.b4"), value: buttonUp(fourthButtonText, fourthRol?.id ?? null), inline: true},
+                {name: i18next.t("botones:buttonLink.b5"), value: buttonUp(fifthButtonText, fifthRol?.id ?? null), inline: true}
             )
             .setColor(0x00FF00
             );
@@ -211,7 +211,7 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
     collector.on('end', (_, reason) => {
         if (reason === 'time') {
             interaction.followUp({ 
-                content: i18next.t("bottonsCom:roleButton.timeout"), 
+                content: i18next.t("botones:roleButton.timeout"), 
                 flags: MessageFlags.Ephemeral 
             }).catch(() => null);;
         }
@@ -228,16 +228,16 @@ export async function roleButton(interaction: ButtonInteraction) {
         try {
             const member = interaction.member as GuildMember;
             if (member.roles.cache.has(roleId)) {
-                await interaction.reply({ content: i18next.t("bottonsCom.roleButton.againClick", {a1: roleName }), flags: MessageFlags.Ephemeral });
+                await interaction.reply({ content: i18next.t("botones:roleButton.againClick", {a1: roleName }), flags: MessageFlags.Ephemeral });
                 return;
             }
 
             await member.roles.add(roleId);
-            await interaction.reply({ content: i18next.t("bottonsCom.roleButton.getSucces", {a1: roleName}), flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: i18next.t("botones:roleButton.getSucces", {a1: roleName}), flags: MessageFlags.Ephemeral });
 
         } catch (error) {
             console.error(`Error al dar el rol desde el botón: ${error}`);
-            await interaction.reply({ content: i18next.t("bottonsCom.roleButton.erroGive") , flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: i18next.t("botones:roleButton.erroGive") , flags: MessageFlags.Ephemeral });
         }
     }
 }
