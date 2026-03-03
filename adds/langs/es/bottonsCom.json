@@ -1,4 +1,8 @@
 {
+    "errores":{
+        "errorButton":"❌ Ocurrió un error al crear el botón!!"
+    },
+
     "reportHelp":{
         "no_admin":"No eres administrador",
         "modal_title": "Reporte de falla o problema",
@@ -12,6 +16,34 @@
         "modal_name_B1": "Reporte:",
         "onCooldown": "Actualmente en cooldown, Tiempo restante: {{a1}}",
         "modal_sent_error": "❌ Error al enviar el reporte."
+    },
+
+    "buttonLink":{
+        "errorFortmat": "❌ Lo enelaces deben contener http:// o https:// , si los demas botones no los contienen no se generaran!",
+        "greatLiank": "✅ El primer botón se posteo correctamente!!",
+        "foote_01":" Se posteó un botón.",
+        "foote_02":" Se postearon {{a1}} botones.",
+        "post_report": "Reporte de los botones extras:",
+        "no_use": "⚪ No se usó este botón.",
+        "no_text": "❌ No se nombró el botón.",
+        "no_url": "❌ No se puso link.",
+        "no_url_valid": "❌ Se usó un link inválido.",
+        "use": "✅ ¡Posteado correctamente!",
+        "b2": "2do boton",
+        "b3": "3er boton",
+        "b4": "4to boton",
+        "b5": "5to boton"
+    },
+
+    "roleButton":{
+        "catchmsg":"⏳ **¡Configuración iniciada!**\nPor favor, envía en este canal el mensaje que quieres que aparezca junto al botón. Puedes incluir saltos de línea, emojis e **imágenes adjuntas**.\n*Tienes 5 minutos para enviarlo.*",
+        "success": "✅ Se posteo correctamente el primer boton",
+        "timeout":"❌ Se acabó el tiempo de espera. Vuelve a ejecutar el comando `/rolebutton` si quieres intentarlo de nuevo.",
+        "againClick": "❌ Ya tienes {{a1}}",
+        "getSucces": "🎉Recibiste el rol: {{a1}}",
+        "erroGive": "⚠️ Hubo un error al darte el rol. Verifica que el bot tenga permisos suficientes (Mi rol debe estar por encima del rol que intento dar).",
+        "no_rol": "❌ No se asigno Rol",
+        "no_text": "❌ No se nombró el botón."
     }
 
 }

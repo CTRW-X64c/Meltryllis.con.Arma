@@ -1,5 +1,5 @@
 // src/Event-Commands/buttonLink.ts
-import { SlashCommandBuilder, ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, MessageFlags } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, MessageFlags, EmbedBuilder } from "discord.js";
 import i18next from "i18next";
 import { hasPermission } from "../../sys/zGears/mPermission";
 
@@ -100,7 +100,7 @@ export async function handleButtonLinkCommand(interaction: ChatInputCommandInter
     try {
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             await interaction.reply({
-                content: "❌ Lo enelaces deben contener http:// o https:// , si los demas botones no los contienen no se generaran!",
+                content: i18next.t("bottonsCom:buttonLink.errorFortmat"),
                 flags: MessageFlags.Ephemeral
             });
             return;
@@ -137,17 +137,39 @@ export async function handleButtonLinkCommand(interaction: ChatInputCommandInter
             row.addComponents(
                 new ButtonBuilder().setLabel(fifthButtonText).setStyle(ButtonStyle.Link).setURL(fifthUrl)
             );
-        }
-   
-        await channel.send({ content: "\u200B", components: [row]});
-        
-        const cantidad = [url, secondUrl, thirdUrl, fourthUrl, fifthUrl].filter(Boolean).length;
-        const plural = cantidad === 1 ? "Botón" : "Botones";
+        };
 
-        await interaction.reply({ content: `✅ ${plural} con enlace creado correctamente.`, flags: MessageFlags.Ephemeral });
+        await channel.send({ content: "\u200B", components: [row]});
+
+        const buttonUp = (text: string | null, url: string | null) => {    
+            if (!text && !url) return i18next.t("bottonsCom:buttonLink.no_use");
+            if (!text) return i18next.t("bottonsCom:buttonLink.no_text");
+            if (!url) return i18next.t("bottonsCom:buttonLink.no_url");
+            if (!url.startsWith("http://") || !url.startsWith("https://"))
+                return i18next.t("bottonsCom:buttonLink.no_url_valid");
+            return i18next.t("bottonsCom:buttonLink.use");
+        };
+
+        const results = [ buttonUp(secondButtonText, secondUrl), buttonUp(thirdButtonText, thirdUrl), buttonUp(fourthButtonText, fourthUrl), buttonUp(fifthButtonText, fifthUrl) ];
+        const cantidad = results.filter(res => res === i18next.t("bottonsCom:buttonLink.use")).length + 1;
+        const footerText = cantidad === 1 ? i18next.t("bottonsCom:buttonLink.foote_01") : i18next.t("bottonsCom:buttonLink.foote_02", {a1: cantidad});
+        
+        const embed = new EmbedBuilder()
+            .setTitle(i18next.t("bottonsCom:buttonLink.greatLiank")) 
+            .setDescription(i18next.t("bottonsCom:buttonLink.post_report"))
+            .setFields(
+                { name: i18next.t("bottonsCom:buttonLink.b2"), value: buttonUp(secondButtonText, secondUrl), inline: true },
+                { name: i18next.t("bottonsCom:buttonLink.b3"), value: buttonUp(thirdButtonText, thirdUrl), inline: true },
+                { name: i18next.t("bottonsCom:buttonLink.b4"), value: buttonUp(fourthButtonText, fourthUrl), inline: true },
+                { name: i18next.t("bottonsCom:buttonLink.b5"), value: buttonUp(fifthButtonText, fifthUrl), inline: true }
+            )
+            .setColor(0x00FF00)
+            .setFooter({text: footerText});
+
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 
     } catch (error) {
         console.error("Error al crear botón de link:", error);
-        await interaction.reply({ content: "❌ Ocurrió un error al crear el botón. ¿El enlace es muy largo o inválido?", flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: i18next.t("bottonsCom:errores.errorButton"), flags: MessageFlags.Ephemeral });
     }
 }

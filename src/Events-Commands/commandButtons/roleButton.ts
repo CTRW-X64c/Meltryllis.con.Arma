@@ -1,5 +1,5 @@
 // src/Events-Commands/commandButtons/roleButton.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, MessageFlags, TextChannel, Message, GuildMember, ButtonInteraction, } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, MessageFlags, TextChannel, Message, GuildMember, ButtonInteraction, EmbedBuilder, } from "discord.js";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
 
@@ -96,7 +96,7 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
     const isAllowed = await hasPermission(interaction, interaction.commandName);
     if (!isAllowed) {
         await interaction.editReply({
-            content: i18next.t("command_permission_error", { ns: "rolemoji" }),
+            content: i18next.t("common:Errores.isAllowed"),
         });
         return;
     }
@@ -129,7 +129,7 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
 
     const channel = interaction.channel as TextChannel;
     await interaction.reply({ 
-        content: "⏳ **¡Configuración iniciada!**\nPor favor, envía en este canal el mensaje que quieres que aparezca junto al botón. Puedes incluir saltos de línea, emojis e **imágenes adjuntas**.\n*Tienes 5 minutos para enviarlo.*", 
+        content: i18next.t("bottonsCom:roleButton.catchmsg"), 
         flags: MessageFlags.Ephemeral 
     });
 
@@ -179,11 +179,30 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
         
         const attachments = m.attachments.map(a => a.url);
 
+        const buttonUp = (text: string | null, rol: string | null) => {    
+            if (!text && !rol) return i18next.t("bottonsCom:buttonLink.no_use");
+            if (!text) return i18next.t("bottonsCom:roleButton.no_text");
+            if (!rol) return i18next.t("bottonsCom:roleButton.no_rol");
+            return i18next.t("bottonsCom:buttonLink.use");
+        };
+
+        const emb = new EmbedBuilder()
+            .setTitle(i18next.t("bottonsCom:roleButton.success"))
+            .setDescription("Reporte delos demas botones")
+            .setFields(
+                {name: i18next.t("bottonsCom:buttonLink.b2"), value: buttonUp(secondButtonText, secondRol?.id ?? null), inline: true},
+                {name: i18next.t("bottonsCom:buttonLink.b3"), value: buttonUp(thirdButtonText, thirdRol?.id ?? null), inline: true},
+                {name: i18next.t("bottonsCom:buttonLink.b4"), value: buttonUp(fourthButtonText, fourthRol?.id ?? null), inline: true},
+                {name: i18next.t("bottonsCom:buttonLink.b5"), value: buttonUp(fifthButtonText, fifthRol?.id ?? null), inline: true}
+            )
+            .setColor(0x00FF00
+            );
+
         await channel.send({ content: m.content || " ", files: attachments, components: [row] });
 
         try {
             await m.delete();
-            await interaction.followUp({ content: "✅ Panel creado exitosamente.", flags: MessageFlags.Ephemeral });
+            await interaction.followUp({ embeds: [emb], flags: MessageFlags.Ephemeral });
         } catch (error) {
             console.error("No pude borrar el mensaje del admin:", error);
         }
@@ -192,7 +211,7 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
     collector.on('end', (_, reason) => {
         if (reason === 'time') {
             interaction.followUp({ 
-                content: "❌ Se acabó el tiempo de espera. Vuelve a ejecutar el comando `/rolebutton` si quieres intentarlo de nuevo.", 
+                content: i18next.t("bottonsCom:roleButton.timeout"), 
                 flags: MessageFlags.Ephemeral 
             }).catch(() => null);;
         }
@@ -205,19 +224,20 @@ export async function roleButton(interaction: ButtonInteraction) {
     
     if (interaction.customId.startsWith('roleButton_')) {
         const roleId = interaction.customId.replace('roleButton_', '');
+        const roleName = `<@${roleId}>`
         try {
             const member = interaction.member as GuildMember;
             if (member.roles.cache.has(roleId)) {
-                await interaction.reply({ content: `❌ Ya tienes <@&${roleId}>`, flags: MessageFlags.Ephemeral });
+                await interaction.reply({ content: i18next.t("bottonsCom.roleButton.againClick", {a1: roleName }), flags: MessageFlags.Ephemeral });
                 return;
             }
 
             await member.roles.add(roleId);
-            await interaction.reply({ content: `🎉Recibiste el rol: <@&${roleId}>.`, flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: i18next.t("bottonsCom.roleButton.getSucces", {a1: roleName}), flags: MessageFlags.Ephemeral });
 
         } catch (error) {
             console.error(`Error al dar el rol desde el botón: ${error}`);
-            await interaction.reply({ content: "⚠️ Hubo un error al darte el rol. Verifica que el bot tenga permisos suficientes (Mi rol debe estar por encima del rol que intento dar).", flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: i18next.t("bottonsCom.roleButton.erroGive") , flags: MessageFlags.Ephemeral });
         }
     }
 }
