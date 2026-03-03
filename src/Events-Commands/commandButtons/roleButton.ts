@@ -188,7 +188,7 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
 
         const emb = new EmbedBuilder()
             .setTitle(i18next.t("bottonsCom:roleButton.success"))
-            .setDescription("Reporte delos demas botones")
+            .setDescription(i18next.t("bottonsCom:buttonLink.post_report"))
             .setFields(
                 {name: i18next.t("bottonsCom:buttonLink.b2"), value: buttonUp(secondButtonText, secondRol?.id ?? null), inline: true},
                 {name: i18next.t("bottonsCom:buttonLink.b3"), value: buttonUp(thirdButtonText, thirdRol?.id ?? null), inline: true},
