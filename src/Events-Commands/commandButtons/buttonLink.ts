@@ -145,7 +145,8 @@ export async function handleButtonLinkCommand(interaction: ChatInputCommandInter
             if (!text && !url) return i18next.t("bottonsCom:buttonLink.no_use");
             if (!text) return i18next.t("bottonsCom:buttonLink.no_text");
             if (!url) return i18next.t("bottonsCom:buttonLink.no_url");
-            if (!url.startsWith("http://") || !url.startsWith("https://"))
+                const urlOk = url.startsWith("http://") || url.startsWith("https://");
+            if (!urlOk)
                 return i18next.t("bottonsCom:buttonLink.no_url_valid");
             return i18next.t("bottonsCom:buttonLink.use");
         };
