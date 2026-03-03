@@ -5,7 +5,7 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 
 export async function registerButtonLinkCommand(): Promise<SlashCommandBuilder[]> {
     const buttonlink = new SlashCommandBuilder()
-        .setName("linkonbutton")
+        .setName("buttonlink")
         .setDescription("Genera un botón que abre un enlace")
         /* 1er boton */
         .addStringOption((op) =>

@@ -87,7 +87,7 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handlePermissionsCommand(interaction);  break;
     case 'rolebutton':
       await handleRoleButtonCommand(interaction); break;
-    case 'linkonbutton':
+    case 'buttonlink':
       await handleButtonLinkCommand(interaction); break;
     default:
       defSwitch(interaction); break;
