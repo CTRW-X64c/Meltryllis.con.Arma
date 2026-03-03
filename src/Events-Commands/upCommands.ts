@@ -45,9 +45,10 @@ export async function sysUpRegister(client: Client) {
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
   commands.push(...permissionsCommand);
+  const comandList = commands.map((command) => command.name).join(", /");
 
   client.application?.commands.set(commands)
-    .then(() => info("Comandos /help, /test, /embed, /work, /welcome, /replybots, /rolemoji, /youtube, /reddit, /post, cleanup, /jointovoice, /mangadex, /permisos y /owner registrados con éxito", "Commands.Register"))
+    .then(() => info(`Comandos /${comandList} registrados con éxito`, "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 
