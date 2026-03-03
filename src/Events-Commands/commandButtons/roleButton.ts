@@ -179,6 +179,8 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
         
         const attachments = m.attachments.map(a => a.url);
 
+        await channel.send({ content: m.content || " ", files: attachments, components: [row] });
+
         const buttonUp = (text: string | null, rol: string | null) => {    
             if (!text && !rol) return i18next.t("bottonsCom:buttonLink.no_use");
             if (!text) return i18next.t("bottonsCom:roleButton.no_text");
@@ -197,8 +199,6 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
             )
             .setColor(0x00FF00
             );
-
-        await channel.send({ content: m.content || " ", files: attachments, components: [row] });
 
         try {
             await m.delete();
