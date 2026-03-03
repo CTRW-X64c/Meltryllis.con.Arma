@@ -85,7 +85,7 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handleMangadexCommand(interaction); break;
     case 'permisos':
       await handlePermissionsCommand(interaction);  break;
-    case 'rolebutton':
+    case 'buttonrole':
       await handleRoleButtonCommand(interaction); break;
     case 'buttonlink':
       await handleButtonLinkCommand(interaction); break;

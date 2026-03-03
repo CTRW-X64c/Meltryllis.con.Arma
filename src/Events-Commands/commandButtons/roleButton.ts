@@ -13,7 +13,7 @@ const colorsButton = [
 
 export async function registerRoleButtonCommand(): Promise<SlashCommandBuilder[]> {
     const buttonrole = new SlashCommandBuilder()
-    .setName("rolebutton")
+    .setName("buttonrole")
     .setDescription("Crea botones para asignar roles en un mensaje. mx 4 botones")
     /* 1er boton */
     .addRoleOption(option => 
