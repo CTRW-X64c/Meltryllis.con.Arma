@@ -6,60 +6,60 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 export async function registerButtonLinkCommand(): Promise<SlashCommandBuilder[]> {
     const buttonlink = new SlashCommandBuilder()
         .setName("buttonlink")
-        .setDescription("Genera un botón que abre un enlace")
+        .setDescription(i18next.t("botones:buttonLink.slashbuilder.description"))
         /* 1er boton */
         .addStringOption((op) =>
             op.setName("link")
-            .setDescription("URL completa (ej: https://discord.com)")
+            .setDescription(i18next.t("botones:buttonLink.slashbuilder.b1Link"))
             .setRequired(true)
         )
         .addStringOption((op) =>
             op.setName("texto_del_boton")
-            .setDescription("Texto que aparecerá en el botón")
+            .setDescription(i18next.t("botones:buttonLink.slashbuilder.b1Text"))
             .setRequired(true)
             .setMaxLength(80)
         )  /* 2do boton  */
         .addStringOption((op) =>
             op.setName("2do_link")
-            .setDescription("Segunda URL")
+            .setDescription(i18next.t("botones:buttonLink.slashbuilder.b2Link"))
             .setRequired(false)
         )
         .addStringOption((op) =>
             op.setName("texto_2do_boton")
-            .setDescription("Texto del 2do boton")
+            .setDescription(i18next.t("botones:buttonLink.slashbuilder.b2Text"))
             .setRequired(false)
             .setMaxLength(80)
         )   /* 3er boton */
         .addStringOption((op) =>
-            op.setName("3er_link")
+            op.setName(i18next.t("botones:buttonLink.slashbuilder.b3Link"))
             .setRequired(false)
             .setDescription("Tercera URL")
         )   
         .addStringOption((op) =>
             op.setName("texto_3er_boton")
-            .setDescription("Texto del 3er boton")
+            .setDescription(i18next.t("botones:buttonLink.slashbuilder.b3Text"))
             .setRequired(false)
             .setMaxLength(80)
         )  /* 4to boton */
         .addStringOption((op) =>
             op.setName("4to_link")
-            .setDescription("Cuarta URL")
+            .setDescription(i18next.t("botones:buttonLink.slashbuilder.b4Link"))
             .setRequired(false)
         )
         .addStringOption((op) =>
             op.setName("texto_4to_boton")
-            .setDescription("Texto del 4to boton")
+            .setDescription(i18next.t("botones:buttonLink.slashbuilder.b4Text"))
             .setRequired(false)
             .setMaxLength(80)
         )  /* 5to boton */
         .addStringOption((op) =>
             op.setName("5to_link")
-            .setDescription("Quinta URL")
+            .setDescription(i18next.t("botones:buttonLink.slashbuilder.b5Link"))
             .setRequired(false)
         )
         .addStringOption((op) =>
             op.setName("texto_5to_boton")
-            .setDescription("Texto del 5to boton")
+            .setDescription(i18next.t("botones:buttonLink.slashbuilder.b5Text"))
             .setRequired(false)
             .setMaxLength(80)
         )

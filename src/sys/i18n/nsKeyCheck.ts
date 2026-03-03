@@ -50,6 +50,10 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
     ],
     "music":[
         "slashBuilder.*"
+    ],
+    "botones":[
+        "buttonLink.slashbuilder.*",
+        "roleButton.slashbuilder.*"
     ]
 
     // Agrega más namespaces según necesites

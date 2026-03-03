@@ -19,6 +19,20 @@
     },
 
     "buttonLink":{
+        "slashbuilder":{
+            "description":"Genera un botón que abre un enlace",
+            "b1Link": "URL completa (ej: https://discord.com)",
+            "b1Text": "Texto que aparecerá en el botón",
+            "b2Link": "Segunda URL",
+            "b2Text": "Texto del 2do boton",
+            "b3Link": "Tercera URL",
+            "b3Text": "Texto del 3er boton",
+            "b4Link": "Cuarta URL",
+            "b4Text": "Texto del 4to boton",
+            "b5Link": "Quinta URL",
+            "b5Text": "Texto del 5to boton"
+        },
+
         "errorFortmat": "❌ Lo enelaces deben contener http:// o https:// , si los demas botones no los contienen no se generaran!",
         "greatLiank": "✅ El primer botón se posteo correctamente!!",
         "foote_01":" Se posteó un botón.",
@@ -36,6 +50,25 @@
     },
 
     "roleButton":{
+        "slashbuilder":{
+            "description":"Crea botones para asignar roles en un mensaje. mx 5 botones",
+            "roleB1": "Rol que dara el boton",
+            "textB1": "Texto del boton",
+            "colorB1": "Color del boton",
+            "roleB2": "Rol que dara el 2do boton",
+            "textB2": "Texto del 2do boton",
+            "colorB2": "Color del 2do boton",
+            "roleB3": "Rol que dara el 3er boton",
+            "textB3": "Texto del 3er boton",
+            "colorB3": "Color del 3er boton",
+            "roleB4": "Rol que dara el 4to boton",
+            "textB4": "Texto del 4to boton",
+            "colorB4": "Color del 4to boton",
+            "roleB5": "Rol que dara el 5to boton",
+            "textB5": "Texto del 5to boton",
+            "colorB5": "Color del 5to boton"
+        },
+
         "catchmsg":"⏳ **¡Configuración iniciada!**\nPor favor, envía en este canal el mensaje que quieres que aparezca junto al botón. Puedes incluir saltos de línea, emojis e **imágenes adjuntas**.\n*Tienes 5 minutos para enviarlo.*",
         "success": "✅ Se posteo correctamente el primer boton",
         "timeout":"❌ Se acabó el tiempo de espera. Vuelve a ejecutar el comando `/rolebutton` si quieres intentarlo de nuevo.",

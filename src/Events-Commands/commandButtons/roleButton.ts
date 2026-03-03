@@ -14,76 +14,80 @@ const colorsButton = [
 export async function registerRoleButtonCommand(): Promise<SlashCommandBuilder[]> {
     const buttonrole = new SlashCommandBuilder()
     .setName("buttonrole")
-    .setDescription("Crea botones para asignar roles en un mensaje. mx 4 botones")
+    .setDescription(i18next.t("botones:roleButton.slashbuilder.description"))
     /* 1er boton */
     .addRoleOption(option => 
         option.setName("first_rol")
-        .setDescription("Rol que dara el boton")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.roleB1"))
         .setRequired(true))
     .addStringOption(option =>
         option.setName("first_text_on_button")
-        .setDescription("Texto en el boton")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.textB1"))
         .setMaxLength(30)
         .setRequired(true))
     .addStringOption(option =>
         option.setName("first_color")
-        .setDescription("Color del botón")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.colorB1"))
         .setRequired(true)
         .addChoices(colorsButton)
     ) /* 2do boton  */
     .addRoleOption(option =>
         option.setName("second_rol")
-        .setDescription("Rol del 2do boton")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.roleB2"))
         .setRequired(false))
     .addStringOption(option =>
         option.setName("second_text_on_button")
-        .setDescription("Texto del 2do boton")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.textB2"))
         .setMaxLength(30)
         .setRequired(false))
     .addStringOption(option =>
         option.setName("second_color")
-        .setDescription("Color del 2do botón")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.colorB2"))
         .setRequired(false)
         .addChoices(colorsButton)
     ) /* 3ro boton */
     .addRoleOption(option =>
         option.setName("third_rol")
-        .setDescription("Rol del 3er boton")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.roleB3"))
         .setRequired(false))
     .addStringOption(option =>
         option.setName("third_text_on_button")
-        .setDescription("Texto del 3er boton")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.textB3"))
         .setMaxLength(30)
         .setRequired(false))
     .addStringOption(option =>
         option.setName("third_color")
-        .setDescription("Color del 3er botón")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.colorB3"))
         .setRequired(false)
         .addChoices(colorsButton)
     ) /* 4to boton */
     .addRoleOption(option =>
         option.setName("fourth_rol")
-        .setDescription("Rol del 4to boton")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.roleB4"))
         .setRequired(false))
     .addStringOption(option =>
         option.setName("fourth_text_on_button")
-        .setDescription("Texto del 4to boton")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.textB4"))
         .setMaxLength(30)
         .setRequired(false))
     .addStringOption(option =>
         option.setName("fourth_color")
-        .setDescription("Color del 4to botón")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.colorB4"))
         .setRequired(false)
         .addChoices(colorsButton)
     ) /* 5to boton */
+    .addRoleOption(option =>
+        option.setName("fifth_rol")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.roleB5"))
+        .setRequired(false))
     .addStringOption(option =>
         option.setName("fifth_text_on_button")
-        .setDescription("Texto del 5to boton")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.textB5"))
         .setMaxLength(30)
         .setRequired(false))
     .addStringOption(option =>
         option.setName("fifth_color")
-        .setDescription("Color del 5to botón")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.colorB5"))
         .setRequired(false)
         .addChoices(colorsButton)
     )
