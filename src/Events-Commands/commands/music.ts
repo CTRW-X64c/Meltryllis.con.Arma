@@ -21,24 +21,24 @@ export async function registerMusicCommands() {
     if (!lavalinkManager) return [];
 
     return [
-        new SlashCommandBuilder().setName("play").setDescription(i18next.t("music:slashBuilder.mussic_play_01"))
+        new SlashCommandBuilder().setName("play").setDescription(i18next.t("commands:mussic.slashBuilder.mussic_play_01"))
             .addStringOption(o => o.setName("cancion")
-            .setDescription(i18next.t("music:slashBuilder.mussic_play_02")).setRequired(true))
+            .setDescription(i18next.t("commands:mussic.slashBuilder.mussic_play_02")).setRequired(true))
             .addStringOption(o => o.setName("queue")
-            .setDescription(i18next.t("music:slashBuilder.mussic_play_03")).setRequired(false)
+            .setDescription(i18next.t("commands:mussic.slashBuilder.mussic_play_03")).setRequired(false)
             .addChoices({ name: "yes", value: "yes" })),
-        new SlashCommandBuilder().setName("stop").setDescription(i18next.t("music:slashBuilder.mussic_stop_01")),
-        new SlashCommandBuilder().setName("skip").setDescription(i18next.t("music:slashBuilder.mussic_skip_01")),
-        new SlashCommandBuilder().setName("queue").setDescription(i18next.t("music:slashBuilder.mussic_queue_01"))
+        new SlashCommandBuilder().setName("stop").setDescription(i18next.t("commands:mussic.slashBuilder.mussic_stop_01")),
+        new SlashCommandBuilder().setName("skip").setDescription(i18next.t("commands:mussic.slashBuilder.mussic_skip_01")),
+        new SlashCommandBuilder().setName("queue").setDescription(i18next.t("commands:mussic.slashBuilder.mussic_queue_01"))
             .addStringOption(o => o.setName("clean")
-            .setDescription(i18next.t("music:slashBuilder.mussic_queue_02")).setRequired(false)
+            .setDescription(i18next.t("commands:mussic.slashBuilder.mussic_queue_02")).setRequired(false)
             .addChoices({ name: "yes", value: "yes" })),
     ];
 }
 
 export async function handleMusicInteraction(interaction: ChatInputCommandInteraction) {
     if (!lavalinkManager) {
-        await interaction.reply({ content: i18next.t("music:interacciones.error_01"), flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.error_01"), flags: MessageFlags.Ephemeral });
         await deletReplyMsg(interaction);
         return;
     }
@@ -82,7 +82,7 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
     const playlist = interaction.options.getString("queue");
 
     if (!member.voice.channelId) {
-        await interaction.editReply(i18next.t("music:interacciones.error_empit"));
+        await interaction.editReply(i18next.t("commands:mussic.interacciones.error_empit"));
         await deletReplyMsg(interaction);
         return;
     }
@@ -97,7 +97,7 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
 
         if (player && botVoiceChannel) {
             if (botVoiceChannel !== member.voice.channelId) {
-                await interaction.editReply(i18next.t("music:interacciones.occupied"));
+                await interaction.editReply(i18next.t("commands:mussic.interacciones.occupied"));
                 await deletReplyMsg(interaction);
                 return;
             }
@@ -106,7 +106,7 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
         }
         const node = lavalink.getNode();
         if (!node) { 
-            await interaction.editReply(i18next.t("music:interacciones.lavalink_down"));
+            await interaction.editReply(i18next.t("commands:mussic.interacciones.lavalink_down"));
             if (inChannelPlaying) return;
             lavalink.shoukaku?.leaveVoiceChannel(guildId);
             await deletReplyMsg(interaction);
@@ -124,7 +124,7 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
         const result = await node.rest.resolve(searchEngine);
 
         if (!result || result.loadType === 'empty' || result.loadType === 'error') {
-            await interaction.editReply(i18next.t("music:interacciones.no_found"));
+            await interaction.editReply(i18next.t("commands:mussic.interacciones.no_found"));
             if (inChannelPlaying) return;
             lavalink.shoukaku?.leaveVoiceChannel(guildId);
             await deletReplyMsg(interaction);
@@ -146,11 +146,11 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
             for (const track of result.data.tracks) {
                 tracksToAdd.push(mapTrack(track, interaction.user.tag));
             }
-            message = i18next.t("music:interacciones.playlist", { a1: result.data.tracks.length, a2: tracksToAdd.length });
+            message = i18next.t("commands:mussic.interacciones.playlist", { a1: result.data.tracks.length, a2: tracksToAdd.length });
         } else {
             const trackData = result.loadType === 'search' ? result.data[0] : result.data;
             tracksToAdd.push(mapTrack(trackData, interaction.user.tag));
-            message = i18next.t("music:interacciones.playlist_queue", { a1: trackData.info.title });
+            message = i18next.t("commands:mussic.interacciones.playlist_queue", { a1: trackData.info.title });
             await deletReplyMsg(interaction);
         }
 
@@ -187,7 +187,7 @@ async function handleStop(interaction: ChatInputCommandInteraction, lavalink: La
     const guildId = interaction.guildId!;
     
     if (!player) {
-        await interaction.reply({ content: i18next.t("music:interacciones.Stop_01")});
+        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Stop_01")});
         await deletReplyMsg(interaction);
         return;
     }
@@ -200,7 +200,7 @@ async function handleStop(interaction: ChatInputCommandInteraction, lavalink: La
         await lavalink.shoukaku?.leaveVoiceChannel(guildId);
     } catch (e) {error(`Error al desconectarse del canal de voz: ${e}`);}
     
-    await interaction.reply(i18next.t("music:interacciones.Stop_02"));
+    await interaction.reply(i18next.t("commands:mussic.interacciones.Stop_02"));
     await deletReplyMsg(interaction);
 }
 
@@ -212,19 +212,19 @@ async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: La
     const inChannelPlaying = currentPlaying.get(interaction.guildId!);
 
     if (inChannelPlaying && queue.length > 0){
-        await interaction.reply({ content: i18next.t("music:interacciones.Skip_01")});
+        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_01")});
         await player?.stopTrack();
         await deletReplyMsg(interaction);
         return;
     }
 
     if (inChannelPlaying && queue.length === 0){
-        await interaction.reply({ content: i18next.t("music:interacciones.Skip_02")});
+        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_02")});
         await deletReplyMsg(interaction);
         return;
     }
 
-    await interaction.reply({ content: i18next.t("music:interacciones.Skip_03")});
+    await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_03")});
     await deletReplyMsg(interaction);
 }
 
@@ -238,31 +238,31 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
 
     if (cleanqueue === "yes") { /*Ahora permite borrar la lista*/
         if (queue.length === 0 || !current) {
-            await interaction.reply(i18next.t("music:interacciones.Queue_06"));
+            await interaction.reply(i18next.t("commands:mussic.interacciones.Queue_06"));
             await deletReplyMsg(interaction);
             return;
         }
 
         if (queue.length > 0 && current) {
             musicQueue.delete(guildId);
-            await interaction.reply(i18next.t("music:interacciones.Queue_07"));
+            await interaction.reply(i18next.t("commands:mussic.interacciones.Queue_07"));
             await deletReplyMsg(interaction);
             return;
         }
     }
 
     if (!current && queue.length === 0) {
-        await interaction.reply(i18next.t("music:interacciones.Queue_01"));
+        await interaction.reply(i18next.t("commands:mussic.interacciones.Queue_01"));
         await deletReplyMsg(interaction);
         return;
     }
 
     const embed = new EmbedBuilder()
-        .setTitle(i18next.t("music:interacciones.Queue_02"))
+        .setTitle(i18next.t("commands:mussic.interacciones.Queue_02"))
         .setColor(0x00AE86);
 
     if (current) {
-        embed.addFields({ name: i18next.t("music:interacciones.Queue_03_name"), value: i18next.t("music:interacciones.Queue_03_value", { a1: current.title, a2: current.uri, a3: current.requester}),  inline: false});
+        embed.addFields({ name: i18next.t("commands:mussic.interacciones.Queue_03_name"), value: i18next.t("commands:mussic.interacciones.Queue_03_value", { a1: current.title, a2: current.uri, a3: current.requester}),  inline: false});
     }
 
     if (queue.length > 0) {
@@ -271,9 +271,9 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
         ).join("\n");
 
         const shortlist = queue.length > 10 ? `\n\n*...y ${queue.length - 10} más.*` : '';
-        embed.setDescription(i18next.t("music:interacciones.Queue_04", { a1: list, a2: shortlist}));
+        embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_04", { a1: list, a2: shortlist}));
     } else {
-        embed.setDescription(i18next.t("music:interacciones.Queue_05"));
+        embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_05"));
     }
 
     await interaction.reply({ embeds: [embed] });
@@ -291,7 +291,7 @@ async function playNext(guildId: string, player: any, interaction?: ChatInputCom
 
     lavalinkManager?.shoukaku?.leaveVoiceChannel(guildId);
 
-    if (interaction?.channel) (interaction.channel as TextChannel).send(i18next.t("music:interacciones.pNext_01"));
+    if (interaction?.channel) (interaction.channel as TextChannel).send(i18next.t("commands:mussic.interacciones.pNext_01"));
         return;
     }
 
@@ -300,7 +300,7 @@ async function playNext(guildId: string, player: any, interaction?: ChatInputCom
 
     await player.playTrack({ track: { encoded: song.track }});
 
-    const msg = i18next.t("music:interacciones.pNext_02", { a1: song.title, a2: song.requester });
+    const msg = i18next.t("commands:mussic.interacciones.pNext_02", { a1: song.title, a2: song.requester });
     
     try {
         if (interaction && interaction.deferred && !interaction.replied) await interaction.editReply(msg);

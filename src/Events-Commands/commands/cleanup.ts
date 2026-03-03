@@ -7,37 +7,37 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 export async function registerCleanUpCommand(): Promise<SlashCommandBuilder[]> {
     const cleanupCommand = new SlashCommandBuilder()
         .setName("cleanup")
-        .setDescription(i18next.t("cleanup:slashBuilder.description"))
+        .setDescription(i18next.t("commands:cleanup.slashBuilder.description"))
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addStringOption(option =>
             option.setName("start")
-                .setDescription(i18next.t("cleanup:slashBuilder.start_description"))
+                .setDescription(i18next.t("commands:cleanup.slashBuilder.start_description"))
                 .setRequired(true)
                 .addChoices(
-                    { name: i18next.t("cleanup:slashBuilder.before_option"), value: "before" },
-                    { name: i18next.t("cleanup:slashBuilder.after_option"), value: "after" }
+                    { name: i18next.t("commands:cleanup.slashBuilder.before_option"), value: "before" },
+                    { name: i18next.t("commands:cleanup.slashBuilder.after_option"), value: "after" }
                 )
         )
         .addStringOption(option =>
             option.setName("message_id")
-                .setDescription(i18next.t("cleanup:slashBuilder.message_id_description"))
+                .setDescription(i18next.t("commands:cleanup.slashBuilder.message_id_description"))
                 .setRequired(true)
         )
         .addIntegerOption(option =>
             option.setName("count")
-                .setDescription(i18next.t("cleanup:slashBuilder.count_description"))
+                .setDescription(i18next.t("commands:cleanup.slashBuilder.count_description"))
                 .setRequired(true)
                 .setMinValue(1)
                 .setMaxValue(100)
         )
         .addStringOption(option =>
             option.setName("type")
-                .setDescription(i18next.t("cleanup:slashBuilder.type_description"))
+                .setDescription(i18next.t("commands:cleanup.slashBuilder.type_description"))
                 .setRequired(false)
                 .addChoices(
-                    { name: i18next.t("cleanup:slashBuilder.users_option"), value: "users" },
-                    { name: i18next.t("cleanup:slashBuilder.bots_option"), value: "bots" },
-                    { name: i18next.t("cleanup:slashBuilder.any_option"), value: "any" }
+                    { name: i18next.t("commands:cleanup.slashBuilder.users_option"), value: "users" },
+                    { name: i18next.t("commands:cleanup.slashBuilder.bots_option"), value: "bots" },
+                    { name: i18next.t("commands:cleanup.slashBuilder.any_option"), value: "any" }
                 )
         );
 
@@ -71,7 +71,7 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
 
         if (!/^\d+$/.test(messageId)) {
             await interaction.reply({
-                content: i18next.t("cleanup:interacciones.invalid_message_id"),
+                content: i18next.t("commands:cleanup.interacciones.invalid_message_id"),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -82,7 +82,7 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
             await (channel as TextChannel).messages.fetch(messageId);
         } catch {
             await interaction.editReply(
-                i18next.t("cleanup:interacciones.message_not_found")
+                i18next.t("commands:cleanup.interacciones.message_not_found")
             );
             return;
         }
@@ -113,7 +113,7 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
 
         if (messagesToDelete.size === 0) {
             await interaction.editReply(
-                i18next.t("cleanup:interacciones.no_messages_found")
+                i18next.t("commands:cleanup.interacciones.no_messages_found")
             );
             return;
         }
@@ -143,24 +143,24 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
             }
         }
 
-        let responseMessage = i18next.t("cleanup:interacciones.success", { 
+        let responseMessage = i18next.t("commands:cleanup.interacciones.success", { 
             a1: deletedCounts.total,
             a2: startOption === "before" ? 
-                i18next.t("cleanup:interacciones.before") : 
-                i18next.t("cleanup:interacciones.after")
+                i18next.t("commands:cleanup.interacciones.before") : 
+                i18next.t("commands:cleanup.interacciones.after")
         });
 
         if (deletedCounts.total < messagesArray.length) {
-            responseMessage += `\n⚠️ ${i18next.t("cleanup:interacciones.old_messages_warning")}`; 
+            responseMessage += `\n⚠️ ${i18next.t("commands:cleanup.interacciones.old_messages_warning")}`; 
         }
 
         if (typeOption !== "any") {
-            responseMessage += `\n📊 ${i18next.t("cleanup:interacciones.filtered_by", { 
+            responseMessage += `\n📊 ${i18next.t("commands:cleanup.interacciones.filtered_by", { 
                 a1: i18next.t(`cleanup:cleanup_type_${typeOption}`)
             })}`;
         }
 
-        responseMessage += `\n\n${i18next.t("cleanup:interacciones.breakdown", { 
+        responseMessage += `\n\n${i18next.t("commands:cleanup.interacciones.breakdown", { 
             a1: deletedCounts.users,
             a2: deletedCounts.bots
         })}`;
@@ -173,10 +173,10 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
         error(`Error en comando cleanup: ${err}`);
         
         if (interaction.replied || interaction.deferred) {
-            await interaction.editReply(i18next.t("cleanup:interacciones.error"));
+            await interaction.editReply(i18next.t("commands:cleanup.interacciones.error"));
         } else {
             await interaction.reply({
-                content: i18next.t("cleanup:interacciones.error"),
+                content: i18next.t("commands:cleanup.interacciones.error"),
                 flags: MessageFlags.Ephemeral
             });
         }

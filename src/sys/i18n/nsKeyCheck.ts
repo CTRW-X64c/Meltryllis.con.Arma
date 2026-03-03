@@ -9,52 +9,32 @@ type TranslationConfig = {
 
 const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
 //Agrega todos los i18next.t que esten dentro de la funcion "SlashCommandBuilder"
-    "embed":[
-        "slashBuilder.*"
-    ],    
-    "hola":[
+    "help":[
         "comBuild.*"
-    ], 
-    "rolemoji":[
-        "slashBuilder.*"
     ],
-    "test":[
-        "slashBuilder.*"
-    ],
-    "welcome":[
-       "slashBuilder.*"
-    ],
-    "work":[
-        "slashBuilder.*"
-    ],
-    "youtube":[
-        "slashBuilder.*"
-    ],
-    "reddit":[
-        "slashBuilder.*"
-    ],
-    "post":[
-        "slashBuilder.*"
-    ],
-    "cleanup":[
-        "slashBuilder.*"
-    ],
-    "jointocreate":[
-        "slashBuilder.*"
-    ],
-    "mangadex":[
-        "slashBuilder.*"
-    ],
-    "permissions":[
-        "slashBuilder.*"
-    ],
-    "music":[
-        "slashBuilder.*"
+    "embSys":[
+        "test.slashBuilder.*",
+        "work.slashBuilder.*",
+        "embed.slashBuilder.*"
     ],
     "botones":[
         "buttonLink.slashbuilder.*",
         "roleButton.slashbuilder.*"
-    ]
+    ],
+    "follows":[
+        "mangadex.slashbuilder.*",
+        "reddit.slashBuilder.*",
+        "youtube.slashBuilder.*"
+    ],
+    "commands":[
+        "joinCreate.slashBuilder.*",
+        "cleanup.slashBuilder.*",
+        "mussic.slashBuilder.*",
+        "permisos.slashBuilder.*",
+        "post.slashBuilder.*",
+        "rolemoji.slashBuilder.*",
+        "welcome.slashBuilder.*"
+    ],
 
     // Agrega más namespaces según necesites
 };

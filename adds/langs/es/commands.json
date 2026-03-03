@@ -1,0 +1,257 @@
+{
+    "joinCreate":{
+        "slashBuilder": {
+            "jointocreate_description": "Permite crear canales temporales de voz apartir de un canal de voz maestro",
+            "jointocreate_usage": "modo de configuracion",
+            "join_chanel_set": "Selecciona el canal de voz a configurar",
+            "join_set": "set - \"Establece canal maestro\"",
+            "join_disable": "disable - \"Desactiva el sistema\"",
+            "join_status": "status - \"Muestra el estado del sistema\"",
+            "join_cleanup": "cleanup - \"Borra los canales temporales activos\""
+        },
+        "interacciones": {
+            "guild_error": "",
+            "error_not_voice": "❌ Debe ser un canal de audio",
+            "error_bot_permissions": "❌ No tengo los permisos requeridos para hacer esto 🥺​",
+            "set_success": "✅ **Canal maestro establecido:** {{a1}}\nLos usuarios que se unan a este canal crearán automáticamente su propia sala temporal.",
+            "set_error": "❌ Error al establecer el canal maestro",
+            "error_not_configured": "❌ No hay configuracion activa",
+            "disable_success": "✅ **/jointocreate desactivado** \nYa no se generaran canales de voz.",
+            "disable_error": "❌ Error, no se pudo desactivar /jointocreate",
+            "status_error": "❌ No pude obtener el estatus de /jointocreate",
+            "cleanup_confirm": "⚠️ **Se limpiaran todos los canales de voz temporales!! \n 20seg para confirmar****",
+            "cleanup_cancelled": "❌ **Cancelado**",
+            "cleanup_result": "✅ **Limpieza completada**\n• Canales eliminados: {{a1}}\n• Errores: {{a2}}",
+            "cleanup_timeout": "❌ **Tiempo de espera agotado**",
+            "cleanup_error": "❌ Error al lipiar los canales de voz temporales"
+        }
+    },
+
+    "cleanup":{
+        "slashBuilder":{
+            "description": "Permite eliminar mensajes en batch",
+            "start_description": "Dónde empezar a eliminar",
+            "before_option": "Eliminar anteriores al mensaje",
+            "after_option": "Eliminar apartir del mensaje",
+            "message_id_description": "ID del mensaje de referencia",
+            "count_description": "Cantidad de mensajes a eliminar (1-100)",
+            "type_description": "Tipo de mensajes a eliminar",
+            "users_option": "Borrar mensaje de solo usuarios",
+            "bots_option": "Borrar mensaje de solo bots",
+            "any_option": "Borrar todos los mensajes"
+        },
+        
+        "interacciones":{
+            "permission_error": "❌ Necesitas el permiso 'Gestionar mensajes' para usar este comando.",
+            "text_channel_only": "❌ Este comando solo puede usarse en canales de texto.",
+            "invalid_message_id": "❌ Formato de ID de mensaje inválido.",
+            "message_not_found": "❌ No se encontró ningún mensaje con ese ID en este canal.",
+            "no_messages_found": "❌ No se encontraron mensajes para eliminar con los criterios especificados.",
+            "success": "✅ Se eliminaron **{{a1}}** mensajes **{{a2}}** del mensaje especificado.",
+            "before": "antes",
+            "after": "después",
+            "filtered_by": "Filtrado por: **{{a1}}**",
+            "old_messages_warning":"No se pudieron borrar algunos mensaje muy viejos!!",
+            "type_users": "Solo usuarios",
+            "type_bots": "Solo bots",
+            "type_any": "Todos los mensajes",
+            "breakdown": "👤 **Usuarios**: {{a1}}\n🤖 **Bots**: {{a2}}",
+            "error": "❌ Ocurrió un error al intentar eliminar los mensajes."
+        }  
+    },
+
+    "mussic":{
+        "slashBuilder": {
+            "mussic_play_01": "Reproduce música",
+            "mussic_play_02": "URL/Nombre",
+            "mussic_play_03": "Añadir lista de reproduccion completa",
+            "mussic_stop_01": "Detiene la música",
+            "mussic_skip_01": "Salta canción",
+            "mussic_queue_01": "Muestra lista de reproduccion",
+            "mussic_queue_02": "Limpia la lista de reproduccion"
+        },
+        
+        "interacciones": {
+            "error_01": "❌ El sistema de música está desactivado.",
+            "permission_error_permission": "❌ No tienes permiso para ejecuta este comando.",
+            "error_empit": "❌ ¡Debes estar en un canal de voz!",
+            "occupied": "❌ El bot está ocupado en otro canal.",
+            "lavalink_down": "❌ Sin conexión a Lavalink.",
+            "no_found": "❌ No encontre la cancion que querias",
+            "playlist": "✅ Playlist **{{a1}}** cargada ({{a2}} canciones).",
+            "playlist_queue": "📝 Agregado a la cola: **{{a1}}**",
+            "Stop_01": "💤 No estoy reproduciendo nada.",
+            "Stop_02": "🛑 Música detenida, se borro la cola.",
+            "Skip_01": "⏭️ Canción saltada.",
+            "Skip_02": "Estamos en la ultima cancion.",
+            "Skip_03": "❌ No estoy reproduciendo nada",
+            "Queue_01": "📋 La lista está vacía.",
+            "Queue_02": "🎵 Lista de Reproducción",
+            "Queue_03_name": "▶️ Sonando ahora:",
+            "Queue_03_value": "**[{{a1}}]({{a2}})** - `{{a3}}`",
+            "Queue_04": "**Próximas canciones:** \n{{a1}}{{a2}}",
+            "Queue_05": "*No hay más canciones en espera.*",
+            "Queue_06": "❌ No hay lista de reproduccion activa.",
+            "Queue_07": "Lista de reproduccion eliminada.",
+            "pNext_01": "💤 Cola terminada. Desconectando...",
+            "pNext_02": "▶️ Reproduciendo: **{{a1}}** \nPedida por: {{a2}}"
+        }
+    },
+    
+    "permisos":{
+        "slashBuilder": {
+            "description": "📋 Gestionar permisos de comandos por usuario/rol",
+            "add_description": "Autorizar a un Rol o Usuario para usar un comando",
+            "add_option_description": "Comando a autorizar",
+            "option_rol": "Selecciona el ROL a autorizar",
+            "option_usuario": "Selecciona el USUARIO a autorizar",
+            "remove_description": "Revocar permisos de un comando",
+            "remove_option_description": "Comando a revocar",
+            "list_description": "📜 Lista de los permisos asignados",
+            "list_option_description": "Muestra por comando",
+            "list_option_detallado": "Mostrar todos los comandos",
+            "clear_description": "🗑️ Eliminar TODOS los permisos del servidor (cuidado)",
+            "help_description": "❓ Muestra la ayuda sobre permisos"
+        },
+        "interacciones": {
+            "command_error": "❌ Error al ejecutar el comando",
+            "permission_error": "⛔ Este comando no puede ser asignado y solo los administradores pueden establecer permisos!!",
+            "permission_add_list": "❌ Debes especificar un rol o un usuario.",
+            "add_success": "✅ **{{a1}}** ({{a2}}) ahora puede usar {{a3}}",
+            "add_error_01": "❌ No se puedo otorgar el permiso {{a2}} a {{a1}} ",
+            "add_error_already_exists": "⚠️ **{{a1}}** ya tenía permisos para {{a2}}.",
+            "add_error_processing": "❌ Error al procesar la asignacion de permisos!!",
+            "add_error":"❌ No se encontro rol/user con ese nombre!!",
+            "remove_error_target": "❌ Debes especificar el rol o usuario para eliminarlo.",
+            "remove_success": "🗑️ Permisos eliminados para **{{a1}}** en {{a2}}.",
+            "remove_error_not_found": "❌ **{{a1}}** no estaba en la lista de permisos para {{a2}}.",
+            "remove_error_processing": "❌ Ocurrio un error al intentar borrar los permisos.",
+            "list_by_command": "No se encuentran usuarios/roles asignados al comando: /{{a1}}",
+            "list_error": "No hay ningun permiso asignado",
+            "asig_por": "Asignado por:",
+            "no_permissions": "No se encontraron permisos asignados",
+            "list_by_command_emb": "Mostrando los usuarios/roles con permiso para: /{{a1}}",
+            "list_all_command_emb": "Mostrando todos los permisos a usuarios/roles asignados",
+            "total_footer": "Total de permisos: {{a1}}",
+            "total_footer_complete": "Total de permisos: {{a1}} Total de Comandos: {{a2}}",
+            "error_list_res_emb": "❌ Error al generar la lista de permisos.",
+            "cleanup_confirm": "Se eliminaran los permisos en el servidor!!",
+            "cleanup_cancelled": "Eliminacion cancelada!!",
+            "cleanup_result": "Todos los permisos han sido eliminados!",
+            "cleanup_timeout": "Tiempo de espera agotado!",
+            "cleanup_error": "❌ Error al limpiar los permisos.",
+            "remove_error": "Error al retirar los permisos ",
+            "error_add": "Error durante la asignacion!!",
+            "error_remove": "Error durante la revocacion!!"
+        }
+    },
+
+    "post":{
+        "slashBuilder": {
+            "description": "Permite publicar mensajes en mi nombre",
+            "msg_description": "Realiza un post enviando un mensaje",
+            "canal_description": "El canal donde se publicará el anuncio",
+            "borrar_msg_description": "Borrar mensaje. default: true",
+            "copy_description": "Realiza un post desde copiando un mensaje existente",
+            "mensaje_description": "ID del mesnaje que se va copiar.",
+            "canal_origen_description": "Canal del mesnaje a copiar; solo si el mensaje y comando estan en distintos canales",
+            "borrar_copy_description": "Borrar mensaje copiado. default: false",
+            "edit_description": "Realiza un post editando un mensaje existente",
+            "mensaje_edit_description": "ID del mensaje a editar",
+            "nuevo_mensaje_description": "Editar mesnaje desde un mensaje ya existente",
+            "borrar_edit_description": "Borrar mensaje editado. default: true",
+            "reply_description": "Responde a mensajes",
+            "mensaje_reply_description": "ID del mensaje a responder",
+            "canal_mensaje_reply_description": "Canal donde esta el mensaje a responder",
+            "canal_notify_description": "Noticar a usuario el reply, default: true",
+            "borrar_reply_description": "Borrar mensaje respondido. default: false"
+        },
+        
+        "interacciones": {
+            "canal_error": "❌ Debes seleccionar un canal de texto válido.",
+            "error_mensaje_no_encontrado": "❌ No se pudo encontrar el mensaje con ese ID",
+            "error_capturador": "❌ Error al iniciar el colector de mensajes.",
+            "stop": "🛑 Operación cancelada.",
+            "permission_error": "❌ No tienes permiso para usar este comando.",
+            "mensaje": "📝 **Modo de Redacción**\n\n Escribe **aqui** tu mensaje que sera enviado a {{a1}}.\n\n- Puedes incluir **imágenes, archivos y formato** (negritas, links, etc).\n- Tienes **3 minutos** para enviarlo.\n- Escribe `-cancelar` para cancelar.",
+            "canal_error_permission": "❌ No puedo acceder al canal actual.",
+            "error_mensaje_vacio": "❌ El mensaje no puede estar vacío.",
+            "success": "✅ **¡Mensaje publicado exitosamente en {{a1}}!**",
+            "error_publicar": "❌ Hubo un error al intentar enviar el mensaje al canal destino. Verifica que puedo postear en el.",
+            "timeout": "⌛ Tiempo agotado para la publicacion!!",
+            "error_desconocido": "❌ Ocurrió un error inesperado.",
+            "error_permisos_origen": "❌ No tengo permisos para leer mensajes en el canal origen",
+            "error_permisos_destino": "❌ No tengo permisos para enviar mensajes en el canal destino",
+            "copy_success_with_delete": "✅ Mensaje copiado exitosamente de {{a1}} a {{a2}} y se borro el original",
+            "copy_success": "✅ Mensaje copiado exitosamente de {{a1}} a {{a2}}",
+            "copy_error": "❌ Error al copiar el mensaje",
+            "error_permisos_edicion": "❌ No tengo permisos para editar mensajes en este canal",
+            "edit_success_directo": "✅ Mensaje editado exitosamente con el contenido proporcionado",
+            "error_no_bot_message": "❌ Solo puedo editar mensajes que yo haya enviado",
+            "edit_modo_interactivo": "✏️ **Modo edición interactivo**\nEnvía el nuevo contenido, embeds, archivos o componentes para este mensaje. Tienes 3 minutos.\n- Escribe `-cancelar` para cancelar.",
+            "edit_success": "✅ Mensaje editado exitosamente",
+            "edit_error": "❌ Error al editar el mensaje",
+            "edit_timeout": "⌛ Tiempo agotado para la edición!!",
+            "edit_error_general": "❌ Error general al editar el mensaje",
+            "error_permisos_reply": "❌ No tengo permisos para enviar mensajes en este canal",
+            "reply_modo_interactivo": "↩️ **Modo respuesta interactivo**\n Escribe tu respuesta al mensaje.\n- Tienes **3 minutos** para enviarlo.\n- Escribe `-cancelar` para cancelar.",
+            "reply_success": "✅ Respuesta enviada en {{a1}} {{a2}}",
+            "reply_error": "❌ Error al enviar la respuesta",
+            "reply_timeout": "⌛ Tiempo agotado para la respuesta!!",
+            "reply_error_general": "❌ Error general al enviar la respuesta",
+            "not_found": "Error en ejecucion de comandos"
+        }
+    },
+
+    "rolemoji":{
+        "slashBuilder": {
+            "description": "Permite la asignacion de roles atravez de reacciones de emojis.",
+            "assign_description": "Roles en emojis, Roles en emojis",
+            "message_id_description": "Id del mensaje, (Clic en ... de tu mensaje y copiar id de mensaje Id del mensaje)",
+            "emoji_description": "Escoge tu emoji para el Rol",
+            "role_description": "Escoge el Rol que se asociara al Emoji",
+            "remove_description": "Elimina un RolEmoji",
+            "remove_id_description": "Usa el ID del RolEmoji que quieras eliminar, usa /rolemoji list para ver el ID",
+            "list_description": "Muestra los RolEmoji"
+        },
+        
+        "interacciones": {
+            "assign_success": "El Rol: {{role}} fue assignado correctamente al Emoji: {{emoji}}",
+            "remove_failed": "No se encontró ningún RolEmoji con el ID:{{id}}.",
+            "remove_success": "El RolEmoji con ID:{{id}} fue eliminado correctamente.",
+            "list_title": "Lista de RolEmojis:",
+            "list_empty": "Nada por aqui 👀",
+            "command_assign_missing": "Debes llenar todas las opciones.",
+            "assign_error": "Faltan permisos para asignar roles o reaccionar",
+            "list_entry": "\n**ID:** {{id}}\n**Emoji:** {{emoji}}\n**Rol:** <@&{{roleId}}> ({{roleName}})\n**Mensaje ID:** [{{messageId}}]({{messageUrl}})\n\n",
+            "role_not_found": "Rol no encontrado",
+            "command_permission_error": "No tienes permisos para usar este comando.",
+            "guild_only_error": "¡Este comando solo puede ser usado en servidores!",
+            "command_subcommand_not_found": "Este subcomando no existe.",
+            "command_error": "Ocurrió un error al ejecutar el comando.",
+            "fetch_error": "Error al obtener o reaccionar al mensaje.",
+            "subcommand_not_found": "Error al procesar el comando"
+            
+        }
+    },
+
+    "welcome":{
+        "slashBuilder":{
+            "description": "Establece un mensaje de Bienvenida y Salida", 
+            "config_description": "Establece un canal para la Bienvenida",
+            "channel_description": "Establece canal para mostrar el mensaje de Bienvenida/salida",
+            "enabled_description": "Borra la configuracion de /welcome",
+            "message_description": "Escribe tu mensaje de Bienvenida, usa <user> para mencionar, tambien pudes usar #canal"
+        },
+
+            
+        "interacciones": {
+            "welcome_config_set": "Se establecio la configuracion",
+            "permission_error": "No tienes permisos para usar este comando.",
+            "error": "Ocurrió un error al ejecutar el comando.",
+            "config_removed": "Se borro la configuracion de /welcome",
+            "no_choises_selected": "No se selecciono ninguna opcion, minimo borrar o canal",
+            "not_doing_nothing":"No habia configuracion previa!!"
+        }
+    }
+}

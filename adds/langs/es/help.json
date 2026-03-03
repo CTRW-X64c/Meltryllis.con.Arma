@@ -1,11 +1,12 @@
 {   
-    "can_run_yes":"✅ Puedes ejecutar el comando",
-    "can_run_no": "❌ No puedes ejecutarlo, NO ERES ADMIN o NO TE DIERON PERMISO",
     "comBuild":{
         "command_hola_description": "Información de los comandos.",
         "command_hola_idioma_description":"¡Selecciona un comando para una mejor ayuda!",
         "default_switch_error": "La ayuda de este comando aún no está disponible y solo está aquí por los loles"
     },
+    
+    "can_run_yes":"✅ Puedes ejecutar el comando",
+    "can_run_no": "❌ No puedes ejecutarlo, NO ERES ADMIN o NO TE DIERON PERMISO",
 
     "info":{
         "embed_title": "¡Hola!",

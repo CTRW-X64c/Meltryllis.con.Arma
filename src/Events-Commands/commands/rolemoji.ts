@@ -17,46 +17,46 @@ function getEmojiKey(emojiString: string): string {
 export async function registerRolemojiCommand(): Promise<SlashCommandBuilder[]> {
     const rolemojiCommand = new SlashCommandBuilder()
         .setName("rolemoji")
-        .setDescription(i18next.t("rolemoji:slashBuilder.description"))
+        .setDescription(i18next.t("commands:rolemoji.slashBuilder.description"))
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addSubcommand(subcommand =>
             subcommand
                 .setName("set")
-                .setDescription(i18next.t("rolemoji:slashBuilder.assign_description"))
+                .setDescription(i18next.t("commands:rolemoji.slashBuilder.assign_description"))
                 .addStringOption(option =>
                     option
                         .setName("message_id")
-                        .setDescription(i18next.t("rolemoji:slashBuilder.message_id_description"))
+                        .setDescription(i18next.t("commands:rolemoji.slashBuilder.message_id_description"))
                         .setRequired(true)
                 )
                 .addStringOption(option =>
                     option
                         .setName("emoji")
-                        .setDescription(i18next.t("rolemoji:slashBuilder.emoji_description"))
+                        .setDescription(i18next.t("commands:rolemoji.slashBuilder.emoji_description"))
                         .setRequired(true)
                 )
                 .addRoleOption(option =>
                     option
                         .setName("role")
-                        .setDescription(i18next.t("rolemoji:slashBuilder.role_description"))
+                        .setDescription(i18next.t("commands:rolemoji.slashBuilder.role_description"))
                         .setRequired(true)
                 )
         )
         .addSubcommand(subcommand =>
             subcommand
                 .setName("remove")
-                .setDescription(i18next.t("rolemoji:slashBuilder.remove_description"))
+                .setDescription(i18next.t("commands:rolemoji.slashBuilder.remove_description"))
                 .addIntegerOption(option =>
                     option
                         .setName("id")
-                        .setDescription(i18next.t("rolemoji:slashBuilder.remove_id_description"))
+                        .setDescription(i18next.t("commands:rolemoji.slashBuilder.remove_id_description"))
                         .setRequired(true)
                 )
         )
         .addSubcommand(subcommand =>
             subcommand
                 .setName("list")
-                .setDescription(i18next.t("rolemoji:slashBuilder.list_description"))
+                .setDescription(i18next.t("commands:rolemoji.slashBuilder.list_description"))
         );
 
     return [rolemojiCommand] as SlashCommandBuilder[];
@@ -75,7 +75,7 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
 
         const guildId = interaction.guildId;
         if (!guildId) {
-            await interaction.reply({ content: i18next.t("rolemoji:interacciones.guild_only_error"), flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: i18next.t("commands:rolemoji.interacciones.guild_only_error"), flags: MessageFlags.Ephemeral });
             return;
         }
 
@@ -97,7 +97,7 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
             
             default:
                 await interaction.reply({
-                    content: i18next.t("rolemoji:interacciones.subcommand_not_found"),
+                    content: i18next.t("commands:rolemoji.interacciones.subcommand_not_found"),
                     flags: MessageFlags.Ephemeral
                 });
                 break;
@@ -107,7 +107,7 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
     } catch (err) {
         error(`Error al ejecutar comando /rolemoji: ${err}`); //<=
         await interaction.reply({
-            content: i18next.t("rolemoji:interacciones.subcommand_not_found"),
+            content: i18next.t("commands:rolemoji.interacciones.subcommand_not_found"),
             flags: MessageFlags.Ephemeral
         });
     }
@@ -131,13 +131,13 @@ async function ComSet(interaction: ChatInputCommandInteraction, guildId: string)
         await message.react(emoji);
         
         await interaction.reply({
-            content: i18next.t("rolemoji:interacciones.assign_success", { role: roleMention, emoji: emoji }),
+            content: i18next.t("commands:rolemoji.interacciones.assign_success", { role: roleMention, emoji: emoji }),
             flags: MessageFlags.Ephemeral
         });
     } catch (fetchError) {
         error(`Error fetching or reacting to message: ${fetchError}`);
         await interaction.reply({
-            content: i18next.t("rolemoji:interacciones.fetch_error"),
+            content: i18next.t("commands:rolemoji.interacciones.fetch_error"),
             flags: MessageFlags.Ephemeral
         });
     }
@@ -150,12 +150,12 @@ async function ComRemove(interaction: ChatInputCommandInteraction, guildId: stri
     
     if (success) {
         await interaction.reply({
-            content: i18next.t("rolemoji:interacciones.remove_success", { id: id }),
+            content: i18next.t("commands:rolemoji.interacciones.remove_success", { id: id }),
             flags: MessageFlags.Ephemeral
         });
     } else {
         await interaction.reply({
-            content: i18next.t("rolemoji:interacciones.remove_failed", { id: id }),
+            content: i18next.t("commands:rolemoji.interacciones.remove_failed", { id: id }),
             flags: MessageFlags.Ephemeral
         });
     }
@@ -166,23 +166,23 @@ async function ComList(interaction: ChatInputCommandInteraction, guildId: string
     const assignments = await getRoleAssignments(guildId);
     const embed = new EmbedBuilder()
         .setColor("#0099ff")
-        .setTitle(i18next.t("rolemoji:interacciones.list_title"));
+        .setTitle(i18next.t("commands:rolemoji.interacciones.list_title"));
 
     if (assignments.size === 0) {
-        embed.setDescription(i18next.t("rolemoji:interacciones.list_empty"));
+        embed.setDescription(i18next.t("commands:rolemoji.interacciones.list_empty"));
     } else {
         let description = "";
         for (const assignment of assignments.values()) {
             const guild = interaction.guild!;
             const role = guild.roles.cache.get(assignment.roleId);
-            const roleName = role ? role.name : i18next.t("rolemoji:interacciones.role_not_found");
+            const roleName = role ? role.name : i18next.t("commands:rolemoji.interacciones.role_not_found");
             const emojiObject = guild.emojis.cache.get(assignment.emoji);
             const emojiDisplay = emojiObject ? emojiObject.toString() : assignment.emoji;
             
             // Usar el channelId de la base de datos para el enlace
             const messageUrl = `https://discord.com/channels/${guildId}/${assignment.channelId}/${assignment.messageId}`;
             
-            description += i18next.t("rolemoji:interacciones.list_entry", {
+            description += i18next.t("commands:rolemoji.interacciones.list_entry", {
                 ns: "rolemoji",
                 id: assignment.id,
                 emoji: emojiDisplay,

@@ -9,28 +9,28 @@ export async function registerWelcomeCommand(): Promise<SlashCommandBuilder[]> {
     const welcomeCommand = new SlashCommandBuilder()
         .setName("welcome")
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
-        .setDescription(i18next.t("welcome:slashBuilder.description"))
+        .setDescription(i18next.t("commands:welcome.slashBuilder.description"))
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("set")
-                .setDescription(i18next.t("welcome:slashBuilder.config_description"))
+                .setDescription(i18next.t("commands:welcome.slashBuilder.config_description"))
                 .addStringOption((option) =>
                     option
                         .setName("message")
-                        .setDescription(i18next.t("welcome:slashBuilder.message_description"))
+                        .setDescription(i18next.t("commands:welcome.slashBuilder.message_description"))
                         .setRequired(false)
                 )
                 .addChannelOption((option) =>
                     option
                         .setName("channel")
-                        .setDescription(i18next.t("welcome:slashBuilder.channel_description"))
+                        .setDescription(i18next.t("commands:welcome.slashBuilder.channel_description"))
                         .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
                         .setRequired(false)
                 )
                 .addBooleanOption((option) =>
                     option
                         .setName("borrar")
-                        .setDescription(i18next.t("welcome:slashBuilder.enabled_description"))
+                        .setDescription(i18next.t("commands:welcome.slashBuilder.enabled_description"))
                         .setRequired(false)
                 )
         );
@@ -50,18 +50,18 @@ const channelOption = interaction.options.getChannel("channel");
         const guildId = interaction.guildId!;
         
         if (!shouldDelete && !channelOption && messageContent === null) {
-            await interaction.reply({content: i18next.t("welcome:interacciones.no_choises_selected"), flags: MessageFlags.Ephemeral });
+            await interaction.reply({content: i18next.t("commands:welcome.interacciones.no_choises_selected"), flags: MessageFlags.Ephemeral });
             return;
         }
 
         const oldConfig = await getWelcomeConfig(guildId);
         if (shouldDelete === true) {
             if (!oldConfig.channelId) { 
-                await interaction.reply({content: i18next.t("welcome:interacciones.not_doing_nothing"), flags: MessageFlags.Ephemeral });
+                await interaction.reply({content: i18next.t("commands:welcome.interacciones.not_doing_nothing"), flags: MessageFlags.Ephemeral });
                 return;
             }
             await removeWelcomeConfig(guildId);
-            await interaction.reply({content: i18next.t("welcome:interacciones.config_removed"), flags: MessageFlags.Ephemeral });
+            await interaction.reply({content: i18next.t("commands:welcome.interacciones.config_removed"), flags: MessageFlags.Ephemeral });
             return;
         }
 
@@ -72,10 +72,10 @@ const channelOption = interaction.options.getChannel("channel");
         };
 
         await setWelcomeConfig(guildId, newConfig);
-        await interaction.reply({content: i18next.t("welcome:interacciones.welcome_config_set"), flags: MessageFlags.Ephemeral });
+        await interaction.reply({content: i18next.t("commands:welcome.interacciones.welcome_config_set"), flags: MessageFlags.Ephemeral });
 
     } catch (err) {
         error(`Error al ejecutar comando /welcome: ${err}`, "WelcomeCommand");
-        await interaction.reply({ content: i18next.t("welcome:interacciones.error"), flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: i18next.t("commands:welcome.interacciones.error"), flags: MessageFlags.Ephemeral });
     }
 }

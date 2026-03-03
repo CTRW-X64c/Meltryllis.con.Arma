@@ -103,10 +103,10 @@ async function sendMangaUpdate(client: Client, feed: MangadexFeed, chapter: RSSI
         const channel = await client.channels.fetch(feed.channel_id) as TextChannel;
         if (!channel) return;
         const MAX_LENGTH = 60; 
-        let safeChapterTitle = chapter.title  
-        if (safeChapterTitle.length > MAX_LENGTH) {
-            safeChapterTitle = safeChapterTitle.substring(0, MAX_LENGTH) + '...';
-        }
+        const noTiManCha = chapter.title.replace(feed.manga_title, "").trim().replace(/^:/, "").trim();
+        const safeChapterTitle = noTiManCha.length > MAX_LENGTH
+            ? noTiManCha.substring(0, MAX_LENGTH)
+            + "..." : noTiManCha;
 
         const messageContent = `📚 **${feed.manga_title}**\n📄: ${safeChapterTitle}\n🔗​: ${chapter.link}`;
         

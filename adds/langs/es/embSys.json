@@ -1,0 +1,132 @@
+{
+    "embedService": {
+        "format_link": "[Embedding de {{Site}}]({{RemUrl}})",
+        "format_link_spoiler": "||[Embedding de {{Site}}]({{RemUrl}})|| \n No carga?, prueba mandar sin \"espoiler\"",
+
+        "msgFail":"Discord no genero el embed. \n Usa `$$` al inico del mensaje si no quieres que lo procese. `Este mensaje se borrara en 10s`",
+        "msgFail_fb": "Enlace \"compartir\" de Facebook `facebook.com/share/...` tiende a fallar mucho; mejor usa el link directo `facebook.com/rell|/video|/post...`!! \n `Este mensaje se borrara en 10s`",
+        "try": "🔄 Reintentando embeding. Intento: {{a1}} 🔄",
+        "emojErr": "Me faltan permisos. \"usa /test para verificar los permisos\""
+    },
+
+    "test":{
+        "slashBuilder":{
+            "test_description": "Permissos, configuraciones y estado de los dominios",
+            "mode_description": "Modo de chequeo",
+            "guild": "Permisos generales en el Servidor",
+            "channel": "Funcionamiento por Canal",
+            "embed_config": "Embedding configuraciones",
+            "mode_domainds": "Revisa el estado de los dominios",
+            "custom_url": "Puedes personalizar el dominio de embeding"
+        },
+
+        "interacciones":{
+            "title": "Pasando lista de permisos",
+            "working_here": "Trabajando aquí",
+            "reply_bots": "Respondiendo a Bots",
+            "permission_name": "{{name}}",
+            "not_replacement": "Configuraciones de reemplazo de este servidor:",
+            "rem_list_1": "✅ | Predeterminado",
+            "rem_list_2": "❌ | Deshabilitado",
+            "rem_list_3": "Customizado con: **{{custom_url}}** por {{userMention}}",
+
+            "unknown_user": "usuario desconocido",
+
+            "status_allowed": "✅ Permitido",
+            "status_allowed_admin": "**⚠️ASIGNADO⚠️**",
+            "status_missing": "❌ Faltante",
+
+            "all_status_allowed": "✅ Todos los permisos OK",
+            "missing_any_status": "❌ Faltan permisos",
+            "field_api_enabled": "✅ Habilitado",
+            "field_api_disabled": "❌ Deshabilitado",
+
+            "test_command_guild_description": "**Estado de todos los canales:**",
+            "test_command_channel_description": "Revisando... los permisos pueden cambiar en canales privados. \nPuedes usar el modo \"Funcionamiento por Canal\" para generar una lista completa.",
+            "test_error_permission": "No se pudo obtener los permisos del canal.",
+            "test_error_permission_user": "No se pudo obtener el usuario en el bot.",
+            "test_error_verify_permission": "No se pudieron verificar los permisos del bot.",
+            "command_permission_error": "No tienes permiso para usar este comando.",
+            "dont_gg": "No se pudo obtener el servidor.",
+            "test_command_invalid_mode": "Modo inválido, revisa los inputs del comando.",
+            "command_error": "Ocurrió un error al ejecutar el comando.",
+            "footer": "Canal privado?, Esto provoca que no pueda ver el canal!!",
+
+            "test_domaind_error": "❌ Este comando tiene un cooldown. Inténtalo de nuevo en {{a1}}.",
+            "test_domaind_verificando": "🔄 Verificando estado de dominios... Esto puede tomar unos segundos.",
+            "command_error_verificando": "❌ Error al verificar dominios: {{a1}}"
+        },
+
+        "permisos":{
+            "view_channel": "Canal Privado? - Ver Canal:",
+            "send_messages": "Embed system - Enviar Mensajes:",
+            "embed_links": "Embed system - Insertar Enlaces:",
+            "manage_messages": "Embed system - Gestionar Mensajes:",
+            "read_message_history": "Embed system - Ver Historial de Mensajes:",
+            "add_reactions": "/rolemoji & Embed system - Agregar reacciones:",
+            "role_manager": "/rolemoji - Gestionar roles:",
+            "channel_manager": "/jointovoice - Gestionar canales:",
+            "connect_voice": "Comandos de musica - Conectar a canal de voz: \n Solo publicos",
+
+            "administrator": "‍‍```ADVETRTENCIA PERMISO DE ADMINISTRADOR ASIGNADO!!!```. \n*ESTO ME DA PODER DE HACER LO QUE QUIERA, DAJALO BAJO TU PROPIO RIESGO!!*",
+            "manage_guild": "```GESTOR DE SERVER ASIGNADO, NO RECOMENDADO ASIGNAR!!``` \nEste permiso no me sirve para mis comandos, busca o crea un rol con los permisos de arriba!!"
+        }   
+    },
+
+    "work":{
+        "slashBuilder":{
+            "description": "Activa/Desactiva respoder a bots o funcionar en el canal",
+            "state_description": "Responder a bots / Trabajar en el Canal",
+            "mode_description": "Activa (on) / Desactiva (off)"
+        },
+                    
+        "interacciones": {
+            "on_success": "Bueno, estoy de regreso 😎",
+            "off_success": "Bye bye, te veo en otros canales 🫶",
+            "already_on": "¡Ya estoy trabajando en este canal! 😎",
+            "already_off": "¡Ya estoy desactivado en este canal! 🫶",
+            "command_permission_error": "⛔⛔ Solo los administradores o el propietario pueden usar este comando ⛔⛔",
+            "error_identifying_channel": "No se pudo identificar el servidor o el canal.",
+            "command_error": "Ocurrió un error al ejecutar el comando."
+        },
+
+        "interaccionesRole":{
+            "already_on": "¡Ya estoy respondiendo a bots en este canal! 😊🤖",
+            "already_off": "¡No responderé a bots en este canal! 😊",
+            "on_success": "Contestando a bots 😊🤖",
+            "off_success": "Ya no contestaré a bots 😊",
+            "identifying_server": "No se pudo identificar el servidor o el canal."
+        }
+    },
+
+    "embed":{
+        "slashBuilder": {
+            "embed_description": "Configuracion de los dominios/urls para los embeds",
+            "embed_config": "Establece configuraciones.",
+            "mode_description": "Configuraciones: Default, Custom o Habilitar/Deshabilitar",
+            "url_description": "Establece un nuevo Dominio/URL.",
+            "enable": "Habilitar",
+            "disable": "Deshabilitar",
+            "custom": "Personalizar",
+            "subcommand_default": "Default",
+            "custom_url": "Nuevo Dominio/URL.",
+            "site_description": "Escoge el sitio a configurar.",
+            "action_description": "Configurar:",
+            "default": "Default - RESET DE CONFIGURACIONES!"
+        },
+        
+        "interacciones": {
+            "no_permission": " ⛔⛔ Necesitas permisos de Administracion!! ⛔⛔",
+            "embed_url_required": "Nuevo Dominio/URL.",
+            "embed_invalid_site": "Sitio no valido.",
+            "failed": "Error al actualizar la configuracion.",
+            "Api_default": "❌ Las Web que se muestran la url como www.tiktok.com, no tienen un estado por Default, Solo 'Habilitar'/'Deshabilitar'.",
+            "Api_custom": "❌ Las Web de URL no se pueden customizar, Solo 'Habilitar'/'Deshabilitar'.",
+            "Api_url_custom": "❌ Revisa tu URL, Ej. https://www.example.com | sub.example.com | sample.com",
+            "disable_description": "{{a1}} desactivó el embed de: **{{a2}}**!",
+            "enable_description": "{{a1}} habilitó el embed de: **{{a2}}**!",
+            "custom_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo **personalizado** con la siguiente URL: **{{a3}}**!",
+            "default_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo: **Default**!"
+        }
+    }
+}

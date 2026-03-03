@@ -85,13 +85,13 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 if (removed && channel) {
                     switch (jsonData.reason) {
                         case 'banned':
-                            await channel.send(i18next.t("reddit:check.Reduit_baneado", { a1: displayName }));
+                            await channel.send(i18next.t("follows:reddit.check.Reduit_baneado", { a1: displayName }));
                             break;
                         case 'private':
-                            await channel.send(i18next.t("reddit:check.Reduit_privado", { a1: displayName }));
+                            await channel.send(i18next.t("follows:reddit.check.Reduit_privado", { a1: displayName }));
                             break;
                         case 'quarantined':
-                            await channel.send(i18next.t("reddit:check.Reduit_cuarentena", { a1: displayName }));
+                            await channel.send(i18next.t("follows:reddit.check.Reduit_cuarentena", { a1: displayName }));
                             break;
                         default:
                             break;
@@ -176,10 +176,9 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 const formattedUrl = `https://${upEmbeddingDomain}${permalink}`;
                 const MAX_LENGTH = 50;
                 const originalTitle = post.title ?? "Sin Título";
-                const chapterTitle = originalTitle.replace(displayName, "").trim().replace(/^:/, "").trim();
-                const truncatedTitle = chapterTitle.length > MAX_LENGTH
-                    ? chapterTitle.substring(0, MAX_LENGTH)
-                    + "..." : chapterTitle;
+                const truncatedTitle = originalTitle.length > MAX_LENGTH
+                    ? originalTitle.substring(0, MAX_LENGTH)
+                    + "..." : originalTitle;
                 const emojiRegex = /<a?:[a-zA-Z0-9_]+:\d+>|[\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\p{Emoji_Component}\u{200D}]+/gu;  
                 const safeTitle = truncatedTitle
                     .replace(/\[/g, '')
@@ -191,9 +190,9 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     
                 let messageContent;
                 if (nsfwCheck) {
-                    messageContent = i18next.t("reddit:check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
+                    messageContent = i18next.t("follows:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
                 } else {
-                    messageContent = i18next.t("reddit:check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
+                    messageContent = i18next.t("follows:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
                 }
                      
                 await textChannel.send(messageContent);

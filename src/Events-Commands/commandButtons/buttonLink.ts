@@ -31,9 +31,9 @@ export async function registerButtonLinkCommand(): Promise<SlashCommandBuilder[]
             .setMaxLength(80)
         )   /* 3er boton */
         .addStringOption((op) =>
-            op.setName(i18next.t("botones:buttonLink.slashbuilder.b3Link"))
+            op.setName("3er_link")
             .setRequired(false)
-            .setDescription("Tercera URL")
+            .setDescription(i18next.t("botones:buttonLink.slashbuilder.b3Link"))
         )   
         .addStringOption((op) =>
             op.setName("texto_3er_boton")
