@@ -45,7 +45,7 @@ export async function handleJoinToCreateCommand(interaction: ChatInputCommandInt
     const modoConfig = interaction.options.getString("modo");
     const guildId = interaction.guildId;
     if (!guildId) {
-            await interaction.reply({ content: i18next.t("commands:joinCreate.interacciones.guild_error"), flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral });
             return;
         }
 

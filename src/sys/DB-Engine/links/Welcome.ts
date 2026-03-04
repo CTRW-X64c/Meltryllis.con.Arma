@@ -1,5 +1,4 @@
 // src/sys/DB-Engine/links/Welcome.ts
-import { ResultSetHeader } from "mysql2";
 import getPool from "../database";
 import {debug, error} from "../../logging";
 
@@ -59,18 +58,11 @@ export async function setWelcomeConfig(guildId: string, config: WelcomeConfig): 
 export async function removeWelcomeConfig(guildId: string): Promise<boolean> {
   try {
     const pool = await getPool();
-    const [result] = await pool.query("DELETE FROM welcome_configs WHERE guild_id = ?",
+    await pool.query("DELETE FROM welcome_configs WHERE guild_id = ?",
       [guildId]
     );
     
-    const header = result as ResultSetHeader;
-    
-    if (header.affectedRows > 0) {
-        welcomeConfigCache.delete(guildId);
-        debug(`[BD.Welcome] Configuración eliminada para guild: ${guildId}`, "Database");
-      return true;
-    }
-    
+    welcomeConfigCache.delete(guildId);
     debug(`[BD.Welcome] No había configuración para eliminar en guild: ${guildId}`, "Database");
     return false;
   } catch (err) {

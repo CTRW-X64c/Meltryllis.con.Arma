@@ -150,7 +150,7 @@ export async function delleteAllMangadexConfig(guildId: string): Promise<void> {
   try {
     const pool = await getPool();
     await pool.query(
-      "DELETE FROM guild_replacements WHERE guild_id = ?",
+      "DELETE FROM mangadex_feeds WHERE guild_id = ?",
       [guildId]
     );
 

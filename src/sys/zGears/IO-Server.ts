@@ -11,6 +11,7 @@ import { delleteAllRedditConfig } from "../DB-Engine/links/Reddit";
 import { delleteAllReplyBotsConfig } from "../DB-Engine/links/ReplyBots";
 import { delleteAllRolemojiConfig } from "../DB-Engine/links/Rolemoji";
 import { deleteAllYoutubeConfig } from "../DB-Engine/links/Youtube";
+import { removButton } from "../DB-Engine/links/roleButtons";
 
 
 /* ================================================ Inicializacion de cliente ================================================ */
@@ -117,11 +118,12 @@ async function deleteGuildConfig(guild: Guild): Promise<boolean> {
       delleteAllRedditConfig(guild.id),
       delleteAllReplyBotsConfig(guild.id),
       delleteAllRolemojiConfig(guild.id),
-      deleteAllYoutubeConfig(guild.id)
+      deleteAllYoutubeConfig(guild.id),
+      removButton(guild.id),
     ]);
 
     resultados.forEach((resultado, index) => {
-      const sistemas = ['JoinToVoice', 'Permisos', 'Welcome', 'Embed', 'Mangadex', 'Reddit', 'ReplyBots', 'Rolemoji', 'Youtube'];
+      const sistemas = ['JoinToVoice', 'Permisos', 'Welcome', 'Embed', 'Mangadex', 'Reddit', 'ReplyBots', 'Rolemoji', 'Youtube', 'Buttons'];
     if (resultado.status === 'rejected') {
       error(`Fallo al borrar configuración de ${sistemas[index]} para el guild ${guild.id}: ${resultado.reason}`, "GuildCleanup");
     } else {

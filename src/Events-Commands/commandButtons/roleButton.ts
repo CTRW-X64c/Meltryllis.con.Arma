@@ -2,6 +2,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, MessageFlags, TextChannel, Message, GuildMember, ButtonInteraction, EmbedBuilder, } from "discord.js";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
+import { addButton, getButton } from "../../sys/DB-Engine/links/roleButtons";
 
 /* ============================================================== Comando roleButton ============================================================== */
 const colorsButton = [
@@ -30,6 +31,11 @@ export async function registerRoleButtonCommand(): Promise<SlashCommandBuilder[]
         .setDescription(i18next.t("botones:roleButton.slashbuilder.colorB1"))
         .setRequired(true)
         .addChoices(colorsButton)
+    ) /* add msg */
+    .addStringOption(option =>
+        option.setName("msg")
+        .setDescription(i18next.t("botones:roleButton.slashbuilder.msg"))
+        .setRequired(false)
     ) /* 2do boton  */
     .addRoleOption(option =>
         option.setName("second_rol")
@@ -99,13 +105,19 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
     
     const isAllowed = await hasPermission(interaction, interaction.commandName);
     if (!isAllowed) {
-        await interaction.editReply({
-            content: i18next.t("common:Errores.isAllowed"),
-        });
+        await interaction.reply({ content: i18next.t("common:Errores.isAllowed") , flags: MessageFlags.Ephemeral });
         return;
     }
 
-    if (!interaction.channel || !interaction.channel.isTextBased() || interaction.channel.isDMBased()) {
+    const ch = interaction.channel;
+    const guild = interaction.guild;
+
+    if (!guild) {
+        await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    if (!ch || !ch.isTextBased() || ch.isDMBased()) {
         await interaction.reply({ content: i18next.t("common:Errores.noChannel"), flags: MessageFlags.Ephemeral });
         return;
     }
@@ -131,7 +143,7 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
     const fifthColor = interaction.options.getString("fifth_color") as keyof typeof ButtonStyle;
     const fifthButtonText = interaction.options.getString("fifth_text_on_button");
 
-    const channel = interaction.channel as TextChannel;
+    const channel = ch as TextChannel;
     await interaction.reply({ 
         content: i18next.t("botones:roleButton.catchmsg"), 
         flags: MessageFlags.Ephemeral 
@@ -180,10 +192,16 @@ export async function handleRoleButtonCommand(interaction: ChatInputCommandInter
                 .setStyle(ButtonStyle[fifthColor]);
             row.addComponents(fifthbutton);
         }
-        
+
         const attachments = m.attachments.map(a => a.url);
 
-        await channel.send({ content: m.content || " ", files: attachments, components: [row] });
+        const idbutton = await channel.send({ content: m.content || " ", files: attachments, components: [row] });
+
+        
+        const msgCustom = interaction.options.getString("msg");
+        if (msgCustom) {
+           await addButton(guild.id, idbutton.id, msgCustom);
+        };
 
         const buttonUp = (text: string | null, rol: string | null) => {    
             if (!text && !rol) return i18next.t("botones:buttonLink.no_use");
@@ -228,7 +246,7 @@ export async function roleButton(interaction: ButtonInteraction) {
     
     if (interaction.customId.startsWith('roleButton_')) {
         const roleId = interaction.customId.replace('roleButton_', '');
-        const roleName = `<@${roleId}>`
+        const roleName = `<@&${roleId}>`;
         try {
             const member = interaction.member as GuildMember;
             if (member.roles.cache.has(roleId)) {
@@ -237,7 +255,17 @@ export async function roleButton(interaction: ButtonInteraction) {
             }
 
             await member.roles.add(roleId);
-            await interaction.reply({ content: i18next.t("botones:roleButton.getSucces", {a1: roleName}), flags: MessageFlags.Ephemeral });
+
+            const custMsg = await getButton(interaction.message.id);
+            let msgout: string;
+
+            if (custMsg && custMsg.length > 0 && custMsg[0].messageText) {
+                msgout = custMsg[0].messageText.replace(/<role>/g, roleName);
+            } else {
+                msgout = i18next.t("botones:roleButton.getSucces", {a1: roleName});
+            }
+
+            await interaction.reply({ content: msgout, flags: MessageFlags.Ephemeral });
 
         } catch (error) {
             console.error(`Error al dar el rol desde el botón: ${error}`);

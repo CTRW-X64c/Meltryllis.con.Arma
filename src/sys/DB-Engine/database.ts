@@ -160,6 +160,15 @@ export async function initializeDatabase(): Promise<void> {
             UNIQUE KEY unique_perm (guild_id, target_id, command_name)
           )
         `);
+// Tabla de msgCustom /buttonRole
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS buttonMsg_configs (
+            guild_id VARCHAR(50) NOT NULL,
+            id_Button VARCHAR(50) NOT NULL,
+            msgButton_id TEXT,
+            PRIMARY KEY (id_Button)
+          )
+        `);
         
         return;
       } catch (err) {

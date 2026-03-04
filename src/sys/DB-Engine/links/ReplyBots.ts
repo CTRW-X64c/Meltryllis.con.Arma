@@ -69,7 +69,7 @@ export async function delleteAllReplyBotsConfig(guildId: string): Promise<void> 
   try {
     const pool = await getPool();
     await pool.query(
-      "DELETE FROM guild_replacements WHERE guild_id = ?",
+      "DELETE FROM channel_configs WHERE guild_id = ?",
       [guildId]
     );
 

@@ -132,7 +132,7 @@ export async function delleteAllRedditConfig(guildId: string): Promise<void> {
   try {
     const pool = await getPool();
     await pool.query(
-      "DELETE FROM guild_replacements WHERE guild_id = ?",
+      "DELETE FROM reddit_feeds WHERE guild_id = ?",
       [guildId]
     );
 
