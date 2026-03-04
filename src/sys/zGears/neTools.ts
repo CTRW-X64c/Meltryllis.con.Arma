@@ -95,13 +95,13 @@ export async function checkAllDomains(): Promise<DomainStatus[]> {
 
 export function buildDomainStatusEmbed(domainStatuses: DomainStatus[]): EmbedBuilder {
     const embed = new EmbedBuilder()
-        .setTitle(i18next.t("neTools_embed_title", { ns: "neTools" }))
+        .setTitle(i18next.t("common:neTools.embed_title", { ns: "neTools" }))
         .setTimestamp();
     
     const workingCount = domainStatuses.filter(d => d.isWorking).length;
     const totalCount = domainStatuses.length;
     
-    embed.setDescription(i18next.t("neTools_embed_description", { ns: "neTools", a1: workingCount, a2: totalCount }));
+    embed.setDescription(i18next.t("common:neTools.embed_description", { ns: "neTools", a1: workingCount, a2: totalCount }));
     
     if (workingCount === totalCount) {
         embed.setColor("#00ff00");
@@ -140,9 +140,9 @@ export function buildDomainStatusEmbed(domainStatuses: DomainStatus[]): EmbedBui
         : 0;
         
     embed.addFields({
-        name: i18next.t("neTools_embed_resumen", { ns: "neTools" }),
-        value: i18next.t("neTools_embed_resumen_value_1", { ns: "neTools", a1: Math.round(avgResponseTime) }) +
-               i18next.t("neTools_embed_resumen_value_2", { ns: "neTools", a1: ((workingCount / totalCount) * 100).toFixed(1)}),
+        name: i18next.t("common:neTools.embed_resumen", { ns: "neTools" }),
+        value: i18next.t("common:neTools.embed_resumen_value_1", { ns: "neTools", a1: Math.round(avgResponseTime) }) +
+               i18next.t("common:neTools.embed_resumen_value_2", { ns: "neTools", a1: ((workingCount / totalCount) * 100).toFixed(1)}),
         inline: false
     });
     

@@ -122,7 +122,7 @@ const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     
     try {
       await channel.send({
-        content: i18next.t("follows:youtube.check.novo_video", {ns: "youtube", a1: feed.youtube_channel_name, a2: safeTitle, a3: videoUrl}),
+        content: i18next.t("commands:youtube.check.novo_video", {ns: "youtube", a1: feed.youtube_channel_name, a2: safeTitle, a3: videoUrl}),
       });
       
       debug(`Aviso a ${guild.name} de nuevo video de ${feed.youtube_channel_name}`);

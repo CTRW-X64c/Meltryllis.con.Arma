@@ -5,5 +5,13 @@
 
         "noChannel":"⛔⛔ Este comando solo funciona en canales de texto del servidor ⛔⛔",
         "switchGeneral": "Error en procesar el comando!!"
+    },
+
+    "neTools":{
+        "embed_title":"🌐 Estado de los  **dominios** de Embedding",
+        "embed_description": "**{{a1}}/{{a2}} dominios funcionando**",
+        "embed_resumen": "📈 Estadísticas",
+        "embed_resumen_value_1": "Latencia media: {{a1}}ms\n",
+        "embed_resumen_value_2": "Funcionando al {{a1}}%"
     }
 }

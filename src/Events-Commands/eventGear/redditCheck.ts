@@ -85,13 +85,13 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 if (removed && channel) {
                     switch (jsonData.reason) {
                         case 'banned':
-                            await channel.send(i18next.t("follows:reddit.check.Reduit_baneado", { a1: displayName }));
+                            await channel.send(i18next.t("commands:reddit.check.Reduit_baneado", { a1: displayName }));
                             break;
                         case 'private':
-                            await channel.send(i18next.t("follows:reddit.check.Reduit_privado", { a1: displayName }));
+                            await channel.send(i18next.t("commands:reddit.check.Reduit_privado", { a1: displayName }));
                             break;
                         case 'quarantined':
-                            await channel.send(i18next.t("follows:reddit.check.Reduit_cuarentena", { a1: displayName }));
+                            await channel.send(i18next.t("commands:reddit.check.Reduit_cuarentena", { a1: displayName }));
                             break;
                         default:
                             break;
@@ -190,9 +190,9 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     
                 let messageContent;
                 if (nsfwCheck) {
-                    messageContent = i18next.t("follows:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
+                    messageContent = i18next.t("commands:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
                 } else {
-                    messageContent = i18next.t("follows:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
+                    messageContent = i18next.t("commands:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
                 }
                      
                 await textChannel.send(messageContent);

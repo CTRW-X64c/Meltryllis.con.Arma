@@ -21,11 +21,6 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "buttonLink.slashbuilder.*",
         "roleButton.slashbuilder.*"
     ],
-    "follows":[
-        "mangadex.slashbuilder.*",
-        "reddit.slashBuilder.*",
-        "youtube.slashBuilder.*"
-    ],
     "commands":[
         "joinCreate.slashBuilder.*",
         "cleanup.slashBuilder.*",
@@ -33,7 +28,10 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "permisos.slashBuilder.*",
         "post.slashBuilder.*",
         "rolemoji.slashBuilder.*",
-        "welcome.slashBuilder.*"
+        "welcome.slashBuilder.*",
+        "mangadex.slashbuilder.*",
+        "reddit.slashBuilder.*",
+        "youtube.slashBuilder.*"
     ],
 
     // Agrega más namespaces según necesites
