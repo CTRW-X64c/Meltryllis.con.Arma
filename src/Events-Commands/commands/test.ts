@@ -16,17 +16,17 @@ export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
   const testCommand = new SlashCommandBuilder()
     .setName("test")
     .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
-    .setDescription(i18next.t("embSys:test.slashBuilder.test_description"))
+    .setDescription(i18next.t("commands:test.slashBuilder.test_description"))
     .addStringOption((option) =>
       option
         .setName("mode")
-        .setDescription(i18next.t("embSys:test.slashBuilder.mode_description"))
+        .setDescription(i18next.t("commands:test.slashBuilder.mode_description"))
         .setRequired(false)
         .addChoices(
-          { name: i18next.t("embSys:test.slashBuilder.guild"), value: "channel" },
-          { name: i18next.t("embSys:test.slashBuilder.channel"), value: "guild" },
-          { name: i18next.t("embSys:test.slashBuilder.embed_config"), value: "embed" },
-          { name: i18next.t("embSys:test.slashBuilder.mode_domainds"), value: "chekdimains" }
+          { name: i18next.t("commands:test.slashBuilder.guild"), value: "channel" },
+          { name: i18next.t("commands:test.slashBuilder.channel"), value: "guild" },
+          { name: i18next.t("commands:test.slashBuilder.embed_config"), value: "embed" },
+          { name: i18next.t("commands:test.slashBuilder.mode_domainds"), value: "chekdimains" }
         )
     ) as SlashCommandBuilder;
 
@@ -47,7 +47,7 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
     const mode = interaction.options.getString("mode") ?? "channel";
     const configMap = await getConfigMap();
     const baseEmbed = new EmbedBuilder()
-      .setTitle(i18next.t("embSys:test.interacciones.title"));
+      .setTitle(i18next.t("commands:test.interacciones.title"));
     const embeds: EmbedBuilder[] = [baseEmbed];
 
     // Inicio de seccion switch para subcomandos
@@ -69,7 +69,7 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
         return;
 
       default:
-        baseEmbed.setDescription(i18next.t("embSys:test.interacciones.test_command_invalid_mode"))
+        baseEmbed.setDescription(i18next.t("commands:test.interacciones.test_command_invalid_mode"))
              .setColor("#ff0000");
         break;
     }
@@ -80,12 +80,12 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
     error(`Error al ejecutar comando /test: ${err}`); //<=
       if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
-        content: i18next.t("embSys:test.interacciones.test_command_invalid_mode"),
+        content: i18next.t("commands:test.interacciones.test_command_invalid_mode"),
         flags: MessageFlags.Ephemeral,
     });
   }else if (!interaction.replied) {
     await interaction.editReply({
-      content: i18next.t("embSys:test.interacciones.test_command_invalid_mode"),
+      content: i18next.t("commands:test.interacciones.test_command_invalid_mode"),
     });
 }}}
 
@@ -93,53 +93,53 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
 
 async function guildPermision(interaction: ChatInputCommandInteraction, embed: EmbedBuilder): Promise<void> {
   const requiredPermissions = [
-    { name: i18next.t("embSys:test.permisos.view_channel"), bit: PermissionsBitField.Flags.ViewChannel },
-    { name: i18next.t("embSys:test.permisos.send_messages"), bit: PermissionsBitField.Flags.SendMessages },
-    { name: i18next.t("embSys:test.permisos.embed_links"), bit: PermissionsBitField.Flags.EmbedLinks },
-    { name: i18next.t("embSys:test.permisos.manage_messages"), bit: PermissionsBitField.Flags.ManageMessages },
-    { name: i18next.t("embSys:test.permisos.read_message_history"), bit: PermissionsBitField.Flags.ReadMessageHistory },
-    { name: i18next.t("embSys:test.permisos.add_reactions"), bit: PermissionsBitField.Flags.AddReactions },
-    { name: i18next.t("embSys:test.permisos.role_manager"), bit: PermissionsBitField.Flags.ManageRoles },
-    { name: i18next.t("embSys:test.permisos.channel_manager"), bit: PermissionsBitField.Flags.ManageChannels }
+    { name: i18next.t("commands:test.permisos.view_channel"), bit: PermissionsBitField.Flags.ViewChannel },
+    { name: i18next.t("commands:test.permisos.send_messages"), bit: PermissionsBitField.Flags.SendMessages },
+    { name: i18next.t("commands:test.permisos.embed_links"), bit: PermissionsBitField.Flags.EmbedLinks },
+    { name: i18next.t("commands:test.permisos.manage_messages"), bit: PermissionsBitField.Flags.ManageMessages },
+    { name: i18next.t("commands:test.permisos.read_message_history"), bit: PermissionsBitField.Flags.ReadMessageHistory },
+    { name: i18next.t("commands:test.permisos.add_reactions"), bit: PermissionsBitField.Flags.AddReactions },
+    { name: i18next.t("commands:test.permisos.role_manager"), bit: PermissionsBitField.Flags.ManageRoles },
+    { name: i18next.t("commands:test.permisos.channel_manager"), bit: PermissionsBitField.Flags.ManageChannels }
   ];
 
   const admin = [
-    { name: i18next.t("embSys:test.permisos.manage_guild"), bit: PermissionsBitField.Flags.ManageGuild },
-    { name: i18next.t("embSys:test.permisos.administrator"), bit: PermissionsBitField.Flags.Administrator }
+    { name: i18next.t("commands:test.permisos.manage_guild"), bit: PermissionsBitField.Flags.ManageGuild },
+    { name: i18next.t("commands:test.permisos.administrator"), bit: PermissionsBitField.Flags.Administrator }
   ];
 
   const channel = interaction.channel as TextChannel;
   if (!channel || !("permissionsFor" in channel)) {        
-    throw new Error(i18next.t("embSys:test.interacciones.test_error_permission"));
+    throw new Error(i18next.t("commands:test.interacciones.test_error_permission"));
   }
 
   const botMember = interaction.guild?.members.me;
   if (!botMember) {
-    throw new Error(i18next.t("embSys:test.interacciones.test_error_permission_user"));
+    throw new Error(i18next.t("commands:test.interacciones.test_error_permission_user"));
   }
 
   const permissions = channel.permissionsFor(botMember);
   if (!permissions) {
-    throw new Error(i18next.t("embSys:test.interacciones.test_error_verify_permission"));
+    throw new Error(i18next.t("commands:test.interacciones.test_error_verify_permission"));
   }
 
   embed
-    .setDescription(i18next.t("embSys:test.interacciones.test_command_channel_description"))
+    .setDescription(i18next.t("commands:test.interacciones.test_command_channel_description"))
     .addFields(
       requiredPermissions.map((perm) => ({
-        name: i18next.t("embSys:test.interacciones.permission_name", { name: perm.name }),
-        value: permissions.has(perm.bit) ? i18next.t("embSys:test.interacciones.status_allowed") : i18next.t("embSys:test.interacciones.status_missing"),
+        name: i18next.t("commands:test.interacciones.permission_name", { name: perm.name }),
+        value: permissions.has(perm.bit) ? i18next.t("commands:test.interacciones.status_allowed") : i18next.t("commands:test.interacciones.status_missing"),
         inline: false,
       }))
     )
     .addFields(
       admin.map((perm) => ({
-        name: i18next.t("embSys:test.interacciones.permission_name", { name: perm.name }),
-        value: permissions.has(perm.bit) ? i18next.t("embSys:test.interacciones.status_allowed_admin") : i18next.t("embSys:test.interacciones.status_missing"),
+        name: i18next.t("commands:test.interacciones.permission_name", { name: perm.name }),
+        value: permissions.has(perm.bit) ? i18next.t("commands:test.interacciones.status_allowed_admin") : i18next.t("commands:test.interacciones.status_missing"),
         inline: false,
       }))
     );
-  embed.setFooter({ text: i18next.t("embSys:test.interacciones.footer")});
+  embed.setFooter({ text: i18next.t("commands:test.interacciones.footer")});
   embed.setColor("#0300c8"); 
 }
 
@@ -148,21 +148,21 @@ async function guildPermision(interaction: ChatInputCommandInteraction, embed: E
 async function allChannels(interaction: ChatInputCommandInteraction, embeds: EmbedBuilder[], configMap: Map<string, Map<string, { enabled: boolean; replyBots: boolean }>>,): Promise<void> {
   const guild = interaction.guild;
   const textPermisison = [
-    { name: i18next.t("embSys:test.permisos.view_channel"), bit: PermissionsBitField.Flags.ViewChannel },
-    { name: i18next.t("embSys:test.permisos.send_messages"), bit: PermissionsBitField.Flags.SendMessages },
-    { name: i18next.t("embSys:test.permisos.embed_links"), bit: PermissionsBitField.Flags.EmbedLinks },
-    { name: i18next.t("embSys:test.permisos.manage_messages"), bit: PermissionsBitField.Flags.ManageMessages },
-    { name: i18next.t("embSys:test.permisos.read_message_history"), bit: PermissionsBitField.Flags.ReadMessageHistory },
-    { name: i18next.t("embSys:test.permisos.add_reactions"), bit: PermissionsBitField.Flags.AddReactions },
+    { name: i18next.t("commands:test.permisos.view_channel"), bit: PermissionsBitField.Flags.ViewChannel },
+    { name: i18next.t("commands:test.permisos.send_messages"), bit: PermissionsBitField.Flags.SendMessages },
+    { name: i18next.t("commands:test.permisos.embed_links"), bit: PermissionsBitField.Flags.EmbedLinks },
+    { name: i18next.t("commands:test.permisos.manage_messages"), bit: PermissionsBitField.Flags.ManageMessages },
+    { name: i18next.t("commands:test.permisos.read_message_history"), bit: PermissionsBitField.Flags.ReadMessageHistory },
+    { name: i18next.t("commands:test.permisos.add_reactions"), bit: PermissionsBitField.Flags.AddReactions },
   ];
 
   const voicePermision = [
-    { name: i18next.t("embSys:test.permisos.view_channel"), bit: PermissionsBitField.Flags.ViewChannel },
-    { name: i18next.t("embSys:test.permisos.connect_voice"), bit: PermissionsBitField.Flags.Connect }
+    { name: i18next.t("commands:test.permisos.view_channel"), bit: PermissionsBitField.Flags.ViewChannel },
+    { name: i18next.t("commands:test.permisos.connect_voice"), bit: PermissionsBitField.Flags.Connect }
   ];
 
   if (!guild) {
-    throw new Error(i18next.t("embSys:test.interacciones.dont_gg"));
+    throw new Error(i18next.t("commands:test.interacciones.dont_gg"));
   }
 
   const textChannels = guild.channels.cache.filter(channel => channel.type === 0); // Canales de Texto, Excluye hilos
@@ -174,7 +174,7 @@ async function allChannels(interaction: ChatInputCommandInteraction, embeds: Emb
   const maxChannels = chunkSize * 10;
   const channelsProcess = channelsArray.slice(0, maxChannels);
 
-  embeds[0].setDescription(i18next.t("embSys:test.interacciones.test_command_guild_description"));
+  embeds[0].setDescription(i18next.t("commands:test.interacciones.test_command_guild_description"));
 
   for (let i = 0; i < channelsProcess.length; i += chunkSize) {
     const chunk = channelsProcess.slice(i, i + chunkSize);
@@ -183,7 +183,7 @@ async function allChannels(interaction: ChatInputCommandInteraction, embeds: Emb
     if (i === 0) {
       currentEmbed = embeds[0];
     } else {
-      currentEmbed = new EmbedBuilder().setTitle(i18next.t("embSys:test.interacciones.title") + ` (${Math.floor(i / chunkSize) + 1})`);
+      currentEmbed = new EmbedBuilder().setTitle(i18next.t("commands:test.interacciones.title") + ` (${Math.floor(i / chunkSize) + 1})`);
       embeds.push(currentEmbed);
     }
 
@@ -204,9 +204,9 @@ async function allChannels(interaction: ChatInputCommandInteraction, embeds: Emb
 
         currentEmbed.addFields({
           name: `Canal: #${channel.name}`,
-          value: (hasPerms ? i18next.t("embSys:test.interacciones.all_status_allowed") : i18next.t("embSys:test.interacciones.missing_any_status")) +
-            `\n${i18next.t("embSys:test.interacciones.working_here")}: ${channelConfig.enabled ? "✅" : "❌"}` +
-            `\n${i18next.t("embSys:test.interacciones.reply_bots")}: ${channelConfig.replyBots ? "✅" : "❌"}`,
+          value: (hasPerms ? i18next.t("commands:test.interacciones.all_status_allowed") : i18next.t("commands:test.interacciones.missing_any_status")) +
+            `\n${i18next.t("commands:test.interacciones.working_here")}: ${channelConfig.enabled ? "✅" : "❌"}` +
+            `\n${i18next.t("commands:test.interacciones.reply_bots")}: ${channelConfig.replyBots ? "✅" : "❌"}`,
           inline: false,
         });
 
@@ -217,7 +217,7 @@ async function allChannels(interaction: ChatInputCommandInteraction, embeds: Emb
 
         currentEmbed.addFields({
           name: `🔊 Voz: ${channel.name}`,
-          value: hasPerms ? i18next.t("embSys:test.interacciones.all_status_allowed") : i18next.t("embSys:test.interacciones.missing_any_status"),
+          value: hasPerms ? i18next.t("commands:test.interacciones.all_status_allowed") : i18next.t("commands:test.interacciones.missing_any_status"),
           inline: false,
         });
       }
@@ -231,7 +231,7 @@ async function allChannels(interaction: ChatInputCommandInteraction, embeds: Emb
 
   const color = globalPermissionsOk ? "#00ff00" : "#ff0000";
   embeds.forEach(e => e.setColor(color));
-  embeds.forEach(e => e.setFooter({ text: i18next.t("embSys:test.interacciones.footer")}));
+  embeds.forEach(e => e.setFooter({ text: i18next.t("commands:test.interacciones.footer")}));
 }
 
 /* ========================= Embedes Set ========================= */
@@ -239,11 +239,11 @@ async function allChannels(interaction: ChatInputCommandInteraction, embeds: Emb
 async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBuilder): Promise<void> {
   const guildId = interaction.guild?.id;
   if (!guildId) {
-    throw new Error(i18next.t("embSys:test.interacciones.dont_gg"));
+    throw new Error(i18next.t("commands:test.interacciones.dont_gg"));
   }
   
   const replacementConfig = await getGuildReplacementConfig(guildId);
-  embed.setDescription(i18next.t("embSys:test.interacciones.not_replacement"));
+  embed.setDescription(i18next.t("commands:test.interacciones.not_replacement"));
 
   const addCategoryFields = (title: string, lines: string[]) => {
     if (lines.length === 0) return;
@@ -270,14 +270,14 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
     const config = replacementConfig.get(meta.name);
     let status: string;
     if (config === undefined) {
-      status = i18next.t("embSys:test.interacciones.rem_list_1");
+      status = i18next.t("commands:test.interacciones.rem_list_1");
     } else if (!config.enabled) {
-      status = i18next.t("embSys:test.interacciones.rem_list_2");
+      status = i18next.t("commands:test.interacciones.rem_list_2");
     } else if (config.custom_url) {
-      const userMention = config.user_id ? `<@${config.user_id}>` : i18next.t("embSys:test.interacciones.unknown_user"); 
-      status = i18next.t("embSys:test.interacciones.rem_list_3", { custom_url: config.custom_url, userMention }); 
+      const userMention = config.user_id ? `<@${config.user_id}>` : i18next.t("commands:test.interacciones.unknown_user"); 
+      status = i18next.t("commands:test.interacciones.rem_list_3", { custom_url: config.custom_url, userMention }); 
     } else {
-      status = i18next.t("embSys:test.interacciones.rem_list_1");
+      status = i18next.t("commands:test.interacciones.rem_list_1");
     }
     localLines.push(`**${meta.name}:** \u200b \u200b \u200b${status}`);
   });
@@ -287,8 +287,8 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
   sfwDomains.forEach(domain => {
     const config = replacementConfig.get(domain);
     const status = (config === undefined || config.enabled) ? 
-      i18next.t("embSys:test.interacciones.field_api_enabled") : 
-      i18next.t("embSys:test.interacciones.field_api_disabled");
+      i18next.t("commands:test.interacciones.field_api_enabled") : 
+      i18next.t("commands:test.interacciones.field_api_disabled");
     sfwLines.push(`**${domain}:** \u200b \u200b \u200b${status}`);
   });
   addCategoryFields("🌐 API SFW", sfwLines);
@@ -297,8 +297,8 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
   nsfwDomains.forEach(domain => {
     const config = replacementConfig.get(domain);
     const status = (config === undefined || config.enabled) ? 
-      i18next.t("embSys:test.interacciones.field_api_enabled") : 
-      i18next.t("embSys:test.interacciones.field_api_disabled");
+      i18next.t("commands:test.interacciones.field_api_enabled") : 
+      i18next.t("commands:test.interacciones.field_api_disabled");
     nsfwLines.push(`**${domain}:** \u200b \u200b \u200b ${status}`);
   });
   addCategoryFields("🔞 API NSFW", nsfwLines);
@@ -313,7 +313,7 @@ export async function ChekDomainsTest(interaction: ChatInputCommandInteraction):
         const cooldown = checkCooldown(interaction.guildId!, idCooldown);
         if (cooldown.onCooldown) {
             await interaction.reply({
-                content: i18next.t("embSys:test.interacciones.test_domaind_error", { a1: cooldown.timeLeft }),
+                content: i18next.t("commands:test.interacciones.test_domaind_error", { a1: cooldown.timeLeft }),
                 flags: MessageFlags.Ephemeral
             });
             return;
@@ -322,7 +322,7 @@ export async function ChekDomainsTest(interaction: ChatInputCommandInteraction):
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         
         await interaction.editReply({
-            content: i18next.t("embSys:test.interacciones.test_domaind_verificando")
+            content: i18next.t("commands:test.interacciones.test_domaind_verificando")
         });
 
         startCooldown(interaction.guildId!, idCooldown);
@@ -338,7 +338,7 @@ export async function ChekDomainsTest(interaction: ChatInputCommandInteraction):
 
     } catch (err: any) {
         await interaction.editReply({
-            content: i18next.t("embSys:test.interacciones.command_error_verificando", { a1: err.message}),
+            content: i18next.t("commands:test.interacciones.command_error_verificando", { a1: err.message}),
         });
     }
 }

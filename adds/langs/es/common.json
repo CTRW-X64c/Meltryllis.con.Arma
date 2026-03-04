@@ -1,4 +1,14 @@
 {   
+    "embedService": {
+        "format_link": "[Embedding de {{Site}}]({{RemUrl}})",
+        "format_link_spoiler": "||[Embedding de {{Site}}]({{RemUrl}})|| \n No carga?, prueba mandar sin \"espoiler\"",
+
+        "msgFail":"Discord no genero el embed. \n Usa `$$` al inico del mensaje si no quieres que lo procese. `Este mensaje se borrara en 10s`",
+        "msgFail_fb": "Enlace \"compartir\" de Facebook `facebook.com/share/...` tiende a fallar mucho; mejor usa el link directo `facebook.com/rell|/video|/post...`!! \n `Este mensaje se borrara en 10s`",
+        "try": "🔄 Reintentando embeding. Intento: {{a1}} 🔄",
+        "emojErr": "Me faltan permisos. \"usa /test para verificar los permisos\""
+    },
+    
     "Errores": {
         "isAllowed": "⛔⛔ No te han asiganmado permisos para ejecutar este comando ⛔⛔",
         "isAdmin": "⛔⛔ Uso exclusivo para Administradores!! ⛔⛔",

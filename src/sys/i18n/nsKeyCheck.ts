@@ -12,15 +12,6 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
     "help":[
         "comBuild.*"
     ],
-    "embSys":[
-        "test.slashBuilder.*",
-        "work.slashBuilder.*",
-        "embed.slashBuilder.*"
-    ],
-    "botones":[
-        "buttonLink.slashbuilder.*",
-        "roleButton.slashbuilder.*"
-    ],
     "commands":[
         "joinCreate.slashBuilder.*",
         "cleanup.slashBuilder.*",
@@ -31,8 +22,15 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "welcome.slashBuilder.*",
         "mangadex.slashbuilder.*",
         "reddit.slashBuilder.*",
-        "youtube.slashBuilder.*"
+        "youtube.slashBuilder.*",
+        "test.slashBuilder.*",
+        "work.slashBuilder.*",
+        "embed.slashBuilder.*"
     ],
+    "botones":[
+        "buttonLink.slashbuilder.*",
+        "roleButton.slashbuilder.*"
+    ]
 
     // Agrega más namespaces según necesites
 };

@@ -28,35 +28,35 @@ export async function embedAutocomplete(interaction: AutocompleteInteraction): P
 export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
     const embedCommand = new SlashCommandBuilder()
         .setName("embed") 
-        .setDescription(i18next.t("embSys:embed.slashBuilder.embed_description"))
+        .setDescription(i18next.t("commands:embed.slashBuilder.embed_description"))
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("configurar")
-                .setDescription(i18next.t("embSys:embed.slashBuilder.embed_config"))
+                .setDescription(i18next.t("commands:embed.slashBuilder.embed_config"))
                 .addStringOption((option) =>
                     option
                         .setName("sitio")
-                        .setDescription(i18next.t("embSys:embed.slashBuilder.site_description"))
+                        .setDescription(i18next.t("commands:embed.slashBuilder.site_description"))
                         .setRequired(true)
                         .setAutocomplete(true) 
                 )
                 .addStringOption((option) =>
                     option
                         .setName("modo")
-                        .setDescription(i18next.t("embSys:embed.slashBuilder.action_description")) 
+                        .setDescription(i18next.t("commands:embed.slashBuilder.action_description")) 
                         .setRequired(true)
                         .addChoices(
-                            { name: i18next.t("embSys:embed.slashBuilder.enable"), value: "enable" }, 
-                            { name: i18next.t("embSys:embed.slashBuilder.disable"), value: "disable" },
-                            { name: i18next.t("embSys:embed.slashBuilder.custom"), value: "custom" },
-                            { name: i18next.t("embSys:embed.slashBuilder.default"), value: "default" } 
+                            { name: i18next.t("commands:embed.slashBuilder.enable"), value: "enable" }, 
+                            { name: i18next.t("commands:embed.slashBuilder.disable"), value: "disable" },
+                            { name: i18next.t("commands:embed.slashBuilder.custom"), value: "custom" },
+                            { name: i18next.t("commands:embed.slashBuilder.default"), value: "default" } 
                         )
                 )
                 .addStringOption((option) =>
                     option
                         .setName("personalizar")
-                        .setDescription(i18next.t("embSys:embed.slashBuilder.custom_url"))
+                        .setDescription(i18next.t("commands:embed.slashBuilder.custom_url"))
                         .setRequired(false)
                 )
         );
@@ -93,7 +93,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         if (action === "default") {
             if (isApiDomain) {
                 await interaction.reply({
-                    content: i18next.t("embSys:embed.interacciones.Api_default"), 
+                    content: i18next.t("commands:embed.interacciones.Api_default"), 
                     flags: MessageFlags.Ephemeral,
                 });
                 return;
@@ -108,14 +108,14 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         } else if (action === "custom") {
             if (isApiDomain) {
                 await interaction.reply({
-                    content: i18next.t("embSys:embed.interacciones.Api_custom"),
+                    content: i18next.t("commands:embed.interacciones.Api_custom"),
                     flags: MessageFlags.Ephemeral,
                 });
                 return;
             }
             if (!customUrlInput) {
                 await interaction.reply({
-                    content: i18next.t("embSys:embed.interacciones.Api_url_custom"),
+                    content: i18next.t("commands:embed.interacciones.Api_url_custom"),
                     flags: MessageFlags.Ephemeral,
                 });
                 return;
@@ -128,7 +128,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
                 userId = interaction.user.id;
             } catch (e) {
                 await interaction.reply({
-                    content: i18next.t("embSys:embed.interacciones.Api_url_custom"),
+                    content: i18next.t("commands:embed.interacciones.Api_url_custom"),
                     flags: MessageFlags.Ephemeral,
                 });
                 return;
@@ -145,13 +145,13 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         let successMessage: string;
 
         if (action === "disable") {
-            successMessage = i18next.t("embSys:embed.interacciones.disable_description", { a1: userMention, a2: site });
+            successMessage = i18next.t("commands:embed.interacciones.disable_description", { a1: userMention, a2: site });
         } else if (action === "enable") {
-            successMessage = i18next.t("embSys:embed.interacciones.enable_description", { a1: userMention, a2: site });
+            successMessage = i18next.t("commands:embed.interacciones.enable_description", { a1: userMention, a2: site });
         } else if (action === "custom") {
-            successMessage = i18next.t("embSys:embed.interacciones.custom_description", { a1: userMention, a2: site, a3: customUrlInput });
+            successMessage = i18next.t("commands:embed.interacciones.custom_description", { a1: userMention, a2: site, a3: customUrlInput });
         } else { 
-            successMessage = i18next.t("embSys:embed.interacciones.default_description", { a1: userMention, a2: site });
+            successMessage = i18next.t("commands:embed.interacciones.default_description", { a1: userMention, a2: site });
         }
 
         await interaction.reply({
@@ -160,7 +160,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
     } catch (err) {
         error(`handleEmbedCommand()\tFallo para Guild: ${interaction.guildId}\tUsuario: ${interaction.user.id}\tError: ${err}`);
         await interaction.reply({
-            content: i18next.t("embSys:embed.interacciones.failed"),
+            content: i18next.t("commands:embed.interacciones.failed"),
             flags: MessageFlags.Ephemeral,
         });
     }
