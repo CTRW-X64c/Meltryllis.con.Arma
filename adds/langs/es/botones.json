@@ -62,7 +62,7 @@
       "roleB5": "Rol que dara el 5to boton",
       "textB5": "Texto del 5to boton",
       "colorB5": "Color del 5to boton",
-      "msg": "Añade un Msg custom al boton, es temporal y solo visible para quien lo usa!! (puedes usar <role> para mencionar el rol dado)"
+      "msg": "Añade una respuesta custom al usarce el boton. (usa `<rol>` para mencionar el rol dado)"
     },
     "catchmsg": "⏳ **¡Configuración iniciada!**\nPor favor, envía en este canal el mensaje que quieres que aparezca junto al botón. Puedes incluir saltos de línea, emojis e **imágenes adjuntas**.\n*Tienes 5 minutos para enviarlo.*",
     "success": "✅ Se posteo correctamente el primer boton",

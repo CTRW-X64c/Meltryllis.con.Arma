@@ -260,7 +260,7 @@ export async function roleButton(interaction: ButtonInteraction) {
             let msgout: string;
 
             if (custMsg && custMsg.length > 0 && custMsg[0].messageText) {
-                msgout = custMsg[0].messageText.replace(/<role>/g, roleName);
+                msgout = custMsg[0].messageText.replace(/<rol>/g, roleName);
             } else {
                 msgout = i18next.t("botones:roleButton.getSucces", {a1: roleName});
             }
