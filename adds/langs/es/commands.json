@@ -36,9 +36,9 @@
             "message_id_description": "ID del mensaje de referencia",
             "count_description": "Cantidad de mensajes a eliminar (1-100)",
             "type_description": "Tipo de mensajes a eliminar",
-            "users_option": "Borrar mensaje de solo usuarios",
-            "bots_option": "Borrar mensaje de solo bots",
-            "any_option": "Borrar todos los mensajes"
+            "users_option": "Solo de usuarios",
+            "bots_option": "Solo de bots",
+            "any_option": "Sin filtro"
         },
         
         "interacciones":{
