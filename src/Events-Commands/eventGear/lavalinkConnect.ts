@@ -1,6 +1,6 @@
 // src/client/eventGear/lavalinkConnect.ts
 import { Client } from "discord.js";
-import { Shoukaku, Connectors } from "shoukaku";
+import { Shoukaku, Connectors, Node } from "shoukaku";
 
 export class LavalinkManager {
   public shoukaku: Shoukaku | null = null;
@@ -70,43 +70,58 @@ export class LavalinkManager {
                         ]);
                     } catch (err) {
                         console.error(`[Lavalink] 💀 Detectada conexión fanstasma en ${node.name}. Reiniciando nodo...`);
-                        this.forceReconnect(node);
+                        this.reconnectNode(node);
                     }
                 } else if (node.state !== 0) {
                     console.error(`[Lavalink] Nodo ${node.name} desconectado. Forzando conexión...`);
-                    this.forceReconnect(node);
+                    this.reconnectNode(node);
                 }
             });
         }, 3 * 60 * 60 * 1000); 
     }
-    
-    private forceReconnect(node: any) {
-      try{
-        node.disconnect();
+  
+    private reconnectNode(node: Node) {
+      try {
+        node.disconnect(0, "Forced Reconnect");
         setTimeout(() => {
-        console.debug("[Lavalink] Intentando reconectar...", "Watchdog");
+        console.log(`[Lavalink] Intentando reconectar el nodo ${node.name}...`);
         node.connect();
             }, 1000);
-        }catch (e) {
-            console.error(`[Lavalink] Falló el reinicio forzado: ${e}`) }
+        } catch (e) {
+            console.error(`[Lavalink] Falló el reinicio forzado para el nodo ${node.name}: ${e}`);
+        }
     }
 
-  getPlayer(guildId: string) {
-      return this.shoukaku?.players.get(guildId);
+    public reconnectAllNodes() {
+    if (!this.shoukaku) {
+      console.error('[Lavalink] Shoukaku no inicializado, no se puede reconectar.');
+      return;
     }
 
-  joinVoiceChannel(guildId: string, channelId: string, shardId: number = 0) {
-      if (!this.shoukaku) throw new Error("Shoukaku no inicializado");
-      return this.shoukaku.joinVoiceChannel({
+    console.log('[Lavalink] Intentando reconectar todos los nodos...');
+    for (const node of this.shoukaku.nodes.values()) {
+      this.reconnectNode(node);
+        }
+    }
+
+    getPlayer(guildId: string) {
+        return this.shoukaku?.players.get(guildId);
+    }
+
+    joinVoiceChannel(guildId: string, channelId: string, shardId: number = 0) {
+        if (!this.shoukaku) throw new Error("Shoukaku no inicializado");
+        return this.shoukaku.joinVoiceChannel({
           guildId, channelId, shardId, deaf: true
         });
     }
 
-  getNode() {
-      if (!this.shoukaku) throw new Error("Shoukaku no inicializado");
-      return this.shoukaku.options.nodeResolver(this.shoukaku.nodes);
+    getNode() {
+        if (!this.shoukaku) throw new Error("Shoukaku no inicializado");
+        return this.shoukaku.options.nodeResolver(this.shoukaku.nodes);
     }
 }
+
+/* ========================= Init ========================= */
 
 function createLavalinkInstance(): LavalinkManager | null {
     const lavalinkUp = process.env.LAVALINK_NAME && process.env.LAVALINK_HOST && process.env.LAVALINK_PASSWORD;

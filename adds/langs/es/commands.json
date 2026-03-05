@@ -64,7 +64,7 @@
       "error_01": "❌ El sistema de música está desactivado.",
       "error_empit": "❌ ¡Debes estar en un canal de voz!",
       "occupied": "❌ El bot está ocupado en otro canal.",
-      "lavalink_down": "❌ Sin conexión a Lavalink.",
+      "lavalink_down": "\"❌Parece que hay inconvenientes con los nodos, por favor aguarde un momento mientras los reinicio.\"",
       "no_found": "❌ No encontre la cancion que querias",
       "playlist": "✅ Playlist **{{a1}}** cargada ({{a2}} canciones).",
       "playlist_queue": "📝 Agregado a la cola: **{{a1}}**",
@@ -82,7 +82,8 @@
       "Queue_06": "❌ No hay lista de reproduccion activa.",
       "Queue_07": "Lista de reproduccion eliminada.",
       "pNext_01": "💤 Cola terminada. Desconectando...",
-      "pNext_02": "▶️ Reproduciendo: **{{a1}}** \nPedida por: {{a2}}"
+      "pNext_02": "▶️ Reproduciendo: **{{a1}}** \nPedida por: {{a2}}",
+      "error_play": "\"❌ Los nodo de musica parecen estar fallando. reporta con /help report\""
     }
   },
   "permisos": {

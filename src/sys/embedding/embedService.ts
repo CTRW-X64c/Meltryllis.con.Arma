@@ -110,7 +110,7 @@ export default function startEmbedService(client: Client): void {
             }
     /* ==================================================== Procesamiento del mensaje ==================================================== */
             if (replacedUrl) {
-                const hiddenMessage = message.content.includes("||")
+                const hiddenMessage = message.content.split("||").length > 2;
                 let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl });
                 if (hiddenMessage) {
                     messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: replacedUrl });
@@ -192,7 +192,7 @@ export default function startEmbedService(client: Client): void {
                             }  catch (e) { }
                         }
                     } catch (err) {
-                        error(`Error fatal en intento de envío ${attempt}: ${err}`, "Events.MessageCreate");
+                        error(`Error fatal en intento de envío ${attempt}: ${err} - ${message.guild?.id}`, "Events.MessageCreate");
                         if (editMessage?.deletable) {
                             await editMessage.delete().catch(() => {});
                         }

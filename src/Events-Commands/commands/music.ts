@@ -107,9 +107,10 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
         const node = lavalink.getNode();
         if (!node) { 
             await interaction.editReply(i18next.t("commands:mussic.interacciones.lavalink_down"));
+            lavalinkManager?.reconnectAllNodes();
+            await deletReplyMsg(interaction);
             if (inChannelPlaying) return;
             lavalink.shoukaku?.leaveVoiceChannel(guildId);
-            await deletReplyMsg(interaction);
             return; 
         }
 
@@ -170,12 +171,20 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
             await deletReplyMsg(interaction);
         }
         
-    } catch (err) {
-        error(`Play Error: ${err}`);
-        await interaction.editReply("❌ Error interno.");
-        await deletReplyMsg(interaction);
-        if (!inChannelPlaying){
-        lavalink.shoukaku?.leaveVoiceChannel(guildId);
+    } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        if (errMsg.includes("Can't find any nodes to connect on")) {
+            lavalinkManager?.reconnectAllNodes();
+            lavalink.shoukaku?.leaveVoiceChannel(guildId);
+            error(`Todos los nodos caidos Reiniciando conexiones. ERROR: ${errMsg}`);
+            await interaction.editReply(i18next.t("commands:mussic.interacciones.lavalink_down"));
+            await deletReplyMsg(interaction);
+            return;
+        } else {
+            error(`Play Error: ${err}`);
+            lavalink.shoukaku?.leaveVoiceChannel(guildId);
+            await interaction.editReply(i18next.t("commands:mussic.interacciones.error_play"));
+            await deletReplyMsg(interaction);
         }
     }
 }
