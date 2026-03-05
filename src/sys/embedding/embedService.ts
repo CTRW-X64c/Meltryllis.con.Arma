@@ -110,10 +110,10 @@ export default function startEmbedService(client: Client): void {
             }
     /* ==================================================== Procesamiento del mensaje ==================================================== */
             if (replacedUrl) {
-                const hiddenMessage = message.content.includes("||")
-                let messageContent = i18next.t("format_link", { ns: "core", Site: domainSite, RemUrl: replacedUrl });
+                const hiddenMessage = message.content.split("||").length > 2;
+                let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl });
                 if (hiddenMessage) {
-                    messageContent = i18next.t("format_link_spoiler", { ns: "core", Site: domainSite, RemUrl: replacedUrl });
+                    messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: replacedUrl });
                 }
                 replacedUrls.push(messageContent);
             }
@@ -170,7 +170,7 @@ export default function startEmbedService(client: Client): void {
                             }
                         } else {
                             if (!editMessage.channel.isTextBased()) continue;
-                            await editMessage.edit({ content: i18next.t("embClien_try", { ns: "core", a1: `${attempt - 1}/${mxRetry - 1}`,}), allowedMentions: { repliedUser: false } });
+                            await editMessage.edit({ content: i18next.t("common:embedService.try", { a1: `${attempt - 1}/${mxRetry - 1}`,}), allowedMentions: { repliedUser: false } });
                             await wait(attempt * 1500);
                             await editMessage.edit({ content: replyContent, allowedMentions: { repliedUser: false } });
                         }
@@ -184,15 +184,15 @@ export default function startEmbedService(client: Client): void {
                             break;
                         } else if (attempt === mxRetry && freshMessage?.deletable && freshMessage.editable) {
                             try {
-                                let failMsg = i18next.t("embClien_msgFail", { ns: "core"});
-                                    if (freshMessage.content.includes("facebed.com/share")) {failMsg = i18next.t("embClien_msgFail_fb", { ns: "core" })};
+                                let failMsg = i18next.t("common:embedService.msgFail");
+                                    if (freshMessage.content.includes("facebed.com/share")) {failMsg = i18next.t("common:embedService.msgFail_fb")};
                                 const failureMsg = await freshMessage.edit({ content: failMsg , allowedMentions: { repliedUser: true } });
                                 setTimeout(() => failureMsg.delete().catch(() => {}), 10000);
                                 error(`Discord no genero el embed tras ${attempt} intentos. Gremio: ${message.guild?.name} | embURL: ${replyContent}`, "Events.MessageCreate");
                             }  catch (e) { }
                         }
                     } catch (err) {
-                        error(`Error fatal en intento de envío ${attempt}: ${err}`, "Events.MessageCreate");
+                        error(`Error fatal en intento de envío ${attempt}: ${err} - ${message.guild?.id}`, "Events.MessageCreate");
                         if (editMessage?.deletable) {
                             await editMessage.delete().catch(() => {});
                         }
@@ -226,7 +226,7 @@ export default function startEmbedService(client: Client): void {
                     } catch (err) {
                     const errMsg: string = (err as Error).message;
                     if (errMsg.includes("Missing Permissions")) {
-                        await message.channel.send({ content: i18next.t("embClien_emojErr", { ns: "core"} )});
+                        await message.channel.send({ content: i18next.t("common:embedService.emojErr")});
                         return;
                     }
                     error(`Error al responder: ${errMsg}`, "Events.MessageCreate");                  

@@ -155,8 +155,18 @@ export async function initializeDatabase(): Promise<void> {
             target_id VARCHAR(50) NOT NULL,
             target_type ENUM('USER', 'ROLE') NOT NULL,
             command_name VARCHAR(50) NOT NULL,
+            user_give_perm VARCHAR(50) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE KEY unique_perm (guild_id, target_id, command_name)
+          )
+        `);
+// Tabla de msgCustom /buttonRole
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS buttonMsg_configs (
+            guild_id VARCHAR(50) NOT NULL,
+            id_Button VARCHAR(50) NOT NULL,
+            msgButton_id TEXT,
+            PRIMARY KEY (id_Button)
           )
         `);
         
@@ -177,7 +187,7 @@ export async function initializeDatabase(): Promise<void> {
   return initializationPromise;
 }
 
-export async function getPool(): Promise<Pool> {
+export default async function getPool(): Promise<Pool> {
   if (pool) return pool;
   if (initializationPromise) {
       debug("⚠️ Solicitud de DB recibida durante inicialización, esperando...", "Database");

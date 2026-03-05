@@ -6,7 +6,8 @@ services:
     restart: on-failure:2
     environment:
       - DISCORD_BOT_TOKEN=
-      - OWNER_BOT_ID=
+      - HOST_DISCORD_USER_ID=
+      - REPORT_CHANNEL_ID=
       - DEBUG_MODE=
       
       - LANGS_SUPPORTED=

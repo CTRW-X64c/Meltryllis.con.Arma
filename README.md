@@ -94,7 +94,8 @@ services:
     environment:
     #Cosas del Owner
       - DISCORD_BOT_TOKEN=
-      - OWNER_BOT_ID=
+      - HOST_DISCORD_USER_ID=
+      - REPORT_CHANNEL_ID=
     #Idiomas
       - LANGS_SUPPORTED=
       - LOCALE=
@@ -186,7 +187,8 @@ services:
 | Variable Bot | Valores |
 | --- | --- |
 | `DISCORD_BOT_TOKEN` | TOKEN de tu bot |
-| `OWNER_BOT_ID`  | Tu ID de Usuario de discord  |
+| `HOST_DISCORD_USER_ID`  | Tu ID de Usuario de discord  |
+| `REPORT_CHANNEL_ID` | guildId \| channelId |
 | `LANGS_SUPPORTED` | Idiomas que soporta tu bot |
 | `LOCALE` | Idioma por default que tendra el bot |
 | `DEBUG_MODE` | "Debug mode *0* \| Produccion *>0*" |
@@ -247,11 +249,15 @@ Meltryllis con Arma/
 ├── /logs
 │   └── {logLevel}.log
 ├── /src
-│   ├── /client
+│   ├── /Events-Commands
+│   │   ├── /commandsButtons
+│   │   │   └── roleButton.ts
+│   │   ├── /commandsModales
+│   │   │   └── reportHelp.ts
 │   │   ├── /commands
 │   │   │   ├── cleanup.ts
 │   │   │   ├── embed.ts
-│   │   │   ├── hola.ts
+│   │   │   ├── help.ts
 │   │   │   ├── jointovoice.ts
 │   │   │   ├── mangadex.ts
 │   │   │   ├── music.ts
@@ -269,12 +275,11 @@ Meltryllis con Arma/
 │   │   │   ├── mangadexCheck.ts
 │   │   │   ├── redditCheck.ts
 │   │   │   ├── rolemojiEvents.ts
-│   │   │   ├── upCommands.ts
 │   │   │   ├── voiceEvents.ts
 │   │   │   ├── welcomeEvents.ts
 │   │   │   ├── youtubeCheck.ts
 │   │   │   └── youtubeTools.ts
-│   │   └── index.ts
+│   │   └── upCommands.ts
 │   ├── /sys
 │   │   ├── /BD-Engine
 │   │   │   ├── /links
@@ -316,11 +321,14 @@ Meltryllis con Arma/
 │   │   │   ├── index.ts
 │   │   │   └── nsKeyCheck.ts
 │   │   ├── /zGears
+│   │   │   ├── auxiliares.ts
+│   │   │   ├── formularios.ts
 │   │   │   ├── mPermisions.ts
 │   │   │   ├── neTools.ts
 │   │   │   ├── owner.ts
 │   │   │   ├── RedditApi.ts
 │   │   │   └── setStatus.ts
+│   │   ├── core.ts
 │   │   ├── environment.ts
 │   │   └── logging.ts
 │   └── index.ts

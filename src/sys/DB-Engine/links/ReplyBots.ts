@@ -1,6 +1,6 @@
 // src/sys/DB-Engine/links/ReplyBots.ts
-import { getPool } from "../database";
-import {debug, error} from "../../logging";
+import getPool from "../database";
+import { debug, error } from "../../logging";
 
 interface ChannelConfig {
   enabled: boolean;
@@ -9,60 +9,74 @@ interface ChannelConfig {
 
 const configMapCache = new Map<string, Map<string, ChannelConfig>>();
 
-export function invalidateGuildCache(guildId: string): void {
-  configMapCache.delete(guildId);
-    debug(`[BD.ReplyBots] Renovando la cache del guild: ${guildId}`, "Database");
-}
-
 export async function getConfigMap(): Promise<Map<string, Map<string, ChannelConfig>>> {
   if (configMapCache.size > 0) {
-    debug("[BD.ReplyBots] Retornando la chache del configMap", "Database");
-    return new Map(configMapCache);
+    debug("[BD.ReplyBots] Cache HIT - Retornando configMap completo", "Database");
+    const clone = new Map<string, Map<string, ChannelConfig>>();
+    for (const [guildId, channels] of configMapCache) {
+      clone.set(guildId, new Map(channels));
+    }
+    return clone;
   }
 
+  debug("[BD.ReplyBots] Cache MISS - Cargando configMap desde BD", "Database");
+  
   try {
     const pool = await getPool();
     const [rows] = await pool.query("SELECT guild_id, channel_id, enabled, reply_bots FROM channel_configs");
-    const configMap = new Map<string, Map<string, ChannelConfig>>();
+    
+    configMapCache.clear();
 
     for (const row of rows as any[]) {
       const guildId = row.guild_id;
-      const channelConfig = { enabled: row.enabled, replyBots: row.reply_bots };
+      const channelConfig: ChannelConfig = { enabled: row.enabled === 1, replyBots: row.reply_bots === 1 };
 
-      if (!configMap.has(guildId)) {
-        configMap.set(guildId, new Map());
-      }
-      configMap.get(guildId)!.set(row.channel_id, channelConfig);
+      if (!configMapCache.has(guildId)) { configMapCache.set(guildId, new Map());}
+      configMapCache.get(guildId)!.set(row.channel_id, channelConfig);
     }
 
-    configMapCache.clear();
-    for (const [guildId, channels] of configMap) {
-      configMapCache.set(guildId, channels);
-    }
-
-    debug("[BD.ReplyBots] Cargando cache del configMap", "Database");
-    return configMap;
+    debug(`[BD.ReplyBots] Caché cargada: ${configMapCache.size} guilds en memoria`, "Database");
+    
+    const result = new Map<string, Map<string, ChannelConfig>>();
+    for (const [guildId, channels] of configMapCache) { result.set(guildId, new Map(channels)); }
+    return result;
   } catch (err) {
-    error(`[BD.ReplyBots] Error al cargar el configMap. ERROR!: ${err}`, "Database");
+    error(`[BD.ReplyBots] Error al cargar configMap: ${err}`, "Database");
     throw err;
   }
 }
 
 export async function setChannelConfig(guildId: string, channelId: string, config: ChannelConfig): Promise<void> {
   try {
-    const pool = await getPool();
-    await pool.query(
-      "INSERT INTO channel_configs (guild_id, channel_id, enabled, reply_bots) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE enabled = ?, reply_bots = ?",
-      [guildId, channelId, config.enabled, config.replyBots, config.enabled, config.replyBots]
+    const pool = await getPool();    
+    await pool.query(`INSERT INTO channel_configs (guild_id, channel_id, enabled, reply_bots) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE enabled = ?, reply_bots = ?`,
+      [ guildId, channelId, config.enabled, config.replyBots, config.enabled, config.replyBots]
     );
 
     if (!configMapCache.has(guildId)) {
-      configMapCache.set(guildId, new Map());
+        configMapCache.set(guildId, new Map());
     }
+    
     configMapCache.get(guildId)!.set(channelId, config);
-    debug(`[BD.ReplyBots] Actualizado channelConfig para el guild ${guildId}, canal ${channelId}`, "Database");
+    debug(`[BD.ReplyBots] Config guardada en BD y caché RAM actualizada para guild: ${guildId}, canal: ${channelId}`, "Database");
   } catch (err) {
-    error(`[BD.ReplyBots] Error al actualizar channelConfig para el guild ${guildId}, canal ${channelId}: ${err}`, "Database");
+    error(`[BD.ReplyBots] Error al guardar config: ${err}`, "Database");
     throw err;
   }
 }
+
+export async function delleteAllReplyBotsConfig(guildId: string): Promise<void> {
+  try {
+    const pool = await getPool();
+    await pool.query(
+      "DELETE FROM channel_configs WHERE guild_id = ?",
+      [guildId]
+    );
+
+    configMapCache.delete(guildId)
+    debug(`[BD.ReplyBots] Invalidando caché del guild: ${guildId}`, "Database");
+  } catch (err) {
+    error(`[BD.ReplyBots] Error al borrar las configuraciones de guild: ${guildId} Error: ${err}`, "Database");
+  }
+}
+

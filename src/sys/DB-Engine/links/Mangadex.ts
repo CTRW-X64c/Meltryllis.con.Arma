@@ -1,5 +1,5 @@
 // sys/DB-Engine/links/Mangadex.ts
-import { getPool } from "../database"; 
+import getPool from "../database";
 import { ResultSetHeader } from "mysql2/promise";
 import { debug, error } from "../../logging";
 
@@ -17,17 +17,18 @@ export interface MangadexFeed {
 
 const mangadexFeedCache = new Map<string, MangadexFeed[]>();
 
-export function invalidateGuildCache(guildId: string): void {
+function invalidateGuildCache(guildId: string): void {
   mangadexFeedCache.delete(guildId);
-  debug(`[BD.Mangadex] Renovando la cache del guild: ${guildId}`, "Database");
+  debug(`[BD.Mangadex] Invalidando caché del guild: ${guildId}`, "Database");
 }
 
 export async function getMangadexFeeds(guildId: string): Promise<MangadexFeed[]> {
   if (mangadexFeedCache.has(guildId)) {
-    debug(`[BD.Mangadex] Retornando la cache del guild: ${guildId}`, "Database");
+    debug(`[BD.Mangadex] Cache HIT para guild: ${guildId}`, "Database");
     return [...mangadexFeedCache.get(guildId)!];
   }
-
+  debug(`[BD.Mangadex] Cache MISS para guild: ${guildId}, consultando BD`, "Database");
+  
   try {
     const pool = await getPool();
     const [rows] = await pool.query(
@@ -48,11 +49,12 @@ export async function getMangadexFeeds(guildId: string): Promise<MangadexFeed[]>
     }));
 
     mangadexFeedCache.set(guildId, feeds);
-    debug(`[BD.Mangadex] Obteniendo Mangadex feeds para el guild: ${guildId}`, "Database");
+    debug(`[BD.Mangadex] Caché actualizada para guild: ${guildId} (${feeds.length} feeds)`, "Database");
+    
     return feeds;
 
   } catch (err) {
-    error(`[BD.Mangadex] Error al cargar cache del guild: ${guildId}, ERROR!: ${err}`, "Database");
+    error(`[BD.Mangadex] Error al cargar feeds: ${err}`, "Database");
     throw err;
   }
 }
@@ -66,10 +68,13 @@ export async function AddMangadexFeed(feed: Omit<MangadexFeed, 'id' | 'created_a
     );
 
     const header = result as ResultSetHeader;
+    
     invalidateGuildCache(feed.guild_id);
+
+    debug(`[BD.Mangadex] Feed agregado (ID: ${header.insertId}) para guild: ${feed.guild_id}`, "Database");
     return header.insertId;
   } catch (err) {
-    error(`[BD.Mangadex] Error al agregar feed, ERROR!: ${err}`, "Database");
+    error(`[BD.Mangadex] Error al agregar feed: ${err}`, "Database");
     throw err;
   }
 }
@@ -83,9 +88,10 @@ export async function updateMangadexFeedLastChapter(id: number, lastChapter: str
     );
 
     invalidateGuildCache(guildId);
-    debug(`[BD.Mangadex] Actualizado el ultimo capitulo para feed ${id} en gremio: ${guildId}`, "Database");
+    
+    debug(`[BD.Mangadex] Último capítulo actualizado para feed ${id} en guild: ${guildId}`, "Database");
   } catch (err) {
-    error(`[BD.Mangadex] Error al actualizar el ultimo feed del gremio: ${guildId}, ERROR!: ${err}`, "Database");
+    error(`[BD.Mangadex] Error al actualizar feed: ${err}`, "Database");
     throw err;
   }
 }
@@ -104,6 +110,8 @@ export async function removeMangadexFeed(guildId: string, feedId: string): Promi
         debug(`[BD.Mangadex] Feed ID ${feedId} eliminado en guild ${guildId}`, "Database");
         return true;
     }
+    
+    debug(`[BD.Mangadex] No se encontró feed ID ${feedId} en guild ${guildId} para eliminar`, "Database");
     return false;
   } catch (err) {
     error(`[BD.Mangadex] Error al eliminar feed: ${err}`, "Database");
@@ -118,7 +126,7 @@ export async function getAllMangadexFeeds(): Promise<MangadexFeed[]> {
       "SELECT id, guild_id, channel_id, RSS_manga, mangaUrl, language, manga_title, last_chapter, created_at FROM mangadex_feeds"
     );
 
-    return (rows as any[]).map(row => ({
+    const feeds = (rows as any[]).map(row => ({
         id: row.id,
         guild_id: row.guild_id,
         channel_id: row.channel_id,
@@ -129,8 +137,26 @@ export async function getAllMangadexFeeds(): Promise<MangadexFeed[]> {
         last_chapter: row.last_chapter,
         created_at: new Date(row.created_at)
     }));
+    
+    debug(`[BD.Mangadex] Obtenidos ${feeds.length} feeds totales de la BD`, "Database");
+    return feeds;
   } catch (err) {
-    error(`[BD.Mangadex] Error al obtener la lista de feeds, ERROR!: ${err}`, "Database");
+    error(`[BD.Mangadex] Error al obtener lista de feeds: ${err}`, "Database");
     throw err;
+  }
+}
+
+export async function delleteAllMangadexConfig(guildId: string): Promise<void> {
+  try {
+    const pool = await getPool();
+    await pool.query(
+      "DELETE FROM mangadex_feeds WHERE guild_id = ?",
+      [guildId]
+    );
+
+    invalidateGuildCache(guildId)
+    debug(`[BD.Mangadex] Invalidando caché del guild: ${guildId}`, "Database");
+  } catch (err) {
+    error(`[BD.Mangadex] Error al borrar las configuraciones de guild: ${guildId} Error: ${err}`, "Database");
   }
 }

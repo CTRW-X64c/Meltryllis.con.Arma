@@ -1,2 +1,26 @@
 {
+  "embedService": {
+    "format_link": "[Embedding de {{Site}}]({{RemUrl}})",
+    "format_link_spoiler": "||[Embedding de {{Site}}]({{RemUrl}})|| \n No carga?, prueba mandar sin \"espoiler\"",
+    "msgFail": "Discord no genero el embed. \n Usa `$$` al inico del mensaje si no quieres que lo procese. `Este mensaje se borrara en 10s`",
+    "msgFail_fb": "Enlace \"compartir\" de Facebook `facebook.com/share/...` tiende a fallar mucho; mejor usa el link directo `facebook.com/rell|/video|/post...`!! \n `Este mensaje se borrara en 10s`",
+    "try": "🔄 Reintentando embeding. Intento: {{a1}} 🔄",
+    "emojErr": "Me faltan permisos. \"usa /test para verificar los permisos\""
+  },
+
+  "Errores": {
+    "isAllowed": "⛔⛔ No te han asiganmado permisos para ejecutar este comando ⛔⛔",
+    "isAdmin": "⛔⛔ Uso exclusivo para Administradores!! ⛔⛔",
+    "noChannel": "⛔⛔ Este comando solo funciona en canales de texto del servidor ⛔⛔",
+    "switchGeneral": "Error en procesar el comando!!",
+    "noGuild": "⛔⛔ Este comando solo funciona en servidores!! ⛔⛔"
+  },
+  
+  "neTools": {
+    "embed_title": "🌐 Estado de los  **dominios** de Embedding",
+    "embed_description": "**{{a1}}/{{a2}} dominios funcionando**",
+    "embed_resumen": "📈 Estadísticas",
+    "embed_resumen_value_1": "Latencia media: {{a1}}ms\n",
+    "embed_resumen_value_2": "Funcionando al {{a1}}%"
+  }
 }

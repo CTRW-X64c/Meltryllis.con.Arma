@@ -1,7 +1,7 @@
 // src/sys/DB-Engine/links/Reddit.ts
-import { ResultSetHeader} from "mysql2/promise";
-import { getPool } from "../database";
-import {debug, error} from "../../logging";
+import { ResultSetHeader } from "mysql2/promise";
+import getPool from "../database";
+import { debug, error } from "../../logging";
 
 export interface RedditFeed {
   id: number;
@@ -17,9 +17,9 @@ export interface RedditFeed {
 
 const redditFeedCache = new Map<string, RedditFeed[]>();
 
-export function invalidateGuildCache(guildId: string): void {
+function invalidateGuildCache(guildId: string): void {
   redditFeedCache.delete(guildId);
-  debug(`[BD.Reddit] Renovando la cache para el guild: ${guildId}`, "Database");
+  debug(`[BD.Mangadex] Invalidando caché del guild: ${guildId}`, "Database");
 }
 
 export async function getRedditFeeds(guildId: string): Promise<RedditFeed[]> {
@@ -30,8 +30,7 @@ export async function getRedditFeeds(guildId: string): Promise<RedditFeed[]> {
 
   try {
     const pool = await getPool();
-    const [rows] = await pool.query(
-      "SELECT id, guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, created_at, nsfw_protect FROM reddit_feeds WHERE guild_id = ?",
+    const [rows] = await pool.query( "SELECT id, guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, created_at, nsfw_protect FROM reddit_feeds WHERE guild_id = ?",
       [guildId]
     );
 
@@ -59,14 +58,13 @@ export async function getRedditFeeds(guildId: string): Promise<RedditFeed[]> {
 export async function addRedditFeed(feed: Omit<RedditFeed, 'id' | 'created_at'>): Promise<number> {
   try {
     const pool = await getPool();
-    const [result] = await pool.query(
-      "INSERT INTO reddit_feeds (guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, filter_mode, nsfw_protect) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    const [result] = await pool.query( "INSERT INTO reddit_feeds (guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, filter_mode, nsfw_protect) VALUES (?, ?, ?, ?, ?, ?, ?)",
       [feed.guild_id, feed.channel_id, feed.subreddit_url, feed.subreddit_name, feed.last_post_id, feed.filter_mode, feed.nsfw_protect]
     );
 
     const header = result as ResultSetHeader;
     
-    redditFeedCache.delete(feed.guild_id);
+    invalidateGuildCache(feed.guild_id);
     debug(`[BD.Reddit] Feed agregado al guild ${feed.guild_id}, renovando cache!`, "Database");
     return header.insertId;
   } catch (err) {
@@ -78,12 +76,11 @@ export async function addRedditFeed(feed: Omit<RedditFeed, 'id' | 'created_at'>)
 export async function updateRedditFeedLastPost(feedId: number, lastPostId: string, guildId: string): Promise<void> {
   try {
     const pool = await getPool();
-    await pool.query(
-      "UPDATE reddit_feeds SET last_post_id = ? WHERE id = ?",
+    await pool.query( "UPDATE reddit_feeds SET last_post_id = ? WHERE id = ?",
       [lastPostId, feedId]
     );
 
-    redditFeedCache.delete(guildId);
+    invalidateGuildCache(guildId);
     debug(`[BD.Reddit] Se actualizo un feed en ${guildId}, renovando cache!`, "Database");
   } catch (err) {
     error(`[BD.Reddit] Error al actualizar feed: ${err}`, "Database");
@@ -94,14 +91,13 @@ export async function updateRedditFeedLastPost(feedId: number, lastPostId: strin
 export async function removeRedditFeed(guildId: string, subredditName: string): Promise<boolean> {
   try {
     const pool = await getPool();
-    const [result] = await pool.query(
-      "DELETE FROM reddit_feeds WHERE guild_id = ? AND subreddit_name = ?",
+    const [result] = await pool.query( "DELETE FROM reddit_feeds WHERE guild_id = ? AND subreddit_name = ?",
       [guildId, subredditName]
     );
 
     const header = result as ResultSetHeader;
    
-    redditFeedCache.delete(guildId);
+    invalidateGuildCache(guildId);
     debug(`[BD.Reddit] Se elimino un feed en ${guildId}, renovando cache!`, "Database");
     return header.affectedRows > 0;
   } catch (err) {
@@ -113,9 +109,7 @@ export async function removeRedditFeed(guildId: string, subredditName: string): 
 export async function getAllRedditFeeds(): Promise<RedditFeed[]> {
   try {
     const pool = await getPool();
-    const [rows] = await pool.query(
-      "SELECT id, guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, filter_mode, created_at, nsfw_protect FROM reddit_feeds"
-    );
+    const [rows] = await pool.query( "SELECT id, guild_id, channel_id, subreddit_url, subreddit_name, last_post_id, filter_mode, created_at, nsfw_protect FROM reddit_feeds" );
 
     return (rows as any[]).map(row => ({
       id: row.id,
@@ -131,5 +125,20 @@ export async function getAllRedditFeeds(): Promise<RedditFeed[]> {
   } catch (err) {
     error(`[BD.Reddit] Error al cargar la lista de feeds. ERROR!: ${err}`, "Database");
     throw err;
+  }
+}
+
+export async function delleteAllRedditConfig(guildId: string): Promise<void> {
+  try {
+    const pool = await getPool();
+    await pool.query(
+      "DELETE FROM reddit_feeds WHERE guild_id = ?",
+      [guildId]
+    );
+
+    invalidateGuildCache(guildId)
+    debug(`[BD.Reddit] Invalidando caché del guild: ${guildId}`, "Database");
+  } catch (err) {
+    error(`[BD.Reddit] Error al borrar las configuraciones de guild: ${guildId} Error: ${err}`, "Database");
   }
 }
