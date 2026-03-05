@@ -83,7 +83,8 @@
       "Queue_07": "Lista de reproduccion eliminada.",
       "pNext_01": "💤 Cola terminada. Desconectando...",
       "pNext_02": "▶️ Reproduciendo: **{{a1}}** \nPedida por: {{a2}}",
-      "error_play": "\"❌ Los nodo de musica parecen estar fallando. reporta con /help report\""
+      "error_play": "\"❌ Los nodo de musica parecen estar fallando. reporta con /help report\"",
+      "onCooldown": "❌ Ocurrio un error grave en los nodos y el comando entro en espera!! \n Tiempo restante: {{a1}}"
     }
   },
   "permisos": {

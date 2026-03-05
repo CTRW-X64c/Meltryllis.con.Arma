@@ -10,7 +10,8 @@ const cooldownsMap = new Map<string, number>();
 const COOLDOWN_TIMES: Record<string, number> = {
     "default": 1 * hrs + 30 * minutos,
     "repCommand": 60 * minutos,
-    "netCommand": 30 * minutos
+    "netCommand": 30 * minutos,
+    "playMusic": 5 * minutos,
 };
 
 export function startCooldown(guild: string, idCommand: string) {
@@ -29,7 +30,7 @@ export function checkCooldown(guild: string, idCommand: string): { onCooldown: b
     const timeRemaining = expirationTime - Date.now();
     if (timeRemaining > 0) {
         const minutesLeft = Math.ceil(timeRemaining / 60000);
-        return { onCooldown: true, timeLeft: minutesLeft < hrs ? `${minutesLeft} minuto(s)` : `${Math.floor(minutesLeft / 60)} hora(s) y ${minutesLeft % 60} minuto(s)`};
+        return { onCooldown: true, timeLeft: minutesLeft < hrs ? `${minutesLeft} minuto(s) y ${minutesLeft % 60} segundo(s)` : `${Math.floor(minutesLeft / 60)} hora(s) y ${minutesLeft % 60} minuto(s)`};
     }
     cooldownsMap.delete(key);
     return { onCooldown: false, timeLeft: '' };

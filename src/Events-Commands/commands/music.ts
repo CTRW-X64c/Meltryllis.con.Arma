@@ -3,6 +3,7 @@ import lavalinkManager, { LavalinkManager } from "../eventGear/lavalinkConnect";
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
+import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares"
 
 /* === SISTEMA DE COLA  === */
 interface QueueEntry {
@@ -76,10 +77,12 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
     await interaction.deferReply();
     const guildId = interaction.guildId!;
     const member = interaction.member as GuildMember;
+    const idCommand = "playMusic";
     const inChannelPlaying = currentPlaying.get(guildId);
     const queue = musicQueue.get(guildId) || [];
     let query = interaction.options.getString("cancion", true);
     const playlist = interaction.options.getString("queue");
+    
 
     if (!member.voice.channelId) {
         await interaction.editReply(i18next.t("commands:mussic.interacciones.error_empit"));
@@ -90,6 +93,13 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
     if (!inChannelPlaying && queue.length === 0) {
         await lavalink.shoukaku?.leaveVoiceChannel(guildId);        
     }
+
+    const timmer = checkCooldown(guildId, idCommand);
+        if (timmer.onCooldown) {
+            await interaction.editReply(i18next.t("commands:mussic.interacciones.onCooldown", { a1: timmer.timeLeft }));
+            await deletReplyMsg(interaction);
+            return;
+        }
 
     try {
         let player = lavalink.getPlayer(interaction.guildId!)
@@ -108,6 +118,7 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
         if (!node) { 
             await interaction.editReply(i18next.t("commands:mussic.interacciones.lavalink_down"));
             lavalinkManager?.reconnectAllNodes();
+            startCooldown(guildId, idCommand);
             await deletReplyMsg(interaction);
             if (inChannelPlaying) return;
             lavalink.shoukaku?.leaveVoiceChannel(guildId);
@@ -179,12 +190,15 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
             error(`Todos los nodos caidos Reiniciando conexiones. ERROR: ${errMsg}`);
             await interaction.editReply(i18next.t("commands:mussic.interacciones.lavalink_down"));
             await deletReplyMsg(interaction);
+            startCooldown(guildId, idCommand);
             return;
         } else {
             error(`Play Error: ${err}`);
             lavalink.shoukaku?.leaveVoiceChannel(guildId);
             await interaction.editReply(i18next.t("commands:mussic.interacciones.error_play"));
             await deletReplyMsg(interaction);
+            startCooldown(guildId, idCommand);
+            return;
         }
     }
 }
