@@ -196,7 +196,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 }
                      
                 await textChannel.send(messageContent);
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                await new Promise(resolve => setTimeout(resolve, 3000));
             }           
 
             const latestPostId = newPosts[newPosts.length - 1].name;

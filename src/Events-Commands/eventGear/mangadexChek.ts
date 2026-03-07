@@ -151,7 +151,7 @@ export function startMangadexChecker(client: Client) {
 
     setTimeout(() => {
         checkMangadexFeeds(client).catch(err => error(`Error al iniciar Mangadex: ${err}`));
-    }, 10000);
+    }, 30000);
 
     setInterval(() => {
          checkMangadexFeeds(client).catch(err => error(`Error en intervalo Mangadex: ${err}`));
