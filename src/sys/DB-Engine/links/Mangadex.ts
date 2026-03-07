@@ -63,7 +63,7 @@ export async function AddMangadexFeed(feed: Omit<MangadexFeed, 'id' | 'created_a
   try {
     const pool = await getPool();
     const [result] = await pool.query(
-      "INSERT INTO mangadex_feeds (guild_id, channel_id, RSS_manga, mangaUrl, language, manga_title, last_chapter) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      `INSERT INTO mangadex_feeds (guild_id, channel_id, RSS_manga, mangaUrl, language, manga_title, last_chapter) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE RSS_manga = VALUES(RSS_manga), language = VALUES(language)`,
       [feed.guild_id, feed.channel_id, feed.RSS_manga, feed.mangaUrl, feed.language, feed.manga_title, feed.last_chapter]
     );
 

@@ -139,11 +139,11 @@ export async function initializeDatabase(): Promise<void> {
             channel_id VARCHAR(50) NOT NULL,
             RSS_manga VARCHAR(250) NOT NULL,
             mangaUrl VARCHAR(250) NOT NULL,
-            language VARCHAR(10),
+            language VARCHAR(250),
             manga_title VARCHAR(250) NOT NULL,
             last_chapter VARCHAR(100),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE INDEX idx_unique_rss_guild_channel (guild_id, channel_id, RSS_manga)
+            UNIQUE INDEX idx_unique_manga_channel (guild_id, channel_id, mangaUrl)
           )
         `);
         

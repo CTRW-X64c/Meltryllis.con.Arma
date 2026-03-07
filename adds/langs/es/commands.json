@@ -224,10 +224,11 @@
       "mangadex_descripcion": "Comandos para seguir mangas de Mangadex",
       "mangadex_seguir": "URL del manga que queires seguir",
       "mangadex_canal": "Canal en el que se publicaran las updates",
-      "mangadex_idioma": "Idioma de lo capitulos que quieres seguir",
+      "mangadex_idioma": "Idioma de lo capitulos que quieres seguir, puedes añadir otros 7.",
       "mangadex_lista_desc": "Lista de los mangas que estas siguiendo",
       "mangadex_dejar_desc": "Cancela el seguimiento del manga",
-      "mangadex_dejar_url": "ID del manga para dejar de seguir, USA /mangadex lista para ver los ID"
+      "mangadex_dejar_url": "ID del manga para dejar de seguir, USA /mangadex lista para ver los ID",
+      "mangadex_idioma_add": "Idioma adicional a publicar! "
     },
     "interacciones": {
       "command_error": "Ocurrió un error al ejecutar el comando.",
@@ -243,7 +244,9 @@
       "manga_embed_footer": "Mangadex & (MDRSS)[https://mdrss.tijlvdb.me]",
       "dejar_exito": "✅ Manga eliminado correctamente.!!",
       "dejar_fallo": "❌ No encontré ese manga en tu lista. Asegúrate de poner la URL exacta.",
-      "error": "Ocurrió un error al ejecutar el comando."
+      "error": "Ocurrió un error al ejecutar el comando.",
+      "manga_error": "❌ URL de Mangadex inválida. Asegúrate de copiar el link del manga, no de un capítulo.",
+      "manga_error_no_dex": "❌ No se pudo conectar con Mangadex o el manga no existe/tiene capítulos en ese idioma."
     }
   },
   "reddit": {

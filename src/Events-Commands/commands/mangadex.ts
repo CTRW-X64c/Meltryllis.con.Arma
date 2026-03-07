@@ -5,18 +5,20 @@ import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
 
-function getMangadexId(input: string): string | null {
-    try {
-        const urlObject = new URL(input);
-        const match = urlObject.pathname.match(/\/title\/([a-zA-Z0-9-]+)/);
-        if (match) return match[1];
-    } catch (e) { /* por si falla este metodo como en /reddit */}
-
-    const regex = /mangadex\.org\/title\/([a-zA-Z0-9-]+)/;
-    const match = input.match(regex);
-    if (match) return match[1];
-    
-    return null;
+function getMangadexId(input: string): { id: string | null, shortUrl: string | null } {
+    if (!input)
+        try {
+            const urlObject = new URL(input);
+            const match = urlObject.pathname.match(/\/title\/([a-zA-Z0-9-]+)/);
+            if (match && match[1]) {
+                const urlMnaga = `https://mangadex.org/title/${match[1]}`;
+                return { id: match[1], shortUrl: urlMnaga };
+            }
+        } catch (e) { /* por si falla este metodo como en /reddit */}
+        const regex = /mangadex\.org\/title\/([a-zA-Z0-9-]+)/;
+        const match = input.match(regex);
+        if (match && match[1]) return { id: match[1], shortUrl: `https://mangadex.org/title/${match[1]}` };
+        return { id: null, shortUrl: null };
 }
 
 async function verifyMangadexFeed(rssUrl: string): Promise<string | null> {
@@ -49,6 +51,20 @@ async function verifyMangadexFeed(rssUrl: string): Promise<string | null> {
     }
 }
 
+const langsList = [
+    { name: "Inglés", value: "en" },
+    { name: "Español", value: "es" },
+    { name: "Español Latino", value: "es-la" },
+    { name: "Portugués", value: "pt" },
+    { name: "Portugués Brasileño", value: "pt-br" },
+    { name: "Japones", value: "ja" },
+    { name: "Coreano", value: "ko" },
+    { name: "Chino", value: "zh" },
+    { name: "Francés", value: "fr" },
+    { name: "Italiano", value: "it" },
+    { name: "Ruso", value: "ru" }
+];
+
 export async function registerMangadexCommand() {
   const mangadex = new SlashCommandBuilder()
     .setName("mangadex")
@@ -73,12 +89,49 @@ export async function registerMangadexCommand() {
           option.setName("idioma")
             .setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_idioma"))
             .setRequired(true)
-            .addChoices(
-              { name: "Inglés", value: "en" },
-              { name: "Español (España)", value: "es" },
-              { name: "Español (Latino)", value: "es-la"},
-              { name: "Todos / Original", value: "any" }
-            )
+            .addChoices({ name: "Sin filtro", value: "any" }, ...langsList)
+        )
+        .addStringOption(option =>
+          option.setName("add_idioma_1")
+          .setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_idioma_add"))
+          .setRequired(false)
+          .addChoices(langsList)
+        )
+        .addStringOption(option =>
+          option.setName("add_idioma_2")
+          .setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_idioma_add"))
+          .setRequired(false)
+          .addChoices(langsList)
+        )
+        .addStringOption(option =>
+          option.setName("add_idioma_3")
+          .setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_idioma_add"))
+          .setRequired(false)
+          .addChoices(langsList)
+        )
+        .addStringOption(option =>
+          option.setName("add_idioma_4")
+          .setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_idioma_add"))
+          .setRequired(false)
+          .addChoices(langsList)
+        )
+        .addStringOption(option =>
+          option.setName("add_idioma_5")
+          .setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_idioma_add"))
+          .setRequired(false)
+          .addChoices(langsList)
+        )
+        .addStringOption(option =>
+          option.setName("add_idioma_6")
+          .setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_idioma_add"))
+          .setRequired(false)
+          .addChoices(langsList)
+        )
+        .addStringOption(option =>
+          option.setName("add_idioma_7")
+          .setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_idioma_add"))
+          .setRequired(false)
+          .addChoices(langsList)
         )
     )
     .addSubcommand(subcommand =>
@@ -137,6 +190,13 @@ async function seguirManga(interaction: ChatInputCommandInteraction, guildId: st
     const manga_url = interaction.options.getString("manga_url", true);
     const discordChannelInput = interaction.options.getChannel("canal", true);
     const langChoice = interaction.options.getString("idioma", true);
+    const lang1 =  interaction.options.getString("add_idioma_1");
+    const lang2 =  interaction.options.getString("add_idioma_2");
+    const lang3 =  interaction.options.getString("add_idioma_3");
+    const lang4 =  interaction.options.getString("add_idioma_4");
+    const lang5 =  interaction.options.getString("add_idioma_5");
+    const lang6 =  interaction.options.getString("add_idioma_6");
+    const lang7 =  interaction.options.getString("add_idioma_7");
 
     const discordChannel = interaction.guild!.channels.cache.get(discordChannelInput.id) as TextChannel;
     if (!discordChannel || !discordChannel.isTextBased()) {
@@ -144,22 +204,27 @@ async function seguirManga(interaction: ChatInputCommandInteraction, guildId: st
         return;
     }
 
-    const mangaId = getMangadexId(manga_url);
-    if (!mangaId) {
-        await interaction.editReply({ content: "❌ URL de Mangadex inválida. Asegúrate de copiar el link del manga, no de un capítulo." });
+    const mangDex = getMangadexId(manga_url);
+    if (!mangDex.id || !mangDex.shortUrl) {
+        await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.manga_error") });
         return;
     }
 
-    let rssUrl = `https://mdrss.tijlvdb.me/feed?q=manga:${mangaId}`
-    
+    let rssUrl = `https://mdrss.tijlvdb.me/feed?q=manga:${mangDex.id}`;
+    let bdLangs = "any";
+
+    const langSelect = [langChoice, lang1, lang2, lang3, lang4, lang5, lang6, lang7]
+        .filter(fLang => fLang)
+        .filter((v, i, s) => s.indexOf(v) === i); 
+
     if (langChoice !== "any") {
-        rssUrl += `,tl:${langChoice}`;
+        rssUrl += `,tl:${langSelect.join(',tl:')}`;
+        bdLangs = langSelect.join(',');
     }
 
     const mangaName = await verifyMangadexFeed(rssUrl);
-
     if (!mangaName) {
-        await interaction.editReply({ content: "❌ No se pudo conectar con Mangadex o el manga no existe/no tiene capítulos en ese idioma." });
+        await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.manga_error_no_dex") });
         return;
     }
 
@@ -168,8 +233,8 @@ async function seguirManga(interaction: ChatInputCommandInteraction, guildId: st
             guild_id: guildId,
             channel_id: discordChannel.id,
             RSS_manga: rssUrl,
-            mangaUrl: manga_url,
-            language: langChoice,
+            mangaUrl: mangDex.shortUrl,
+            language: bdLangs,
             manga_title: mangaName,
             last_chapter: null
         });
@@ -231,7 +296,10 @@ async function listaManga(interaction: ChatInputCommandInteraction, guildId: str
         const lineas = grupo.feeds.map(feed => {
             const originalName = feed.manga_title ?? "Sin Título";
             const shortTitle = originalName.length > 50 ? originalName.substring(0, 50) + "..." : originalName;
-            const flag = feed.language === 'es' ? '🇪🇸' : feed.language === 'es-la' ? '🇲🇽' : feed.language === 'en' ? '🇺🇸' : '🌐';
+            const flagsMap: Record<string, string> = { 'es':'🇪🇸', 'es-la':'🇲🇽', 'en':'🇺🇸', 'pt':'🇧🇷', 'pt-br':'🇧🇷', 'ja':'🇯🇵', 'ko':'🇰🇷', 'zh':'🇨🇳', 'fr':'🇫🇷', 'it':'🇮🇹', 'ru':'🇷🇺' };
+            const languages = feed.language.split(',');
+            const flags = languages.map(lang => flagsMap[lang.trim()] || '').filter(Boolean).join(' ');
+            const flag = flags || '🌐'; 
             return i18next.t("commands:mangadex.interacciones.manga_embed_list_entry",{a1: feed.id, a2: shortTitle, a3: flag});
         });
 
