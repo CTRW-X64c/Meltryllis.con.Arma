@@ -8,9 +8,10 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()
         .setName("owner")
         .setDefaultMemberPermissions(0)
+        .setDescription("Comandos de uso exclusivo del Hoster")
         .addStringOption(op =>
             op .setName("funcion")
-            .setDescription("Funciones de gestion del owner")
+            .setDescription("Herramienta de administración")
             .setRequired(true)
             .addChoices(
                 { name: "Lista de servidores", value: "list" },
