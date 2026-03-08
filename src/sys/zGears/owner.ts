@@ -8,32 +8,21 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()
         .setName("owner")
         .setDefaultMemberPermissions(0)
-        .setDescription("Comando exclusivo del dueño para gestionar servidores del bot.")
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("list")
-                .setDescription("Enumera todos los servidores en los que está el bot.")
+        .addStringOption(op =>
+            op .setName("funcion")
+            .setDescription("Funciones de gestion del owner")
+            .setRequired(true)
+            .addChoices(
+                { name: "Lista de servidores", value: "list" },
+                { name: "Abandonar servidor", value: "leave" },
+                { name: "Revisar dominios (embedServices)", value: "checkdomains" },
+                { name: "Reiniciar", value: "restart" }
+            )
         )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("leave")
-                .setDescription("Hace que el bot abandone un servidor específico.")
-                .addStringOption(option =>
-                    option
-                        .setName("server_id")
-                        .setDescription("ID del servidor que el bot debe abandonar.")
-                        .setRequired(true))
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("checkdomains")
-                .setDescription("Verifica el estado de los dominios de embedding.")
-   
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("restart")
-                .setDescription("Reinicia el bot")    
+        .addStringOption(op =>
+            op .setName("server_id")
+            .setDescription("ID del servidor a abandonar")
+            .setRequired(false)
         );
     return [leaveServerCommand] as SlashCommandBuilder[];
 }
@@ -47,7 +36,7 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
         return;
     }
 
-    const subcommand = interaction.options.getSubcommand();
+    const subcommand = interaction.options.getString("funcion", true);
     try {
         switch (subcommand) {
             case "list":
@@ -113,7 +102,16 @@ async function ListServers(interaction: ChatInputCommandInteraction): Promise<vo
 }
 
 async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<void> {
-    const serverId = interaction.options.getString("server_id", true);
+    const serverId = interaction.options.getString("server_id");
+
+    if (!serverId) {
+        await interaction.reply({
+            content: "❌ Debes proporcionar el ID del servidor a abandonar en la opción 'server_id'.",
+            flags: MessageFlags.Ephemeral
+        });
+        return;
+    }
+
     if (!/^\d+$/.test(serverId)) {
         await interaction.reply({
             content: "❌ El ID del servidor debe contener solo números.",
