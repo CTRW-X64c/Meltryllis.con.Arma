@@ -8,7 +8,7 @@ import { registerWorkCommand, handleWorkCommand } from "./commands/work";
 import { registerEmbedCommand, handleEmbedCommand, embedAutocomplete } from "./commands/embed";
 import { registerWelcomeCommand, handleWelcomeCommand } from "./commands/welcome";
 import { registerRolemojiCommand, handleRolemojiCommand } from "./commands/rolemoji"
-import { registerOwnerCommands, handleOwnerCommands } from "../sys/zGears/owner";
+import { registerOwnerCommands, handleOwnerCommands, respondReportModal } from "../sys/zGears/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "./commands/youtube";
 import { registerRedditCommand, handleRedditCommand } from "./commands/reddit";
 import { registerPostCommand, handlePostCommand } from "./commands/post";
@@ -121,6 +121,11 @@ export async function sysUpModals(interaction: ModalSubmitInteraction) {
   switch (interaction.customId) {
     case 'helpRepo':
       await helpRepo(interaction); break;
+  }
+  
+  if (interaction.customId.startsWith("respondReport_")) {
+    await respondReportModal(interaction);
+    return;
   }
 }
 

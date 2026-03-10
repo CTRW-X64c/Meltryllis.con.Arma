@@ -49,10 +49,9 @@ export async function helpRepo(interaction: ModalSubmitInteraction) {
     const embMsg = {
       embeds: [
         new EmbedBuilder()
-        .setAuthor({name:(i18next.t("botones:reportHelp.modal_autor", { a1: uData.username})), iconURL: uData.displayAvatarURL()})
+        .setAuthor({name:(i18next.t("botones:reportHelp.modal_autor", { a1: uData.username, a2: uData.id })), iconURL: uData.displayAvatarURL()})
         .addFields(
           { name: (i18next.t("botones:reportHelp.modal_name_A1")), value: `Name: ${gName.name} \n Id: ${gName.id}`, inline: true },
-          { name: (`\u200B`), value: (`\u200B`)},
           { name: (i18next.t("botones:reportHelp.modal_name_B1")), value: reporMsg }
         )
         .setTimestamp()

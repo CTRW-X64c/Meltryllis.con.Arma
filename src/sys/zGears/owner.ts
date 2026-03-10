@@ -1,5 +1,5 @@
 // src/Events-Commands/commands/owner.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, ModalSubmitInteraction, EmbedBuilder } from "discord.js";
 import { debug, error, } from "../logging";
 import { Buffer } from 'node:buffer';
 import { checkAllDomains, buildDomainStatusEmbed } from "./neTools";
@@ -14,6 +14,7 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
             .setDescription("Herramienta de administración")
             .setRequired(true)
             .addChoices(
+                { name: "Responder reporte", value: "respond" },
                 { name: "Lista de servidores", value: "list" },
                 { name: "Abandonar servidor", value: "leave" },
                 { name: "Revisar dominios (embedServices)", value: "checkdomains" },
@@ -23,6 +24,11 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
         .addStringOption(op =>
             op .setName("server_id")
             .setDescription("ID del servidor a abandonar")
+            .setRequired(false)
+        )
+        .addStringOption(op =>
+            op .setName("id_usr")
+            .setDescription("ID del mensaje a responder")
             .setRequired(false)
         );
     return [leaveServerCommand] as SlashCommandBuilder[];
@@ -55,7 +61,11 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
             case "restart":
                 await Restart(interaction)
                 break;
-            
+
+            case "respond":
+                await respondReport(interaction)
+                break;
+
             default:
                 await interaction.reply({
                     content: "Subcomando no reconocido.",
@@ -267,3 +277,60 @@ async function Restart(interaction: ChatInputCommandInteraction): Promise<void> 
         error(`Error en comando restart: ${err}`, "Restart");
     }    
 }
+
+async function respondReport(interaction: ChatInputCommandInteraction): Promise<void> { 
+    const idUser = interaction.options.getString("id_usr");
+    if (!idUser) { 
+        await interaction.reply({ content: "❌ Faltó el ID del usuario a responder en la opción 'id_usr'.", flags: MessageFlags.Ephemeral });
+        return;
+    } 
+
+    const idUserChek = await interaction.client.users.fetch(idUser).catch(() => null);
+    if (!idUserChek) {
+        await interaction.reply({ content: "❌ No se pudo encontrar al usuario.", flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const reportModal = new ModalBuilder()
+        .setCustomId(`respondReport_${idUser}`) 
+        .setTitle(`Respuesta de reporte`);
+        
+    const repIn = new TextInputBuilder()
+        .setCustomId(`reportcont`)
+        .setLabel("Escribe tu respuesta:") 
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true);
+        
+    const rMod = new ActionRowBuilder<TextInputBuilder>().addComponents(repIn);
+    reportModal.addComponents(rMod);
+    
+    await interaction.showModal(reportModal);
+}
+
+export async function respondReportModal(interaction: ModalSubmitInteraction): Promise<void> {
+    const respondMsg = interaction.fields.getTextInputValue('reportcont');
+    const idUser = interaction.customId.split('_')[1];
+    
+    try {
+        const targetUser = await interaction.client.users.fetch(idUser).catch(() => null);
+        
+        if (!targetUser) {
+            await interaction.reply({ content: "❌ No se pudo encontrar al usuario para enviar la respuesta.", flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        const embed = new EmbedBuilder()
+            .setTitle("Respuesta de Soporte")
+            .setDescription(respondMsg)
+            .setColor(0x00FF00)
+            .setTimestamp();
+
+        await targetUser.send({ embeds: [embed] });
+        await interaction.reply({ content: `✅ Respuesta enviada a **${targetUser.tag}**.`, flags: MessageFlags.Ephemeral });
+
+    } catch (err) {
+        error(`Error en respondReportModal: ${err}`, "OwnerCommands");
+        await interaction.reply({ content: "❌ Error al enviar la respuesta. ¿Tiene el usuario los DMs cerrados?", flags: MessageFlags.Ephemeral });
+    }
+}
+
