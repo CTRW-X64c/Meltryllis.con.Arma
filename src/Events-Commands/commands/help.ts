@@ -9,11 +9,13 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
   const helpList = [
   { name: "info", value: "00" },
   { name: "REPORTAR PROBLEMA!! (solo admin)", value: "0X" },
+  { name: "Musica: /play /stop /skip /queue", value: "05" },
+  { name: "/buttonLink", value: "14" },
+  { name: "/buttonRole", value: "15" },
   { name: "/cleanup", value: "01" },
   { name: "/embed", value: "02" },
   { name: "/jointovoice", value: "03" },
   { name: "/mangadex", value: "04" },
-  { name: "Musica: /play /stop /skip /queue", value: "05" },
   { name: "/permisos", value: "06" },
   { name: "/post", value: "07" },
   { name: "/reddit", value: "08" },
@@ -70,6 +72,8 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
       case "11":  await helpWelcome(interaction);  break;
       case "12":  await helpWork(interaction);  break;
       case "13":  await helpYoutube(interaction); break;
+      case "14":  await helpButtonLink(interaction); break;
+      case "15":  await HelpRoleBUtton(interaction); break;
 
       default:
         await interaction.reply({content: i18next.t("help:comBuild.default_switch_error"), flags: MessageFlags.Ephemeral,});
@@ -124,6 +128,7 @@ async function helpClean(interaction: ChatInputCommandInteraction): Promise<void
         }, 
       )
       .setFooter({ text: i18next.t("help:clean.footer") })
+      ///.setImage("https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/clean.png")
       .setTimestamp();    
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
@@ -483,4 +488,27 @@ async function helpWork(interaction: ChatInputCommandInteraction): Promise<void>
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
 
-// ============================================= FIN ============================================= //
+// ============================================= roleButton ============================================= //
+
+async function HelpRoleBUtton(interaction: ChatInputCommandInteraction): Promise<void> {
+  const embed = new EmbedBuilder()
+      .setColor(parseInt(randomcolorembed(), 16))
+      .setTitle(i18next.t("help:buttonRole.title"))
+      .setDescription((await hasPermission(interaction, "work") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:work.description"))
+      .setFooter({ text: i18next.t("help:buttonRole.footer") })
+      .setTimestamp();    
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+
+}
+
+// ============================================= linkButton ============================================= //
+
+async function helpButtonLink(interaction: ChatInputCommandInteraction): Promise<void> {
+  const embed = new EmbedBuilder()
+    .setColor(parseInt(randomcolorembed(), 16))
+    .setTitle(i18next.t("help:buttonLink.title"))
+    .setDescription((await hasPermission(interaction, "work") ? i18next.t("help:can_run_yes") : i18next.t("help:can_run_no")) + '\n\n' + i18next.t("help:work.description"))
+    .setFooter({ text: i18next.t("help:buttonLink.footer") })
+    .setTimestamp();    
+  await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+}

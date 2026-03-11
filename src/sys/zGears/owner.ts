@@ -95,7 +95,7 @@ async function ListServers(interaction: ChatInputCommandInteraction): Promise<vo
 
     let serverList = `Lista de Servidores - Total: ${guildCount}\n\n`;
     guilds.forEach(guild => {
-        serverList += `${guild.name} - ${guild.id}\n`;
+        serverList += `Nombre: ${guild.name} | ID: ${guild.id} | Miembros: ${guild.memberCount}\n`;
     });
 
     const buffer = Buffer.from(serverList, 'utf-8');
