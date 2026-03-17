@@ -105,7 +105,7 @@ async function handleGuildDelete(guild: Guild): Promise<void> {
 
 /* ================================================ Borrador de configuraciones ================================================ */
 
-async function deleteGuildConfig(guild: Guild): Promise<boolean> {
+export async function deleteGuildConfig(guild: Guild): Promise<boolean> {
   try {
     info(`🧹 Iniciando limpieza de base de datos para el gremio: ${guild.name}`, "GuildCleanup");
     

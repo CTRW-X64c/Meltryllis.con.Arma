@@ -1,8 +1,9 @@
 // src/Events-Commands/commands/owner.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, ModalSubmitInteraction, EmbedBuilder } from "discord.js";
-import { debug, error, } from "../logging";
+import { debug, error, warn, } from "../logging";
 import { Buffer } from 'node:buffer';
 import { checkAllDomains, buildDomainStatusEmbed } from "./neTools";
+import { deleteGuildConfig } from "./IO-Server";
 
 export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()
@@ -15,10 +16,12 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
             .setRequired(true)
             .addChoices(
                 { name: "Responder reporte", value: "respond" },
-                { name: "Lista de servidores", value: "list" },
-                { name: "Abandonar servidor", value: "leave" },
                 { name: "Revisar dominios (embedServices)", value: "checkdomains" },
-                { name: "Reiniciar", value: "restart" }
+                { name: "Lista de servidores", value: "list" },
+                { name: "Reiniciar", value: "restart" },
+                { name: "Generar token", value: "tkn" },
+                { name: "Abandonar servidor", value: "leave" },
+                { name: "Purgar configuracion de server de la BD", value: "purge" }
             )
         )
         .addStringOption(op =>
@@ -29,6 +32,11 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
         .addStringOption(op =>
             op .setName("id_usr")
             .setDescription("ID del mensaje a responder")
+            .setRequired(false)
+        )
+        .addStringOption(op =>
+            op .setName("token")
+            .setDescription("Token de reinicio")
             .setRequired(false)
         );
     return [leaveServerCommand] as SlashCommandBuilder[];
@@ -66,6 +74,14 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
                 await respondReport(interaction)
                 break;
 
+            case "tkn":
+                await generateToken(interaction)
+                break;
+            
+            case "purge":
+                await purgueConfig(interaction)
+                break;
+
             default:
                 await interaction.reply({
                     content: "Subcomando no reconocido.",
@@ -80,6 +96,18 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
         });
     }
 }
+
+/* ================================================================== Tkn Chek ================================================================== */
+
+let cacheToken: { token: string } | null = null;
+const tknChek = (rToken: string | null): { valid: boolean; error?: string } => {
+    if (!rToken) return { valid: false, error: "❌ No se proporciono un token." };
+    if (!cacheToken?.token) return { valid: false, error: "❌ No hay un token activo, genera uno con `/owner: Generar token`" };
+    if (rToken !== cacheToken.token) return { valid: false, error: "❌ Token equivocado!!" };
+    return { valid: true };
+};
+
+/* ================================================================== Listado ================================================================== */
 
 async function ListServers(interaction: ChatInputCommandInteraction): Promise<void> {
     const guilds = interaction.client.guilds.cache;
@@ -112,6 +140,8 @@ async function ListServers(interaction: ChatInputCommandInteraction): Promise<vo
     debug(`Lista de servidores generada para el dueño. Total: ${guildCount}`, "LeaveServerCommand");
 }
 
+/* ================================================================== Leave Servers ================================================================== */
+
 async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<void> {
     const serverId = interaction.options.getString("server_id");
 
@@ -123,6 +153,13 @@ async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<vo
         return;
     }
 
+    const rToken = interaction.options.getString("token") ?? null;
+    const chkTkn = tknChek(rToken);
+    if (!chkTkn.valid) {
+        await interaction.reply({ content: chkTkn.error, flags: MessageFlags.Ephemeral });
+        return;
+    }
+        
     if (!/^\d+$/.test(serverId)) {
         await interaction.reply({
             content: "❌ El ID del servidor debe contener solo números.",
@@ -166,7 +203,6 @@ async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<vo
                 content: `⚠️ **¿Estás seguro?**\nVas a hacer que el bot abandone un servidor grande:\n**${guild.name}** (${guild.id})\n👥 ${guild.memberCount} miembros`,
                 components: [row],
                 flags: MessageFlags.Ephemeral,
-                fetchReply: true
             });
 
             try {
@@ -196,11 +232,9 @@ async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<vo
         }
 
         await guild.leave();
-        await interaction.reply({
-            content: `✅ He abandonado **${guildName}** exitosamente.`,
-            flags: MessageFlags.Ephemeral
-        });
-        debug(`Bot forzado a abandonar el servidor ${guild.name} (${guild.id}) por el dueño.`, "LeaveServerCommand");
+        await interaction.reply({ content: `✅ He abandonado **${guildName}** exitosamente.`, flags: MessageFlags.Ephemeral });
+        cacheToken = null;
+        warn(`Token utilizado y borrado; se abandono el servidor: ${guild.name} (${guild.id})`, "LeaveServerCommand")
     } catch (err: any) {
         error(`Error al intentar abandonar el servidor ${serverId}: ${err}`, "LeaveServerCommand");
         
@@ -229,6 +263,8 @@ async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<vo
         }
     }
 }
+
+/* ================================================================== Dominios ================================================================== */
 
 export async function ChekDominios(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
@@ -264,19 +300,49 @@ export async function ChekDominios(interaction: ChatInputCommandInteraction): Pr
     }
 }
 
+/* ================================================================== Reinico ================================================================== */
+
 async function Restart(interaction: ChatInputCommandInteraction): Promise<void> {
-    try {         
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-        await interaction.editReply({
-            content: "🔄 Reiniciando el bot..."
-        });
+    const confirmButton = new ButtonBuilder()
+        .setCustomId('confirm_restart')
+        .setLabel('Confirmar Reinicio')
+        .setStyle(ButtonStyle.Danger);
         
-        process.exit(0);
+        const cancelButton = new ButtonBuilder()
+        .setCustomId('cancel_restart')
+        .setLabel('Cancelar Reinicio')
+        .setStyle(ButtonStyle.Secondary);
+        
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirmButton, cancelButton);
+    const confMsg = await interaction.reply({ content: `⚠️ **¿Estás seguro?**\nVas a reiniciar el bot.`,
+        components: [row],
+        flags: MessageFlags.Ephemeral
+    });
+    
+    try {
+        const passMsg = confMsg.awaitMessageComponent({
+            filter: (i: ButtonInteraction) => i.user.id === interaction.user.id,
+            componentType: ComponentType.Button,
+            time: 60_000
+        });
+
+        const confirmation = await passMsg;
+
+        if (confirmation.customId === 'confirm_restart') {
+            await confirmation.update({ content: '🔄 Reiniciando...', components: [] });
+            warn(`SERVIDOR REINICADO!! ${confirmation.user.tag}`, "Restart");
+            process.exit(0);
+        } else {
+            await confirmation.update({ content: '❌ Reinicio cancelado.', components: [] });
+            warn(`SE CANCELO EL REINICIO DEL SERVIDOR!!`, "Restart");
+        }
     } catch (err) { 
         await interaction.editReply({content: "❌ Ocurrió un error inesperado al intentar reiniciar!!."})
         error(`Error en comando restart: ${err}`, "Restart");
     }    
 }
+
+/* ================================================================== Systema de Reportes ================================================================== */
 
 async function respondReport(interaction: ChatInputCommandInteraction): Promise<void> { 
     const idUser = interaction.options.getString("id_usr");
@@ -334,3 +400,81 @@ export async function respondReportModal(interaction: ModalSubmitInteraction): P
     }
 }
 
+/* ================================================================== System ================================================================== */
+
+async function generateToken(interaction: ChatInputCommandInteraction): Promise<void> {
+    if (cacheToken === null) {
+    const newToken = Math.floor(Math.random() * 0xFFFFFFFFFFFF).toString(16).toUpperCase();
+    cacheToken = { token: newToken };
+    warn(`solicitud de token ${newToken}`, "tokenSys")
+    await interaction.reply({ content: "Token generado, revisa la consola. Expira en 5 minutos.", flags: MessageFlags.Ephemeral });
+    setTimeout(() => { cacheToken = null; warn(`token expirado`, "tokenSys"); }, 5 * 60 * 1000);
+    } else {
+        await interaction.reply({ content: "Ya hay un token activo en el sistema.", flags: MessageFlags.Ephemeral });
+    }
+};
+
+/* ================================================================== BD purge COnfig ================================================================== */
+
+async function purgueConfig(interaction: ChatInputCommandInteraction) {
+    const idServer = interaction.options.getString("server_id");
+    if (!idServer) {
+        await interaction.reply({ content: "❌ No se proporcionó el ID del servidor a purgar.", flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const rToken = interaction.options.getString("token") ?? null;
+    const chkTkn = tknChek(rToken);
+    if (!chkTkn.valid) {
+        await interaction.reply({ content: chkTkn.error, flags: MessageFlags.Ephemeral });
+        return;
+    }
+    
+    const guild = await interaction.client.guilds.fetch(idServer).catch(() => null);
+    const chkIdServer = guild ? guild.id : { id: idServer } as any;
+    let msgPurg = guild ? `⚠️ SE INICIARA LA PURGA DE BASE DE DATOS DEL SERVIDOR: **${guild.name}** | (${guild.id})` : `⚠️ SE PURGARA UN SERVIDOR QUE YA NO EXISTE, ID: ${idServer}!!`;
+
+    const confirmButton = new ButtonBuilder()
+        .setCustomId('confirm_purga')
+        .setLabel('PURGAR BD')
+        .setStyle(ButtonStyle.Danger);
+        
+    const cancelButton = new ButtonBuilder()
+        .setCustomId('abort_purga')
+        .setLabel('Cancelar')
+        .setStyle(ButtonStyle.Secondary);
+        
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirmButton, cancelButton);
+    const confMsg = await interaction.reply({ content: msgPurg,
+        components: [row],
+        flags: MessageFlags.Ephemeral
+    });
+
+    try {
+        const passMsg = confMsg.awaitMessageComponent({
+            filter: (i: ButtonInteraction) => i.user.id === interaction.user.id,
+            componentType: ComponentType.Button,
+            time: 60_000
+        });
+
+        const confirmation = await passMsg;
+
+        if (confirmation.customId === 'confirm_purga') {
+            await deleteGuildConfig(chkIdServer); 
+            
+            await confirmation.update({ content: `✅ Limpieza de base de datos completada para el ID: \`${idServer}\``, components: []});
+            cacheToken = null;
+            warn(`Token usado y borrado; se purgó la configuración del servidor: ${idServer}`, "PurgeConfig");
+        } else {
+            await confirmation.update({ content: '❌ Purga cancelada.', components: []});
+            warn(`SE CANCELÓ LA PURGA DEL SERVIDOR: ${idServer}`, "PurgeConfig");
+        }
+    } catch (err: any) { 
+        if (err.message.includes("time") || err.message.includes("collector")) {
+            await interaction.editReply({content: "⌛ Tiempo agotado. Purga cancelada.", components: []});
+        } else {
+            await interaction.editReply({content: "❌ Ocurrió un error inesperado al intentar purgar la base de datos.", components: []});
+            error(`Error en comando purge: ${err}`, "PurgeConfig");
+        }
+    }    
+}

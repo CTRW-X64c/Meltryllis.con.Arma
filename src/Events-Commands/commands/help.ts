@@ -4,12 +4,13 @@ import i18next from "i18next";
 import { error } from "../../sys/logging";
 import { Report } from "../commandModales/reportHelp";
 import { hasPermission } from "../../sys/zGears/mPermission";
+import lavalinkManager from "../../Events-Commands/eventGear/lavalinkConnect";
 
 export async function helpAutocomplete(interaction: AutocompleteInteraction) {
   const helpList = [
   { name: "info", value: "00" },
   { name: "REPORTAR PROBLEMA!! (solo admin)", value: "0X" },
-  { name: "Musica: /play /stop /skip /queue", value: "05" },
+  ...(lavalinkManager ? [{ name: "Musica: /play /stop /skip /queue", value: "05" }] : []),
   { name: "/buttonLink", value: "14" },
   { name: "/buttonRole", value: "15" },
   { name: "/cleanup", value: "01" },
@@ -371,8 +372,7 @@ async function helpJoin(interaction: ChatInputCommandInteraction): Promise<void>
 
 async function helpMusic(interaction: ChatInputCommandInteraction): Promise<void> {
   try{
-    const lavalinkUp = process.env.LAVALINK_NAME && process.env.LAVALINK_HOST && process.env.LAVALINK_PASSWORD;
-    if (!lavalinkUp) {
+    if (!lavalinkManager) {
       await interaction.reply({
         content: i18next.t("help:musica.lavalink_off"),
         flags: MessageFlags.Ephemeral });

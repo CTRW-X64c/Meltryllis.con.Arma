@@ -3,6 +3,8 @@ Meltryllis inicialmente fue pensada para embedding de Link y poco a poco se le f
 
 <details> <summary> Dominios que usamos </summary><br>
 
+ Puedes usar && para avitar el procesamiento del mesanje, tambien se ignoraran los mensaje de embedez + link. (ej. https://embedez.com/download?q=https://x.com/i/status/...)
+ Si deceas que se procesen mensaje de bots puedes usar el comando /work. 
  Estos son los sitios y dominios que usamos para el remplazo de manera local.
  |  |  |
  | ---- | ----- |
@@ -15,13 +17,15 @@ Meltryllis inicialmente fue pensada para embedding de Link y poco a poco se le f
 | &nbsp; __Tumblr:__ &nbsp;txtumblr.com<br> | &nbsp; __Twitch:__ &nbsp;fxtwitch.seria.moe<br> |
 | &nbsp; __Twitter:__ &nbsp;fixvx.com<br> | &nbsp; __YouTube:__ &nbsp;youtu.be<br> |
 
-Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok, Imgur, Threads, danbooru, yande.re... <br><br>
+Nosotros hacemos uso del API [EMBEDEZ](https://embedez.com/) para TikTok, Imgur, Threads, danbooru, yande.re... se separan como NSFW y SFW como ellos los catalogan<br><br>
 Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dominios o el API de embedez, en caso de problemas o desacuerdo con el dominio en uso lo puedes cambiar o desactivar usando el comando ***/embed configurar***!
 
 </details>
 <details> <summary> Comandos </summary>
- 
- - /hola = Info del bot y ayuda sobre los comandos.
+
+ Varios comandos como "/embed configurar", opciones de /help, usan Autocompletado debido al limite de 25 items, solo escribie lo que buscas hasta que aparesca. 
+
+ - /help = Info del bot, ayuda sobre los comandos y si puedes usarlos.
  - /embed configurar = Desactivar & Cambiar Dominio.
  - /rolemoji: 
     - help = Informacion y muetra si cuenta con los permisos necesarios para funcionar.
@@ -37,13 +41,11 @@ Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dom
     - workhere = permite desactivar la funcion de embed en el canal.
     - replybot = habilita que procese link provenientes de bots en el canal.
  - /youtube:
-    - help = Proporciona ayuda sobre sobre los comandos.
     - lista = Muestra todos los canales que se suiguen en el server.
     - seguir = Sigue el canal de youtube.
     - dejar = Dejas de seguir el canal de youtube.
     - test = Piblica el ultimo video del canal seleccionado. 
  - /reddit:
-    - help = Proporciona ayuda sobre sobre los comandos.
     - lista = Muestra los subreddits que se suiguen en el server.
     - seguir = Seguir un Subreddit.
     - dejar = Deja de seguir un Subreddit.
@@ -59,7 +61,6 @@ Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dom
     - disable: Desactiva "/jointovoice"
     - cleanup: Borra todos los canales temporales activos. 
   - /mangadex:
-    - help = Proporciona ayuda sobre sobre los comandos.
     - lista = Muestra todos los mangas que se suiguen en el server.
     - seguir = Publica las actualizaciones de un manga, se puede filtrar por idioma.
     - dejar = Dejar de seguir un manga, requiere el ID de adicion, se puede ver con /mangadex lista.
@@ -69,7 +70,11 @@ Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dom
     - list: Muestra los usuarios/roles con permisos.
     - remove: Quita los permisos de un rol/usurio.
     - limpiar: Quita todos los permisos del server.
-    - help: Proporciona ayuda sobre sobre los comandos.
+  - /buttonlink
+    - Permite crear botones con links. Mx. 5 por post
+  - /buttonrole
+    - Permite crear botones que asignan un Rol. Mx. 5 botones por post. 
+    - Se puede crear un mensaje personalizado al asignar el rol. 
   - Comandos de musica [ /PLAY | /STOP | /QUEUE | /SKIP ]
 
 </details>
@@ -118,7 +123,6 @@ services:
       - DB_PASSWORD=
       - DB_DATABASE=
     #Lavalink
-      - LAVALINK_ACTIVE=
       - LAVALINK_NAME=
       - LAVALINK_HOST=
       - LAVALINK_PORT=
@@ -209,13 +213,13 @@ services:
 | `EMBEDEZ_NSFW/EMBEDEZ_SFW` | Sitios soportados por [Embedez](https://embedez.com/api) |
 | `BOT_STATUS` | estado \| tipo de actividad |
 | `STATUS_TIME_MINUTOS` | Tiempo de Rotacion de *BOT_STATUS* |
-| `LAVALINK_ACTIVE` | OFF = desactiva Lavalink y sus comandos |
 | `LAVALINK_NAME` | Nombre de Nodo |
 | `LAVALINK_HOST` | IP / URL / name |
 | `LAVALINK_PORT` | default: 2333 |
 | `LAVALINK_PASSWORD` | default: youshallnotpass |
 
 __Lavalink servers adicionales:__
+Si al nodo de Lavalink principal le falta algun campo este se deshabilitara junto con sus comandos y ayuda.<br>
 LAVALINK_NAME_"<Name>" | LAVALINK_HOST_"<Name>" | LAVALINK_PORT_"<Name>" | LAVALINK_PASSWORD_"<Name>"<br>
 Para añadir mas NODOS solo añade y cambia <Name> por cualquier nombre (alfanumerico) y los datos correspondientes.<br>
 __**Ejemplo: LAVALINK_NAME_JP=ServerJP | LAVALINK_HOST_JP=lavalink.host | LAVALINK_PORT_JP=2333 | LAVALINK_PASSWORD_JP=youshallnotpass**__<br>

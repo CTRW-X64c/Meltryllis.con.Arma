@@ -124,9 +124,9 @@ export class LavalinkManager {
 /* ========================= Init ========================= */
 
 function createLavalinkInstance(): LavalinkManager | null {
-    const lavalinkUp = process.env.LAVALINK_NAME && process.env.LAVALINK_HOST && process.env.LAVALINK_PASSWORD;
+    const lavalinkUp = process.env.LAVALINK_NAME && process.env.LAVALINK_HOST && process.env.LAVALINK_PORT && process.env.LAVALINK_PASSWORD;
     if (!lavalinkUp) {
-        console.log('❌ [Lavalink] Desactivado, quiza falta NAME, HOST o PASSWORD; si es intencional ignora esto');
+        console.log('❌ [Lavalink] Desactivado, quiza falta NAME, HOST, PORT o PASSWORD; si es intencional ignora esto');
         return null;
     }
     console.log('✅ [Lavalink] Módulo Activado.');
