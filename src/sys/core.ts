@@ -1,6 +1,6 @@
 // src/sys/core.ts
 import { Client, Events, GatewayIntentBits, Interaction } from "discord.js";
-import { sysUpRegister, sysUpCommands, sysUpAutoComplete, sysUpModals, sysUpButtons} from "../Events-Commands/upCommands";
+import { sysUpRegister, sysUpCommands, sysUpAutoComplete, sysUpModals, sysUpButtons } from "../Events-Commands/upCommands";
 import { getEnvironmentMode } from "./environment";
 import { error, info, initLogger, loggerAvailable } from "./logging";
 import { initializeDatabase } from "./DB-Engine/database";
@@ -21,17 +21,17 @@ import registerIOevent from "./zGears/IO-Server";
 /*========= Inicializadores =========*/
 
 async function main(): Promise<void> {
-const locale = (process.env.LOCALE ?? "es");
-const client = createClient();
+    const locale = (process.env.LOCALE ?? "es");
+    const client = createClient();
     try {
         initLogger(getEnvironmentMode());
         await initI18n(locale);
-        await initializeDatabase();     
+        await initializeDatabase();
         await validateAllTranslations();
-        if (lavalinkManager) {lavalinkManager.init(client);}
+        if (lavalinkManager) { lavalinkManager.init(client); }
         urlStatusManager.start();
         await client.login(process.env.DISCORD_BOT_TOKEN); /* Algunos ocupan ir antes del login, como lavalink */
-        await startWelcomeEvents(client);     
+        await startWelcomeEvents(client);
         sysUpRegister(client);
         await registerIOevent(client);
         registerRolemojiEvents(client);
@@ -68,7 +68,7 @@ function createClient(): Client {
         info(`Actualmente en ${guildCount} ${guildCount === 1 ? "server!" : "servidores!"}`, "Events.ClientReady");
         preloadRolemojiMessages(client);
     });
-    
+
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         if (interaction.isChatInputCommand()) {
             await sysUpCommands(interaction);
@@ -103,7 +103,7 @@ function logInfo(message: string): void {
 function logFatalError(error: unknown): void {
     const errorObj = error instanceof Error ? error : new Error(String(error));
     const message = `Error fatal: ${errorObj.name}: ${errorObj.message}`;
-    
+
     if (loggerAvailable()) {
         if (typeof error === 'function') {
             error(message, "Main");

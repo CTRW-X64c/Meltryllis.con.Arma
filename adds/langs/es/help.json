@@ -4,8 +4,30 @@
     "command_hola_idioma_description": "¡Selecciona un comando para una mejor ayuda!",
     "default_switch_error": "La ayuda de este comando aún no está disponible y solo está aquí por los loles"
   },
-  "can_run_yes": "✅ Puedes ejecutar el comando",
-  "can_run_no": "❌ No puedes ejecutarlo, NO ERES ADMIN o NO TE DIERON PERMISO",
+  "embMaker": {
+    "no_need_permission": "**Este comando no requiere permisos!**",
+    "can_run_yes": "✅ Tienes permiso para usar el comando!!",
+    "can_run_no": "❌ No puedes usar este comando!!",
+    "hasPermission": "Permisos que tengo en {{a1}} y necesita el comando:",
+    "hasGlobalPermission": "Permisos de servidor: ",
+    "hasGlobalNota": "`Sin efecto en canales privados`",
+    "bitRoles": "🛠️ Gestionar roles:",
+    "bitReacciones": "➕ Agregar reacciones:",
+    "bitEmojis": "🈴​ Usar emojis externos:",
+    "bitChManager": "🧾​ Gestionar Canales:",
+    "bitChSee": "👁️​ Ver canal:",
+    "bitVoiceConnect": "🔌​ Conectar a canal de Voz:",
+    "bitVoiceMove": "🚶‍➡️​ Mover miembros del canal:",
+    "bitMsgManager": "📋​ Gestor de mensajes:",
+    "bitSendMessages": "💬 ​Enviar mensajes:",
+    "bitAddLink": "⛓️​ Generar embed de links:",
+    "bitReedMsg": "📑​ Leer historial de mensajes:",
+    "bitAdmin": "🗃️​ Administrador: ",
+    "bitSrvManager": "⚙️​ Gestor de servidor:",
+    "bitBanMember": "🔨​ Ban miembros:",
+    "bitKickMember": "🚪​ Expulsar miembros:",
+    "bitViewAuditLog": "📝​ Ver logs del server:"
+  },
   "info": {
     "embed_title": "¡Hola!",
     "embed_description": "Estoy aquí para ayudarte con los Embeds en Discord, ¡porque la verdad muchos apestan!",
@@ -39,9 +61,7 @@
     "help_list_desc": "Lista todos los comandos que estén asignados a un rol o usuario.",
     "help_clear_title": "/permission limpiar",
     "help_clear_desc": "Elimina todos los permisos del servidor.",
-    "footer_text_help": "Solo los administradores y el dueño del servidor pueden usar este comando.",
-    "run_yes": "✅ Puedes ejecutar el comando",
-    "run_no": "❌ EXCLUSIVO DE ADMINS O EL DUEÑO DEL SERVIDOR"
+    "footer_text_help": "Solo los administradores y el dueño del servidor pueden usar este comando."
   },
   "reddit": {
     "HelpEmb_titulo": "Ayuda del Comando de Reddit",
@@ -53,15 +73,10 @@
     "HelpEmb_Field_Name_3": "/reddit dejar",
     "HelpEmb_Field_Value_3": "Deja de seguir un subreddit/user usando su URL o r/subbreddit|u/username.",
     "HelpEmb_Field_Name_4": "/reddit test",
-    "HelpEmb_Field_Value_4": "Publica el último post de un subreddit usando su URL o r/subbreddit|u/username."
+    "HelpEmb_Field_Value_4": "Publica el último post de un subreddit usando su URL o r/subbreddit|u/username.",
+    "footer": "Seguir usuarios y subreddits. "
   },
   "rolemoji": {
-    "error_user": "¡Error al ejecutar!",
-    "manage_roles_permission": "🛠️ Gestionar roles:",
-    "add_reactions_permission": "➕ Agregar reacciones:",
-    "use_external_emojis_permission": "Usar emojis externos:",
-    "allowed_permission": "✅ Permitido",
-    "missing_permission": "❌ Faltante",
     "help_title": "Ayuda de Rolemoji",
     "help_description": "¿No funciona?, sigue estos pasos:",
     "paso_1": "1.- Permisos:",
@@ -83,8 +98,9 @@
   },
   "clean": {
     "title": "Comando /cleanup",
+    "description": "Herramienta para el borrado masivo de mensajes en canales.",
     "name_1": "Uso y limitaciones:",
-    "value_1": "Este comando permite borrar mensajes en canales específicos usando un mensaje de referencia, ya sea para borrar los que están antes o después de él por medio de su id. También puede borrar mensajes solo de bots o usuarios; por defecto, borra sin revisar el autor.\n\nPor limitaciones de la API de Discord, solo se pueden borrar 100 mensajes a la vez con un máximo de 3 semanas de antigüedad.",
+    "value_1": "Este comando permite borrar mensajes en canales específicos usando un mensaje de referencia, ya sea para borrar los que están antes o después de él por medio de su id. También puede borrar mensajes solo de bots o usuarios; por defecto, borra sin revisar el autor. \n\n Por limitaciones de la API de Discord, solo se pueden borrar 100 mensajes a la vez con un máximo de 3 semanas de antigüedad. \n\n Puedes usar la opcion `edit` para modificar los mensajes de /buttonrole y /buttonlink",
     "footer": "/cleanup start:<valor> mesanje_id:<id> count:<1-100> type:<bot/user/all>"
   },
   "embed": {
@@ -108,8 +124,6 @@
     "lavalink_off": "¡Lo siento, mi Host desactivó la reproducción de música!",
     "title": "Comandos de Música",
     "description": "Si no tienes permiso \"❌\" puedes pedir a algún admin que te dé permiso vía **/permisos**, ya sea individual o por rol.",
-    "can_run_yes": "✅",
-    "can_run_no": "❌",
     "name_1": "Puedes usar /play | /skip | /stop | /queue:",
     "name_5": "Comandos básicos para poner música, Tips:",
     "value_5": "- Si quieres agregar listas usa /play... queue:yes.\n- Para borrar la lista usa /queue clean:true\n- Después de 10s sola en el canal se detiene la reproducción.",
@@ -151,10 +165,12 @@
   },
   "buttonRole": {
     "title": "Comando /buttonrole",
-    "footer": "Permite crear btones que asignan un Rol al dar click "
+    "description": "Permite crear botones interactivos que asignan un rol al dar click.",
+    "footer": "Permite crear botones que asignan un Rol al dar click"
   },
   "buttonLink": {
     "title": "Comando /buttonlink",
-    "footer": "Permite crear botones con links!"
+    "description": "Permite crear botones con enlaces personalizados.",
+    "footer": "Permite la creacion de hasta 5 botones con link. \n Si deceas agregarles un mensaje puede usar `/post edit` para añadir un mensaje. "
   }
 }

@@ -1,6 +1,7 @@
 // sc/sys/auxiliares.ts
-import { Client } from "discord.js";
+import { Client, PermissionFlagsBits } from "discord.js";
 import { error } from "../logging";
+import i18next from "i18next";
 
 /* ======================================== TIMMERS ======================================== */
 
@@ -30,7 +31,7 @@ export function checkCooldown(guild: string, idCommand: string): { onCooldown: b
     const timeRemaining = expirationTime - Date.now();
     if (timeRemaining > 0) {
         const minutesLeft = Math.ceil(timeRemaining / 60000);
-        return { onCooldown: true, timeLeft: minutesLeft < hrs ? `${minutesLeft} minuto(s) y ${minutesLeft % 60} segundo(s)` : `${Math.floor(minutesLeft / 60)} hora(s) y ${minutesLeft % 60} minuto(s)`};
+        return { onCooldown: true, timeLeft: minutesLeft < hrs ? `${minutesLeft} minuto(s) y ${minutesLeft % 60} segundo(s)` : `${Math.floor(minutesLeft / 60)} hora(s) y ${minutesLeft % 60} minuto(s)` };
     }
     cooldownsMap.delete(key);
     return { onCooldown: false, timeLeft: '' };
@@ -48,7 +49,7 @@ setInterval(() => {
 /* ======================================== ReportChannels ======================================== */
 
 let cachedReportConfig: { chReport: boolean, chReportId: string } | null = null; /* Sistema de Cahce */
-export async function ChannelReports(client: Client): Promise<{chReport: boolean,  chReportId: string}> {
+export async function ChannelReports(client: Client): Promise<{ chReport: boolean, chReportId: string }> {
     if (cachedReportConfig) return cachedReportConfig;
 
     const ownerId = process.env.HOST_DISCORD_USER_ID;
@@ -86,4 +87,51 @@ export async function ChannelReports(client: Client): Promise<{chReport: boolean
         cachedReportConfig = { chReport: false, chReportId: '' };
         return cachedReportConfig;
     }
+}
+
+/* ======================================== Check Permisos ======================================== */
+
+export function testPermisos(chkPerm: any, idComamnd: string) {
+    const mngrBitsList = [
+        { id: "admin", name: i18next.t("help:embMaker.bitAdmin"), bit: PermissionFlagsBits.Administrator },
+        { id: "srvManager", name: i18next.t("help:embMaker.bitSrvManager"), bit: PermissionFlagsBits.ManageGuild },
+        { id: "banMember", name: i18next.t("help:embMaker.bitBanMember"), bit: PermissionFlagsBits.BanMembers },
+        { id: "kickMember", name: i18next.t("help:embMaker.bitKickMember"), bit: PermissionFlagsBits.KickMembers },
+        { id: "auditLog", name: i18next.t("help:embMaker.bitViewAuditLog"), bit: PermissionFlagsBits.ViewAuditLog, },
+    ];
+
+    const meltrysList = [
+        { id: "chsee", name: i18next.t("help:embMaker.bitChSee"), bit: PermissionFlagsBits.ViewChannel },
+        { id: "msgManager", name: i18next.t("help:embMaker.bitMsgManager"), bit: PermissionFlagsBits.ManageMessages },
+        { id: "reedMsg", name: i18next.t("help:embMaker.bitReedMsg"), bit: PermissionFlagsBits.ReadMessageHistory },
+        { id: "sundmsg", name: i18next.t("help:embMaker.bitSendMessages"), bit: PermissionFlagsBits.SendMessages },
+        { id: "addlink", name: i18next.t("help:embMaker.bitAddLink"), bit: PermissionFlagsBits.EmbedLinks },
+        { id: "roles", name: i18next.t("help:embMaker.bitRoles"), bit: PermissionFlagsBits.ManageRoles },
+        { id: "reactions", name: i18next.t("help:embMaker.bitReacciones"), bit: PermissionFlagsBits.AddReactions },
+        { id: "emojis", name: i18next.t("help:embMaker.bitEmojis"), bit: PermissionFlagsBits.UseExternalEmojis },
+        { id: "chmanager", name: i18next.t("help:embMaker.bitChManager"), bit: PermissionFlagsBits.ManageChannels },
+        { id: "voiceMove", name: i18next.t("help:embMaker.bitVoiceMove"), bit: PermissionFlagsBits.MoveMembers },
+        { id: "voiceConnect", name: i18next.t("help:embMaker.bitVoiceConnect"), bit: PermissionFlagsBits.Connect },
+    ];
+
+    const allBits = [ ...mngrBitsList, ...meltrysList ];
+
+    let bits;
+    switch (idComamnd) {
+        case "meltrys":
+            bits = meltrysList; break;
+        case "mngrBits":
+            bits = mngrBitsList; break;
+        case "todos":
+            bits = allBits; break;
+        default:
+            const choisdBit = idComamnd.split("|");
+            bits = allBits.filter(bit => choisdBit.includes(bit.id)); break;
+    }
+
+    return bits.map(bitObj => {
+        const hasPerm = chkPerm?.has(bitObj.bit) ?? false;
+        const chkEmoji = hasPerm ? "✅" : "❌";
+        return `> **${bitObj.name}**ㅤ${chkEmoji}`;
+    });
 }
