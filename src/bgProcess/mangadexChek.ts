@@ -1,7 +1,7 @@
 // src/client/coreCommands/mangadexChek.ts
 import { Client, TextChannel } from 'discord.js';
-import { getAllMangadexFeeds, updateMangadexFeedLastChapter, MangadexFeed } from '../../sys/DB-Engine/links/Mangadex';
-import { info, error, debug } from '../../sys/logging';
+import { getAllMangadexFeeds, updateMangadexFeedLastChapter, MangadexFeed } from '../sys/DB-Engine/links/Mangadex';
+import { info, error, debug } from '../sys/logging';
 
 const BATCH_SIZE = 10; // Número de feeds a procesar por ciclo
 

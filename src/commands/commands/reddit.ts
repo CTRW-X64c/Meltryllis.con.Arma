@@ -1,7 +1,7 @@
 // src/Events-Commands/commands/reddit.ts
 import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, TextChannel } from "discord.js";
 import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed} from "../../sys/DB-Engine/links/Reddit";
-import { RedditApiResponse } from "../eventGear/redditCheck";
+import { RedditApiResponse } from "../../bgProcess/redditCheck";
 import { error, debug} from "../../sys/logging";
 import { redditApi } from "../../sys/zGears/RedditApi";
 import { hasPermission } from "../../sys/zGears/mPermission";

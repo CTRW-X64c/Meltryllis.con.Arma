@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, GuildMember, TextChannel, EmbedBuilder, VoiceState, MessageFlags } from "discord.js";
-import lavalinkManager, { LavalinkManager } from "../eventGear/lavalinkConnect"; 
+import lavalinkManager, { LavalinkManager } from "../../bgProcess/lavalinkConnect"; 
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";

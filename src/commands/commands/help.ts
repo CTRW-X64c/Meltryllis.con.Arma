@@ -4,7 +4,7 @@ import i18next from "i18next";
 import { error } from "../../sys/logging";
 import { Report } from "../commandModales/reportHelp";
 import { hasPermission } from "../../sys/zGears/mPermission";
-import lavalinkManager from "../../Events-Commands/eventGear/lavalinkConnect";
+import lavalinkManager from "../../bgProcess/lavalinkConnect";
 import { testPermisos } from "../../sys/zGears/auxiliares";
 
 // ============================================= Autocomplete ============================================= //
@@ -130,7 +130,6 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         color: 0x0099ff,
         fields: [
           { name: i18next.t("help:clean.name_1"), value: i18next.t("help:clean.value_1") },
-          { name: i18next.t("help:clean.name_2"), value: i18next.t("help:clean.value_2") },
         ],
         footer: i18next.t("help:clean.footer"),
         chPerm: "chsee|msgManager|sundmsg|addlink",

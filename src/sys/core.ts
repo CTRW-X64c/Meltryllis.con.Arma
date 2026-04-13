@@ -1,6 +1,6 @@
 // src/sys/core.ts
 import { Client, Events, GatewayIntentBits, Interaction } from "discord.js";
-import { sysUpRegister, sysUpCommands, sysUpAutoComplete, sysUpModals, sysUpButtons } from "../Events-Commands/upCommands";
+import { sysUpRegister, sysUpCommands, sysUpAutoComplete, sysUpModals, sysUpButtons } from "../commands/upCommands";
 import { getEnvironmentMode } from "./environment";
 import { error, info, initLogger, loggerAvailable } from "./logging";
 import { initializeDatabase } from "./DB-Engine/database";
@@ -9,13 +9,13 @@ import { startStatusRotation } from "./zGears/setStatus";
 import urlStatusManager from "./embedding/domainChecker";
 import { initI18n } from "./i18n";
 import { validateAllTranslations } from "./i18n/nsKeyCheck";
-import { startWelcomeEvents } from "../Events-Commands/eventGear/welcomeEvents";
-import { registerRolemojiEvents, preloadRolemojiMessages } from "../Events-Commands/eventGear/rolemojiEvents";
-import { startYoutubeService } from "../Events-Commands/eventGear/youtubeCheck";
-import { startRedditChecker } from "../Events-Commands/eventGear/redditCheck";
-import { startMangadexChecker } from "../Events-Commands/eventGear/mangadexChek";
-import { startVoiceChannelService } from "../Events-Commands/eventGear/voicEvent";
-import lavalinkManager from "../Events-Commands/eventGear/lavalinkConnect";
+import { startWelcomeEvents } from "../bgProcess/welcomeEvents";
+import { registerRolemojiEvents, preloadRolemojiMessages } from "../bgProcess/rolemojiEvents";
+import { startYoutubeService } from "../bgProcess/youtubeCheck";
+import { startRedditChecker } from "../bgProcess/redditCheck";
+import { startMangadexChecker } from "../bgProcess/mangadexChek";
+import { startVoiceChannelService } from "../bgProcess/voicEvent";
+import lavalinkManager from "../bgProcess/lavalinkConnect";
 import registerIOevent from "./zGears/IO-Server";
 
 /*========= Inicializadores =========*/
