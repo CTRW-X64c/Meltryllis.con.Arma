@@ -3,6 +3,7 @@ import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, 
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
+import { testPermisos } from "../../sys/zGears/auxiliares";
 
 export async function registerCleanUpCommand(): Promise<SlashCommandBuilder[]> {
     const cleanupCommand = new SlashCommandBuilder()
@@ -46,6 +47,12 @@ export async function registerCleanUpCommand(): Promise<SlashCommandBuilder[]> {
 
 export async function handleCleanUpCommand(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
+        const guild = interaction.guild;
+        if (!guild) {
+            await interaction.reply(i18next.t("common:Errores.noGuild"));
+            return;
+        }
+
         const isAllowed = await hasPermission(interaction, interaction.commandName);
         if (!isAllowed) {
             await interaction.reply({
@@ -59,6 +66,16 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
         if (!channel || !channel.isTextBased() || channel.isDMBased()) {
             await interaction.reply({
                 content: i18next.t("common:Errores.noChannel"),
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
+
+        const me = channel.permissionsFor(guild.members.me!);
+        const perChTo = testPermisos(me, "chsee|chmanager");
+        if (perChTo.some(p => p.includes("❌"))) {
+            await interaction.reply({
+                content: i18next.t("common:Errores.missing_permissions", { a1: `<#${channel.id}>`, a2: perChTo.join("\n") }),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -88,7 +105,7 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
         }
 
         let messagesToDelete: Collection<string, Message>;
-        
+
         // Modo antes/despues de 
         if (startOption === "before") {
             messagesToDelete = await (channel as TextChannel).messages.fetch({
@@ -123,10 +140,10 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
 
         for (let i = 0; i < messagesArray.length; i += 100) {
             const batch = messagesArray.slice(i, i + 100);
-            
+
             try {
                 const deletedMessages = await (channel as TextChannel).bulkDelete(batch, true);
-                
+
                 deletedMessages.forEach(msg => {
                     if (!msg) return;
                     deletedCounts.total++;
@@ -137,30 +154,30 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
                     }
                 });
                 debug(`Lote eliminado: ${deletedMessages.size} mensajes reales`);
-                
+
             } catch (batchError) {
-                error(`Error eliminando lote ${i/100 + 1}: ${batchError}`);
+                error(`Error eliminando lote ${i / 100 + 1}: ${batchError}`);
             }
         }
 
-        let responseMessage = i18next.t("commands:cleanup.interacciones.success", { 
+        let responseMessage = i18next.t("commands:cleanup.interacciones.success", {
             a1: deletedCounts.total,
-            a2: startOption === "before" ? 
-                i18next.t("commands:cleanup.interacciones.before") : 
+            a2: startOption === "before" ?
+                i18next.t("commands:cleanup.interacciones.before") :
                 i18next.t("commands:cleanup.interacciones.after")
         });
 
         if (deletedCounts.total < messagesArray.length) {
-            responseMessage += `\n⚠️ ${i18next.t("commands:cleanup.interacciones.old_messages_warning")}`; 
+            responseMessage += `\n⚠️ ${i18next.t("commands:cleanup.interacciones.old_messages_warning")}`;
         }
 
         if (typeOption !== "any") {
-            responseMessage += `\n📊 ${i18next.t("commands:cleanup.interacciones.filtered_by", { 
+            responseMessage += `\n📊 ${i18next.t("commands:cleanup.interacciones.filtered_by", {
                 a1: i18next.t(`cleanup:cleanup_type_${typeOption}`)
             })}`;
         }
 
-        responseMessage += `\n\n${i18next.t("commands:cleanup.interacciones.breakdown", { 
+        responseMessage += `\n\n${i18next.t("commands:cleanup.interacciones.breakdown", {
             a1: deletedCounts.users,
             a2: deletedCounts.bots
         })}`;
@@ -171,7 +188,7 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
 
     } catch (err) {
         error(`Error en comando cleanup: ${err}`);
-        
+
         if (interaction.replied || interaction.deferred) {
             await interaction.editReply(i18next.t("commands:cleanup.interacciones.error"));
         } else {

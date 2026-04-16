@@ -3,7 +3,7 @@ import { Client, Events, GatewayIntentBits, Interaction } from "discord.js";
 import { sysUpRegister, sysUpCommands, sysUpAutoComplete, sysUpModals, sysUpButtons } from "../commands/upCommands";
 import { getEnvironmentMode } from "./environment";
 import { error, info, initLogger, loggerAvailable } from "./logging";
-import { initializeDatabase } from "./DB-Engine/database";
+import { initializeDatabase, isBdReady } from "./DB-Engine/database";
 import startEmbedService from "./embedding/embedService";
 import { startStatusRotation } from "./zGears/setStatus";
 import urlStatusManager from "./embedding/domainChecker";
@@ -29,21 +29,28 @@ async function main(): Promise<void> {
         initLogger(getEnvironmentMode());
         await initI18n(locale);
         await initializeDatabase();
+        const BDready = await isBdReady();
         await validateAllTranslations();
         if (lavalinkManager) { lavalinkManager.init(client); }
         urlStatusManager.start();
         await client.login(process.env.DISCORD_BOT_TOKEN); /* Algunos ocupan ir antes del login, como lavalink */
-        await startWelcomeEvents(client);
+        startEmbedService(client);
         sysUpRegister(client);
         await registerIOevent(client);
         registerRolemojiEvents(client);
-        startYoutubeService(client); // by nep  
-        startRedditChecker(client);  // by nowa
-        startVoiceChannelService(client);
         startStatusRotation(client);
-        startEmbedService(client);
-        startMangadexChecker(client);
-        startCronpost(client);
+        if (BDready) {
+            info("💽​ Base de datos lista, iniciando servicios...")
+            startVoiceChannelService(client);
+            startMangadexChecker(client);
+            startYoutubeService(client); // by nep  
+            startRedditChecker(client);  // by nowa
+            await startWelcomeEvents(client);
+            startCronpost(client);
+        } else {
+            error("❌ La BD no arranco, bye bye~");
+            process.exit(1);
+        }
         logInfo(`✅ Inicializacion completada!! | 🌐 Idioma de los comandos: ${locale}`);
     } catch (error) {
         logFatalError(error);

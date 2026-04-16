@@ -140,16 +140,14 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
 // Nota: Modulo para llamar el check 
 /* Tipo por canal!!
     const me = canalDestino.permissionsFor(guild.members.me!);
-    const chBits = "chsee|sendmsg|addlink|addfiles";
-    const perChTo = testPermisos(me, chBits);
+    const perChTo = testPermisos(me, "chsee|sendmsg|addlink|addfiles");
     if (perChTo.some(p => p.includes("❌"))) {
-        await interaction.editReply({ content: `❌ El bot no tiene permisos suficientes en <#${canalDestino.id}>:\n${perChTo.join("\n")}` });
+        await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo.join("\n") }) });
         return;
     }
 */ /* Tipo General!!
     const im = interaction.guild?.members.me?.permissions;
-    const srvBits = "chsee|sendmsg|addlink|addfiles";
-    const serPrm = testPermisos(im, srvBits);
+    const serPrm = testPermisos(im, "chsee|sendmsg|addlink|addfiles");
     if (serPrm.some(p => p.includes("❌"))) {
         await interaction.editReply({ content: `❌ El bot no tiene permisos suficientes en <#${canalDestino.id}>:\n${serPrm.join("\n")}` });
         return;

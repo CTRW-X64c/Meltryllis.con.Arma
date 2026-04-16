@@ -1,11 +1,12 @@
 // src/Events-Commands/commands/youtube.ts
-import { ChannelType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
+import { ChannelType, Guild, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
 import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/DB-Engine/links/Youtube";
 import { extractVideoId } from "../../bgProcess/youtubeCheck";
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next"
 import Parser from "rss-parser";
+import { testPermisos } from "../../sys/zGears/auxiliares";
 
 export async function registerYouTubeCommand() {
   const youtube = new SlashCommandBuilder()
@@ -59,6 +60,13 @@ export async function registerYouTubeCommand() {
 
 export async function handleYouTubeCommand(interaction: any) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  const guild = interaction.guild;
+  if (!guild) {
+    await interaction.editReply(i18next.t("common:Errores.noGuild"));
+    return;
+  }
+
   const isAllowed = await hasPermission(interaction, interaction.commandName);
   if (!isAllowed) {
     await interaction.editReply({
@@ -68,22 +76,20 @@ export async function handleYouTubeCommand(interaction: any) {
     return;
   }
 
-  const subcommand = interaction.options.getSubcommand();
-  const guildId = interaction.guild.id;
-
   try {
+    const subcommand = interaction.options.getSubcommand();
     switch (subcommand) {
       case "seguir":
-        await seguirCanal(interaction, guildId);
+        await seguirCanal(interaction, guild);
         break;
       case "lista":
-        await listaCanales(interaction, guildId);
+        await listaCanales(interaction, guild);
         break;
       case "dejar":
-        await dejarCanal(interaction, guildId);
+        await dejarCanal(interaction, guild);
         break;
       case "test":
-        await testCanal(interaction, guildId);
+        await testCanal(interaction, guild);
         break;
     }
   } catch (err) {
@@ -93,13 +99,20 @@ export async function handleYouTubeCommand(interaction: any) {
 }
 
 // =============== SubSeguir =============== //
-async function seguirCanal(interaction: any, guildId: string) {
+async function seguirCanal(interaction: any, guild: Guild) {
   const rssUrl = interaction.options.getString("rss_url");
   const discordChannelInput = interaction.options.getChannel("canal");
   const discordChannel = interaction.guild.channels.cache.get(discordChannelInput.id);
 
   if (!discordChannel || !discordChannel.isTextBased()) {
     await interaction.editReply({ content: i18next.t("common:Errores.noChannel"), flags: MessageFlags.Ephemeral });
+    return;
+  }
+
+  const me = discordChannel.permissionsFor(guild.members.me!);
+  const perChTo = testPermisos(me, "chsee|sendmsg|addlink");
+  if (perChTo.some(p => p.includes("❌"))) {
+    await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo.join("\n") }) });
     return;
   }
 
@@ -122,7 +135,7 @@ async function seguirCanal(interaction: any, guildId: string) {
     }
 
 
-    const existingFeeds = await getYouTubeFeeds(guildId);
+    const existingFeeds = await getYouTubeFeeds(guild.id);
     const alreadyFollowing = existingFeeds.find(feed => feed.youtube_channel_id === channelId);
 
     if (alreadyFollowing) {
@@ -148,7 +161,7 @@ async function seguirCanal(interaction: any, guildId: string) {
     const vChName = verification.channelName;
 
     await addYouTubeFeed({
-      guild_id: guildId,
+      guild_id: guild.id,
       channel_id: discordChannel.id,
       youtube_channel_id: channelId,
       youtube_channel_name: vChName,
@@ -161,7 +174,7 @@ async function seguirCanal(interaction: any, guildId: string) {
       flags: MessageFlags.Ephemeral
     });
 
-    debug(`Nuevo canal de YouTube seguido: ${vChName} (${channelId}) en servidor ${guildId}`, "YouTubeCommand");
+    debug(`Nuevo canal de YouTube seguido: ${vChName} (${channelId}) en servidor ${guild.id}`, "YouTubeCommand");
 
   } catch (err) {
     error(`Error siguiendo canal: ${err}`, "YouTubeCommand");
@@ -170,8 +183,8 @@ async function seguirCanal(interaction: any, guildId: string) {
 }
 
 // =============== SubLista =============== //
-async function listaCanales(interaction: any, guildId: string) {
-  const feeds = await getYouTubeFeeds(guildId);
+async function listaCanales(interaction: any, guild: Guild) {
+  const feeds = await getYouTubeFeeds(guild.id);
 
   if (feeds.length === 0) {
     await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.lista_vacia"), flags: MessageFlags.Ephemeral });
@@ -184,7 +197,7 @@ async function listaCanales(interaction: any, guildId: string) {
     const clave = feed.channel_id;
 
     if (!feedsPorCanal.has(clave)) {
-      const channel = interaction.guild?.channels.cache.get(clave);
+      const channel = guild.channels.cache.get(clave);
       feedsPorCanal.set(clave, {
         canal: channel,
         feeds: []
@@ -200,7 +213,7 @@ async function listaCanales(interaction: any, guildId: string) {
     .setColor(0x5865F2);
 
   for (const [canalId, grupo] of feedsPorCanal) {
-    const urlchannel = `https://discord.com/channels/${guildId}/${canalId}`;
+    const urlchannel = `https://discord.com/channels/${guild.id}/${canalId}`;
     const listaCanales = grupo.feeds.map(feed => {
       return i18next.t("commands:youtube.interacciones.YT_embed_list_entry", { a1: feed.youtube_channel_name, a2: feed.channel_id })
     });
@@ -231,15 +244,15 @@ async function listaCanales(interaction: any, guildId: string) {
 }
 
 // =============== SubDejar =============== //
-async function dejarCanal(interaction: any, guildId: string) {
+async function dejarCanal(interaction: any, guild: Guild) {
   const youtubeChannelId = interaction.options.getString("id_canal");
 
   try {
-    const removed = await removeYouTubeFeed(guildId, youtubeChannelId);
+    const removed = await removeYouTubeFeed(guild.id, youtubeChannelId);
 
     if (removed) {
       await interaction.editReply({ content: "✅ Canal eliminado correctamente. Ya no recibirás notificaciones de este canal.", flags: MessageFlags.Ephemeral });
-      debug(`Canal de YouTube eliminado: ${youtubeChannelId} del servidor ${guildId}`, "YouTubeCommand");
+      debug(`Canal de YouTube eliminado: ${youtubeChannelId} del servidor ${guild.id}`, "YouTubeCommand");
     } else {
       await interaction.editReply({ content: "❌ No se encontró el canal especificado. Usa `/youtube lista` para ver los canales que estás siguiendo.", flags: MessageFlags.Ephemeral });
     }
@@ -250,11 +263,11 @@ async function dejarCanal(interaction: any, guildId: string) {
 }
 
 // =============== SubTest =============== //
-async function testCanal(interaction: any, guildId: string) {
+async function testCanal(interaction: any, guild: Guild) {
   const youtubeChannelId = interaction.options.getString("id_canal");
 
   try {
-    const feeds = await getYouTubeFeeds(guildId);
+    const feeds = await getYouTubeFeeds(guild.id);
     const feed = feeds.find(f => f.channel_id === youtubeChannelId);
 
     if (!feed) {
@@ -275,7 +288,6 @@ async function testCanal(interaction: any, guildId: string) {
     const latestVideo = rssFeed.items[0];
     const videoId = extractVideoId(latestVideo);
     const videoUrl = latestVideo.link || `https://www.youtube.com/watch?v=${videoId}`;
-    const guild = interaction.guild;
     const channel = guild.channels.cache.get(feed.channel_id);
 
     if (!channel || !channel.isTextBased()) {
@@ -292,7 +304,7 @@ async function testCanal(interaction: any, guildId: string) {
       flags: MessageFlags.Ephemeral
     });
 
-    debug(`Prueba ejecutada para canal: ${feed.youtube_channel_name} en servidor ${guildId}`, "YouTubeCommand");
+    debug(`Prueba ejecutada para canal: ${feed.youtube_channel_name} en servidor ${guild.id}`, "YouTubeCommand");
 
   } catch (err) {
     error(`Error en prueba de canal: ${err}`, "YouTubeCommand");

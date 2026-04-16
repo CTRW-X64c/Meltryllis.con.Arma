@@ -449,7 +449,6 @@
       "list_empty": "No existen mensajes programados!!",
       "formato_id_mensaje_invalido": "❌ Formato del ID invalido!!",
       "formato_canal_invalido": "❌ No pude acceder al canal actual, revisa mis permisos en este canal!! ",
-      "missing_permissions": "❌ Me faltan permisos en {{a1}}: \n {{a2}}",
       "cron_limit_reached": "❌ **Límite alcanzado:** Este servidor ya tiene el máximo de 5 crons. Usa `/cronpost borrar` para liberar espacio.",
       "no_message_found": "❌ No pude encontrar ese mensaje. Asegúrate de ejecutar este comando **en el mismo canal** donde está el mensaje que quieres copiar.",
       "no_message_content": "❌ El mensaje original está vacío o tiene un formato no compatible!!",
