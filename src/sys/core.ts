@@ -15,8 +15,10 @@ import { startYoutubeService } from "../bgProcess/youtubeCheck";
 import { startRedditChecker } from "../bgProcess/redditCheck";
 import { startMangadexChecker } from "../bgProcess/mangadexChek";
 import { startVoiceChannelService } from "../bgProcess/voicEvent";
+import { startCronpost } from "../bgProcess/exeCron";
 import lavalinkManager from "../bgProcess/lavalinkConnect";
 import registerIOevent from "./zGears/IO-Server";
+
 
 /*========= Inicializadores =========*/
 
@@ -41,6 +43,7 @@ async function main(): Promise<void> {
         startStatusRotation(client);
         startEmbedService(client);
         startMangadexChecker(client);
+        startCronpost(client);
         logInfo(`✅ Inicializacion completada!! | 🌐 Idioma de los comandos: ${locale}`);
     } catch (error) {
         logFatalError(error);

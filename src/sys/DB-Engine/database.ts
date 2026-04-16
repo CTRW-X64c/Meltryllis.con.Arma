@@ -33,7 +33,7 @@ export async function initializeDatabase(): Promise<void> {
         pool = InitPools;
         info(`✅ Conectado a la base de datos: ${process.env.DB_DATABASE}`, "Database");
 
-// Tabla de comando /replybots
+        // Tabla de comando /replybots
         await pool.query(`
           CREATE TABLE IF NOT EXISTS channel_configs (
             guild_id VARCHAR(30) NOT NULL,
@@ -44,7 +44,7 @@ export async function initializeDatabase(): Promise<void> {
           )
         `);
 
-// Tabla de comando /embed
+        // Tabla de comando /embed
         await pool.query(`
           CREATE TABLE IF NOT EXISTS guild_replacements (
             guild_id VARCHAR(30) NOT NULL,
@@ -56,7 +56,7 @@ export async function initializeDatabase(): Promise<void> {
           )
         `);
 
-// Tabla de comandos /welcome
+        // Tabla de comandos /welcome
         await pool.query(`
           CREATE TABLE IF NOT EXISTS welcome_configs (
             guild_id VARCHAR(30) NOT NULL,
@@ -67,7 +67,7 @@ export async function initializeDatabase(): Promise<void> {
           )
         `);
 
-// Tabla de comandos /rolemoji
+        // Tabla de comandos /rolemoji
         await pool.query(`
           CREATE TABLE IF NOT EXISTS role_assignments (
             id INT AUTO_INCREMENT,
@@ -81,7 +81,7 @@ export async function initializeDatabase(): Promise<void> {
           )
         `);
 
-// Tabla de comandos /youtube
+        // Tabla de comandos /youtube
         await pool.query(`
           CREATE TABLE IF NOT EXISTS youtube_feeds (
           id INT AUTO_INCREMENT PRIMARY KEY,
@@ -96,7 +96,7 @@ export async function initializeDatabase(): Promise<void> {
           )
         `);
 
-// Tabla de comandos /reddit
+        // Tabla de comandos /reddit
         await pool.query(`
           CREATE TABLE IF NOT EXISTS reddit_feeds (
           id INT AUTO_INCREMENT PRIMARY KEY,
@@ -112,7 +112,7 @@ export async function initializeDatabase(): Promise<void> {
           )
         `);
 
-// Tabla de JoinCreate /giveChannel 
+        // Tabla de JoinCreate /giveChannel 
         await pool.query(`
           CREATE TABLE IF NOT EXISTS voice_configs (
             guild_id VARCHAR(30) PRIMARY KEY,
@@ -120,8 +120,8 @@ export async function initializeDatabase(): Promise<void> {
             enabled BOOLEAN DEFAULT TRUE
           )
         `);
-        
-    // Canales temporales
+
+        // Canales temporales
         await pool.query(`
           CREATE TABLE IF NOT EXISTS temp_voice_channels (
             channel_id VARCHAR(30) PRIMARY KEY,
@@ -131,7 +131,7 @@ export async function initializeDatabase(): Promise<void> {
           )
         `);
 
-// Tabla de Mangadex /mangadex
+        // Tabla de Mangadex /mangadex
         await pool.query(`
           CREATE TABLE IF NOT EXISTS mangadex_feeds ( 
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -146,8 +146,8 @@ export async function initializeDatabase(): Promise<void> {
             UNIQUE INDEX idx_unique_manga_channel (guild_id, channel_id, mangaUrl)
           )
         `);
-        
-// Tabla de permisos /permission
+
+        // Tabla de permisos /permission
         await pool.query(`
           CREATE TABLE IF NOT EXISTS command_permissions (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -160,7 +160,7 @@ export async function initializeDatabase(): Promise<void> {
             UNIQUE KEY unique_perm (guild_id, target_id, command_name)
           )
         `);
-// Tabla de msgCustom /buttonRole
+        // Tabla de msgCustom /buttonRole
         await pool.query(`
           CREATE TABLE IF NOT EXISTS buttonMsg_configs (
             guild_id VARCHAR(50) NOT NULL,
@@ -169,7 +169,19 @@ export async function initializeDatabase(): Promise<void> {
             PRIMARY KEY (id_Button)
           )
         `);
-        
+        // Tabla de /cronpost
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS cronpost_config (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            guild_id VARCHAR(50) NOT NULL,
+            channel_id VARCHAR(50) NOT NULL,
+            cron VARCHAR(25) NOT NULL,
+            mensaje_data TEXT NOT NULL,
+            exec_date TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
         return;
       } catch (err) {
         if (attempt < maxRetries) {
@@ -190,9 +202,9 @@ export async function initializeDatabase(): Promise<void> {
 export default async function getPool(): Promise<Pool> {
   if (pool) return pool;
   if (initializationPromise) {
-      debug("⚠️ Solicitud de DB recibida durante inicialización, esperando...", "Database");
-      await initializationPromise;
-      if (pool) return pool;
+    debug("⚠️ Solicitud de DB recibida durante inicialización, esperando...", "Database");
+    await initializationPromise;
+    if (pool) return pool;
   }
   throw new Error("❌ La base de datos no está inicializada y no se está conectando.");
 }

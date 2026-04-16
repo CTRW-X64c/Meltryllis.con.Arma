@@ -26,7 +26,8 @@
     "bitSrvManager": "⚙️​ Gestor de servidor:",
     "bitBanMember": "🔨​ Ban miembros:",
     "bitKickMember": "🚪​ Expulsar miembros:",
-    "bitViewAuditLog": "📝​ Ver logs del server:"
+    "bitViewAuditLog": "📝​ Ver logs del server:",
+    "bitAddFiles": "📽️​ Añadir multimedia / archivos!!"
   },
   "info": {
     "embed_title": "¡Hola!",
@@ -172,5 +173,16 @@
     "title": "Comando /buttonlink",
     "description": "Permite crear botones con enlaces personalizados.",
     "footer": "Permite la creacion de hasta 5 botones con link. \n Si deceas agregarles un mensaje puede usar `/post edit` para añadir un mensaje. "
+  },
+  "cronpost": {
+    "title": "comando /cronpost",
+    "description": "Permite programar hasta 5 post automaticos. \n\n > **TZ = America/Mexico_City | UTC -6**",
+    "footer": "Sistema cron para posts automaticos!! ",
+    "name_1": "> /cronpost crear:",
+    "value_1": "**Canal:** Se espesifica en que canal se realizaran los psot. \n\n **Mensaje:** Pega el ID del mensaje que quieres que se copie, el mensaje debe estar en mismo canal donde se ejecuto el coamndo. \n\n  **Dia | hora | Minuto:**  Marca si es diario o un dia espesifico de la semana, la hora se maneja en formato de 24hrs. \n\n **Los dias domingos a las 0hrs se raliza mantenimiento con reincio, asi que procura que sean despues de las 0:10hrs**",
+    "name_2": "> /cronpost lista | borrar:",
+    "value_2": "**Lista:** Enumera todos tus post automaticos con su ID y una pequela vista previa. (no incluye multimedia) \n\n **Borrar:** Permite borrar el post automatico, requiere el ID.",
+    "name_3": "> /cronpost showpost:",
+    "value_3": "Muestra los detalles del post como Canal y hora, como el contenido del mensaje que se enviara! "
   }
 }

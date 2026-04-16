@@ -427,5 +427,45 @@
       "custom_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo **personalizado** con la siguiente URL: **{{a3}}**!",
       "default_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo: **Default**!"
     }
+  },
+  "cronpost": {
+    "slashBuiulder": {
+      "command_descripcion": "Permite programar auto posts. (Sistema cron)",
+      "command_cronpost_crear": "Establecer el post y fecha del auto post.",
+      "command_canal": "Canal donse se realizara el post!!",
+      "command_id_mensaje": "Pega el **id del mesnaje** que sera la base del post!!",
+      "command_dia_semana": "Escoge el dia de la semana!!",
+      "command_hora": "Escoge la hora en que sera el post, formato 24hrs (0 - 23)",
+      "command_minuto": "Escoge el minuto ( 0 - 59)",
+      "command_lista": "Muestra todos los mensajes programados en el servidor",
+      "command_borrar": "Elimina el mensaje programado del sistema",
+      "command_id": "El ID de la tarea a borrar (búscalo con /cronpost lista)",
+      "command_showpost": "Postea una previa del mesanje.",
+      "command_id_showpost": "El ID de la tarea a mostrar (búscalo con /cronpost lista)",
+      "command_mes": "Modo fecha: Escoge el mes!!",
+      "command_dia_mes": "Modo fecha: Escoge el dia del mes, Este modo desestima el dia de la semana para ser una fecha"
+    },
+    "interacciones": {
+      "list_empty": "No existen mensajes programados!!",
+      "formato_id_mensaje_invalido": "❌ Formato del ID invalido!!",
+      "formato_canal_invalido": "❌ No pude acceder al canal actual, revisa mis permisos en este canal!! ",
+      "missing_permissions": "❌ Me faltan permisos en {{a1}}: \n {{a2}}",
+      "cron_limit_reached": "❌ **Límite alcanzado:** Este servidor ya tiene el máximo de 5 crons. Usa `/cronpost borrar` para liberar espacio.",
+      "no_message_found": "❌ No pude encontrar ese mensaje. Asegúrate de ejecutar este comando **en el mismo canal** donde está el mensaje que quieres copiar.",
+      "no_message_content": "❌ El mensaje original está vacío o tiene un formato no compatible!!",
+      "mensaje_guardado": "✅ ¡Mensaje guardado! \n🗨️​ El mensaje se publicara en {{a1}} \n📅​ {{a2}}",
+      "modo_periodico": "Modo Periódico: Todos los {{a1}} a las {{a2}}:{{a3}}hrs",
+      "modo_diario": "Modo fecha: El día {{a1}} de {{a2}} a las {{a3}}:{{a4}}hrs",
+      "error_al_guardar": "❌ Ocurrió un error al generar el cron!!",
+      "no_tasks_found": "📂 No hay ningún mensaje programado en este servidor.",
+      "lista_tareas": "🕒 Mensajes Programados en {{a1}}",
+      "setDescripcion": "Actualmente hay **{{a1}}/5** tareas activas. Usa `/cronpost borrar [id]` para eliminar una.",
+      "no_preview": "Mensaje sin texto (Solo Embeds/Imágenes)",
+      "setPreview": "📍 **Canal:** {{a1}}\n⚙️ **Cron:** {{a2}} \n📝 **Preview:** {{a3}}",
+      "tarea_borrada": " ✅ Tarea **Id: {{a1}}** eliminada correctamente.",
+      "no_task_found": "❌ No se encontró ninguna tarea con ese ID!!",
+      "error_al_borrar": "❌ Ocurrió un error al intentar borrar la tarea.",
+      "error_al_procesar_datos": "❌ Error al procesar los datos del mensaje!!"
+    }
   }
 }

@@ -19,11 +19,12 @@ import { registerPermissionsCommand, handlePermissionsCommand, permisosAutocompl
 import { registerMusicCommands, handleMusicInteraction } from "./commands/music";
 import { registerRoleButtonCommand, handleRoleButtonCommand, roleButton } from "./commandButtons/roleButton";
 import { registerButtonLinkCommand, handleButtonLinkCommand } from "./commandButtons/buttonLink";
+import { registerCronpostCommand, handleCronPost } from "./commands/cronpost";
 
 
 /* ================================= Registro de comandos ================================= */
 
-export async function sysUpRegister(client: Client) { 
+export async function sysUpRegister(client: Client) {
   const commands = [
     ...(await registerHelpCommand()),
     ...(await registerTestCommand()),
@@ -41,6 +42,7 @@ export async function sysUpRegister(client: Client) {
     ...(await registerMusicCommands()),
     ...(await registerRoleButtonCommand()),
     ...(await registerButtonLinkCommand()),
+    ...(await registerCronpostCommand()),
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -56,8 +58,8 @@ export async function sysUpRegister(client: Client) {
 
 export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
   switch (interaction.commandName) {
-    case 'play':  case 'stop':  case 'skip':  case 'queue':
-      await handleMusicInteraction(interaction);  break;
+    case 'play': case 'stop': case 'skip': case 'queue':
+      await handleMusicInteraction(interaction); break;
     case 'help':
       await handleHelpCommand(interaction); break;
     case 'test':
@@ -65,31 +67,33 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
     case 'work':
       await handleWorkCommand(interaction); break;
     case 'embed':
-      await handleEmbedCommand(interaction);  break;
+      await handleEmbedCommand(interaction); break;
     case 'welcome':
-      await handleWelcomeCommand(interaction);  break;
+      await handleWelcomeCommand(interaction); break;
     case 'rolemoji':
       await handleRolemojiCommand(interaction); break;
     case 'owner':
       await handleOwnerCommands(interaction); break;
     case 'youtube':
-      await handleYouTubeCommand(interaction);  break;
+      await handleYouTubeCommand(interaction); break;
     case 'reddit':
       await handleRedditCommand(interaction); break;
     case 'post':
       await handlePostCommand(interaction); break;
     case 'cleanup':
-      await handleCleanUpCommand(interaction);  break;
+      await handleCleanUpCommand(interaction); break;
     case 'jointovoice':
       await handleJoinToCreateCommand(interaction); break;
     case 'mangadex':
       await handleMangadexCommand(interaction); break;
     case 'permisos':
-      await handlePermissionsCommand(interaction);  break;
+      await handlePermissionsCommand(interaction); break;
     case 'buttonrole':
       await handleRoleButtonCommand(interaction); break;
     case 'buttonlink':
       await handleButtonLinkCommand(interaction); break;
+    case 'cronpost':
+      await handleCronPost(interaction); break;
     default:
       defSwitch(interaction); break;
   }
@@ -122,7 +126,7 @@ export async function sysUpModals(interaction: ModalSubmitInteraction) {
     case 'helpRepo':
       await helpRepo(interaction); break;
   }
-  
+
   if (interaction.customId.startsWith("respondReport_")) {
     await respondReportModal(interaction);
     return;

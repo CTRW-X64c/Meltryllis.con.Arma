@@ -17,6 +17,7 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
     { name: "/buttonLink", value: "14" },
     { name: "/buttonRole", value: "15" },
     { name: "/cleanup", value: "01" },
+    { name: "/cronpost", value: "16" },
     { name: "/embed", value: "02" },
     { name: "/jointovoice", value: "03" },
     { name: "/mangadex", value: "04" },
@@ -132,7 +133,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
           { name: i18next.t("help:clean.name_1"), value: i18next.t("help:clean.value_1") },
         ],
         footer: i18next.t("help:clean.footer"),
-        chPerm: "chsee|msgManager|sundmsg|addlink",
+        chPerm: "chsee|msgManager|sendmsg|addlink",
         //imageUrl: "https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/clean.png",
       }); break;
       /* ======================== embed ======================== */
@@ -295,6 +296,19 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         title: i18next.t("help:buttonRole.title"),
         description: i18next.t("help:buttonRole.description"),
         footer: i18next.t("help:buttonRole.footer"),
+      }); break;
+      /* ======================== cronpost ======================== */
+      case "16": await embedMaker(interaction, {
+        command: "cronpost",
+        title: i18next.t("help:cronpost.title"),
+        description: i18next.t("help:cronpost.description"),
+        footer: i18next.t("help:cronpost.footer"),
+        fields: [
+          { name: i18next.t("help:cronpost.name_1"), value: i18next.t("help:cronpost.value_1") },
+          { name: i18next.t("help:cronpost.name_2"), value: i18next.t("help:cronpost.value_2") },
+          { name: i18next.t("help:cronpost.name_3"), value: i18next.t("help:cronpost.value_3") },
+        ],
+        chPerm: "chsee|reedMsg|sendmsg|addlink|msgManager"
       }); break;
       /* ======================== default ======================== */
       default:

@@ -104,8 +104,9 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
         { id: "chsee", name: i18next.t("help:embMaker.bitChSee"), bit: PermissionFlagsBits.ViewChannel },
         { id: "msgManager", name: i18next.t("help:embMaker.bitMsgManager"), bit: PermissionFlagsBits.ManageMessages },
         { id: "reedMsg", name: i18next.t("help:embMaker.bitReedMsg"), bit: PermissionFlagsBits.ReadMessageHistory },
-        { id: "sundmsg", name: i18next.t("help:embMaker.bitSendMessages"), bit: PermissionFlagsBits.SendMessages },
+        { id: "sendmsg", name: i18next.t("help:embMaker.bitSendMessages"), bit: PermissionFlagsBits.SendMessages },
         { id: "addlink", name: i18next.t("help:embMaker.bitAddLink"), bit: PermissionFlagsBits.EmbedLinks },
+        { id: "addfiles", name: i18next.t("help:embMaker.bitAddFiles"), bit: PermissionFlagsBits.AttachFiles },
         { id: "roles", name: i18next.t("help:embMaker.bitRoles"), bit: PermissionFlagsBits.ManageRoles },
         { id: "reactions", name: i18next.t("help:embMaker.bitReacciones"), bit: PermissionFlagsBits.AddReactions },
         { id: "emojis", name: i18next.t("help:embMaker.bitEmojis"), bit: PermissionFlagsBits.UseExternalEmojis },
@@ -114,7 +115,7 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
         { id: "voiceConnect", name: i18next.t("help:embMaker.bitVoiceConnect"), bit: PermissionFlagsBits.Connect },
     ];
 
-    const allBits = [ ...mngrBitsList, ...meltrysList ];
+    const allBits = [...mngrBitsList, ...meltrysList];
 
     let bits;
     switch (idComamnd) {
@@ -135,3 +136,23 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
         return `> **${bitObj.name}**ㅤ${chkEmoji}`;
     });
 }
+
+// Nota: Modulo para llamar el check 
+/* Tipo por canal!!
+    const me = canalDestino.permissionsFor(guild.members.me!);
+    const chBits = "chsee|sendmsg|addlink|addfiles";
+    const perChTo = testPermisos(me, chBits);
+    if (perChTo.some(p => p.includes("❌"))) {
+        await interaction.editReply({ content: `❌ El bot no tiene permisos suficientes en <#${canalDestino.id}>:\n${perChTo.join("\n")}` });
+        return;
+    }
+*/ /* Tipo General!!
+    const im = interaction.guild?.members.me?.permissions;
+    const srvBits = "chsee|sendmsg|addlink|addfiles";
+    const serPrm = testPermisos(im, srvBits);
+    if (serPrm.some(p => p.includes("❌"))) {
+        await interaction.editReply({ content: `❌ El bot no tiene permisos suficientes en <#${canalDestino.id}>:\n${serPrm.join("\n")}` });
+        return;
+    }
+*/
+
