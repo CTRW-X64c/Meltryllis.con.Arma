@@ -429,7 +429,7 @@
     }
   },
   "cronpost": {
-    "slashBuiulder": {
+    "slashBuilder": {
       "command_descripcion": "Permite programar auto posts. (Sistema cron)",
       "command_cronpost_crear": "Establecer el post y fecha del auto post.",
       "command_canal": "Canal donse se realizara el post!!",

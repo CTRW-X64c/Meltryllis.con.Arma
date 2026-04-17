@@ -36,67 +36,67 @@ const mont = [
 export async function registerCronpostCommand(): Promise<SlashCommandBuilder[]> {
     const cronpost = new SlashCommandBuilder()
         .setName("cronpost")
-        .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_descripcion"))
+        .setDescription(i18next.t("commands:cronpost.slashBuilder.command_descripcion"))
         .addSubcommand(sub => sub
             .setName("crear")
-            .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_cronpost_crear"))
+            .setDescription(i18next.t("commands:cronpost.slashBuilder.command_cronpost_crear"))
             .addChannelOption(op =>
                 op.setName("canal")
-                    .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_canal"))
+                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_canal"))
                     .setRequired(true)
                     .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement))
             .addStringOption(op =>
                 op.setName("mansaje_id")
-                    .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_id_mensaje"))
+                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_id_mensaje"))
                     .setRequired(true))
             .addIntegerOption(op =>
                 op.setName("hora")
-                    .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_hora"))
+                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_hora"))
                     .setRequired(true)
                     .setMinValue(0)
                     .setMaxValue(23))
             .addIntegerOption(op =>
                 op.setName("minuto")
-                    .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_minuto"))
+                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_minuto"))
                     .setRequired(true)
                     .setMinValue(0)
                     .setMaxValue(59))
             .addStringOption(op =>
                 op.setName("dia_semana")
-                    .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_dia_semana"))
+                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_dia_semana"))
                     .setRequired(false)
                     .setChoices(diaList))
             .addStringOption(op =>
                 op.setName("mes")
-                    .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_mes"))
+                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_mes"))
                     .setRequired(false)
                     .addChoices(mont))
             .addIntegerOption(op =>
                 op.setName("dia_mes")
-                    .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_dia_mes"))
+                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_dia_mes"))
                     .setRequired(false)
                     .setMinValue(1)
                     .setMaxValue(31))
         )
         .addSubcommand(sub => sub
             .setName("lista")
-            .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_lista"))
+            .setDescription(i18next.t("commands:cronpost.slashBuilder.command_lista"))
         )
         .addSubcommand(sub => sub
             .setName("borrar")
-            .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_borrar"))
+            .setDescription(i18next.t("commands:cronpost.slashBuilder.command_borrar"))
             .addIntegerOption(op => op
                 .setName("id")
-                .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_id"))
+                .setDescription(i18next.t("commands:cronpost.slashBuilder.command_id"))
                 .setRequired(true)
             )
         )
         .addSubcommand(sub => sub
             .setName("showpost")
-            .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_showpost"))
+            .setDescription(i18next.t("commands:cronpost.slashBuilder.command_showpost"))
             .addIntegerOption(op => op
                 .setName("id")
-                .setDescription(i18next.t("commands:cronpost.slashBuiulder.command_id_showpost"))
+                .setDescription(i18next.t("commands:cronpost.slashBuilder.command_id_showpost"))
                 .setRequired(true)
             )
         );

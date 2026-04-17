@@ -25,7 +25,8 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "youtube.slashBuilder.*",
         "test.slashBuilder.*",
         "work.slashBuilder.*",
-        "embed.slashBuilder.*"
+        "embed.slashBuilder.*",
+        "cronpost.slashBuilder.*"
     ],
     "botones":[
         "buttonLink.slashbuilder.*",
