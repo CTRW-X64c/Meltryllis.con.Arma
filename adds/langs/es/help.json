@@ -179,7 +179,7 @@
     "description": "Permite programar hasta 5 post automaticos. \n\n > **TZ = America/Mexico_City | UTC -6**",
     "footer": "Sistema cron para posts automaticos!! ",
     "name_1": "> /cronpost crear:",
-    "value_1": "**Canal:** Se espesifica en que canal se realizaran los psot. \n\n **Mensaje:** Pega el ID del mensaje que quieres que se copie, el mensaje debe estar en mismo canal donde se ejecuto el coamndo. \n\n  **Dia | hora | Minuto:**  Marca si es diario o un dia espesifico de la semana, la hora se maneja en formato de 24hrs. \n\n **Los dias domingos a las 0hrs se raliza mantenimiento con reincio, asi que procura que sean despues de las 0:10hrs**",
+    "value_1": "**Canal:** Se espesifica en que canal se realizaran los psot. \n\n **Mensaje:** Pega el ID del mensaje que quieres que se copie, el mensaje debe estar en mismo canal donde se ejecuto el coamndo. \n\n  **Dia | hora | Minuto:**  Marca si es diario o un dia espesifico de la semana, la hora se maneja en formato de 24hrs. \n\n **Los dias lunes a las 00:00hrs se raliza mantenimiento con reincio, si tienes planeado hacer uno los dias lunes procura que sea despues de las 00:15hrss**",
     "name_2": "> /cronpost lista | borrar:",
     "value_2": "**Lista:** Enumera todos tus post automaticos con su ID y una pequela vista previa. (no incluye multimedia) \n\n **Borrar:** Permite borrar el post automatico, requiere el ID.",
     "name_3": "> /cronpost showpost:",

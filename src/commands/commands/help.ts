@@ -133,7 +133,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
           { name: i18next.t("help:clean.name_1"), value: i18next.t("help:clean.value_1") },
         ],
         footer: i18next.t("help:clean.footer"),
-        chPerm: "chsee|msgManager|sendmsg|addlink",
+        chPerm: "viewCh|msgManager|sendMsg|addlink",
         //imageUrl: "https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/clean.png",
       }); break;
       /* ======================== embed ======================== */
@@ -155,7 +155,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
           { name: i18next.t("help:jointovoice.name_1"), value: i18next.t("help:jointovoice.value_1") },
           { name: i18next.t("help:jointovoice.name_2"), value: i18next.t("help:jointovoice.value_2") },
         ],
-        chPerm: "chmanager",
+        chPerm: "chManager",
         footer: i18next.t("help:jointovoice.footer"),
         srvPerm: "voiceConnect|voiceMove",
       }); break;
@@ -186,7 +186,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
           ],
           footer: i18next.t("help:musica.footer"),
           srvPerm: "voiceMove|voiceConnect",
-          chPerm: "chsee"
+          chPerm: "viewCh"
         }); break;
       /* ======================== Permisos ======================== */
       case "06": await embedMaker(interaction, {
@@ -240,7 +240,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         imageUrl: "https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/RolemojiHelp.png",
         footer: i18next.t("help:rolemoji.help_footer"),
         srvPerm: "roles",
-        chPerm: "chsee|reactions|emojis"
+        chPerm: "viewCh|reactions|emojis"
       }); break;
       /* ======================== test ======================== */
       case "10": await embedMaker(interaction, {
@@ -261,7 +261,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         title: i18next.t("help:welcome.title"),
         description: i18next.t("help:welcome.description"),
         footer: i18next.t("help:welcome.footer"),
-        chPerm: "chsee|msgManager"
+        chPerm: "viewCh|msgManager"
       }); break;
       /* ======================== work ======================== */
       case "12": await embedMaker(interaction, {
@@ -308,7 +308,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
           { name: i18next.t("help:cronpost.name_2"), value: i18next.t("help:cronpost.value_2") },
           { name: i18next.t("help:cronpost.name_3"), value: i18next.t("help:cronpost.value_3") },
         ],
-        chPerm: "chsee|reedMsg|sendmsg|addlink|msgManager"
+        chPerm: "viewCh|readMsg|sendMsg|addlink|msgManager"
       }); break;
       /* ======================== default ======================== */
       default:

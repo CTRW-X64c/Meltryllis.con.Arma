@@ -155,7 +155,7 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
     }
 
     const me = canalDestino.permissionsFor(guild.members.me!);
-    const myPerm = "chsee|sendmsg|addlink|addfiles";
+    const myPerm = "viewCh|sendMsg|addlink|addfiles";
     const perChTo = testPermisos(me, myPerm);
     if (perChTo.some(p => p.includes("❌"))) {
         await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${canalDestino.id}>`, a2: perChTo.join("\n") }) });

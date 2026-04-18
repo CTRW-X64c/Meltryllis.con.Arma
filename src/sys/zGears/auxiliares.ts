@@ -101,16 +101,16 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
     ];
 
     const meltrysList = [
-        { id: "chsee", name: i18next.t("help:embMaker.bitChSee"), bit: PermissionFlagsBits.ViewChannel },
+        { id: "viewCh", name: i18next.t("help:embMaker.bitChSee"), bit: PermissionFlagsBits.ViewChannel },
         { id: "msgManager", name: i18next.t("help:embMaker.bitMsgManager"), bit: PermissionFlagsBits.ManageMessages },
-        { id: "reedMsg", name: i18next.t("help:embMaker.bitReedMsg"), bit: PermissionFlagsBits.ReadMessageHistory },
-        { id: "sendmsg", name: i18next.t("help:embMaker.bitSendMessages"), bit: PermissionFlagsBits.SendMessages },
+        { id: "readMsg", name: i18next.t("help:embMaker.bitReedMsg"), bit: PermissionFlagsBits.ReadMessageHistory },
+        { id: "sendMsg", name: i18next.t("help:embMaker.bitSendMessages"), bit: PermissionFlagsBits.SendMessages },
         { id: "addlink", name: i18next.t("help:embMaker.bitAddLink"), bit: PermissionFlagsBits.EmbedLinks },
         { id: "addfiles", name: i18next.t("help:embMaker.bitAddFiles"), bit: PermissionFlagsBits.AttachFiles },
         { id: "roles", name: i18next.t("help:embMaker.bitRoles"), bit: PermissionFlagsBits.ManageRoles },
         { id: "reactions", name: i18next.t("help:embMaker.bitReacciones"), bit: PermissionFlagsBits.AddReactions },
         { id: "emojis", name: i18next.t("help:embMaker.bitEmojis"), bit: PermissionFlagsBits.UseExternalEmojis },
-        { id: "chmanager", name: i18next.t("help:embMaker.bitChManager"), bit: PermissionFlagsBits.ManageChannels },
+        { id: "chManager", name: i18next.t("help:embMaker.bitChManager"), bit: PermissionFlagsBits.ManageChannels },
         { id: "voiceMove", name: i18next.t("help:embMaker.bitVoiceMove"), bit: PermissionFlagsBits.MoveMembers },
         { id: "voiceConnect", name: i18next.t("help:embMaker.bitVoiceConnect"), bit: PermissionFlagsBits.Connect },
     ];
@@ -140,14 +140,14 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
 // Nota: Modulo para llamar el check 
 /* Tipo por canal!!
     const me = canalDestino.permissionsFor(guild.members.me!);
-    const perChTo = testPermisos(me, "chsee|sendmsg|addlink|addfiles");
+    const perChTo = testPermisos(me, "viewCh|sendMsg|addlink|addfiles");
     if (perChTo.some(p => p.includes("❌"))) {
         await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo.join("\n") }) });
         return;
     }
 */ /* Tipo General!!
     const im = interaction.guild?.members.me?.permissions;
-    const serPrm = testPermisos(im, "chsee|sendmsg|addlink|addfiles");
+    const serPrm = testPermisos(im, "viewCh|sendMsg|addlink|addfiles");
     if (serPrm.some(p => p.includes("❌"))) {
         await interaction.editReply({ content: `❌ El bot no tiene permisos suficientes en <#${canalDestino.id}>:\n${serPrm.join("\n")}` });
         return;
