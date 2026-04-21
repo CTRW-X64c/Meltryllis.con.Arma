@@ -3,6 +3,7 @@ import * as cron from 'node-cron';
 import { Client, TextChannel } from 'discord.js';
 import getPool from '../sys/DB-Engine/database';
 import { info, debug, error } from '../sys/logging';
+import { countExecUpdate, removeCronpost } from '../sys/DB-Engine/links/Cronpost';
 
 // Mapa para guardar las tareas y poder detenerlas después si el usuario las borra
 export const activeCronTasks = new Map<number, cron.ScheduledTask>();
@@ -47,11 +48,21 @@ export function programarTarea(client: Client, dbRow: any) {
 
             await channel.send(msgContent);
 
+            if (dbRow.stop_after === 0) return;
+            if (dbRow.stop_after > 0) {
+                dbRow.count_exec += 1;
+                if (dbRow.count_exec >= dbRow.stop_after) {
+                    detenerTarea(dbRow.id);
+                    await removeCronpost(dbRow.guild_id, dbRow.id);
+                } else {
+                    await countExecUpdate(dbRow.id, dbRow.count_exec);
+                }
+            }
+
         } catch (err) {
             error(`[CronManager] Falló al enviar el cron ${dbRow.id}: ${err}`, "cronpost");
         }
     });
-
     activeCronTasks.set(dbRow.id, tarea);
 }
 

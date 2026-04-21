@@ -77,7 +77,13 @@ export async function registerCronpostCommand(): Promise<SlashCommandBuilder[]> 
                     .setRequired(false)
                     .setMinValue(1)
                     .setMaxValue(31))
-        )
+            .addIntegerOption(op =>
+                op.setName("repetir")
+                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_veces_repetir"))
+                    .setRequired(false)
+                    .setMinValue(0)
+                    .setMaxValue(365)
+            ))
         .addSubcommand(sub => sub
             .setName("lista")
             .setDescription(i18next.t("commands:cronpost.slashBuilder.command_lista"))
@@ -142,6 +148,7 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
     const daySem = interaction.options.getString("dia_semana") || "*";
     const mont = interaction.options.getString("mes") || "*";
     const diaMes = interaction.options.getInteger("dia_mes") || null;
+    const stop_af = interaction.options.getInteger("repetir") || 0;
 
     if (!/^\d+$/.test(idMsg)) {
         await interaction.editReply({ content: i18next.t("commands:cronpost.interacciones.formato_id_mensaje_invalido") });
@@ -184,7 +191,15 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
     const adjuntos = Array.from(targetMessage.attachments.values()).map(att => att.url);
     const data_Msg = {
         content: targetMessage.content,
-        embeds: targetMessage.embeds.map(emb => emb.toJSON()),
+        embeds: targetMessage.embeds
+            .filter(emb => {
+                if (emb.data.provider) return false;
+                if (emb.data.type !== 'rich') return false;
+                if (emb.data.video) return false;
+                if (!targetMessage.author?.bot) return false;
+                return true;
+            })
+            .map(emb => emb.toJSON()),
         attachments: adjuntos
     };
 
@@ -216,7 +231,8 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
             canalDestino.id,
             cronExpr,
             JSON.stringify(data_Msg),
-            horaTexto
+            horaTexto,
+            stop_af
         );
 
         if (!nuevoId) throw new Error("Fallo al guardar en BD");
@@ -227,7 +243,8 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
             channel_id: canalDestino.id,
             cron: cronExpr,
             mensaje_data: JSON.stringify(data_Msg),
-            exec_date: horaTexto
+            exec_date: horaTexto,
+            stop_after: stop_af,
         });
 
         await interaction.editReply({
@@ -254,6 +271,8 @@ async function lista(interaction: ChatInputCommandInteraction, guild: Guild) {
 
     for (const tarea of dataBD) {
         let preview = i18next.t("commands:cronpost.interacciones.no_preview");
+        let repetWork = "♾️ Hasta detener manualmente";
+        if (tarea.stop_after > 0) repetWork = `${tarea.stop_after === 1 ? "una vez" : tarea.stop_after + " veces"}, Veces ejecutado: 🔁 ${tarea.count_exec}/${tarea.stop_after}`;
 
         try {
             const mensajeData = JSON.parse(tarea.mensaje_data);
@@ -268,7 +287,7 @@ async function lista(interaction: ChatInputCommandInteraction, guild: Guild) {
 
         embed.addFields({
             name: `🆔 ID: ${tarea.id}`,
-            value: i18next.t("commands:cronpost.interacciones.setPreview", { a1: `<#${tarea.channel_id}>`, a2: tarea.exec_date, a3: preview }),
+            value: i18next.t("commands:cronpost.interacciones.setPreview", { a1: `<#${tarea.channel_id}>`, a2: tarea.exec_date, a3: preview, a4: repetWork }),
             inline: false
         });
     }

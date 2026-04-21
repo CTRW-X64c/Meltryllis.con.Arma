@@ -11,16 +11,18 @@ export interface CronBDs {
     mensaje_data: string;
     created_at: Date;
     exec_date: string;
+    stop_after: number;
+    count_exec: number;
 }
 
 // =============== Añadir =============== //
 
-export async function addCronpost(guildId: string, channelId: string, cron: string, mensajeData: string, execDate: string): Promise<number | undefined> {
+export async function addCronpost(guildId: string, channelId: string, cron: string, mensajeData: string, execDate: string, stopAfter: number = 0): Promise<number | undefined> {
     try {
         const pool = await getPool();
         const [result]: any = await pool.query(
-            "INSERT INTO cronpost_config (guild_id, channel_id, cron, mensaje_data, exec_date) VALUES (?, ?, ?, ?, ?)",
-            [guildId, channelId, cron, mensajeData, execDate]
+            "INSERT INTO cronpost_config (guild_id, channel_id, cron, mensaje_data, exec_date, stop_after, count_exec) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [guildId, channelId, cron, mensajeData, execDate, stopAfter, 0] // 👈 Ahora sí son 7
         );
         debug(`[BD.Cronpost] Config guardada en BD y caché invalidada para guild: ${guildId}`, "Database");
         return result.insertId;
@@ -36,7 +38,7 @@ export async function getCronpost(guildId: string): Promise<CronBDs[]> {
     try {
         const pool = await getPool();
         const [rows] = await pool.query(
-            "SELECT id, guild_id, channel_id, cron, mensaje_data, exec_date, created_at FROM cronpost_config WHERE guild_id = ?",
+            "SELECT id, guild_id, channel_id, cron, mensaje_data, exec_date, stop_after, count_exec, created_at FROM cronpost_config WHERE guild_id = ?",
             [guildId]
         );
         return rows as CronBDs[];
@@ -97,12 +99,23 @@ export async function getMSGPreview(guildId: string, id: number): Promise<CronBD
     try {
         const pool = await getPool();
         const [rows]: any = await pool.query(
-            "SELECT id, guild_id, channel_id, cron, mensaje_data, exec_date, created_at FROM cronpost_config WHERE guild_id = ? AND id = ?",
+            "SELECT id, guild_id, channel_id, cron, mensaje_data, exec_date, created_at, stop_after, count_exec FROM cronpost_config WHERE guild_id = ? AND id = ?",
             [guildId, id]
         );
         return rows.length > 0 ? rows[0] as CronBDs : null;
     } catch (e) {
         error(`[BD.Cronpost] Error al obtener tarea única: ${e}`);
         return null;
+    }
+}
+
+// =============== Update Exec =============== //
+
+export async function countExecUpdate(id: number, count: number) {
+    try {
+        const pool = await getPool();
+        await pool.query("UPDATE cronpost_config SET count_exec = ? WHERE id = ?", [count, id]);
+    } catch (err) {
+        error(`[CronManager] Error al actualizar el contador de ejecución: ${err}`, "cronpost");
     }
 }

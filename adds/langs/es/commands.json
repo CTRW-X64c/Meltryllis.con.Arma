@@ -443,7 +443,8 @@
       "command_showpost": "Postea una previa del mesanje.",
       "command_id_showpost": "El ID de la tarea a mostrar (búscalo con /cronpost lista)",
       "command_mes": "Modo fecha: Escoge el mes!!",
-      "command_dia_mes": "Modo fecha: Escoge el dia del mes, Este modo desestima el dia de la semana para ser una fecha"
+      "command_dia_mes": "Modo fecha: Escoge el dia del mes, Este modo desestima el dia de la semana para ser una fecha",
+      "command_veces_repetir": "Veces que se repetira. 0 = Siempre!!"
     },
     "interacciones": {
       "list_empty": "No existen mensajes programados!!",
@@ -460,7 +461,7 @@
       "lista_tareas": "🕒 Mensajes Programados en {{a1}}",
       "setDescripcion": "Actualmente hay **{{a1}}/5** tareas activas. Usa `/cronpost borrar [id]` para eliminar una.",
       "no_preview": "Mensaje sin texto (Solo Embeds/Imágenes)",
-      "setPreview": "📍 **Canal:** {{a1}}\n⚙️ **Cron:** {{a2}} \n📝 **Preview:** {{a3}}",
+      "setPreview": "📍 **Canal:** {{a1}} \n⏳ **Cron:** {{a2}} \n⚙️ **Repetir:** {{a4}} \n📝 **Preview:** {{a3}}",
       "tarea_borrada": " ✅ Tarea **Id: {{a1}}** eliminada correctamente.",
       "no_task_found": "❌ No se encontró ninguna tarea con ese ID!!",
       "error_al_borrar": "❌ Ocurrió un error al intentar borrar la tarea.",

@@ -207,6 +207,8 @@ async function poolManager(): Promise<void> {
       cron VARCHAR(25) NOT NULL,
       mensaje_data TEXT NOT NULL,
       exec_date TEXT NOT NULL,
+      stop_after INT DEFAULT 0,
+      count_exec INT DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
