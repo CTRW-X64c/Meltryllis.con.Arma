@@ -209,13 +209,23 @@ async function poolManager(): Promise<void> {
       exec_date TEXT NOT NULL,
       stop_after INT DEFAULT 0,
       count_exec INT DEFAULT 0,
+      dlt_msg INT DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Tabla de deltMsg
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS cron_timeout (
+      message_id VARCHAR(50) PRIMARY KEY,
+      channel_id VARCHAR(50) NOT NULL,
+      delete_at BIGINT(20) NOT NULL
     )
   `);
 
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;
-  info(`✅ ${tableCount} tablas verificadas/creadas exitosamente`, "Database");
+  info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");
   if (getEnvironmentMode() === "development") {
     debug(`📊 Tablas disponibles: ${JSON.stringify(tables)}`, "Database");
   }

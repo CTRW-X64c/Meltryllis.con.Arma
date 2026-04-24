@@ -82,8 +82,14 @@ export async function registerCronpostCommand(): Promise<SlashCommandBuilder[]> 
                     .setDescription(i18next.t("commands:cronpost.slashBuilder.command_veces_repetir"))
                     .setRequired(false)
                     .setMinValue(0)
-                    .setMaxValue(365)
-            ))
+                    .setMaxValue(365))
+            .addIntegerOption(op =>
+                op.setName("delete_msg")
+                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_veces_dlt_msg"))
+                    .setRequired(false)
+                    .setMinValue(0)
+                    .setMaxValue(1440))
+        )
         .addSubcommand(sub => sub
             .setName("lista")
             .setDescription(i18next.t("commands:cronpost.slashBuilder.command_lista"))
@@ -139,7 +145,6 @@ export async function handleCronPost(interaction: ChatInputCommandInteraction) {
 }
 
 // =============== Add =============== //
-
 async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) {
     const canalDestino = interaction.options.getChannel("canal", true) as TextChannel;
     const idMsg = interaction.options.getString("mansaje_id", true);
@@ -149,6 +154,7 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
     const mont = interaction.options.getString("mes") || "*";
     const diaMes = interaction.options.getInteger("dia_mes") || null;
     const stop_af = interaction.options.getInteger("repetir") || 0;
+    const dltMsg = interaction.options.getInteger("delete_msg") || 0;
 
     if (!/^\d+$/.test(idMsg)) {
         await interaction.editReply({ content: i18next.t("commands:cronpost.interacciones.formato_id_mensaje_invalido") });
@@ -232,7 +238,8 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
             cronExpr,
             JSON.stringify(data_Msg),
             horaTexto,
-            stop_af
+            stop_af,
+            dltMsg
         );
 
         if (!nuevoId) throw new Error("Fallo al guardar en BD");
@@ -245,10 +252,11 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
             mensaje_data: JSON.stringify(data_Msg),
             exec_date: horaTexto,
             stop_after: stop_af,
+            dlt_msg: dltMsg
         });
 
         await interaction.editReply({
-            content: i18next.t("commands:cronpost.interacciones.mensaje_guardado", { a1: `<#${canalDestino.id}>`, a2: horaTexto })
+            content: i18next.t("commands:cronpost.interacciones.mensaje_guardado", { a1: `<#${canalDestino.id}>`, a2: horaTexto, a3: stop_af > 0 ? stop_af.toString() : "Infinitamente!!", a4: lefTime(dltMsg) })
         });
     } catch (err) {
         await interaction.editReply({ content: i18next.t("commands:cronpost.interacciones.error_al_guardar") });
@@ -256,7 +264,6 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
 }
 
 // =============== List =============== //
-
 async function lista(interaction: ChatInputCommandInteraction, guild: Guild) {
     const dataBD = await getCronpost(guild.id);
     if (!dataBD || dataBD.length === 0) {
@@ -287,7 +294,7 @@ async function lista(interaction: ChatInputCommandInteraction, guild: Guild) {
 
         embed.addFields({
             name: `🆔 ID: ${tarea.id}`,
-            value: i18next.t("commands:cronpost.interacciones.setPreview", { a1: `<#${tarea.channel_id}>`, a2: tarea.exec_date, a3: preview, a4: repetWork }),
+            value: i18next.t("commands:cronpost.interacciones.setPreview", { a1: `<#${tarea.channel_id}>`, a2: tarea.exec_date, a3: preview, a4: repetWork, a5: lefTime(tarea.dlt_msg) }),
             inline: false
         });
     }
@@ -296,7 +303,6 @@ async function lista(interaction: ChatInputCommandInteraction, guild: Guild) {
 }
 
 // =============== borrar =============== //
-
 async function borrar(interaction: ChatInputCommandInteraction, guild: Guild) {
     const id = interaction.options.getInteger("id", true);
 
@@ -315,7 +321,6 @@ async function borrar(interaction: ChatInputCommandInteraction, guild: Guild) {
 }
 
 // =============== showpost =============== //
-
 async function showPost(interaction: ChatInputCommandInteraction, guild: Guild) {
     const id = interaction.options.getInteger("id", true);
     const previa = await getMSGPreview(guild.id, id);
@@ -342,3 +347,11 @@ async function showPost(interaction: ChatInputCommandInteraction, guild: Guild) 
     }
 }
 
+// =============== aux =============== //
+function lefTime(num: number): string {
+    if (num === 0) return "Desactivado";
+    const h = Math.floor(num / 60);
+    const m = num % 60;
+    if (h < 1) return `${m.toString().padStart(2, '0')} minutos`;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} hrs`;
+}

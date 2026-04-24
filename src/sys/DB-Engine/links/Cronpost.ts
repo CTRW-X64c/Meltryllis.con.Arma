@@ -13,16 +13,17 @@ export interface CronBDs {
     exec_date: string;
     stop_after: number;
     count_exec: number;
+    dlt_msg: number;
 }
 
 // =============== Añadir =============== //
 
-export async function addCronpost(guildId: string, channelId: string, cron: string, mensajeData: string, execDate: string, stopAfter: number = 0): Promise<number | undefined> {
+export async function addCronpost(guildId: string, channelId: string, cron: string, mensajeData: string, execDate: string, stopAfter: number = 0, dltMsg: number = 0): Promise<number | undefined> {
     try {
         const pool = await getPool();
         const [result]: any = await pool.query(
-            "INSERT INTO cronpost_config (guild_id, channel_id, cron, mensaje_data, exec_date, stop_after, count_exec) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [guildId, channelId, cron, mensajeData, execDate, stopAfter, 0] // 👈 Ahora sí son 7
+            "INSERT INTO cronpost_config (guild_id, channel_id, cron, mensaje_data, exec_date, stop_after, count_exec, dlt_msg) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [guildId, channelId, cron, mensajeData, execDate, stopAfter, 0, dltMsg]
         );
         debug(`[BD.Cronpost] Config guardada en BD y caché invalidada para guild: ${guildId}`, "Database");
         return result.insertId;
@@ -38,7 +39,7 @@ export async function getCronpost(guildId: string): Promise<CronBDs[]> {
     try {
         const pool = await getPool();
         const [rows] = await pool.query(
-            "SELECT id, guild_id, channel_id, cron, mensaje_data, exec_date, stop_after, count_exec, created_at FROM cronpost_config WHERE guild_id = ?",
+            "SELECT id, guild_id, channel_id, cron, mensaje_data, exec_date, stop_after, count_exec, dlt_msg, created_at FROM cronpost_config WHERE guild_id = ?",
             [guildId]
         );
         return rows as CronBDs[];

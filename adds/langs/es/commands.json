@@ -444,7 +444,8 @@
       "command_id_showpost": "El ID de la tarea a mostrar (búscalo con /cronpost lista)",
       "command_mes": "Modo fecha: Escoge el mes!!",
       "command_dia_mes": "Modo fecha: Escoge el dia del mes, Este modo desestima el dia de la semana para ser una fecha",
-      "command_veces_repetir": "Veces que se repetira. 0 = Siempre!!"
+      "command_veces_repetir": "Veces que se repetira. 0 = Siempre!!",
+      "command_veces_dlt_msg": "Borrar el mensaje despues de un tiempo. (en minutos), 0 = No borrar."
     },
     "interacciones": {
       "list_empty": "No existen mensajes programados!!",
@@ -453,7 +454,7 @@
       "cron_limit_reached": "❌ **Límite alcanzado:** Este servidor ya tiene el máximo de 5 crons. Usa `/cronpost borrar` para liberar espacio.",
       "no_message_found": "❌ No pude encontrar ese mensaje. Asegúrate de ejecutar este comando **en el mismo canal** donde está el mensaje que quieres copiar.",
       "no_message_content": "❌ El mensaje original está vacío o tiene un formato no compatible!!",
-      "mensaje_guardado": "✅ ¡Mensaje guardado! \n🗨️​ El mensaje se publicara en {{a1}} \n📅​ {{a2}}",
+      "mensaje_guardado": "✅ ¡Mensaje guardado! \n🗨️​ El mensaje se publicara en {{a1}} \n📅​ {{a2}} \n⚙️ Se repetira: {{a3}} \n🗑️​ Autoborrado: {{a4}}",
       "modo_periodico": "Modo Periódico: Todos los {{a1}} a las {{a2}}:{{a3}}hrs",
       "modo_diario": "Modo fecha: El día {{a1}} de {{a2}} a las {{a3}}:{{a4}}hrs",
       "error_al_guardar": "❌ Ocurrió un error al generar el cron!!",
@@ -461,7 +462,7 @@
       "lista_tareas": "🕒 Mensajes Programados en {{a1}}",
       "setDescripcion": "Actualmente hay **{{a1}}/5** tareas activas. Usa `/cronpost borrar [id]` para eliminar una.",
       "no_preview": "Mensaje sin texto (Solo Embeds/Imágenes)",
-      "setPreview": "📍 **Canal:** {{a1}} \n⏳ **Cron:** {{a2}} \n⚙️ **Repetir:** {{a4}} \n📝 **Preview:** {{a3}}",
+      "setPreview": "📍 **Canal:** {{a1}} \n⏳ **Cron:** {{a2}} \n⚙️ **Repetir:** {{a4}} \n 🗑️​ **Borrado automatico:** {{a5}} \n📝 **Preview:** {{a3}}",
       "tarea_borrada": " ✅ Tarea **Id: {{a1}}** eliminada correctamente.",
       "no_task_found": "❌ No se encontró ninguna tarea con ese ID!!",
       "error_al_borrar": "❌ Ocurrió un error al intentar borrar la tarea.",
