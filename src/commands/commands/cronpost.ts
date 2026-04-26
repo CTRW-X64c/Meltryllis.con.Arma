@@ -6,6 +6,8 @@ import { addCronpost, getCronpost, getMSGPreview, removeCronpost } from "../../s
 import { programarTarea, detenerTarea } from "../../bgProcess/exeCron";
 import { error } from "node:console";
 import { testPermisos } from "../../sys/zGears/auxiliares";
+import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
+import { countItems } from "../../sys/DB-Engine/database";
 
 const diaList = [
     { name: "Todos los dias", value: "*" },
@@ -167,23 +169,19 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
         return;
     }
 
+    const conty = await countItems(guild.id, "cronpost_config");
+    const limit = await getGuildLimits(guild.id);
+    if ((conty >= limit.dexMax)) {
+        await interaction.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.dexMax }) });
+        return;
+    }
+
     const me = canalDestino.permissionsFor(guild.members.me!);
     const myPerm = "viewCh|sendMsg|addlink|addfiles";
     const perChTo = testPermisos(me, myPerm);
     if (perChTo.some(p => p.includes("❌"))) {
         await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${canalDestino.id}>`, a2: perChTo.join("\n") }) });
         return;
-    }
-
-    const ownerId = process.env.HOST_DISCORD_USER_ID;
-    if (interaction.user.id !== ownerId) {
-        const cronReg = await getCronpost(guild.id);
-        if (cronReg.length >= 5) {
-            await interaction.editReply({
-                content: i18next.t("commands:cronpost.interacciones.cron_limit_reached",)
-            });
-            return;
-        }
     }
 
     const targetMessage = await canalOrigen.messages.fetch(idMsg).catch(() => null);

@@ -8,6 +8,8 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
 import { testPermisos } from "../../sys/zGears/auxiliares";
 import urlStatusManager from "../../sys/embedding/domainChecker";
+import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
+import { countItems } from "../../sys/DB-Engine/database";
 
 export async function registerRedditCommand() {
     const reddit = new SlashCommandBuilder()
@@ -113,6 +115,13 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guild: Guil
     const discordChannel = guild.channels.cache.get(channelOut.id);
     if (!discordChannel || !discordChannel.isTextBased()) {
         await interaction.editReply({ content: i18next.t("common:Errores.noChannel") });
+        return;
+    }
+
+    const conty = await countItems(guild.id, "reddit_feeds");
+    const limit = await getGuildLimits(guild.id);
+    if ((conty >= limit.dexMax)) {
+        await interaction.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.dexMax }) });
         return;
     }
 

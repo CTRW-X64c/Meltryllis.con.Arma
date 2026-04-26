@@ -20,6 +20,8 @@ import { registerMusicCommands, handleMusicInteraction } from "./commands/music"
 import { registerRoleButtonCommand, handleRoleButtonCommand, roleButton } from "./commandButtons/roleButton";
 import { registerButtonLinkCommand, handleButtonLinkCommand } from "./commandButtons/buttonLink";
 import { registerCronpostCommand, handleCronPost } from "./commands/cronpost";
+import { handleLimitsModal } from "./commandModales/modalLimits";
+import { handleLimitsButton } from "./commandButtons/NewLimits";
 
 
 /* ================================= Registro de comandos ================================= */
@@ -57,7 +59,13 @@ export async function sysUpRegister(client: Client) {
 /* ================================= Registro de interacciones ================================= */
 
 export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
-  switch (interaction.commandName) {
+  const command = interaction.commandName;
+  const fail = async (interaction: ChatInputCommandInteraction) => {
+    error(`Algo anda mal en upCommands.ts, Comando: ${interaction.commandName}`, "upCommands.Commandos")
+    if (interaction.isRepliable()) await interaction.reply({ content: 'Como llegamos aqui? Error:B4784x122Read', flags: MessageFlags.Ephemeral });
+  };
+
+  switch (command) {
     case 'play': case 'stop': case 'skip': case 'queue':
       await handleMusicInteraction(interaction); break;
     case 'help':
@@ -95,16 +103,9 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
     case 'cronpost':
       await handleCronPost(interaction); break;
     default:
-      defSwitch(interaction); break;
+      fail(interaction); break;
   }
 } /* Ya todo en un switch, no? */
-
-async function defSwitch(interaction: ChatInputCommandInteraction) {
-  error(`Algo anda mal en upCommands.ts, Comando: ${interaction.commandName}`)
-  if ((interaction.isRepliable())) {
-    await interaction.reply({ content: 'Como llegamos aqui? Error: B4784x122Read', flags: MessageFlags.Ephemeral });
-  }
-}
 
 /* ================================= Autocompletado ================================= */
 
@@ -116,28 +117,35 @@ export async function sysUpAutoComplete(interaction: AutocompleteInteraction) {
       await permisosAutocomplete(interaction); break;
     case "help":
       await helpAutocomplete(interaction); break;
+    default:
+      error(`Autocompletado (${interaction.commandName}) inexistente!!`, "upCommands.AutoComplete"); break;
   }
 }
 
 /* ================================= Formularios ================================= */
 
 export async function sysUpModals(interaction: ModalSubmitInteraction) {
-  switch (interaction.customId) {
-    case 'helpRepo':
+  switch (true) {
+    case interaction.customId === "helpRepo":
       await helpRepo(interaction); break;
-  }
-
-  if (interaction.customId.startsWith("respondReport_")) {
-    await respondReportModal(interaction);
-    return;
+    case interaction.customId.startsWith("respondReport_"):
+      await respondReportModal(interaction); break;
+    case interaction.customId.startsWith("modal_lim_"):
+      await handleLimitsModal(interaction); break;
+    default:
+      error(`Modal (${interaction.customId}) no manejado!!`, "upCommands.Modals"); break;
   }
 }
 
 /* ================================= Botones ================================= */
 
 export async function sysUpButtons(interaction: ButtonInteraction) {
-  if (interaction.customId.startsWith("roleButton_")) {
-    await roleButton(interaction);
-    return;
+  switch (true) {
+    case interaction.customId.startsWith("roleButton_"):
+      await roleButton(interaction); break;
+    case interaction.customId.startsWith("lim_"):
+      await handleLimitsButton(interaction); break;
+    default:
+      error(`Boton (${interaction.customId}) no manejado!!`, "upCommands.Buttons"); break;
   }
 }

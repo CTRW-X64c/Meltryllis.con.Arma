@@ -13,6 +13,7 @@ const COOLDOWN_TIMES: Record<string, number> = {
     "repCommand": 60 * minutos,
     "netCommand": 30 * minutos,
     "playMusic": 5 * minutos,
+    "netCommandNoWait": 5 * minutos,
 };
 
 export function startCooldown(guild: string, idCommand: string) {

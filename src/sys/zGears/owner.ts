@@ -5,6 +5,16 @@ import { Buffer } from 'node:buffer';
 import { checkAllDomains, buildDomainStatusEmbed } from "./neTools";
 import { deleteGuildConfig } from "./IO-Server";
 import { closeBD } from "../DB-Engine/database";
+import { getGuildLimits, /*setGuildLimits*/ } from "../DB-Engine/links/noRules";
+
+/*const listcommands = [
+    { name: "/cronJobs", value: "1" },
+    { name: "/mangaDex", value: "2" },
+    { name: "/reddit", value: "3" },
+    { name: "/youtube", value: "4" },
+    { name: "/chkDomainds", value: "5" },
+    { name: "lavaLink", value: "6" },
+]*/
 
 export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()
@@ -19,6 +29,7 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
                     { name: "Responder reporte", value: "respond" },
                     { name: "Revisar dominios (embedServices)", value: "checkdomains" },
                     { name: "Lista de servidores", value: "list" },
+                    { name: "Limites de servidores", value: "rules" },
                     { name: "Reiniciar", value: "restart" },
                     { name: "Generar token", value: "tkn" },
                     { name: "Abandonar servidor", value: "leave" },
@@ -39,7 +50,23 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
             op.setName("token")
                 .setDescription("Token de reinicio")
                 .setRequired(false)
-        );
+        )/*
+        .addBooleanOption(op =>
+            op.setName("boleanos")
+                .setDescription("Comandos de limite on/off")
+                .setRequired(false)
+        )
+        .addIntegerOption(op =>
+            op.setName("valor")
+                .setDescription("limite numerico")
+                .setRequired(false)
+        )
+        .addStringOption(op =>
+            op.setName("comando")
+                .setDescription("Lista de comandos con limite")
+                .setRequired(false)
+                .addChoices(listcommands)
+        )*/
     return [leaveServerCommand] as SlashCommandBuilder[];
 }
 
@@ -51,8 +78,9 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
         });
         return;
     }
-
     const subcommand = interaction.options.getString("funcion", true);
+    const serverId = interaction.options.getString("server_id") || "";
+    const token = interaction.options.getString("token") || "";
     try {
         switch (subcommand) {
             case "list":
@@ -82,7 +110,9 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
             case "purge":
                 await purgueConfig(interaction)
                 break;
-
+            case "rules":
+                await sendLimitsDashboard(interaction, serverId, token)
+                break;
             default:
                 await interaction.reply({
                     content: "Subcomando no reconocido.",
@@ -486,4 +516,98 @@ async function purgueConfig(interaction: ChatInputCommandInteraction) {
             error(`Error en comando purge: ${err}`, "PurgeConfig");
         }
     }
+}
+
+/* ================================================================== demasidos opciones ================================================================== */
+/*
+async function setLimits(interaction: ChatInputCommandInteraction) {
+    const guildLimit = interaction.options.getString("server_id");
+    const comando = interaction.options.getString("comando");
+    const commBoleano = interaction.options.getBoolean("boleanos");
+    const commNumer = interaction.options.getInteger("valor");
+
+    if (!guildLimit) {
+        await interaction.reply({ content: "❌ Debes proporcionar el ID del servidor.", flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const verifiGuild = await interaction.client.guilds.fetch(guildLimit).catch(() => null);
+    if (!verifiGuild) { await interaction.reply({ content: "❌ No existe el servidor o no tengo acceso.", flags: MessageFlags.Ephemeral }); return; }
+
+    const limits = await getGuildLimits(verifiGuild.id);
+
+    if (!comando && commBoleano === null && commNumer === null) {
+        const embed = new EmbedBuilder()
+            .setTitle(`🛠️ Panel de Límites | Servidor: ${verifiGuild.name}`)
+            .setColor('Blue')
+            .addFields(
+                { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}` },
+                { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${limits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${limits.noWaitNode ? '✅' : '❌'}` }
+            );
+        await interaction.reply({ embeds: [embed] });
+        return;
+    }
+
+    const updates: any = {};
+    switch (comando) {
+        case "1": updates.cronLimited = commNumer; break;
+        case "2": updates.dexMax = commNumer; break;
+        case "3": updates.redMax = commNumer; break;
+        case "4": updates.ytMax = commNumer; break;
+        case "5": updates.chkDomain = commBoleano; break;
+        case "6": updates.noWaitNode = commBoleano; break;
+        default: await interaction.reply({ content: "❌ Comando no reconocido.", flags: MessageFlags.Ephemeral }); return;
+    }
+
+    const newLimits = await setGuildLimits(verifiGuild.id, updates);
+
+    const updatedEmbed = new EmbedBuilder()
+        .setTitle(`✅ Límites Actualizados | Servidor: ${verifiGuild.name}`)
+        .setColor('Green')
+        .addFields(
+            { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${newLimits.cronLimited}\n> **MangaDex:** ${newLimits.dexMax}\n> **Reddit:** ${newLimits.redMax}\n> **YouTube:** ${newLimits.ytMax}` },
+            { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${newLimits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${newLimits.noWaitNode ? '✅' : '❌'}` }
+        );
+
+    await interaction.reply({ embeds: [updatedEmbed] });
+}
+*/
+/* ================================================================== setLimitsModal ================================================================== */
+
+export async function sendLimitsDashboard(interaction: any, idGuild: string, tkng: string) {
+    if (interaction.isButton && interaction.isButton()) {
+        await interaction.deferUpdate();
+    } else if (interaction.isCommand && interaction.isCommand()) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
+
+    if (idGuild === "") { await interaction.editReply({ content: "No se especificó el ID del servidor!!" }); return; }
+    if (tknChek(tkng).valid === false) { await interaction.editReply({ content: tknChek(tkng).error }); return; }
+
+    const verifiGuild = await interaction.client.guilds.fetch(idGuild).catch(() => null);
+    const limits = await getGuildLimits(idGuild);
+    const embed = new EmbedBuilder()
+        .setTitle(`🛠️ Panel de Límites | Servidor: ${verifiGuild.name}`)
+        .setColor('Blue')
+        .addFields(
+            { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}` },
+            { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${limits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${limits.noWaitNode ? '✅' : '❌'}` }
+        );
+
+    const btnEdit = new ButtonBuilder()
+        .setCustomId(`lim_edit_${idGuild}`)
+        .setLabel('Editar Números')
+        .setEmoji('📝')
+        .setStyle(ButtonStyle.Primary);
+    const btnDomain = new ButtonBuilder()
+        .setCustomId(`lim_togdom_${idGuild}`)
+        .setLabel('Toggle Domain')
+        .setStyle(ButtonStyle.Secondary);
+    const btnNode = new ButtonBuilder()
+        .setCustomId(`lim_tognode_${idGuild}`)
+        .setLabel('Toggle Node')
+        .setStyle(ButtonStyle.Secondary);
+
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(btnEdit, btnDomain, btnNode);
+    await interaction.editReply({ embeds: [embed], components: [row] });
 }

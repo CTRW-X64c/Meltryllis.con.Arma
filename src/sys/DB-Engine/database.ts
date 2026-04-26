@@ -223,6 +223,18 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS guild_limits (
+      guild_id VARCHAR(50) PRIMARY KEY,
+      cron_limited INT DEFAULT 5,
+      chk_domain BOOLEAN DEFAULT FALSE,
+      no_wait_node BOOLEAN DEFAULT FALSE,
+      dex_max INT DEFAULT 10,
+      red_max INT DEFAULT 10,
+      yt_max INT DEFAULT 10
+    )
+  `);
+
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;
   info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");
@@ -284,4 +296,20 @@ export async function closeBD(): Promise<boolean> {
     return false
   }
 
+}
+
+// Otros
+type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config';
+export async function countItems(guildId: string, table: FeedTables): Promise<number> {
+  try {
+    const pool = await getPool();
+    const [result] = await pool.query(
+      `SELECT COUNT(id) as count FROM ${table} WHERE guild_id = ?`,
+      [guildId]
+    );
+    return Number((result as any[])[0].count) || 0;
+  } catch (err) {
+    error(`[BD.Counts] Error al contar en la tabla ${table}: ${err}`, "Database");
+    return 0;
+  }
 }

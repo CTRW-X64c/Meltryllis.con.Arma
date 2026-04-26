@@ -7,6 +7,8 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next"
 import Parser from "rss-parser";
 import { testPermisos } from "../../sys/zGears/auxiliares";
+import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
+import { countItems } from "../../sys/DB-Engine/database";
 
 export async function registerYouTubeCommand() {
   const youtube = new SlashCommandBuilder()
@@ -106,6 +108,13 @@ async function seguirCanal(interaction: any, guild: Guild) {
 
   if (!discordChannel || !discordChannel.isTextBased()) {
     await interaction.editReply({ content: i18next.t("common:Errores.noChannel"), flags: MessageFlags.Ephemeral });
+    return;
+  }
+
+  const conty = await countItems(guild.id, "youtube_feeds");
+  const limit = await getGuildLimits(guild.id);
+  if ((conty >= limit.dexMax)) {
+    await interaction.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.dexMax }) });
     return;
   }
 

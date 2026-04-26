@@ -5,6 +5,8 @@ import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
 import { testPermisos } from "../../sys/zGears/auxiliares";
+import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
+import { countItems } from "../../sys/DB-Engine/database";
 
 const langsList = [
   { name: "Inglés", value: "en" },
@@ -163,6 +165,13 @@ async function seguirManga(interaction: ChatInputCommandInteraction, guild: Guil
   const discordChannel = guild.channels.cache.get(discordChannelInput.id) as TextChannel;
   if (!discordChannel || !discordChannel.isTextBased()) {
     await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.reddit_canal_error") });
+    return;
+  }
+
+  const conty = await countItems(guild.id, "mangadex_feeds");
+  const limit = await getGuildLimits(guild.id);
+  if ((conty >= limit.dexMax)) {
+    await interaction.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.dexMax }) });
     return;
   }
 
