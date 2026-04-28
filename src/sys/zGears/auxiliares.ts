@@ -49,43 +49,41 @@ setInterval(() => {
 
 /* ======================================== ReportChannels ======================================== */
 
-let cachedReportConfig: { chReport: boolean, chReportId: string } | null = null; /* Sistema de Cahce */
-export async function ChannelReports(client: Client): Promise<{ chReport: boolean, chReportId: string }> {
+let cachedReportConfig: { upChannel: boolean, channelId: string } | null = null; /* Sistema de Cahce */
+export async function adminChannel(client: Client): Promise<{ upChannel: boolean, channelId: string }> {
     if (cachedReportConfig) return cachedReportConfig;
 
     const ownerId = process.env.HOST_DISCORD_USER_ID;
     const reportIds = process.env.REPORT_CHANNEL_ID;
     if (!ownerId || !reportIds) { /* Check de env */
         error("Falta el ID del dueño del bot o los IDs del canal de reporte en las variables de entorno.");
-        cachedReportConfig = { chReport: false, chReportId: '' };
+        cachedReportConfig = { upChannel: false, channelId: '' };
         return cachedReportConfig;
     }
-
     const [guildId, channelId] = reportIds.split('|');
     if (!guildId || !channelId) { /* Check de datos */
         console.error("El formato de REPORT_CHANNEL_ID es incorrecto. Debe ser 'guildId|channelId'.");
-        cachedReportConfig = { chReport: false, chReportId: '' };
+        cachedReportConfig = { upChannel: false, channelId: '' };
         return cachedReportConfig;
     }
     try {
         const guild = await client.guilds.fetch(guildId); /* Chek de server*/
         if (guild.ownerId !== ownerId) {
             error("El dueño del bot no es el dueño del servidor especificado.");
-            cachedReportConfig = { chReport: false, chReportId: '' };
+            cachedReportConfig = { upChannel: false, channelId: '' };
             return cachedReportConfig;
         }
-
         const channel = await guild.channels.fetch(channelId); /* Check de canal */
         if (!channel) {
             error(`El canal con ID ${channelId} no se encontró en el servidor.`);
-            cachedReportConfig = { chReport: false, chReportId: '' };
+            cachedReportConfig = { upChannel: false, channelId: '' };
             return cachedReportConfig;
         }
-        cachedReportConfig = { chReport: true, chReportId: channel.id };
+        cachedReportConfig = { upChannel: true, channelId: channel.id };
         return cachedReportConfig;
     } catch (e) {
         error(`Error al verificar el canal de reportes: ${e}`);
-        cachedReportConfig = { chReport: false, chReportId: '' };
+        cachedReportConfig = { upChannel: false, channelId: '' };
         return cachedReportConfig;
     }
 }

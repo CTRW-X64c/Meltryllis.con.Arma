@@ -1,9 +1,10 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, GuildMember, TextChannel, EmbedBuilder, VoiceState, MessageFlags } from "discord.js";
-import lavalinkManager, { LavalinkManager } from "../../bgProcess/lavalinkConnect"; 
+import lavalinkManager, { LavalinkManager } from "../../bgProcess/lavalinkConnect";
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
 import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares"
+import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 
 /* === SISTEMA DE COLA  === */
 interface QueueEntry {
@@ -24,16 +25,16 @@ export async function registerMusicCommands() {
     return [
         new SlashCommandBuilder().setName("play").setDescription(i18next.t("commands:mussic.slashBuilder.mussic_play_01"))
             .addStringOption(o => o.setName("cancion")
-            .setDescription(i18next.t("commands:mussic.slashBuilder.mussic_play_02")).setRequired(true))
+                .setDescription(i18next.t("commands:mussic.slashBuilder.mussic_play_02")).setRequired(true))
             .addStringOption(o => o.setName("queue")
-            .setDescription(i18next.t("commands:mussic.slashBuilder.mussic_play_03")).setRequired(false)
-            .addChoices({ name: "yes", value: "yes" })),
+                .setDescription(i18next.t("commands:mussic.slashBuilder.mussic_play_03")).setRequired(false)
+                .addChoices({ name: "yes", value: "yes" })),
         new SlashCommandBuilder().setName("stop").setDescription(i18next.t("commands:mussic.slashBuilder.mussic_stop_01")),
         new SlashCommandBuilder().setName("skip").setDescription(i18next.t("commands:mussic.slashBuilder.mussic_skip_01")),
         new SlashCommandBuilder().setName("queue").setDescription(i18next.t("commands:mussic.slashBuilder.mussic_queue_01"))
             .addStringOption(o => o.setName("clean")
-            .setDescription(i18next.t("commands:mussic.slashBuilder.mussic_queue_02")).setRequired(false)
-            .addChoices({ name: "yes", value: "yes" })),
+                .setDescription(i18next.t("commands:mussic.slashBuilder.mussic_queue_02")).setRequired(false)
+                .addChoices({ name: "yes", value: "yes" })),
     ];
 }
 
@@ -52,21 +53,21 @@ export async function handleMusicInteraction(interaction: ChatInputCommandIntera
         });
         return;
     }
-    
+
     const { commandName } = interaction;
-    
+
     switch (commandName) {
-        case "play": 
-            await handlePlay(interaction, lavalinkManager); 
+        case "play":
+            await handlePlay(interaction, lavalinkManager);
             break;
-        case "stop": 
-            await handleStop(interaction, lavalinkManager); 
+        case "stop":
+            await handleStop(interaction, lavalinkManager);
             break;
-        case "skip": 
-            await handleSkip(interaction, lavalinkManager); 
+        case "skip":
+            await handleSkip(interaction, lavalinkManager);
             break;
-        case "queue": 
-            await handleQueue(interaction); 
+        case "queue":
+            await handleQueue(interaction);
             break;
     }
 }
@@ -82,7 +83,7 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
     const queue = musicQueue.get(guildId) || [];
     let query = interaction.options.getString("cancion", true);
     const playlist = interaction.options.getString("queue");
-    
+
 
     if (!member.voice.channelId) {
         await interaction.editReply(i18next.t("commands:mussic.interacciones.error_empit"));
@@ -90,16 +91,15 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
         return;
     }
     // si no hay cola ni esta reproduciendo pero esta conectada "reinicia" la conexion
-    if (!inChannelPlaying && queue.length === 0) {
-        await lavalink.shoukaku?.leaveVoiceChannel(guildId);        
-    }
+    if (!inChannelPlaying && queue.length === 0) await lavalink.shoukaku?.leaveVoiceChannel(guildId);
 
     const timmer = checkCooldown(guildId, idCommand);
-        if (timmer.onCooldown) {
-            await interaction.editReply(i18next.t("commands:mussic.interacciones.onCooldown", { a1: timmer.timeLeft }));
-            await deletReplyMsg(interaction);
-            return;
-        }
+    const limit = await getGuildLimits(guildId);
+    if (timmer.onCooldown && limit.noWaitNode === false) {
+        await interaction.editReply(i18next.t("commands:mussic.interacciones.onCooldown", { a1: timmer.timeLeft }));
+        await deletReplyMsg(interaction);
+        return;
+    }
 
     try {
         let player = lavalink.getPlayer(interaction.guildId!)
@@ -115,24 +115,24 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
             player = await lavalink.joinVoiceChannel(guildId, member.voice.channelId);
         }
         const node = lavalink.getNode();
-        if (!node) { 
+        if (!node) {
             await interaction.editReply(i18next.t("commands:mussic.interacciones.lavalink_down"));
             lavalinkManager?.reconnectAllNodes();
             startCooldown(guildId, idCommand);
             await deletReplyMsg(interaction);
             if (inChannelPlaying) return;
             lavalink.shoukaku?.leaveVoiceChannel(guildId);
-            return; 
+            return;
         }
 
-    // Previene que se añadan listas de reproduccion, se añada opcion para que si acepte listas
-        if (playlist !== "yes"){
+        // Previene que se añadan listas de reproduccion, se añada opcion para que si acepte listas
+        if (playlist !== "yes") {
             query.includes("youtube.com/watch") && query.includes("&")
             const ampersandIndex = query.indexOf('&');
             if (ampersandIndex !== -1) query = query.substring(0, ampersandIndex);
         }
 
-        const searchEngine = /^https?:\/\//.test(query) ? query : `ytsearch:${query}`;               
+        const searchEngine = /^https?:\/\//.test(query) ? query : `ytsearch:${query}`;
         const result = await node.rest.resolve(searchEngine);
 
         if (!result || result.loadType === 'empty' || result.loadType === 'error') {
@@ -171,17 +171,18 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
         if (!queue) { queue = []; musicQueue.set(guildId, queue); }
         queue.push(...tracksToAdd);
 
-        if (!currentPlaying.has(guildId)) { 
+        if (!currentPlaying.has(guildId)) {
             await playNext(guildId, player, interaction);
             await deletReplyMsg(interaction);
-                if (result.loadType === 'playlist') {const msg = await (interaction.channel as TextChannel).send(message);
-                setTimeout(() => { msg.delete().catch(() => {}); }, 30000);
+            if (result.loadType === 'playlist') {
+                const msg = await (interaction.channel as TextChannel).send(message);
+                setTimeout(() => { msg.delete().catch(() => { }); }, 30000);
             }
         } else {
             await interaction.editReply(message);
             await deletReplyMsg(interaction);
         }
-        
+
     } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : String(err);
         if (errMsg.includes("Can't find any nodes to connect on")) {
@@ -208,21 +209,21 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
 async function handleStop(interaction: ChatInputCommandInteraction, lavalink: LavalinkManager) {
     const player = lavalink.getPlayer(interaction.guildId!);
     const guildId = interaction.guildId!;
-    
+
     if (!player) {
-        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Stop_01")});
+        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Stop_01") });
         await deletReplyMsg(interaction);
         return;
     }
 
     musicQueue.delete(guildId!);
     currentPlaying.delete(guildId!);
-    
+
     await player.stopTrack();
     try {
         await lavalink.shoukaku?.leaveVoiceChannel(guildId);
-    } catch (e) {error(`Error al desconectarse del canal de voz: ${e}`);}
-    
+    } catch (e) { error(`Error al desconectarse del canal de voz: ${e}`); }
+
     await interaction.reply(i18next.t("commands:mussic.interacciones.Stop_02"));
     await deletReplyMsg(interaction);
 }
@@ -234,20 +235,20 @@ async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: La
     const queue = musicQueue.get(interaction.guildId!) || [];
     const inChannelPlaying = currentPlaying.get(interaction.guildId!);
 
-    if (inChannelPlaying && queue.length > 0){
-        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_01")});
+    if (inChannelPlaying && queue.length > 0) {
+        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_01") });
         await player?.stopTrack();
         await deletReplyMsg(interaction);
         return;
     }
 
-    if (inChannelPlaying && queue.length === 0){
-        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_02")});
+    if (inChannelPlaying && queue.length === 0) {
+        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_02") });
         await deletReplyMsg(interaction);
         return;
     }
 
-    await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_03")});
+    await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_03") });
     await deletReplyMsg(interaction);
 }
 
@@ -285,16 +286,16 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
         .setColor(0x00AE86);
 
     if (current) {
-        embed.addFields({ name: i18next.t("commands:mussic.interacciones.Queue_03_name"), value: i18next.t("commands:mussic.interacciones.Queue_03_value", { a1: current.title, a2: current.uri, a3: current.requester}),  inline: false});
+        embed.addFields({ name: i18next.t("commands:mussic.interacciones.Queue_03_name"), value: i18next.t("commands:mussic.interacciones.Queue_03_value", { a1: current.title, a2: current.uri, a3: current.requester }), inline: false });
     }
 
     if (queue.length > 0) {
-        const list = queue.slice(0, 10).map((song, i) => 
+        const list = queue.slice(0, 10).map((song, i) =>
             `**${i + 1}.** [${song.title}](${song.uri})`
         ).join("\n");
 
         const shortlist = queue.length > 10 ? `\n\n*...y ${queue.length - 10} más.*` : '';
-        embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_04", { a1: list, a2: shortlist}));
+        embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_04", { a1: list, a2: shortlist }));
     } else {
         embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_05"));
     }
@@ -307,33 +308,33 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
 
 async function playNext(guildId: string, player: any, interaction?: ChatInputCommandInteraction) {
     const queue = musicQueue.get(guildId);
-    
+
     if (!queue || queue.length === 0) {
         musicQueue.delete(guildId);
         currentPlaying.delete(guildId);
 
-    lavalinkManager?.shoukaku?.leaveVoiceChannel(guildId);
+        lavalinkManager?.shoukaku?.leaveVoiceChannel(guildId);
 
-    if (interaction?.channel) (interaction.channel as TextChannel).send(i18next.t("commands:mussic.interacciones.pNext_01"));
+        if (interaction?.channel) (interaction.channel as TextChannel).send(i18next.t("commands:mussic.interacciones.pNext_01"));
         return;
     }
 
     const song = queue.shift()!;
-    currentPlaying.set(guildId, song); 
+    currentPlaying.set(guildId, song);
 
-    await player.playTrack({ track: { encoded: song.track }});
+    await player.playTrack({ track: { encoded: song.track } });
 
     const msg = i18next.t("commands:mussic.interacciones.pNext_02", { a1: song.title, a2: song.requester });
-    
+
     try {
         if (interaction && interaction.deferred && !interaction.replied) await interaction.editReply(msg);
         else if (interaction?.channel) (interaction.channel as TextChannel).send(msg);
-    } catch (e) {}
+    } catch (e) { }
 
     if (player.listenerCount('end') === 0) {
         player.on('end', async (data: any) => {
             if (data.reason === 'replaced') return;
-            await playNext(guildId, player, undefined); 
+            await playNext(guildId, player, undefined);
         });
     }
 }
@@ -377,7 +378,7 @@ export async function checkVoiceEmptyShoukaku(oldState: VoiceState): Promise<voi
             mapTimmers.delete(guildId);
         }
     }
-} 
+}
 
 /* ========================= HELPER - borrador de mensajes - ========================= */
 

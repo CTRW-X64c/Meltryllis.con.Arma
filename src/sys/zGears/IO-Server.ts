@@ -1,7 +1,7 @@
 // src/sys/zGears/IO-Server.ts 
 import { Client, Events, Guild, TextChannel, EmbedBuilder } from "discord.js";
 import { info, error } from "../logging";
-import { ChannelReports } from "./auxiliares";
+import { adminChannel } from "./auxiliares";
 import { removeVoiceConfig } from "../DB-Engine/links/JointoVoice";
 import { clearGuildPermissions } from "../DB-Engine/links/Permission";
 import { removeWelcomeConfig } from "../DB-Engine/links/Welcome";
@@ -13,6 +13,7 @@ import { delleteAllRolemojiConfig } from "../DB-Engine/links/Rolemoji";
 import { deleteAllYoutubeConfig } from "../DB-Engine/links/Youtube";
 import { removButton } from "../DB-Engine/links/roleButtons";
 import { deleteAllCronPosts } from "../DB-Engine/links/Cronpost";
+import { removeGuildLimits } from "../DB-Engine/links/noRules";
 
 
 /* ================================================ Inicializacion de cliente ================================================ */
@@ -39,7 +40,7 @@ async function handleGuildCreate(guild: Guild): Promise<void> {
   try {
     info(`📥 Me uni al servidor: ${guild.name} (ID: ${guild.id})`, "GuildCreate");
     const owner = await guild.fetchOwner().catch(() => null);
-    const reportConfig = await ChannelReports(guild.client);
+    const reportConfig = await adminChannel(guild.client);
 
     const embed = new EmbedBuilder()
       .setColor(0x00FF00)
@@ -55,8 +56,8 @@ async function handleGuildCreate(guild: Guild): Promise<void> {
       .setTimestamp()
       .setColor(0x00FF00);
 
-    if (reportConfig.chReport) {
-      const channel = await guild.client.channels.fetch(reportConfig.chReportId).catch(() => null) as TextChannel | null;
+    if (reportConfig.upChannel) {
+      const channel = await guild.client.channels.fetch(reportConfig.channelId).catch(() => null) as TextChannel | null;
       if (channel) {
         await channel.send({ embeds: [embed] });
         info(`📝 Notificación enviada al canal: ${channel.name}`, "GuildCreate");
@@ -81,7 +82,7 @@ async function handleGuildDelete(guild: Guild): Promise<void> {
     info(`📊 Servidores restantes: ${guild.client.guilds.cache.size}`, "GuildDelete");
 
     const maid = await deleteGuildConfig(guild);
-    const reportConfig = await ChannelReports(guild.client);
+    const reportConfig = await adminChannel(guild.client);
 
     const embed = new EmbedBuilder()
       .setColor(0xFF0000)
@@ -91,8 +92,8 @@ async function handleGuildDelete(guild: Guild): Promise<void> {
       .setFooter({ text: `Total servidores: ${guild.client.guilds.cache.size}` })
       .setTimestamp();
 
-    if (reportConfig.chReport) {
-      const channel = await guild.client.channels.fetch(reportConfig.chReportId).catch(() => null) as TextChannel | null;
+    if (reportConfig.upChannel) {
+      const channel = await guild.client.channels.fetch(reportConfig.channelId).catch(() => null) as TextChannel | null;
       if (channel) await channel.send({ embeds: [embed] });
     } else {
       const ownerUser = await guild.client.users.fetch(process.env.OWNER_ID!).catch(() => null);
@@ -122,9 +123,10 @@ export async function deleteGuildConfig(guild: Guild): Promise<boolean> {
       deleteAllYoutubeConfig(guild.id),
       removButton(guild.id),
       deleteAllCronPosts(guild.id),
+      removeGuildLimits(guild.id)
     ]);
 
-    const sistemas = ['JoinToVoice', 'Permisos', 'Welcome', 'Embed', 'Mangadex', 'Reddit', 'ReplyBots', 'Rolemoji', 'Youtube', 'Buttons', 'Cronpost'];
+    const sistemas = ['JoinToVoice', 'Permisos', 'Welcome', 'Embed', 'Mangadex', 'Reddit', 'ReplyBots', 'Rolemoji', 'Youtube', 'Buttons', 'Cronpost', 'Limits'];
     resultados.forEach((resultado, index) => {
       if (resultado.status === 'rejected') {
         error(`Fallo al borrar configuración de ${sistemas[index]} para el guild ${guild.id}: ${resultado.reason}`, "GuildCleanup");

@@ -1,5 +1,5 @@
 import { ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from "discord.js";
-import { getGuildLimits, setGuildLimits } from "../../sys/DB-Engine/links/noRules";
+import { getGuildLimits, setGuildLimits, resetGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { sendLimitsDashboard } from "../../sys/zGears/owner";
 
 export async function handleLimitsButton(interaction: ButtonInteraction) {
@@ -13,7 +13,6 @@ export async function handleLimitsButton(interaction: ButtonInteraction) {
         const modal = new ModalBuilder()
             .setCustomId(`modal_lim_${targetGuildId}`)
             .setTitle('Editar Límites Numéricos');
-
         const inCronjobs = new TextInputBuilder()
             .setCustomId('input_cronLimited')
             .setLabel('Límite de publicaciones de /cronjobs')
@@ -50,15 +49,20 @@ export async function handleLimitsButton(interaction: ButtonInteraction) {
     if (customId.startsWith("lim_togdom_")) {
         const current = await getGuildLimits(targetGuildId);
         await setGuildLimits(targetGuildId, { chkDomain: !current.chkDomain });
-        await sendLimitsDashboard(interaction, targetGuildId);
+        await sendLimitsDashboard(interaction, targetGuildId, "");
         return;
     }
 
     if (customId.startsWith("lim_tognode_")) {
         const current = await getGuildLimits(targetGuildId);
         await setGuildLimits(targetGuildId, { noWaitNode: !current.noWaitNode });
-        await sendLimitsDashboard(interaction, targetGuildId);
+        await sendLimitsDashboard(interaction, targetGuildId, "");
         return;
     }
 
+    if (customId.startsWith("lim_reset_")) {
+        await resetGuildLimits(targetGuildId);
+        await sendLimitsDashboard(interaction, targetGuildId, "");
+        return;
+    }
 }

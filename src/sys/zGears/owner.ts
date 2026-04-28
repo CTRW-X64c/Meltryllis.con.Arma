@@ -5,16 +5,8 @@ import { Buffer } from 'node:buffer';
 import { checkAllDomains, buildDomainStatusEmbed } from "./neTools";
 import { deleteGuildConfig } from "./IO-Server";
 import { closeBD } from "../DB-Engine/database";
-import { getGuildLimits, /*setGuildLimits*/ } from "../DB-Engine/links/noRules";
-
-/*const listcommands = [
-    { name: "/cronJobs", value: "1" },
-    { name: "/mangaDex", value: "2" },
-    { name: "/reddit", value: "3" },
-    { name: "/youtube", value: "4" },
-    { name: "/chkDomainds", value: "5" },
-    { name: "lavaLink", value: "6" },
-]*/
+import { getGuildLimits } from "../DB-Engine/links/noRules";
+import { adminChannel } from "./auxiliares";
 
 export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()
@@ -29,7 +21,7 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
                     { name: "Responder reporte", value: "respond" },
                     { name: "Revisar dominios (embedServices)", value: "checkdomains" },
                     { name: "Lista de servidores", value: "list" },
-                    { name: "Limites de servidores", value: "rules" },
+                    { name: "Parametros de Servers", value: "rules" },
                     { name: "Reiniciar", value: "restart" },
                     { name: "Generar token", value: "tkn" },
                     { name: "Abandonar servidor", value: "leave" },
@@ -50,23 +42,7 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
             op.setName("token")
                 .setDescription("Token de reinicio")
                 .setRequired(false)
-        )/*
-        .addBooleanOption(op =>
-            op.setName("boleanos")
-                .setDescription("Comandos de limite on/off")
-                .setRequired(false)
         )
-        .addIntegerOption(op =>
-            op.setName("valor")
-                .setDescription("limite numerico")
-                .setRequired(false)
-        )
-        .addStringOption(op =>
-            op.setName("comando")
-                .setDescription("Lista de comandos con limite")
-                .setRequired(false)
-                .addChoices(listcommands)
-        )*/
     return [leaveServerCommand] as SlashCommandBuilder[];
 }
 
@@ -75,71 +51,69 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
         await interaction.reply({
             content: "Este comando es de uso exclusivo del desarrollador.",
             flags: MessageFlags.Ephemeral
-        });
-        return;
+        }); return;
     }
+    const chCom = await adminChannel(interaction.client);
+    if (!chCom.upChannel || interaction.channelId !== chCom.channelId) {
+        await interaction.reply({
+            content: "Los comandos Owner solo se pueden ejecutar en cierto canal de cierto server!!",
+            flags: MessageFlags.Ephemeral
+        }); return;
+    }
+
     const subcommand = interaction.options.getString("funcion", true);
-    const serverId = interaction.options.getString("server_id") || "";
-    const token = interaction.options.getString("token") || "";
+    const idUser = interaction.options.getString("id_usr") || "noid";
+    const serverId = interaction.options.getString("server_id") || "nosrv";
+    const token = interaction.options.getString("token") || "notkn";
     try {
         switch (subcommand) {
             case "list":
-                await ListServers(interaction);
-                break;
-
+                await ListServers(interaction); break;
             case "leave":
-                await LeaveServer(interaction);
-                break;
-
+                await LeaveServer(interaction, token, serverId); break
             case "checkdomains":
-                await ChekDominios(interaction);
-                break;
-
+                await ChekDominios(interaction); break
             case "restart":
-                await Restart(interaction)
-                break;
-
+                await Restart(interaction); break;
             case "respond":
-                await respondReport(interaction)
-                break;
-
+                await respondReport(interaction, idUser); break
             case "tkn":
-                await generateToken(interaction)
-                break;
-
+                await generateToken(interaction); break
             case "purge":
-                await purgueConfig(interaction)
-                break;
+                await purgueConfig(interaction, serverId, token); break
             case "rules":
-                await sendLimitsDashboard(interaction, serverId, token)
-                break;
+                await sendLimitsDashboard(interaction, serverId, token); break
             default:
-                await interaction.reply({
-                    content: "Subcomando no reconocido.",
-                    flags: MessageFlags.Ephemeral
-                });
+                await interaction.reply({ content: "Subcomando no reconocido.", flags: MessageFlags.Ephemeral });
         }
     } catch (err) {
         error(`Error en comando leaveserver (${subcommand}): ${err}`, "LeaveServerCommand");
-        await interaction.reply({
-            content: "Ocurrió un error inesperado al procesar el comando.",
-            flags: MessageFlags.Ephemeral
-        });
+        await interaction.reply({ content: "Ocurrió un error inesperado al procesar el comando.", flags: MessageFlags.Ephemeral });
     }
 }
 
 /* ================================================================== Tkn Chek ================================================================== */
-
 let cacheToken: { token: string } | null = null;
 const tknChek = (rToken: string | null): { valid: boolean; error?: string } => {
-    if (!rToken) return { valid: false, error: "❌ No se proporciono un token." };
+    if (rToken === "notkn") return { valid: false, error: "❌ Debes proporcionar un token en la opción 'token'!!" };
     if (!cacheToken?.token) return { valid: false, error: "❌ No hay un token activo, genera uno con `/owner: Generar token`" };
     if (rToken !== cacheToken.token) return { valid: false, error: "❌ Token equivocado!!" };
     return { valid: true };
 };
 
-/* ================================================================== Listado ================================================================== */
+async function generateToken(interaction: ChatInputCommandInteraction): Promise<void> {
+    if (cacheToken === null) {
+        const newToken = Math.floor(Math.random() * 0xFFFFFFFFFFFF).toString(16).toUpperCase();
+        cacheToken = { token: newToken };
+        warn(`solicitud de token ${newToken}`, "tokenSys")
+        await interaction.reply({ content: "Token generado, revisa la consola. Expira en 5 minutos.", flags: MessageFlags.Ephemeral });
+        setTimeout(() => { cacheToken = null; warn(`token expirado`, "tokenSys"); }, 5 * 60 * 1000);
+    } else {
+        await interaction.reply({ content: "Ya hay un token activo en el sistema.", flags: MessageFlags.Ephemeral });
+    }
+};
 
+/* ================================================================== Listado ================================================================== */
 async function ListServers(interaction: ChatInputCommandInteraction): Promise<void> {
     const guilds = interaction.client.guilds.cache;
     const guildCount = guilds.size;
@@ -172,43 +146,16 @@ async function ListServers(interaction: ChatInputCommandInteraction): Promise<vo
 }
 
 /* ================================================================== Leave Servers ================================================================== */
+async function LeaveServer(interaction: ChatInputCommandInteraction, tkn: string, serverId: string): Promise<void> {
+    if (serverId === "nosrv") { await interaction.reply({ content: "❌ Debes proporcionar el ID del servidor a abandonar en la opción 'server_id'.", flags: MessageFlags.Ephemeral }); return; }
+    const chkTkn = tknChek(tkn);
+    if (!chkTkn.valid) { await interaction.reply({ content: chkTkn.error, flags: MessageFlags.Ephemeral }); return; }
 
-async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<void> {
-    const serverId = interaction.options.getString("server_id");
-
-    if (!serverId) {
-        await interaction.reply({
-            content: "❌ Debes proporcionar el ID del servidor a abandonar en la opción 'server_id'.",
-            flags: MessageFlags.Ephemeral
-        });
-        return;
-    }
-
-    const rToken = interaction.options.getString("token") ?? null;
-    const chkTkn = tknChek(rToken);
-    if (!chkTkn.valid) {
-        await interaction.reply({ content: chkTkn.error, flags: MessageFlags.Ephemeral });
-        return;
-    }
-
-    if (!/^\d+$/.test(serverId)) {
-        await interaction.reply({
-            content: "❌ El ID del servidor debe contener solo números.",
-            flags: MessageFlags.Ephemeral
-        });
-        return;
-    }
+    if (!/^\d+$/.test(serverId)) { await interaction.reply({ content: "❌ El ID del servidor debe contener solo números.", flags: MessageFlags.Ephemeral }); return; }
 
     try {
         const guild = await interaction.client.guilds.fetch(serverId).catch(() => null);
-
-        if (!guild) {
-            await interaction.reply({
-                content: `❌ No se encontró ningún servidor con el ID: \`${serverId}\``,
-                flags: MessageFlags.Ephemeral
-            });
-            return;
-        }
+        if (!guild) { await interaction.reply({ content: `❌ No se encontró ningún servidor con el ID: \`${serverId}\``, flags: MessageFlags.Ephemeral }); return; }
 
         const guildName = guild.name;
         const guildInfo = {
@@ -296,7 +243,6 @@ async function LeaveServer(interaction: ChatInputCommandInteraction): Promise<vo
 }
 
 /* ================================================================== Dominios ================================================================== */
-
 export async function ChekDominios(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -304,17 +250,9 @@ export async function ChekDominios(interaction: ChatInputCommandInteraction): Pr
         await interaction.editReply({
             content: "🔄 Verificando estado de dominios (Comando Owner)..."
         });
-
-        // 2. Llama a la lógica centralizada
         const domainStatuses = await checkAllDomains();
-
-        // 3. Llama al constructor de embeds
         const embed = buildDomainStatusEmbed(domainStatuses);
-
-        await interaction.editReply({
-            content: null,
-            embeds: [embed]
-        });
+        await interaction.editReply({ content: null, embeds: [embed] });
 
     } catch (err: any) {
         error(`Error en comando checkdomains: ${err}`, "CheckDomains");
@@ -332,7 +270,6 @@ export async function ChekDominios(interaction: ChatInputCommandInteraction): Pr
 }
 
 /* ================================================================== Reinico ================================================================== */
-
 async function Restart(interaction: ChatInputCommandInteraction): Promise<void> {
     const confirmButton = new ButtonBuilder()
         .setCustomId('confirm_restart')
@@ -381,10 +318,8 @@ async function Restart(interaction: ChatInputCommandInteraction): Promise<void> 
 }
 
 /* ================================================================== Systema de Reportes ================================================================== */
-
-async function respondReport(interaction: ChatInputCommandInteraction): Promise<void> {
-    const idUser = interaction.options.getString("id_usr");
-    if (!idUser) {
+async function respondReport(interaction: ChatInputCommandInteraction, idUser: string): Promise<void> {
+    if (idUser === "noid") {
         await interaction.reply({ content: "❌ Faltó el ID del usuario a responder en la opción 'id_usr'.", flags: MessageFlags.Ephemeral });
         return;
     }
@@ -438,35 +373,11 @@ export async function respondReportModal(interaction: ModalSubmitInteraction): P
     }
 }
 
-/* ================================================================== System ================================================================== */
-
-async function generateToken(interaction: ChatInputCommandInteraction): Promise<void> {
-    if (cacheToken === null) {
-        const newToken = Math.floor(Math.random() * 0xFFFFFFFFFFFF).toString(16).toUpperCase();
-        cacheToken = { token: newToken };
-        warn(`solicitud de token ${newToken}`, "tokenSys")
-        await interaction.reply({ content: "Token generado, revisa la consola. Expira en 5 minutos.", flags: MessageFlags.Ephemeral });
-        setTimeout(() => { cacheToken = null; warn(`token expirado`, "tokenSys"); }, 5 * 60 * 1000);
-    } else {
-        await interaction.reply({ content: "Ya hay un token activo en el sistema.", flags: MessageFlags.Ephemeral });
-    }
-};
-
 /* ================================================================== BD purge COnfig ================================================================== */
-
-async function purgueConfig(interaction: ChatInputCommandInteraction) {
-    const idServer = interaction.options.getString("server_id");
-    if (!idServer) {
-        await interaction.reply({ content: "❌ No se proporcionó el ID del servidor a purgar.", flags: MessageFlags.Ephemeral });
-        return;
-    }
-
-    const rToken = interaction.options.getString("token") ?? null;
-    const chkTkn = tknChek(rToken);
-    if (!chkTkn.valid) {
-        await interaction.reply({ content: chkTkn.error, flags: MessageFlags.Ephemeral });
-        return;
-    }
+async function purgueConfig(interaction: ChatInputCommandInteraction, idServer: string, tkn: string) {
+    if (idServer === "nosrv") { await interaction.reply({ content: "❌ No se proporcionó el ID del servidor a purgar.", flags: MessageFlags.Ephemeral }); return }
+    const chkTkn = tknChek(tkn);
+    if (!chkTkn.valid) { await interaction.reply({ content: chkTkn.error, flags: MessageFlags.Ephemeral }); return }
 
     const guild = await interaction.client.guilds.fetch(idServer).catch(() => null);
     const chkIdServer = guild ? guild.id : { id: idServer } as any;
@@ -518,76 +429,20 @@ async function purgueConfig(interaction: ChatInputCommandInteraction) {
     }
 }
 
-/* ================================================================== demasidos opciones ================================================================== */
-/*
-async function setLimits(interaction: ChatInputCommandInteraction) {
-    const guildLimit = interaction.options.getString("server_id");
-    const comando = interaction.options.getString("comando");
-    const commBoleano = interaction.options.getBoolean("boleanos");
-    const commNumer = interaction.options.getInteger("valor");
-
-    if (!guildLimit) {
-        await interaction.reply({ content: "❌ Debes proporcionar el ID del servidor.", flags: MessageFlags.Ephemeral });
-        return;
-    }
-
-    const verifiGuild = await interaction.client.guilds.fetch(guildLimit).catch(() => null);
-    if (!verifiGuild) { await interaction.reply({ content: "❌ No existe el servidor o no tengo acceso.", flags: MessageFlags.Ephemeral }); return; }
-
-    const limits = await getGuildLimits(verifiGuild.id);
-
-    if (!comando && commBoleano === null && commNumer === null) {
-        const embed = new EmbedBuilder()
-            .setTitle(`🛠️ Panel de Límites | Servidor: ${verifiGuild.name}`)
-            .setColor('Blue')
-            .addFields(
-                { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}` },
-                { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${limits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${limits.noWaitNode ? '✅' : '❌'}` }
-            );
-        await interaction.reply({ embeds: [embed] });
-        return;
-    }
-
-    const updates: any = {};
-    switch (comando) {
-        case "1": updates.cronLimited = commNumer; break;
-        case "2": updates.dexMax = commNumer; break;
-        case "3": updates.redMax = commNumer; break;
-        case "4": updates.ytMax = commNumer; break;
-        case "5": updates.chkDomain = commBoleano; break;
-        case "6": updates.noWaitNode = commBoleano; break;
-        default: await interaction.reply({ content: "❌ Comando no reconocido.", flags: MessageFlags.Ephemeral }); return;
-    }
-
-    const newLimits = await setGuildLimits(verifiGuild.id, updates);
-
-    const updatedEmbed = new EmbedBuilder()
-        .setTitle(`✅ Límites Actualizados | Servidor: ${verifiGuild.name}`)
-        .setColor('Green')
-        .addFields(
-            { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${newLimits.cronLimited}\n> **MangaDex:** ${newLimits.dexMax}\n> **Reddit:** ${newLimits.redMax}\n> **YouTube:** ${newLimits.ytMax}` },
-            { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${newLimits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${newLimits.noWaitNode ? '✅' : '❌'}` }
-        );
-
-    await interaction.reply({ embeds: [updatedEmbed] });
-}
-*/
 /* ================================================================== setLimitsModal ================================================================== */
-
-export async function sendLimitsDashboard(interaction: any, idGuild: string, tkng: string) {
+export async function sendLimitsDashboard(interaction: ChatInputCommandInteraction | ButtonInteraction, idGuild: string, tkn: string) {
     if (interaction.isButton && interaction.isButton()) {
         await interaction.deferUpdate();
     } else if (interaction.isCommand && interaction.isCommand()) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        const chkTkn = tknChek(tkn);
+        if (!chkTkn.valid) { await interaction.editReply({ content: chkTkn.error }); return; }
     }
 
-    if (idGuild === "") { await interaction.editReply({ content: "No se especificó el ID del servidor!!" }); return; }
-    if (tknChek(tkng).valid === false) { await interaction.editReply({ content: tknChek(tkng).error }); return; }
-
-    const verifiGuild = await interaction.client.guilds.fetch(idGuild).catch(() => null);
+    const guild = await interaction.client.guilds.fetch(idGuild).catch(() => null);
     const limits = await getGuildLimits(idGuild);
     const embed = new EmbedBuilder()
-        .setTitle(`🛠️ Panel de Límites | Servidor: ${verifiGuild.name}`)
+        .setTitle(`🛠️ Panel de Límites | Servidor: ${guild?.name || idGuild}`)
         .setColor('Blue')
         .addFields(
             { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}` },
@@ -607,7 +462,10 @@ export async function sendLimitsDashboard(interaction: any, idGuild: string, tkn
         .setCustomId(`lim_tognode_${idGuild}`)
         .setLabel('Toggle Node')
         .setStyle(ButtonStyle.Secondary);
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(btnEdit, btnDomain, btnNode);
+    const btnReset = new ButtonBuilder()
+        .setCustomId(`lim_reset_${idGuild}`)
+        .setLabel('Reiniciar Límites')
+        .setStyle(ButtonStyle.Danger);
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(btnEdit, btnDomain, btnNode, btnReset);
     await interaction.editReply({ embeds: [embed], components: [row] });
 }

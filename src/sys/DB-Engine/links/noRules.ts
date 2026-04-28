@@ -57,10 +57,8 @@ export async function setGuildLimits(guildId: string, updates: Partial<Omit<Guil
             ON DUPLICATE KEY UPDATE cron_limited = VALUES(cron_limited), chk_domain = VALUES(chk_domain), no_wait_node = VALUES(no_wait_node), dex_max = VALUES(dex_max), red_max = VALUES(red_max), yt_max = VALUES(yt_max)`,
             [updated.guildId, updated.cronLimited, updated.chkDomain ? 1 : 0, updated.noWaitNode ? 1 : 0, updated.dexMax, updated.redMax, updated.ytMax]
         );
-
         cacheRules.set(guildId, updated);
         debug(`[Limits] Guardados límites para ${guildId}`, "Database");
-
         return updated;
 
     } catch (e) {
@@ -70,15 +68,21 @@ export async function setGuildLimits(guildId: string, updates: Partial<Omit<Guil
 }
 
 export async function resetGuildLimits(guildId: string): Promise<GuildLimits> {
+    debug(`[Limits] Reiniciando límites para ${guildId}`, "Database");
     return setGuildLimits(guildId, dLimites);
 }
 
-export function invalidateCache(guildId: string): void {
-    cacheRules.delete(guildId);
-    debug(`[Limits] Caché invalidada para ${guildId}`, "Database");
-}
-
-export function clearCache(): void {
-    cacheRules.clear();
-    debug(`[Limits] Caché completamente limpiada`, "Database");
+export async function removeGuildLimits(guildId: string): Promise<void> {
+    try {
+        const pool = await getPool();
+        await pool.query(
+            `DELETE FROM guild_limits WHERE guild_id = ?`,
+            [guildId]
+        );
+        cacheRules.delete(guildId);
+        debug(`[Limits] Cahce y BD eliminados para ${guildId}`, "Database");
+    } catch (e) {
+        error(`[Limits] Error al eliminar límites para ${guildId}: ${e} `);
+        throw e;
+    }
 }
