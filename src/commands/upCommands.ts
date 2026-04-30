@@ -1,14 +1,14 @@
 // src/Events-Commands/upCommands.ts
 import { error, info } from "../sys/logging";
 import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags, ButtonInteraction } from "discord.js";
-import { helpRepo } from "./commandModales/reportHelp";
+import { handleReportResponseButton, helpRepo } from "./commandModales/reportHelp";
 import { registerTestCommand, handleTestCommand } from "./commands/test";
 import { registerHelpCommand, handleHelpCommand, helpAutocomplete } from "./commands/help";
 import { registerWorkCommand, handleWorkCommand } from "./commands/work";
 import { registerEmbedCommand, handleEmbedCommand, embedAutocomplete } from "./commands/embed";
 import { registerWelcomeCommand, handleWelcomeCommand } from "./commands/welcome";
 import { registerRolemojiCommand, handleRolemojiCommand } from "./commands/rolemoji"
-import { registerOwnerCommands, handleOwnerCommands, respondReportModal } from "../sys/zGears/owner";
+import { registerOwnerCommands, handleOwnerCommands, respondReportModal, modalTkn } from "../sys/zGears/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "./commands/youtube";
 import { registerRedditCommand, handleRedditCommand } from "./commands/reddit";
 import { registerPostCommand, handlePostCommand } from "./commands/post";
@@ -22,7 +22,6 @@ import { registerButtonLinkCommand, handleButtonLinkCommand } from "./commandBut
 import { registerCronpostCommand, handleCronPost } from "./commands/cronpost";
 import { handleLimitsModal } from "./commandModales/modalLimits";
 import { handleLimitsButton } from "./commandButtons/NewLimits";
-
 
 /* ================================= Registro de comandos ================================= */
 
@@ -132,6 +131,8 @@ export async function sysUpModals(interaction: ModalSubmitInteraction) {
       await respondReportModal(interaction); break;
     case interaction.customId.startsWith("modal_lim_"):
       await handleLimitsModal(interaction); break;
+    case interaction.customId.startsWith("token_verify_"):
+      await modalTkn(interaction); break;
     default:
       error(`Modal (${interaction.customId}) no manejado!!`, "upCommands.Modals"); break;
   }
@@ -145,6 +146,8 @@ export async function sysUpButtons(interaction: ButtonInteraction) {
       await roleButton(interaction); break;
     case interaction.customId.startsWith("lim_"):
       await handleLimitsButton(interaction); break;
+    case interaction.customId.startsWith("btn_openreport_"):
+      await handleReportResponseButton(interaction); break;
     default:
       error(`Boton (${interaction.customId}) no manejado!!`, "upCommands.Buttons"); break;
   }

@@ -1,5 +1,5 @@
 // src/Events-Commands/commandModales/reportHelp.ts
-import { ActionRowBuilder, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, TextChannel, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, ButtonInteraction, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, TextChannel, TextInputBuilder, TextInputStyle } from "discord.js";
 import i18next from "i18next";
 import { adminChannel, checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
 
@@ -71,5 +71,27 @@ export async function helpRepo(interaction: ModalSubmitInteraction) {
   } catch (e) {
     console.error(`Error al enviar reporte desde modal: ${e}`);
     await interaction.reply({ content: (i18next.t("botones:reportHelp.modal_sent_error")), flags: MessageFlags.Ephemeral });
+  }
+}
+
+/* ============================================= /owner response ============================================= */
+export async function handleReportResponseButton(interaction: ButtonInteraction) {
+  if (interaction.customId.startsWith("btn_openreport_")) {
+    const idUsuario = interaction.customId.split('_')[2];
+
+    const reportModal = new ModalBuilder()
+      .setCustomId(`respondReport_${idUsuario}`)
+      .setTitle(`Respuesta de reporte`);
+
+    const repIn = new TextInputBuilder()
+      .setCustomId(`reportcont`)
+      .setLabel("Escribe tu respuesta:")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
+
+    const rMod = new ActionRowBuilder<TextInputBuilder>().addComponents(repIn);
+    reportModal.addComponents(rMod);
+
+    await interaction.showModal(reportModal);
   }
 }

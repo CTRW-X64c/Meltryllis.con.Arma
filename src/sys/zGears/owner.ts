@@ -23,7 +23,6 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
                     { name: "Lista de servidores", value: "list" },
                     { name: "Parametros de Servers", value: "rules" },
                     { name: "Reiniciar", value: "restart" },
-                    { name: "Generar token", value: "tkn" },
                     { name: "Abandonar servidor", value: "leave" },
                     { name: "Purgar configuracion de server de la BD", value: "purge" }
                 )
@@ -38,93 +37,156 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
                 .setDescription("ID del mensaje a responder")
                 .setRequired(false)
         )
-        .addStringOption(op =>
-            op.setName("token")
-                .setDescription("Token de reinicio")
-                .setRequired(false)
-        )
     return [leaveServerCommand] as SlashCommandBuilder[];
 }
 
+interface runCommands { interaccion: ChatInputCommandInteraction; subcomando: string; serverId: string; idUsr: string }
+const waitCommand = new Map<string, runCommands>();
+let cacheToken: { token: string } | null = null;
+
+/* ================================================================== Owner ================================================================== */
 export async function handleOwnerCommands(interaction: ChatInputCommandInteraction): Promise<void> {
     if (interaction.user.id !== process.env.HOST_DISCORD_USER_ID) {
-        await interaction.reply({
-            content: "Este comando es de uso exclusivo del desarrollador.",
-            flags: MessageFlags.Ephemeral
-        }); return;
-    }
-    const chCom = await adminChannel(interaction.client);
-    if (!chCom.upChannel || interaction.channelId !== chCom.channelId) {
-        await interaction.reply({
-            content: "Los comandos Owner solo se pueden ejecutar en cierto canal de cierto server!!",
-            flags: MessageFlags.Ephemeral
-        }); return;
+        await interaction.reply({ content: "Este comando es de uso exclusivo del desarrollador.", flags: MessageFlags.Ephemeral });
+        return;
     }
 
     const subcommand = interaction.options.getString("funcion", true);
-    const idUser = interaction.options.getString("id_usr") || "noid";
     const serverId = interaction.options.getString("server_id") || "nosrv";
-    const token = interaction.options.getString("token") || "notkn";
-    try {
-        switch (subcommand) {
-            case "list":
-                await ListServers(interaction); break;
-            case "leave":
-                await LeaveServer(interaction, token, serverId); break
-            case "checkdomains":
-                await ChekDominios(interaction); break
-            case "restart":
-                await Restart(interaction); break;
-            case "respond":
-                await respondReport(interaction, idUser); break
-            case "tkn":
-                await generateToken(interaction); break
-            case "purge":
-                await purgueConfig(interaction, serverId, token); break
-            case "rules":
-                await sendLimitsDashboard(interaction, serverId, token); break
-            default:
-                await interaction.reply({ content: "Subcomando no reconocido.", flags: MessageFlags.Ephemeral });
-        }
-    } catch (err) {
-        error(`Error en comando leaveserver (${subcommand}): ${err}`, "LeaveServerCommand");
-        await interaction.reply({ content: "Ocurrió un error inesperado al procesar el comando.", flags: MessageFlags.Ephemeral });
+    const idUsr = interaction.options.getString("id_usr") || "noid";
+    const idUser = interaction.user.id;
+
+    const admCh = await adminChannel(interaction.client);
+    if (admCh.upChannel === false || admCh.channelId !== interaction.channelId) {
+        await interaction.reply({
+            content: "❌ Por seguridad, los comandos de Owner solo se pueden ejecutar en el canal de administración.",
+            flags: MessageFlags.Ephemeral
+        }); return
     }
+
+    const noTkn = ["restart", "checkdomains", "list"];
+    if (noTkn.includes(subcommand)) {
+        await runCommand(interaction, subcommand, serverId, idUsr);
+        return;
+    }
+
+    if (cacheToken !== null) {
+        await interaction.reply({ content: "❌ Ya hay un token activo en el sistema. Espera a que expire.", flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const idCommands = `${idUser}_${subcommand}_${serverId}_${idUsr}`;
+    const newToken = Math.floor(Math.random() * 0xFFFFFFFFFFFF).toString(16).toUpperCase();
+
+    cacheToken = { token: newToken };
+    warn(`🔐 SOLICITUD DE TOKEN GENERADA: ${newToken}`, "SecuritySys");
+    waitCommand.set(idCommands, { interaccion: interaction, subcomando: subcommand, serverId: serverId, idUsr: idUsr });
+
+    setTimeout(() => {
+        if (waitCommand.has(idCommands)) {
+            waitCommand.delete(idCommands);
+            cacheToken = null;
+            warn(`⚠️ Token expirado y comando purgado de la memoria.`, "SecuritySys");
+        }
+    }, 5 * 60 * 1000);
+
+    const authModal = new ModalBuilder()
+        .setCustomId(`token_verify_${idCommands}`)
+        .setTitle("🔐 Verificación de Seguridad")
+        .addComponents(
+            new ActionRowBuilder<TextInputBuilder>().addComponents(
+                new TextInputBuilder()
+                    .setCustomId("token_input")
+                    .setLabel("Revisa la consola e ingresa el token:")
+                    .setStyle(TextInputStyle.Short)
+                    .setPlaceholder("Ej: 1A2B3C4D5E6F")
+                    .setRequired(true)
+                    .setMinLength(1)
+                    .setMaxLength(16)
+            )
+        );
+    await interaction.showModal(authModal);
 }
 
-/* ================================================================== Tkn Chek ================================================================== */
-let cacheToken: { token: string } | null = null;
-const tknChek = (rToken: string | null): { valid: boolean; error?: string } => {
-    if (rToken === "notkn") return { valid: false, error: "❌ Debes proporcionar un token en la opción 'token'!!" };
-    if (!cacheToken?.token) return { valid: false, error: "❌ No hay un token activo, genera uno con `/owner: Generar token`" };
-    if (rToken !== cacheToken.token) return { valid: false, error: "❌ Token equivocado!!" };
-    return { valid: true };
-};
-
-async function generateToken(interaction: ChatInputCommandInteraction): Promise<void> {
-    if (cacheToken === null) {
-        const newToken = Math.floor(Math.random() * 0xFFFFFFFFFFFF).toString(16).toUpperCase();
-        cacheToken = { token: newToken };
-        warn(`solicitud de token ${newToken}`, "tokenSys")
-        await interaction.reply({ content: "Token generado, revisa la consola. Expira en 5 minutos.", flags: MessageFlags.Ephemeral });
-        setTimeout(() => { cacheToken = null; warn(`token expirado`, "tokenSys"); }, 5 * 60 * 1000);
-    } else {
-        await interaction.reply({ content: "Ya hay un token activo en el sistema.", flags: MessageFlags.Ephemeral });
-    }
-};
-
-/* ================================================================== Listado ================================================================== */
-async function ListServers(interaction: ChatInputCommandInteraction): Promise<void> {
-    const guilds = interaction.client.guilds.cache;
-    const guildCount = guilds.size;
-
-    if (guildCount === 0) {
+/* ================================================================== Modal ================================================================== */
+export async function modalTkn(interaction: ModalSubmitInteraction): Promise<void> {
+    const customId = interaction.customId;
+    if (!customId.startsWith("token_verify_")) return;
+    const commandId = customId.replace("token_verify_", "");
+    const pendingCommand = waitCommand.get(commandId);
+    if (!pendingCommand) {
         await interaction.reply({
-            content: "No estoy en ningún servidor actualmente.",
+            content: "❌ La sesión de verificación ha expirado. Por favor, ejecute el comando nuevamente.",
             flags: MessageFlags.Ephemeral
         });
         return;
     }
+
+    const providedToken = interaction.fields.getTextInputValue("token_input");
+    if (!cacheToken) {
+        await interaction.reply({ content: "❌ No hay un token activo o ha expirado. Ejecute el comando nuevamente para generar uno nuevo.", flags: MessageFlags.Ephemeral });
+        waitCommand.delete(commandId);
+        return;
+    }
+
+    if (providedToken !== cacheToken.token) {
+        await interaction.reply({ content: "❌ Token incorrecto. Acceso denegado.", flags: MessageFlags.Ephemeral });
+        warn(`⚠️ TOKEN INCORRECTO proporcionado por ${interaction.user.tag}`, "SecurityToken");
+        waitCommand.delete(commandId);
+        return;
+    }
+
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    warn(`✅ TOKEN VERIFICADO por ${interaction.user.tag}`, "SecurityToken");
+    const { subcomando: subComand, serverId, idUsr } = pendingCommand;
+    try {
+        await runCommand(interaction, subComand, serverId, idUsr);
+        waitCommand.delete(commandId);
+
+        await interaction.editReply({
+            content: "✅ Token verificado correctamente. Comando ejecutado con éxito."
+        });
+
+    } catch (error) {
+        console.error("Error ejecutando comando verificado:", error);
+        await interaction.editReply({ content: "❌ Error al ejecutar el comando después de la verificación." });
+    }
+    waitCommand.delete(commandId);
+    cacheToken = null;
+    warn("Token eliminado!!!", "SecurityToken")
+}
+/* ================================================================== runCommands ================================================================== */
+
+async function runCommand(integrations: any, subcommand: string, serverId: string, idUser: string): Promise<void> {
+    switch (subcommand) {
+        case "respond":
+            await respondReport(integrations, idUser); break
+        case "checkdomains":
+            await ChekDominios(integrations); break
+        case "list":
+            await ListServers(integrations); break
+        case "rules":
+            await sendLimitsDashboard(integrations, serverId); break
+        case "restart":
+            await Restart(integrations); break
+        case "leave":
+            await LeaveServer(integrations, serverId); break
+        case "purge":
+            await purgueConfig(integrations, serverId); break
+        default:
+            await integrations.reply({ content: "Subcomando no reconocido.", flags: MessageFlags.Ephemeral });
+    }
+}
+
+/* ================================================================== Listado ================================================================== */
+async function ListServers(interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.deferred) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
+    const guilds = interaction.client.guilds.cache;
+    const guildCount = guilds.size;
+
+    if (guildCount === 0) { await interaction.editReply({ content: "No estoy en ningún servidor actualmente." }); return; }
 
     let serverList = `Lista de Servidores - Total: ${guildCount}\n\n`;
     guilds.forEach(guild => {
@@ -133,29 +195,28 @@ async function ListServers(interaction: ChatInputCommandInteraction): Promise<vo
 
     const buffer = Buffer.from(serverList, 'utf-8');
 
-    await interaction.reply({
+    await interaction.editReply({
         content: `**Estoy en ${guildCount} servidores:**\n\n📁 Aquí tienes la lista completa.`,
         files: [{
             attachment: buffer,
             name: `servers.txt`
         }],
-        flags: MessageFlags.Ephemeral
     });
 
     debug(`Lista de servidores generada para el dueño. Total: ${guildCount}`, "LeaveServerCommand");
 }
 
 /* ================================================================== Leave Servers ================================================================== */
-async function LeaveServer(interaction: ChatInputCommandInteraction, tkn: string, serverId: string): Promise<void> {
-    if (serverId === "nosrv") { await interaction.reply({ content: "❌ Debes proporcionar el ID del servidor a abandonar en la opción 'server_id'.", flags: MessageFlags.Ephemeral }); return; }
-    const chkTkn = tknChek(tkn);
-    if (!chkTkn.valid) { await interaction.reply({ content: chkTkn.error, flags: MessageFlags.Ephemeral }); return; }
-
-    if (!/^\d+$/.test(serverId)) { await interaction.reply({ content: "❌ El ID del servidor debe contener solo números.", flags: MessageFlags.Ephemeral }); return; }
+async function LeaveServer(interaction: ChatInputCommandInteraction, serverId: string): Promise<void> {
+    if (!interaction.deferred) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
+    if (serverId === "nosrv") { await interaction.editReply({ content: "❌ Debes proporcionar el ID del servidor a abandonar en la opción 'server_id'." }); return; }
+    if (!/^\d+$/.test(serverId)) { await interaction.editReply({ content: "❌ El ID del servidor debe contener solo números." }); return; }
 
     try {
         const guild = await interaction.client.guilds.fetch(serverId).catch(() => null);
-        if (!guild) { await interaction.reply({ content: `❌ No se encontró ningún servidor con el ID: \`${serverId}\``, flags: MessageFlags.Ephemeral }); return; }
+        if (!guild) { await interaction.editReply({ content: `❌ No se encontró ningún servidor con el ID: \`${serverId}\`` }); return; }
 
         const guildName = guild.name;
         const guildInfo = {
@@ -177,10 +238,9 @@ async function LeaveServer(interaction: ChatInputCommandInteraction, tkn: string
                 .setStyle(ButtonStyle.Secondary);
 
             const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirmButton, cancelButton);
-            const confirmationMessage = await interaction.reply({
+            const confirmationMessage = await interaction.editReply({
                 content: `⚠️ **¿Estás seguro?**\nVas a hacer que el bot abandone un servidor grande:\n**${guild.name}** (${guild.id})\n👥 ${guild.memberCount} miembros`,
                 components: [row],
-                flags: MessageFlags.Ephemeral,
             });
 
             try {
@@ -205,12 +265,11 @@ async function LeaveServer(interaction: ChatInputCommandInteraction, tkn: string
                     throw err;
                 }
             }
-
             return;
         }
 
         await guild.leave();
-        await interaction.reply({ content: `✅ He abandonado **${guildName}** exitosamente.`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: `✅ He abandonado **${guildName}** exitosamente.` });
         cacheToken = null;
         warn(`Token utilizado y borrado; se abandono el servidor: ${guild.name} (${guild.id})`, "LeaveServerCommand")
     } catch (err: any) {
@@ -227,9 +286,8 @@ async function LeaveServer(interaction: ChatInputCommandInteraction, tkn: string
         }
 
         try {
-            await interaction.reply({
+            await interaction.editReply({
                 content: errorMessage,
-                flags: MessageFlags.Ephemeral
             });
         } catch {
             try {
@@ -244,9 +302,10 @@ async function LeaveServer(interaction: ChatInputCommandInteraction, tkn: string
 
 /* ================================================================== Dominios ================================================================== */
 export async function ChekDominios(interaction: ChatInputCommandInteraction): Promise<void> {
-    try {
+    if (!interaction.deferred) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
+    }
+    try {
         await interaction.editReply({
             content: "🔄 Verificando estado de dominios (Comando Owner)..."
         });
@@ -271,6 +330,9 @@ export async function ChekDominios(interaction: ChatInputCommandInteraction): Pr
 
 /* ================================================================== Reinico ================================================================== */
 async function Restart(interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.deferred) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
     const confirmButton = new ButtonBuilder()
         .setCustomId('confirm_restart')
         .setLabel('Confirmar Reinicio')
@@ -282,10 +344,9 @@ async function Restart(interaction: ChatInputCommandInteraction): Promise<void> 
         .setStyle(ButtonStyle.Secondary);
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirmButton, cancelButton);
-    const confMsg = await interaction.reply({
+    const confMsg = await interaction.editReply({
         content: `⚠️ **¿Estás seguro?**\nVas a reiniciar el bot.`,
         components: [row],
-        flags: MessageFlags.Ephemeral
     });
 
     try {
@@ -317,44 +378,39 @@ async function Restart(interaction: ChatInputCommandInteraction): Promise<void> 
     }
 }
 
-/* ================================================================== Systema de Reportes ================================================================== */
 async function respondReport(interaction: ChatInputCommandInteraction, idUser: string): Promise<void> {
     if (idUser === "noid") {
-        await interaction.reply({ content: "❌ Faltó el ID del usuario a responder en la opción 'id_usr'.", flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: "❌ Faltó el ID del usuario a responder en la opción 'id_usr'." });
         return;
     }
-
     const idUserChek = await interaction.client.users.fetch(idUser).catch(() => null);
     if (!idUserChek) {
-        await interaction.reply({ content: "❌ No se pudo encontrar al usuario.", flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: "❌ No se pudo encontrar al usuario." });
         return;
     }
 
-    const reportModal = new ModalBuilder()
-        .setCustomId(`respondReport_${idUser}`)
-        .setTitle(`Respuesta de reporte`);
+    const btnOpenReport = new ButtonBuilder()
+        .setCustomId(`btn_openreport_${idUser}`)
+        .setLabel('Escribir Respuesta')
+        .setEmoji('📝')
+        .setStyle(ButtonStyle.Primary);
 
-    const repIn = new TextInputBuilder()
-        .setCustomId(`reportcont`)
-        .setLabel("Escribe tu respuesta:")
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true);
-
-    const rMod = new ActionRowBuilder<TextInputBuilder>().addComponents(repIn);
-    reportModal.addComponents(rMod);
-
-    await interaction.showModal(reportModal);
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(btnOpenReport);
+    await interaction.editReply({
+        content: `✅ Usuario encontrado: **${idUserChek.tag}**.\nHaz clic en el botón para redactar tu mensaje.`,
+        components: [row]
+    });
 }
 
 export async function respondReportModal(interaction: ModalSubmitInteraction): Promise<void> {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const respondMsg = interaction.fields.getTextInputValue('reportcont');
     const idUser = interaction.customId.split('_')[1];
 
     try {
         const targetUser = await interaction.client.users.fetch(idUser).catch(() => null);
-
         if (!targetUser) {
-            await interaction.reply({ content: "❌ No se pudo encontrar al usuario para enviar la respuesta.", flags: MessageFlags.Ephemeral });
+            await interaction.editReply({ content: "❌ No se pudo encontrar al usuario para enviar la respuesta." });
             return;
         }
 
@@ -365,20 +421,19 @@ export async function respondReportModal(interaction: ModalSubmitInteraction): P
             .setTimestamp();
 
         await targetUser.send({ embeds: [embed] });
-        await interaction.reply({ content: `✅ Respuesta enviada a **${targetUser.tag}**.`, flags: MessageFlags.Ephemeral });
-
+        await interaction.editReply({ content: `✅ Respuesta enviada a **${targetUser.tag}**.` });
     } catch (err) {
         error(`Error en respondReportModal: ${err}`, "OwnerCommands");
-        await interaction.reply({ content: "❌ Error al enviar la respuesta. ¿Tiene el usuario los DMs cerrados?", flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: "❌ Error al enviar la respuesta. ¿Tiene el usuario los DMs cerrados?" });
     }
 }
 
 /* ================================================================== BD purge COnfig ================================================================== */
-async function purgueConfig(interaction: ChatInputCommandInteraction, idServer: string, tkn: string) {
-    if (idServer === "nosrv") { await interaction.reply({ content: "❌ No se proporcionó el ID del servidor a purgar.", flags: MessageFlags.Ephemeral }); return }
-    const chkTkn = tknChek(tkn);
-    if (!chkTkn.valid) { await interaction.reply({ content: chkTkn.error, flags: MessageFlags.Ephemeral }); return }
-
+async function purgueConfig(interaction: ChatInputCommandInteraction, idServer: string) {
+    if (!interaction.deferred) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
+    if (idServer === "nosrv") { await interaction.editReply({ content: "❌ No se proporcionó el ID del servidor a purgar." }); return }
     const guild = await interaction.client.guilds.fetch(idServer).catch(() => null);
     const chkIdServer = guild ? guild.id : { id: idServer } as any;
     let msgPurg = guild ? `⚠️ SE INICIARA LA PURGA DE BASE DE DATOS DEL SERVIDOR: **${guild.name}** | (${guild.id})` : `⚠️ SE PURGARA UN SERVIDOR QUE YA NO EXISTE, ID: ${idServer}!!`;
@@ -394,10 +449,9 @@ async function purgueConfig(interaction: ChatInputCommandInteraction, idServer: 
         .setStyle(ButtonStyle.Secondary);
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirmButton, cancelButton);
-    const confMsg = await interaction.reply({
+    const confMsg = await interaction.editReply({
         content: msgPurg,
-        components: [row],
-        flags: MessageFlags.Ephemeral
+        components: [row]
     });
 
     try {
@@ -430,13 +484,11 @@ async function purgueConfig(interaction: ChatInputCommandInteraction, idServer: 
 }
 
 /* ================================================================== setLimitsModal ================================================================== */
-export async function sendLimitsDashboard(interaction: ChatInputCommandInteraction | ButtonInteraction, idGuild: string, tkn: string) {
+export async function sendLimitsDashboard(interaction: ChatInputCommandInteraction | ButtonInteraction | ModalSubmitInteraction, idGuild: string) {
     if (interaction.isButton && interaction.isButton()) {
         await interaction.deferUpdate();
-    } else if (interaction.isCommand && interaction.isCommand()) {
+    } else {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-        const chkTkn = tknChek(tkn);
-        if (!chkTkn.valid) { await interaction.editReply({ content: chkTkn.error }); return; }
     }
 
     const guild = await interaction.client.guilds.fetch(idGuild).catch(() => null);

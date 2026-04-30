@@ -25,36 +25,42 @@ Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dom
 
  Varios comandos como "/embed configurar", opciones de /help, usan Autocompletado debido al limite de 25 items, solo escribie lo que buscas hasta que aparesca. 
 
- - /help = Info del bot, ayuda sobre los comandos y si puedes usarlos.
+ - /help:
+    - Report: Permite mandar mansajes al desarrollador.
+    - Command: Muetras la informacion del comando seleccionmado, si puedes ejecutarlo y si cuanta con permisos en el canal para hacaerlo.
  - /embed configurar = Desactivar & Cambiar Dominio.
  - /rolemoji: 
-    - help = Informacion y muetra si cuenta con los permisos necesarios para funcionar.
-    - set = Establecer Emojis para reaccionar y recibir rol asociado. 
-    - list = Muestra todo los "Rolemoji" hechos.
-    - remove = Remover el "Rolemojis".
- - /welcome = Establece un mensaje de bienvenida, puedes usar <user> para mencionar al que se une.
+    - set: Establecer Emojis para reaccionar y recibir rol asociado. 
+    - list: Muestra todo los "Rolemoji" hechos.
+    - remove: Remover el "Rolemojis".
+ - /welcome: Establece un mensaje de bienvenida, puedes usar <user> para mencionar al que se une.
  - /test: 
-    - Channel/Guild = Revisa por canal o todo el server, (max 24 canales), donde funciona el bot.
-    - Embed = para ver las configuraciones de los embeddings. 
-    - Chekdomainds = Pingea a los dominios de los embeds. (solo los default)
+    - Channel/Guild: Revisa por canal o todo el server, (max 24 canales), donde funciona el bot.
+    - Embed: para ver las configuraciones de los embeddings. 
+    - Chekdomainds: Pingea a los dominios de los embeds. (solo los default)
  - /work:
-    - workhere = permite desactivar la funcion de embed en el canal.
-    - replybot = habilita que procese link provenientes de bots en el canal.
+    - workhere: permite desactivar la funcion de embed en el canal.
+    - replybot: habilita que procese link provenientes de bots en el canal.
  - /youtube:
-    - lista = Muestra todos los canales que se suiguen en el server.
-    - seguir = Sigue el canal de youtube.
-    - dejar = Dejas de seguir el canal de youtube.
-    - test = Piblica el ultimo video del canal seleccionado. 
+    - lista: Muestra todos los canales que se suiguen en el server.
+    - seguir: Sigue el canal de youtube.
+    - dejar: Dejas de seguir el canal de youtube.
+    - test: Piblica el ultimo video del canal seleccionado. 
  - /reddit:
-    - lista = Muestra los subreddits que se suiguen en el server.
-    - seguir = Seguir un Subreddit.
-    - dejar = Deja de seguir un Subreddit.
-    - test = Publica el ultimo pos del subreddit.
+    - lista: Muestra los subreddits que se suiguen en el server.
+    - seguir: Seguir un Subreddit.
+    - dejar: Deja de seguir un Subreddit.
+    - test: Publica el ultimo pos del subreddit.
  - /cleanup:
     - start: Apartir o anteriores del mesanje.
     - menssage_id: Id del mensaje del cual see parte.
     - count: cantidad de mesnjes a borrar, Limitado a 100 porlimitaciones de discord.
     - type: Solo mesnajes de bots, solo usuarios, todos.
+- /cronpost
+    - crear: Programa un post automatico, Pueden ser fechas exactas o todos/un dia de la semana.
+    - lista: Muestra todos los post automaticos acctivos.
+    - showpost: Muestra la previa del post automatico.
+    - borrar: Borrar el progrma ade un post automatico.
  - /jointovoice: 
     - set: Establece el canal maestro de voz
     - status: Muestra los canales temporales y configuraciones.
@@ -94,60 +100,67 @@ Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dom
 services:
   Meltry:
     image: nowaru124/meltryllis:lastest
-    container_name:    
+    container_name: botmeltrys
     restart: "recomendado como: on-failure:2"
     environment:
     #Cosas del Owner
-      - DISCORD_BOT_TOKEN=
-      - HOST_DISCORD_USER_ID=
-      - REPORT_CHANNEL_ID=
+      DISCORD_BOT_TOKEN: "Discord Token" #Developer portal > APP > Bot  https://discord.com/developers/applications
+      HOST_DISCORD_USER_ID: "Tu ID de Usuario de discord" #Marca a quien reconoce como dueño para ciertos comandos.
+      REPORT_CHANNEL_ID: "guildId|channelId" #Aqui llegarn los reportes.
     #Idiomas
-      - LANGS_SUPPORTED=
-      - LOCALE=
+      LANGS_SUPPORTED: "es, en, pt" #idiomas que soporta el bot
+      LOCALE: "es" #Idioma que tendra los comandos
     #Configuraciones
-      - DEBUG_MODE=
-      - WELCOME_BANNER_URL= 
-      - PUID=
-      - PGID=
-      - TZ=
+      DEBUG_MODE: "0" #si se asigna 0 es debug, cualquier otros es produccion
+      WELCOME_BANNER_URL: "https://host.com/img.jpg" #URL para el Banner, 200x600
+      PUID: 1000 #Usuario ID/Grupo para escribir datos
+      PGID: 1000 #Grupo ID/Grupo para escribir datos
+      TZ: "America/New_York" #Zona Horaria importante para /cronpost y el log
     #Funciones "follow"
-      - YOUTUBE_CHECK_TIMMER=
-      - AUTO_CLEAN_YOUTUBE_TIMMER=
-      - REDDIT_CHECK_TIMMER=
-      - REDDIT_CLIENT_ID=
-      - REDDIT_CLIENT_SECRET=
-      - MANGADEX_CHECK_TIMMER=
+      MANGADEX_CHECK_TIMMER: 20 #Tiempo entre revisiones. Def.&Min:20m
+      YOUTUBE_CHECK_TIMMER: 30 #Tiempo entre revisiones. Def:10m Min:5m
+      REDDIT_CHECK_TIMMER: 10 #Tiempo entre revisiones. Def:10m Min:3m
+      REDDIT_CLIENT_ID: "tu Token de app de reddit" #[Reddit APPs Client](https://www.reddit.com/prefs/apps)
+      REDDIT_CLIENT_SECRET: "tu Token de app de reddit" #[Reddit APPs Token](https://www.reddit.com/prefs/apps)
     #Base de datos    
-      - DB_HOST=
-      - DB_USER=
-      - DB_PASSWORD=
-      - DB_DATABASE=
-    #Lavalink
-      - LAVALINK_NAME=
-      - LAVALINK_HOST=
-      - LAVALINK_PORT=
-      - LAVALINK_PASSWORD=
-    #Dominios embeding         
-      - INSTAGRAM_FIX_URL=
-      - PIXIV_FIX_URL=
-      - REDDIT_FIX_URL=
-      - TIKTOK_FIX_URL=
-      - TWITTER_FIX_URL=
-      - YOUTUBE_FIX_URL=
-      - BSKY_FIX_URL=
-      - TWITCH_FIX_URL=
-      - BILILI_FIX_URL=
-      - THRENDS_FIX_URL=
-      - DEVIAN_FIX_URL=
-      - TUMBLR_FIX_URL=
-      - FURAFF_FIX_URL=
-      - IMGUR_FIX_URL=
-      - IWARA_FIX_URL=
-      - EMBEDEZ_SFW= #Los sitios que embedez soporta (SFW) https://embedez.com/api
-      - EMBEDEZ_NSFW= #Los sitios que embedez soporta (NSFW) https://embedez.com/api
+      DB_HOST: "127.0.0.1" #IP/Dominio/Docker name
+      DB_USER: "MYSQL_USER" 
+      DB_PASSWORD: "MYSQL_PASSWORD"
+      DB_DATABASE: "MYSQL_DATABASE"
+    #Lavalink si falta uno se considera desactivado el comando
+      LAVALINK_NAME: "mylavalink" #Nombre con el que se identifica
+      LAVALINK_HOST: "127.0.0.1" #IP/Dominio/Docker name
+      LAVALINK_PORT: "2333" #Puerto default no seguro
+      LAVALINK_PASSWORD: "youshallnotpass" # contraseña si no es la default
+    #Lavalink nodos adicionales
+      LAVALINK_NAME_{id}:
+      LAVALINK_HOST_{id}:
+      LAVALINK_PORT_{id}:
+      LAVALINK_PASSWORD_{id}:
+    #Dominios embeding. Puedes usar mas de un dominio separados por "|" y se recomienda poner el original al final
+      INSTAGRAM_FIX_URL: 
+      FACEBOOK_FIX_URL: facebed.com|facebook.com
+      PIXIV_FIX_URL: phixiv.net|pixiv.net
+      REDDIT_FIX_URL: rxddit.com|reddit.com
+      TIKTOK_FIX_URL: tnktok.com|tiktok.com
+      TWITTER_FIX_URL: fxtwitter.com|fixvx.com|twitter.com
+      YOUTUBE_FIX_URL: youtu.be
+      BSKY_FIX_URL: bskyx.app|bsky.app
+      TWITCH_FIX_URL: fxtwitch.seria.moe|twitch.tv
+      BILILI_FIX_URL: vxbilibili.com|bilibili.com
+      THRENDS_FIX_URL: fixthreads.net|threads.com
+      DEVIAN_FIX_URL: fixdeviantart.com|deviantart.com
+      TUMBLR_FIX_URL: txtumblr.com|tumblr.com
+      FURAFF_FIX_URL: fxfuraffinity.net|furaffinity.net
+      IMGUR_FIX_URL:
+      IWARA_FIX_URL: fxiwara.seria.moe
+    #Sitios soportados por Embedez https://embedez.com/api
+      APIs_FIX_URL: embedez.com/download|discord.com #Recomendado no mover, tiene cierta funcion pero no afecta el embeding.
+      EMBEDEZ_SFW:  tiktok.com|reddit.com|ifunny.co|snapchat.com|imgur.com|pinterest.com
+      EMBEDEZ_NSFW: danbooru.donmai.us|derpibooru.org|e621.net|e926.net|gelbooru.com|rule34.xxx|safebooru.org|hypnohub.net|konachan.com|yande.re|rule34.paheal.net|xbooru.com|tbib.org
     #Configuraciones Bot 
-      - BOT_STATUS=
-      - STATUS_TIME_MINUTOS=
+      BOT_STATUS: "Playing|Guns and Nuns: Storming Hell;Listening|kyOresu - MAGICAL DOOMER" #Tipos de activodad "Playing", "Watching", "Listening", "Streaming", "Competing"
+      STATUS_TIME_MINUTOS: 60 #Tiempo de Rotacion de BOT_STATUS
     volumes:
       - ./bot:/app/logs
     depends_on:
@@ -161,12 +174,12 @@ services:
     ports:
       - 3306:3306
     environment:
-      - MYSQL_ROOT_PASSWORD=
-      - MYSQL_USER=
-      - MYSQL_PASSWORD=
-      - MYSQL_DATABASE=
-      - PGID=
-      - PUID=
+      MYSQL_ROOT_PASSWORD: "MYSQL_ROOT_PASSWORD" #recuerda poner una contraseña segura
+      MYSQL_USER: "MYSQL_USER" 
+      MYSQL_PASSWORD: "MYSQL_PASSWORD" #recuerda poner una contraseña segura
+      MYSQL_DATABASE: "MYSQL_DATABASE"
+      PGID: 1000 #Grupo ID/Grupo para escribir datos
+      PUID: 1000 #Usuario ID/Grupo para escribir datos
     volumes:
       - ./db:/var/lib/mysql
       
@@ -175,173 +188,132 @@ services:
     image: ghcr.io/lavalink-devs/lavalink:4-alpine
     container_name: lavalink-server
     ports:
-      - "2333:2333"
+      - 2333:2333
     environment:
-      - SERVER_PORT=
-      - LAVALINK_SERVER_PASSWORD=
+      SERVER_PORT: "2333"
+      LAVALINK_SERVER_PASSWORD: "youshallnotpass"
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml # es mejor setear tus configuraciones en el archivo yml.
     restart: unless-stopped
 #EN CASO DE USAR UN LAVALINK EXTERNO BORRA ESTO
 
 ```
-
-<summary>🐳 Valores para variables</summary><br>
- 
-| Variable Bot | Valores |
-| --- | --- |
-| `DISCORD_BOT_TOKEN` | TOKEN de tu bot |
-| `HOST_DISCORD_USER_ID`  | Tu ID de Usuario de discord  |
-| `REPORT_CHANNEL_ID` | guildId \| channelId |
-| `LANGS_SUPPORTED` | Idiomas que soporta tu bot |
-| `LOCALE` | Idioma por default que tendra el bot |
-| `DEBUG_MODE` | "Debug mode *0* \| Produccion *>0*" |
-| `YOUTUBE_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:5m |
-| `AUTO_CLEAN_YOUTUBE_TIMMER` | Tiempo entre purgas de la BD Youtube |
-| `MANGADEX_CHECK_TIMMER` | Tiempo entre revisiones. Def.&Min:20m  |
-| `REDDIT_CHECK_TIMMER` | Tiempo entre revisiones. Def:10m Min:3m |
-| `REDDIT_CLIENT_ID`  | [Reddit APPs Client](https://www.reddit.com/prefs/apps) |
-| `REDDIT_CLIENT_SECRET`  | [Reddit APPs Token](https://www.reddit.com/prefs/apps) |
-| `WELCOME_BANNER_URL` | URL para el Banner, 200x600|
-| `PUID & PGID` | Usuario ID/Grupo para escribir datos |
-| `TZ` | Zona Horaria "America/New_York" |
-| `DB_HOST` | IP o Dominio |
-| `DB_USER` | Usuario BD \| MYSQL_USER |
-| `DB_PASSWORD` | Password BD \| MYSQL_PASSWORD |
-| `DB_DATABASE` | Nombre BD \| MYSQL_DATABASE |
-| `"Sitio"_FIX_URL` | Dominio a remplazar |
-| `EMBEDEZ_NSFW/EMBEDEZ_SFW` | Sitios soportados por [Embedez](https://embedez.com/api) |
-| `BOT_STATUS` | estado \| tipo de actividad |
-| `STATUS_TIME_MINUTOS` | Tiempo de Rotacion de *BOT_STATUS* |
-| `LAVALINK_NAME` | Nombre de Nodo |
-| `LAVALINK_HOST` | IP / URL / name |
-| `LAVALINK_PORT` | default: 2333 |
-| `LAVALINK_PASSWORD` | default: youshallnotpass |
-
-__Lavalink servers adicionales:__
-Si al nodo de Lavalink principal le falta algun campo este se deshabilitara junto con sus comandos y ayuda.<br>
-LAVALINK_NAME_"<Name>" | LAVALINK_HOST_"<Name>" | LAVALINK_PORT_"<Name>" | LAVALINK_PASSWORD_"<Name>"<br>
-Para añadir mas NODOS solo añade y cambia <Name> por cualquier nombre (alfanumerico) y los datos correspondientes.<br>
-__**Ejemplo: LAVALINK_NAME_JP=ServerJP | LAVALINK_HOST_JP=lavalink.host | LAVALINK_PORT_JP=2333 | LAVALINK_PASSWORD_JP=youshallnotpass**__<br>
-
- &nbsp;**_ "YOUTUBE & REDDIT & MANGADEX CHECK_TIMMER" cuentan con timmer minimo interno para evitar bloqueos de IP _**
-
-| Variable BD  | Valores |
-| --- | --- |
-| `MYSQL_ROOT_PASSWORD` | Establece contraseña Admin |
-| `MYSQL_USER` | Usuario de la Base de Datos |
-| `MYSQL_PASSWORD` | Contraseña de Base de datos |
-| `MYSQL_DATABASE` | Nombre de Base de datos |
-| `PUID & PGID` | Usuario ID/Grupo para escribir datos |
-
 </details>
 
 
 <details> <summary>🌳 Archivos en el Proyecto</summary>
 
 ```
-Meltryllis con Arma/
-├── /add
-│   ├── /langs  
-│   │   ├── /es
-│   │   │   └── {ns}.json
-│   │   └── /en
-│   │       └── {ns}.json
-│   └── /fonts
-│       ├── Bitcount.ttf
-│       └── StoryScript-Regular.ttf
-├── /logs
-│   └── {logLevel}.log
-├── /src
-│   ├── /Events-Commands
-│   │   ├── /commandsButtons
-│   │   │   └── roleButton.ts
-│   │   ├── /commandsModales
-│   │   │   └── reportHelp.ts
-│   │   ├── /commands
-│   │   │   ├── cleanup.ts
-│   │   │   ├── embed.ts
-│   │   │   ├── help.ts
-│   │   │   ├── jointovoice.ts
-│   │   │   ├── mangadex.ts
-│   │   │   ├── music.ts
-│   │   │   ├── permission.st
-│   │   │   ├── post.ts
-│   │   │   ├── reddit.ts
-│   │   │   ├── replybots.ts
-│   │   │   ├── rolemoji.ts
-│   │   │   ├── test.ts
-│   │   │   ├── welcome.ts
-│   │   │   ├── work.ts
-│   │   │   └── youtube.ts
-│   │   ├── /eventGear
-│   │   │   ├── lavalinkConnect.ts
-│   │   │   ├── mangadexCheck.ts
-│   │   │   ├── redditCheck.ts
-│   │   │   ├── rolemojiEvents.ts
-│   │   │   ├── voiceEvents.ts
-│   │   │   ├── welcomeEvents.ts
-│   │   │   ├── youtubeCheck.ts
-│   │   │   └── youtubeTools.ts
-│   │   └── upCommands.ts
-│   ├── /sys
-│   │   ├── /BD-Engine
-│   │   │   ├── /links
-│   │   │   │   ├── Embed.ts
-│   │   │   │   ├── JoinVoice.ts
-│   │   │   │   ├── Mangadex.ts
-│   │   │   │   ├── Permission.ts
-│   │   │   │   ├── Reddit.ts
-│   │   │   │   ├── Replybots.ts
-│   │   │   │   ├── Rolemoji.ts
-│   │   │   │   ├── Welcome.ts
-│   │   │   │   └── Youtube.ts
-│   │   │   └── database.ts
-│   │   ├── /embedding
-│   │   │   ├── /webs
-│   │   │   │   ├── Bilibili.ts
-│   │   │   │   ├── Bsky.ts
-│   │   │   │   ├── DeviantArt.ts
-│   │   │   │   ├── Facebook.ts
-│   │   │   │   ├── Furaffinity.ts
-│   │   │   │   ├── Imgur.ts
-│   │   │   │   ├── Instagram.ts
-│   │   │   │   ├── Iwara.ts
-│   │   │   │   ├── Pixiv.ts
-│   │   │   │   ├── Reddit.ts
-│   │   │   │   ├── Threads.ts
-│   │   │   │   ├── TikTok.ts
-│   │   │   │   ├── Tumblr.ts
-│   │   │   │   ├── Twitch.ts
-│   │   │   │   ├── Twitter.ts
-│   │   │   │   └── YouTube.ts
-│   │   │   ├── ApiReplacement.ts
-│   │   │   ├── domainChecker.ts
-│   │   │   ├── EmbedingConfig.ts 
-│   │   │   ├── embedService.ts
-│   │   │   ├── index.ts
-│   │   │   └── RuleReplacement.ts
-│   │   ├── /i18n
-│   │   │   ├── index.ts
-│   │   │   └── nsKeyCheck.ts
-│   │   ├── /zGears
-│   │   │   ├── auxiliares.ts
-│   │   │   ├── formularios.ts
-│   │   │   ├── mPermisions.ts
-│   │   │   ├── neTools.ts
-│   │   │   ├── owner.ts
-│   │   │   ├── RedditApi.ts
-│   │   │   └── setStatus.ts
-│   │   ├── core.ts
-│   │   ├── environment.ts
-│   │   └── logging.ts
-│   └── index.ts
-├── .env
-├── Dockerfile
-├── package-lock.json
-├── package.json
-├── tsconfig.json
-└── tsconfig.prod.json
-   
+📦
+┣ 📂src
+┃ ┣ 📂bgProcess
+┃ ┃ ┣ 📜exeCron.ts  
+┃ ┃ ┣ 📜lavalinkConnect.ts
+┃ ┃ ┣ 📜mangadexChek.ts
+┃ ┃ ┣ 📜redditCheck.ts
+┃ ┃ ┣ 📜rolemojiEvents.ts
+┃ ┃ ┣ 📜voicEvent.ts
+┃ ┃ ┣ 📜welcomeEvents.ts
+┃ ┃ ┗ 📜youtubeCheck.ts
+┃ ┣ 📂commands
+┃ ┃ ┣ 📂commandButtons
+┃ ┃ ┃ ┣ 📜buttonLink.ts
+┃ ┃ ┃ ┣ 📜NewLimits.ts
+┃ ┃ ┃ ┗ 📜roleButton.ts
+┃ ┃ ┣ 📂commandModales
+┃ ┃ ┃ ┣ 📜modalLimits.ts
+┃ ┃ ┃ ┗ 📜reportHelp.ts
+┃ ┃ ┣ 📂commands
+┃ ┃ ┃ ┣ 📜cleanup.ts
+┃ ┃ ┃ ┣ 📜cronpost.ts
+┃ ┃ ┃ ┣ 📜embed.ts
+┃ ┃ ┃ ┣ 📜help.ts
+┃ ┃ ┃ ┣ 📜jointovoice.ts
+┃ ┃ ┃ ┣ 📜mangadex.ts
+┃ ┃ ┃ ┣ 📜music.ts
+┃ ┃ ┃ ┣ 📜permission.ts
+┃ ┃ ┃ ┣ 📜post.ts
+┃ ┃ ┃ ┣ 📜reddit.ts
+┃ ┃ ┃ ┣ 📜rolemoji.ts
+┃ ┃ ┃ ┣ 📜test.ts
+┃ ┃ ┃ ┣ 📜welcome.ts
+┃ ┃ ┃ ┣ 📜work.ts
+┃ ┃ ┃ ┗ 📜youtube.ts
+┃ ┃ ┗ 📜upCommands.ts
+┃ ┣ 📂sys
+┃ ┃ ┣ 📂DB-Engine
+┃ ┃ ┃ ┣ 📂links
+┃ ┃ ┃ ┃ ┣ 📜Cronpost.ts
+┃ ┃ ┃ ┃ ┣ 📜Embed.ts
+┃ ┃ ┃ ┃ ┣ 📜JointoVoice.ts
+┃ ┃ ┃ ┃ ┣ 📜Mangadex.ts
+┃ ┃ ┃ ┃ ┣ 📜noRules.ts
+┃ ┃ ┃ ┃ ┣ 📜Permission.ts
+┃ ┃ ┃ ┃ ┣ 📜Reddit.ts
+┃ ┃ ┃ ┃ ┣ 📜ReplyBots.ts
+┃ ┃ ┃ ┃ ┣ 📜roleButtons.ts
+┃ ┃ ┃ ┃ ┣ 📜Rolemoji.ts
+┃ ┃ ┃ ┃ ┣ 📜Welcome.ts
+┃ ┃ ┃ ┃ ┗ 📜Youtube.ts
+┃ ┃ ┃ ┗ 📜database.ts
+┃ ┃ ┣ 📂embedding
+┃ ┃ ┃ ┣ 📂webs
+┃ ┃ ┃ ┃ ┣ 📜Bilibili.ts
+┃ ┃ ┃ ┃ ┣ 📜Bsky.ts
+┃ ┃ ┃ ┃ ┣ 📜DeviantArt.ts
+┃ ┃ ┃ ┃ ┣ 📜Facebook.ts
+┃ ┃ ┃ ┃ ┣ 📜Furaffinity.ts
+┃ ┃ ┃ ┃ ┣ 📜Imgur.ts
+┃ ┃ ┃ ┃ ┣ 📜Instagram.ts
+┃ ┃ ┃ ┃ ┣ 📜Iwara.ts
+┃ ┃ ┃ ┃ ┣ 📜Pixiv.ts
+┃ ┃ ┃ ┃ ┣ 📜Reddit.ts
+┃ ┃ ┃ ┃ ┣ 📜Threads.ts
+┃ ┃ ┃ ┃ ┣ 📜TikTok.ts
+┃ ┃ ┃ ┃ ┣ 📜Tumblr.ts
+┃ ┃ ┃ ┃ ┣ 📜Twitch.ts
+┃ ┃ ┃ ┃ ┣ 📜Twitter.ts
+┃ ┃ ┃ ┃ ┗ 📜YouTube.ts
+┃ ┃ ┃ ┣ 📜ApiReplacement.ts
+┃ ┃ ┃ ┣ 📜domainChecker.ts
+┃ ┃ ┃ ┣ 📜EmbedingConfig.ts
+┃ ┃ ┃ ┣ 📜embedService.ts
+┃ ┃ ┃ ┣ 📜index.ts
+┃ ┃ ┃ ┗ 📜RuleReplacement.ts
+┃ ┃ ┣ 📂i18n
+┃ ┃ ┃ ┣ 📜index.ts
+┃ ┃ ┃ ┗ 📜nsKeyCheck.ts
+┃ ┃ ┣ 📂zGears
+┃ ┃ ┃ ┣ 📜auxiliares.ts
+┃ ┃ ┃ ┣ 📜IO-Server.ts
+┃ ┃ ┃ ┣ 📜mPermission.ts
+┃ ┃ ┃ ┣ 📜neTools.ts
+┃ ┃ ┃ ┣ 📜owner.ts
+┃ ┃ ┃ ┣ 📜RedditApi.ts
+┃ ┃ ┃ ┗ 📜setStatus.ts
+┃ ┃ ┣ 📜core.ts
+┃ ┃ ┣ 📜environment.ts
+┃ ┃ ┗ 📜logging.ts
+┃ ┗ 📜index.ts
+┃
+┣ 📂adds
+┃ ┣ 📂fonts
+┃ ┃ ┣ 📜Bitcount.ttf
+┃ ┃ ┗ 📜StoryScript-Regular.ttf
+┃ ┗ 📂langs
+┃   ┗ 📂es
+┃     ┣ 📜botones.json
+┃     ┣ 📜commands.json
+┃     ┣ 📜common.json
+┃     ┗ 📜help.json
+┃
+┗ 📂logs
+  ┗ 📂{date}
+    ┣ combined.log
+    ┣ debug.log
+    ┣ error.log
+    ┣ info.log
+    ┗ warn.log
+
  ```
 </details>
