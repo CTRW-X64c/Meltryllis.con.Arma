@@ -3,6 +3,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, 
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
+import { testPermisos } from "../../sys/zGears/auxiliares";
 
 export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
     const postCommand = new SlashCommandBuilder()
@@ -80,7 +81,7 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                         .setName("borrar")
                         .setDescription(i18next.t("commands:post.slashBuilder.borrar_edit_description"))
                         .setRequired(false)
-                )  
+                )
         )
         .addSubcommand(subcommand =>
             subcommand
@@ -112,11 +113,17 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
                         .setRequired(false)
                 )
         );
-        
+
     return [postCommand] as SlashCommandBuilder[];
 }
 
 export async function handlePostCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+    const guild = interaction.guild;
+    if (!guild) {
+        await interaction.reply(i18next.t("common:Errores.noGuild"));
+        return;
+    }
+
     const isAllowed = await hasPermission(interaction, interaction.commandName);
     if (!isAllowed) {
         await interaction.reply({
@@ -125,8 +132,8 @@ export async function handlePostCommand(interaction: ChatInputCommandInteraction
         });
         return;
     }
+
     const subcommand = interaction.options.getSubcommand();
-    
     switch (subcommand) {
         case "msg":
             await PostMsg(interaction);
@@ -152,22 +159,22 @@ export async function handlePostCommand(interaction: ChatInputCommandInteraction
 /////////////////// AUTODELETE ///////////////////
 
 const AUTO_DELETE_CONFIG = {
-    enabled: true, 
+    enabled: true,
     delay: 0,
-    userMessages: true, 
-    botResponses: false 
+    userMessages: true,
+    botResponses: false
 };
 
 async function autoDeleteMessage(message: Message, delay: number = AUTO_DELETE_CONFIG.delay): Promise<void> {
     if (!AUTO_DELETE_CONFIG.enabled || !message.deletable) return;
-    
+
     try {
         setTimeout(async () => {
             try {
                 await message.delete();
                 debug(`Mensaje auto-borrado: ${message.id}`, "PostCommand");
-            } catch (deleteErr) {
-                debug(`No se pudo auto-borrar mensaje ${message.id}: ${deleteErr}`, "PostCommand");
+            } catch (e) {
+                debug(`No se pudo auto-borrar mensaje ${message.id}: ${e}`, "PostCommand");
             }
         }, delay);
     } catch (err) {
@@ -185,7 +192,7 @@ function shouldDelete(interaction: ChatInputCommandInteraction, defaultBehavior:
 async function PostMsg(interaction: ChatInputCommandInteraction): Promise<void> {
     const targetChannel = interaction.options.getChannel("canal") as TextChannel;
     const deleteMode = shouldDelete(interaction, true); // Default: true para msg
-    
+
     if (!targetChannel || !targetChannel.isTextBased()) {
         await interaction.reply({
             content: i18next.t("common:Errores.noChannel"),
@@ -194,24 +201,31 @@ async function PostMsg(interaction: ChatInputCommandInteraction): Promise<void> 
         return;
     }
 
+    const currentChannel = interaction.channel as TextChannel;
+    if (!currentChannel) {
+        await interaction.reply({ content: i18next.t("commands:post.interacciones.canal_error_permission"), flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const me = targetChannel.permissionsFor(interaction.guild!.members.me!);
+    const perChTo = testPermisos(me, "viewCh|sendMsg|addlink|addfiles");
+    if (perChTo.some(p => p.includes("❌"))) {
+        await interaction.reply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${targetChannel.id}>`, a2: perChTo.join("\n") }) });
+        return;
+    }
+
+    await interaction.reply({
+        content: i18next.t("commands:post.interacciones.mensaje", { a1: `${targetChannel}` }),
+        flags: MessageFlags.Ephemeral
+    });
+
     try {
-        await interaction.reply({
-            content: i18next.t("commands:post.interacciones.mensaje", { a1: `${targetChannel}`}),
-            flags: MessageFlags.Ephemeral
-        });
-
-        const currentChannel = interaction.channel as TextChannel;
-        if (!currentChannel) {
-            await interaction.followUp({ content: i18next.t("commands:post.interacciones.canal_error_permission"), flags: MessageFlags.Ephemeral });
-            return;
-        }
-
         const filter = (m: Message) => m.author.id === interaction.user.id;
-        
-        const collector = currentChannel.createMessageCollector({ 
-            filter, 
-            time: 180_000, 
-            max: 1 
+
+        const collector = currentChannel.createMessageCollector({
+            filter,
+            time: 180_000,
+            max: 1
         });
 
         if (!collector) {
@@ -243,43 +257,43 @@ async function PostMsg(interaction: ChatInputCommandInteraction): Promise<void> 
                     files: files
                 });
 
-                await interaction.followUp({ 
-                    content: i18next.t("commands:post.interacciones.success", { a1: `${targetChannel}`}),
+                await interaction.followUp({
+                    content: i18next.t("commands:post.interacciones.success", { a1: `${targetChannel}` }),
                     flags: MessageFlags.Ephemeral
                 });
-                
+
                 debug(`Anuncio publicado por ${interaction.user.tag} en #${targetChannel.name}`, "PostCommand");
-                
+
                 if (deleteMode && AUTO_DELETE_CONFIG.userMessages) {
                     await autoDeleteMessage(message);
                 }
-                
+
                 collector.stop("success");
 
             } catch (err) {
                 error(`Error al enviar el anuncio: ${err}`, "PostCommand");
-                await interaction.followUp({ 
+                await interaction.followUp({
                     content: i18next.t("commands:post.interacciones.error_publicar"),
-                    flags: MessageFlags.Ephemeral 
+                    flags: MessageFlags.Ephemeral
                 });
             }
         });
 
         collector.on('end', (_: any, reason: string) => {
             if (reason === 'time') {
-                interaction.followUp({ 
+                interaction.followUp({
                     content: i18next.t("commands:post.interacciones.timeout"),
-                    flags: MessageFlags.Ephemeral 
-                }).catch(() => {});
+                    flags: MessageFlags.Ephemeral
+                }).catch(() => { });
             }
         });
 
     } catch (err) {
         error(`Error en comando post: ${err}`, "PostCommand");
         if (!interaction.replied && !interaction.deferred) {
-            await interaction.reply({ 
+            await interaction.reply({
                 content: i18next.t("commands:post.interacciones.not_found"),
-                flags: MessageFlags.Ephemeral 
+                flags: MessageFlags.Ephemeral
             });
         }
     }
@@ -295,9 +309,9 @@ async function PostCopy(interaction: ChatInputCommandInteraction): Promise<void>
         const messageId = interaction.options.getString("mensaje_id", true);
         const targetChannelOption = interaction.options.getChannel("canal_destino");
         const sourceChannelOption = interaction.options.getChannel("canal_origen");
-        
+
         const sourceChannel = (sourceChannelOption as TextChannel) || (interaction.channel as TextChannel);
-        const targetChannel = (targetChannelOption as TextChannel); 
+        const targetChannel = (targetChannelOption as TextChannel);
 
         if (!sourceChannel?.isTextBased() || !targetChannel?.isTextBased()) {
             await interaction.editReply({
@@ -306,17 +320,17 @@ async function PostCopy(interaction: ChatInputCommandInteraction): Promise<void>
             return;
         }
 
-        if (!sourceChannel.permissionsFor(interaction.client.user!)?.has(['ViewChannel', 'ReadMessageHistory'])) {
-            await interaction.editReply({
-                content: i18next.t("commands:post.interacciones.error_permisos_origen")
-            });
+        const meFrom = sourceChannel.permissionsFor(interaction.guild!.members.me!);
+        const perChFrom = testPermisos(meFrom, "viewCh|readMsg");
+        if (perChFrom.some(p => p.includes("❌"))) {
+            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions_origen", { a1: `<#${sourceChannel.id}>`, a2: perChFrom.join("\n") }) });
             return;
         }
 
-        if (!targetChannel.permissionsFor(interaction.client.user!)?.has(['SendMessages', 'ViewChannel'])) {
-            await interaction.editReply({
-                content: i18next.t("commands:post.interacciones.error_permisos_destino")
-            });
+        const meTo = targetChannel.permissionsFor(interaction.guild!.members.me!);
+        const perChTo = testPermisos(meTo, "viewCh|sendMsg|addlink|addfiles");
+        if (perChTo.some(p => p.includes("❌"))) {
+            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${targetChannel.id}>`, a2: perChTo.join("\n") }) });
             return;
         }
 
@@ -337,23 +351,23 @@ async function PostCopy(interaction: ChatInputCommandInteraction): Promise<void>
 
         await targetChannel.send({
             content: originalMessage.content || undefined,
-            embeds: originalMessage.embeds, 
+            embeds: originalMessage.embeds,
             files: files
         });
 
         if (deleteMode && AUTO_DELETE_CONFIG.userMessages && originalMessage.deletable) {
             await autoDeleteMessage(originalMessage);
-            
+
             await interaction.editReply({
                 content: i18next.t("commands:post.interacciones.copy_success_with_delete", { a1: sourceChannel.toString(), a2: targetChannel.toString() })
             });
-            
+
             debug(`Mensaje ${messageId} copiado y ORIGINAL BORRADO por ${interaction.user.tag}`, "PostCommand");
         } else {
             await interaction.editReply({
                 content: i18next.t("commands:post.interacciones.copy_success", { a1: sourceChannel.toString(), a2: targetChannel.toString() })
             });
-            
+
             debug(`Mensaje ${messageId} copiado por ${interaction.user.tag} de ${sourceChannel.name} a ${targetChannel.name}`, "PostCommand");
         }
 
@@ -383,10 +397,10 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
             return;
         }
 
-        if (!targetChannel.permissionsFor(interaction.client.user!)?.has(['ViewChannel', 'ReadMessageHistory', 'ManageMessages'])) {
-            await interaction.editReply({
-                content: i18next.t("commands:post.interacciones.error_permisos_edicion")
-            });
+        const meTo = targetChannel.permissionsFor(interaction.guild!.members.me!);
+        const perChTo = testPermisos(meTo, "viewCh|msgManager|readMsg|addlink|addfiles");
+        if (perChTo.some(p => p.includes("❌"))) {
+            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${targetChannel.id}>`, a2: perChTo.join("\n") }) });
             return;
         }
 
@@ -412,16 +426,16 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
         });
 
         const filter = (m: Message) => m.author.id === interaction.user.id;
-        const collector = (interaction.channel as TextChannel)?.createMessageCollector({ 
-            filter, 
-            time: 180_000, 
-            max: 1 
+        const collector = (interaction.channel as TextChannel)?.createMessageCollector({
+            filter,
+            time: 180_000,
+            max: 1
         });
 
         if (!collector) {
-            await interaction.followUp({ 
+            await interaction.followUp({
                 content: i18next.t("commands:post.interacciones.error_capturador"),
-                flags: MessageFlags.Ephemeral 
+                flags: MessageFlags.Ephemeral
             });
             return;
         }
@@ -443,7 +457,7 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
 
                 if (newFiles.length > 0) {
                     editPayload.files = newFiles;
-                    editPayload.attachments = []; 
+                    editPayload.attachments = [];
                 }
 
                 await messageToEdit.edit(editPayload);
@@ -454,11 +468,11 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
                 });
 
                 debug(`Mensaje ${messageId} editado por ${interaction.user.tag} en ${targetChannel.name}`, "PostCommand");
-                
+
                 if (deleteMode && AUTO_DELETE_CONFIG.userMessages) {
                     await autoDeleteMessage(newMessage);
                 }
-                
+
                 collector.stop("success");
 
             } catch (editErr) {
@@ -475,7 +489,7 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
                 interaction.followUp({
                     content: i18next.t("commands:post.interacciones.edit_timeout"),
                     flags: MessageFlags.Ephemeral
-                }).catch(() => {});
+                }).catch(() => { });
             }
         });
 
@@ -491,9 +505,9 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
 
 async function PostReply(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    
-    const deleteMode = shouldDelete(interaction, false); 
-    const notifyMode = interaction.options.getBoolean("notify") ?? true; 
+
+    const deleteMode = shouldDelete(interaction, false);
+    const notifyMode = interaction.options.getBoolean("notify") ?? true;
 
     try {
         const messageId = interaction.options.getString("mensaje_id", true);
@@ -507,10 +521,10 @@ async function PostReply(interaction: ChatInputCommandInteraction): Promise<void
             return;
         }
 
-        if (!messageChannel.permissionsFor(interaction.client.user!)?.has(['ViewChannel', 'ReadMessageHistory', 'SendMessages'])) {
-            await interaction.editReply({
-                content: i18next.t("commands:post.interacciones.error_permisos_reply")
-            });
+        const meTo = messageChannel.permissionsFor(interaction.guild!.members.me!);
+        const perChTo = testPermisos(meTo, "viewCh|readMsg|sendMsg|addlink|addfiles");
+        if (perChTo.some(p => p.includes("❌"))) {
+            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${messageChannel.id}>`, a2: perChTo.join("\n") }) });
             return;
         }
 
@@ -529,23 +543,23 @@ async function PostReply(interaction: ChatInputCommandInteraction): Promise<void
         });
 
         const filter = (m: Message) => m.author.id === interaction.user.id;
-        const collector = (interaction.channel as TextChannel)?.createMessageCollector({ 
-            filter, 
-            time: 180_000, 
-            max: 1 
+        const collector = (interaction.channel as TextChannel)?.createMessageCollector({
+            filter,
+            time: 180_000,
+            max: 1
         });
 
         if (!collector) {
-            await interaction.followUp({ 
+            await interaction.followUp({
                 content: i18next.t("commands:post.interacciones.error_capturador"),
-                flags: MessageFlags.Ephemeral 
+                flags: MessageFlags.Ephemeral
             });
             return;
         }
 
         collector.on('collect', async (replyMessage: Message) => {
             const cleanContent = replyMessage.content ? replyMessage.content.trim().toLowerCase() : "";
-            
+
             if (cleanContent === '-cancelar' || cleanContent === '-cancel') {
                 await interaction.followUp({ content: i18next.t("commands:post.interacciones.stop"), flags: MessageFlags.Ephemeral });
                 collector.stop("cancelled");
@@ -566,14 +580,15 @@ async function PostReply(interaction: ChatInputCommandInteraction): Promise<void
                 await originalMessage.reply({
                     content: replyMessage.content || undefined,
                     files: files.length > 0 ? files : undefined,
-                    allowedMentions: { 
+                    allowedMentions: {
                         repliedUser: notifyMode
                     }
                 });
 
                 await interaction.followUp({
-                    content: i18next.t("commands:post.interacciones.reply_success", { 
-                    a1: messageChannel.toString(), a2: notifyMode ? "🔔 Con notificación" : "🔕 Sin notificación" }),
+                    content: i18next.t("commands:post.interacciones.reply_success", {
+                        a1: messageChannel.toString(), a2: notifyMode ? "🔔 Con notificación" : "🔕 Sin notificación"
+                    }),
                     flags: MessageFlags.Ephemeral
                 });
 
@@ -599,7 +614,7 @@ async function PostReply(interaction: ChatInputCommandInteraction): Promise<void
                 interaction.followUp({
                     content: i18next.t("commands:post.interacciones.reply_timeout"),
                     flags: MessageFlags.Ephemeral
-                }).catch(() => {});
+                }).catch(() => { });
             }
         });
 

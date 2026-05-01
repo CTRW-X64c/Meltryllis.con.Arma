@@ -1,10 +1,28 @@
 // src/client/coreCommands/youtubeCheck.ts
 import Parser from 'rss-parser';
-import { error, debug, info } from '../../sys/logging';
-import { YouTubeFeed, getYouTubeFeeds, updateYouTubeFeedLastVideo } from '../../sys/DB-Engine/links/Youtube';
+import { error, debug, info } from '../sys/logging';
+import { YouTubeFeed, getYouTubeFeeds, updateYouTubeFeedLastVideo } from '../sys/DB-Engine/links/Youtube';
 import { Client, TextChannel } from 'discord.js';
-import { extractVideoId } from './youtubeTools';
 import i18next from 'i18next';
+
+export function extractVideoId(video: any): string | null {
+  if (video.id) {
+    return video.id;
+  }
+  
+  if (video.link) {
+    const match = video.link.match(/[?&]v=([^&]+)/);
+    if (match) return match[1];
+  }
+  
+  if (video.guid) {
+    const match = video.guid.match(/video:video\.([^:]+)/);
+    if (match) return match[1];
+  }
+  
+  return null;
+}
+
 
 const parser = new Parser({
     headers: {

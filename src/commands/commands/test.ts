@@ -1,5 +1,5 @@
 // src/Events-Commands/commands/test.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, TextChannel, PermissionFlagsBits} from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, TextChannel, PermissionFlagsBits } from "discord.js";
 import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
@@ -8,6 +8,7 @@ import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { checkAllDomains, buildDomainStatusEmbed } from "../../sys/zGears/neTools";
 import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
+import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 
 const sfwDomains = process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : [];
 const nsfwDomains = process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [];
@@ -53,13 +54,13 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
     // Inicio de seccion switch para subcomandos
     switch (mode) {
       case "channel":
-        await guildPermision(interaction, baseEmbed );
+        await guildPermision(interaction, baseEmbed);
         break;
-      
+
       case "guild":
-        await allChannels(interaction, embeds, configMap );
+        await allChannels(interaction, embeds, configMap);
         break;
-      
+
       case "embed":
         await ComEmbed(interaction, baseEmbed);
         break;
@@ -70,24 +71,26 @@ export async function handleTestCommand(interaction: ChatInputCommandInteraction
 
       default:
         baseEmbed.setDescription(i18next.t("commands:test.interacciones.test_command_invalid_mode"))
-             .setColor("#ff0000");
+          .setColor("#ff0000");
         break;
     }
-     // Termino de seccion switch para subcomandos
+    // Termino de seccion switch para subcomandos
     await interaction.reply({ embeds: embeds, flags: MessageFlags.Ephemeral });
     debug(`Comando /test ejecutado en modo: ${mode}`); //<=
   } catch (err) {
     error(`Error al ejecutar comando /test: ${err}`); //<=
-      if (!interaction.replied && !interaction.deferred) {
+    if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
         content: i18next.t("commands:test.interacciones.test_command_invalid_mode"),
         flags: MessageFlags.Ephemeral,
-    });
-  }else if (!interaction.replied) {
-    await interaction.editReply({
-      content: i18next.t("commands:test.interacciones.test_command_invalid_mode"),
-    });
-}}}
+      });
+    } else if (!interaction.replied) {
+      await interaction.editReply({
+        content: i18next.t("commands:test.interacciones.test_command_invalid_mode"),
+      });
+    }
+  }
+}
 
 /* ========================= Permisos Generales ========================= */
 
@@ -109,7 +112,7 @@ async function guildPermision(interaction: ChatInputCommandInteraction, embed: E
   ];
 
   const channel = interaction.channel as TextChannel;
-  if (!channel || !("permissionsFor" in channel)) {        
+  if (!channel || !("permissionsFor" in channel)) {
     throw new Error(i18next.t("commands:test.interacciones.test_error_permission"));
   }
 
@@ -139,8 +142,8 @@ async function guildPermision(interaction: ChatInputCommandInteraction, embed: E
         inline: false,
       }))
     );
-  embed.setFooter({ text: i18next.t("commands:test.interacciones.footer")});
-  embed.setColor("#0300c8"); 
+  embed.setFooter({ text: i18next.t("commands:test.interacciones.footer") });
+  embed.setColor("#0300c8");
 }
 
 /* ========================= Todos los coanels ========================= */
@@ -188,50 +191,50 @@ async function allChannels(interaction: ChatInputCommandInteraction, embeds: Emb
     }
 
     chunk.forEach(channel => {
-    const botMember = guild.members.me;
-    if (botMember && "permissionsFor" in channel) {
-      const permissions = channel.permissionsFor(botMember);
+      const botMember = guild.members.me;
+      if (botMember && "permissionsFor" in channel) {
+        const permissions = channel.permissionsFor(botMember);
 
-      if (channel.type === 0) {
-        const permissionBits = textPermisison.map(p => p.bit);
-        const hasPerms = permissions?.has(permissionBits, false) ?? false;
-        if (!hasPerms) globalPermissionsOk = false;
+        if (channel.type === 0) {
+          const permissionBits = textPermisison.map(p => p.bit);
+          const hasPerms = permissions?.has(permissionBits, false) ?? false;
+          if (!hasPerms) globalPermissionsOk = false;
 
-        const guildId = guild.id;
-        const channelId = channel.id;
-        const guildConfig = configMap.get(guildId);
-        const channelConfig = guildConfig?.get(channelId) ?? { enabled: true, replyBots: false };
+          const guildId = guild.id;
+          const channelId = channel.id;
+          const guildConfig = configMap.get(guildId);
+          const channelConfig = guildConfig?.get(channelId) ?? { enabled: true, replyBots: false };
 
-        currentEmbed.addFields({
-          name: `Canal: #${channel.name}`,
-          value: (hasPerms ? i18next.t("commands:test.interacciones.all_status_allowed") : i18next.t("commands:test.interacciones.missing_any_status")) +
-            `\n${i18next.t("commands:test.interacciones.working_here")}: ${channelConfig.enabled ? "✅" : "❌"}` +
-            `\n${i18next.t("commands:test.interacciones.reply_bots")}: ${channelConfig.replyBots ? "✅" : "❌"}`,
-          inline: false,
-        });
+          currentEmbed.addFields({
+            name: `Canal: #${channel.name}`,
+            value: (hasPerms ? i18next.t("commands:test.interacciones.all_status_allowed") : i18next.t("commands:test.interacciones.missing_any_status")) +
+              `\n${i18next.t("commands:test.interacciones.working_here")}: ${channelConfig.enabled ? "✅" : "❌"}` +
+              `\n${i18next.t("commands:test.interacciones.reply_bots")}: ${channelConfig.replyBots ? "✅" : "❌"}`,
+            inline: false,
+          });
 
-      } else if (channel.type === 2) {
-        const permissionBits = voicePermision.map(p => p.bit);
-        const hasPerms = permissions?.has(permissionBits, false) ?? false;
-        if (!hasPerms) globalPermissionsOk = false;
+        } else if (channel.type === 2) {
+          const permissionBits = voicePermision.map(p => p.bit);
+          const hasPerms = permissions?.has(permissionBits, false) ?? false;
+          if (!hasPerms) globalPermissionsOk = false;
 
-        currentEmbed.addFields({
-          name: `🔊 Voz: ${channel.name}`,
-          value: hasPerms ? i18next.t("commands:test.interacciones.all_status_allowed") : i18next.t("commands:test.interacciones.missing_any_status"),
-          inline: false,
-        });
+          currentEmbed.addFields({
+            name: `🔊 Voz: ${channel.name}`,
+            value: hasPerms ? i18next.t("commands:test.interacciones.all_status_allowed") : i18next.t("commands:test.interacciones.missing_any_status"),
+            inline: false,
+          });
+        }
       }
-    }
-  });
+    });
   }
 
-   if (channelsProcess.length > maxChannels) {
+  if (channelsProcess.length > maxChannels) {
     embeds[embeds.length - 1].setFooter({ text: `⚠️ Mostrando primeros ${maxChannels} canales de ${channelsArray.length}.` });
   }
 
   const color = globalPermissionsOk ? "#00ff00" : "#ff0000";
   embeds.forEach(e => e.setColor(color));
-  embeds.forEach(e => e.setFooter({ text: i18next.t("commands:test.interacciones.footer")}));
+  embeds.forEach(e => e.setFooter({ text: i18next.t("commands:test.interacciones.footer") }));
 }
 
 /* ========================= Embedes Set ========================= */
@@ -241,13 +244,13 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
   if (!guildId) {
     throw new Error(i18next.t("commands:test.interacciones.dont_gg"));
   }
-  
+
   const replacementConfig = await getGuildReplacementConfig(guildId);
   embed.setDescription(i18next.t("commands:test.interacciones.not_replacement"));
 
   const addCategoryFields = (title: string, lines: string[]) => {
     if (lines.length === 0) return;
-    
+
     let currentText = "";
     let partNumber = 1;
 
@@ -264,7 +267,7 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
       embed.addFields({ name: partNumber > 1 ? `${title} (Pt. ${partNumber})` : title, value: currentText, inline: false });
     }
   };
-/* Lista Locales */
+  /* Lista Locales */
   const localLines: string[] = [];
   replacementMetaList.forEach(meta => {
     const config = replacementConfig.get(meta.name);
@@ -274,30 +277,30 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
     } else if (!config.enabled) {
       status = i18next.t("commands:test.interacciones.rem_list_2");
     } else if (config.custom_url) {
-      const userMention = config.user_id ? `<@${config.user_id}>` : i18next.t("commands:test.interacciones.unknown_user"); 
-      status = i18next.t("commands:test.interacciones.rem_list_3", { custom_url: config.custom_url, userMention }); 
+      const userMention = config.user_id ? `<@${config.user_id}>` : i18next.t("commands:test.interacciones.unknown_user");
+      status = i18next.t("commands:test.interacciones.rem_list_3", { custom_url: config.custom_url, userMention });
     } else {
       status = i18next.t("commands:test.interacciones.rem_list_1");
     }
     localLines.push(`**${meta.name}:** \u200b \u200b \u200b${status}`);
   });
   addCategoryFields("🛠️ Reemplazos Locales", localLines);
-/* Lista SFW */
+  /* Lista SFW */
   const sfwLines: string[] = [];
   sfwDomains.forEach(domain => {
     const config = replacementConfig.get(domain);
-    const status = (config === undefined || config.enabled) ? 
-      i18next.t("commands:test.interacciones.field_api_enabled") : 
+    const status = (config === undefined || config.enabled) ?
+      i18next.t("commands:test.interacciones.field_api_enabled") :
       i18next.t("commands:test.interacciones.field_api_disabled");
     sfwLines.push(`**${domain}:** \u200b \u200b \u200b${status}`);
   });
   addCategoryFields("🌐 API SFW", sfwLines);
-/* Lista SFW */
+  /* Lista SFW */
   const nsfwLines: string[] = [];
   nsfwDomains.forEach(domain => {
     const config = replacementConfig.get(domain);
-    const status = (config === undefined || config.enabled) ? 
-      i18next.t("commands:test.interacciones.field_api_enabled") : 
+    const status = (config === undefined || config.enabled) ?
+      i18next.t("commands:test.interacciones.field_api_enabled") :
       i18next.t("commands:test.interacciones.field_api_disabled");
     nsfwLines.push(`**${domain}:** \u200b \u200b \u200b ${status}`);
   });
@@ -308,37 +311,37 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
 /* ========================= NeTest ========================= */
 
 export async function ChekDomainsTest(interaction: ChatInputCommandInteraction): Promise<void> {
-    try {
-        const idCooldown = "netCommand"
-        const cooldown = checkCooldown(interaction.guildId!, idCooldown);
-        if (cooldown.onCooldown) {
-            await interaction.reply({
-                content: i18next.t("commands:test.interacciones.test_domaind_error", { a1: cooldown.timeLeft }),
-                flags: MessageFlags.Ephemeral
-            });
-            return;
-        }
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  try {
+    const chkBd = await getGuildLimits(interaction.guildId!)
+    const noLimit = chkBd.chkDomain === true;
+    const typeCooldown = noLimit ? "netCommandNoWait" : "netCommand"
+    const cooldown = checkCooldown(interaction.guildId!, typeCooldown);
 
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-        
-        await interaction.editReply({
-            content: i18next.t("commands:test.interacciones.test_domaind_verificando")
-        });
-
-        startCooldown(interaction.guildId!, idCooldown);
-        
-        const domainStatuses = await checkAllDomains();
-        
-        const embed = buildDomainStatusEmbed(domainStatuses);
-        
-        await interaction.editReply({ 
-            content: null, 
-            embeds: [embed] 
-        });
-
-    } catch (err: any) {
-        await interaction.editReply({
-            content: i18next.t("commands:test.interacciones.command_error_verificando", { a1: err.message}),
-        });
+    if (cooldown.onCooldown) {
+      await interaction.editReply({
+        content: i18next.t("commands:test.interacciones.test_domaind_error", { a1: cooldown.timeLeft })
+      });
+      return;
     }
+
+    await interaction.editReply({
+      content: i18next.t("commands:test.interacciones.test_domaind_verificando")
+    });
+
+    startCooldown(interaction.guildId!, typeCooldown);
+
+    const domainStatuses = await checkAllDomains();
+    const embed = buildDomainStatusEmbed(domainStatuses);
+
+    await interaction.editReply({
+      content: null,
+      embeds: [embed]
+    });
+
+  } catch (err: any) {
+    await interaction.editReply({
+      content: i18next.t("commands:test.interacciones.command_error_verificando", { a1: err.message }),
+    });
+  }
 }

@@ -186,6 +186,7 @@ export default function startEmbedService(client: Client): void {
                             try {
                                 let failMsg = i18next.t("common:embedService.msgFail");
                                     if (freshMessage.content.includes("facebed.com/share")) {failMsg = i18next.t("common:embedService.msgFail_fb")};
+                                    if (freshMessage.content.split("||").length > 2) {failMsg = i18next.t("common:embedService.msgFail_spoiler")};
                                 const failureMsg = await freshMessage.edit({ content: failMsg , allowedMentions: { repliedUser: true } });
                                 setTimeout(() => failureMsg.delete().catch(() => {}), 10000);
                                 error(`Discord no genero el embed tras ${attempt} intentos. Gremio: ${message.guild?.name} | embURL: ${replyContent}`, "Events.MessageCreate");

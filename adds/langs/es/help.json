@@ -4,10 +4,31 @@
     "command_hola_idioma_description": "¡Selecciona un comando para una mejor ayuda!",
     "default_switch_error": "La ayuda de este comando aún no está disponible y solo está aquí por los loles"
   },
-
-  "can_run_yes": "✅ Puedes ejecutar el comando",
-  "can_run_no": "❌ No puedes ejecutarlo, NO ERES ADMIN o NO TE DIERON PERMISO",
-
+  "embMaker": {
+    "no_need_permission": "**Este comando no requiere permisos!**",
+    "can_run_yes": "✅ Tienes permiso para usar el comando!!",
+    "can_run_no": "❌ No puedes usar este comando!!",
+    "hasPermission": "Permisos que tengo en {{a1}} y necesita el comando:",
+    "hasGlobalPermission": "Permisos de servidor: ",
+    "hasGlobalNota": "`Sin efecto en canales privados`",
+    "bitRoles": "🛠️ Gestionar roles:",
+    "bitReacciones": "➕ Agregar reacciones:",
+    "bitEmojis": "🈴​ Usar emojis externos:",
+    "bitChManager": "🧾​ Gestionar Canales:",
+    "bitChSee": "👁️​ Ver canal:",
+    "bitVoiceConnect": "🔌​ Conectar a canal de Voz:",
+    "bitVoiceMove": "🚶‍➡️​ Mover miembros del canal:",
+    "bitMsgManager": "📋​ Gestor de mensajes:",
+    "bitSendMessages": "💬 ​Enviar mensajes:",
+    "bitAddLink": "⛓️​ Generar embed de links:",
+    "bitReedMsg": "📑​ Leer historial de mensajes:",
+    "bitAdmin": "🗃️​ Administrador: ",
+    "bitSrvManager": "⚙️​ Gestor de servidor:",
+    "bitBanMember": "🔨​ Ban miembros:",
+    "bitKickMember": "🚪​ Expulsar miembros:",
+    "bitViewAuditLog": "📝​ Ver logs del server:",
+    "bitAddFiles": "📽️​ Añadir multimedia / archivos!!"
+  },
   "info": {
     "embed_title": "¡Hola!",
     "embed_description": "Estoy aquí para ayudarte con los Embeds en Discord, ¡porque la verdad muchos apestan!",
@@ -19,19 +40,17 @@
     "field_issue_value": "En canales @everyone no necesito más permisos que los que pido al ser invitada; en canales privados usa /test para ver qué permisos faltan y asignármelos.\n - Si no ves los comandos es porque requieren permisos de Administrador. \n - Discord solo procesa máximo 5 enlaces por mensaje así que se divide automáticamente en lotes de 5 y puedes borrar el repost reaccionando a ❌ antes de que desaparezca (20s). \n\n - Puedes poner `$` al inicio del mensaje para evitar el embedding!",
     "footer_text": "SI QUIERES MÁS AYUDA DE CADA COMANDO PUEDES USAR /help <comando>."
   },
-
   "mangadex": {
     "HelpEmb_titulo": "Ayuda Mangadex",
     "HelpEmb_descripcion": "Este comando te permite seguir mangas de [Mangadex](https://mangadex.org/); se puede filtrar por idioma pero está limitado a inglés, Español latino o Español, si no se especifica mostrará todo idioma en que publiquen el manga.",
     "HelpEmb_Field_Name_1": "/mangadex seguir <url_Manga> <canal> <idioma> ",
-    "HelpEmb_Field_Value_1": "url_Manga: URL del manga que quieres seguir. \n canal: Canal en el que se publicarán las actualizaciones. \n idioma: Idioma de los capítulos que quieres seguir",
+    "HelpEmb_Field_Value_1": "url_Manga: URL del manga que quieres seguir. \n canal: Canal en el que se publicarán las actualizaciones. \n idioma: Escoge hasta 8 idomas en los ue quieras que se posten los mangas; usar \"sin filtro\" posteara incluso en idomas no listados.",
     "HelpEmb_Field_Name_2": "/mangadex lista",
     "HelpEmb_Field_Value_2": "Proporciona una lista de los mangas que estás siguiendo junto con su ID de registro que sirve para borrarlos",
     "HelpEmb_Field_Name_3": "/mangadex dejar <manga_id>",
     "HelpEmb_Field_Value_3": "Permite borrar los mangas que ya no quieres seguir. \n manga_id: puedes obtenerlo con el comando /mangadex lista",
     "HelpEmb_footer": "Mangadex & MDRSS"
   },
-
   "permisos": {
     "help_title": "**Sistema de Permisos!**",
     "help_desc": "Controla quién puede usar cada comando del bot en este servidor. \n **¡Es muy importante checar a quién le das permisos!**",
@@ -43,11 +62,8 @@
     "help_list_desc": "Lista todos los comandos que estén asignados a un rol o usuario.",
     "help_clear_title": "/permission limpiar",
     "help_clear_desc": "Elimina todos los permisos del servidor.",
-    "footer_text_help": "Solo los administradores y el dueño del servidor pueden usar este comando.",
-    "run_yes": "✅ Puedes ejecutar el comando",
-    "run_no": "❌ EXCLUSIVO DE ADMINS O EL DUEÑO DEL SERVIDOR"
+    "footer_text_help": "Solo los administradores y el dueño del servidor pueden usar este comando."
   },
-
   "reddit": {
     "HelpEmb_titulo": "Ayuda del Comando de Reddit",
     "HelpEmb_descripcion": "Información sobre cómo usar los comandos de Reddit.",
@@ -58,16 +74,10 @@
     "HelpEmb_Field_Name_3": "/reddit dejar",
     "HelpEmb_Field_Value_3": "Deja de seguir un subreddit/user usando su URL o r/subbreddit|u/username.",
     "HelpEmb_Field_Name_4": "/reddit test",
-    "HelpEmb_Field_Value_4": "Publica el último post de un subreddit usando su URL o r/subbreddit|u/username."
+    "HelpEmb_Field_Value_4": "Publica el último post de un subreddit usando su URL o r/subbreddit|u/username.",
+    "footer": "Seguir usuarios y subreddits. "
   },
-
   "rolemoji": {
-    "error_user": "¡Error al ejecutar!",
-    "manage_roles_permission": "🛠️ Gestionar roles:",
-    "add_reactions_permission": "➕ Agregar reacciones:",
-    "use_external_emojis_permission": "Usar emojis externos:",
-    "allowed_permission": "✅ Permitido",
-    "missing_permission": "❌ Faltante",
     "help_title": "Ayuda de Rolemoji",
     "help_description": "¿No funciona?, sigue estos pasos:",
     "paso_1": "1.- Permisos:",
@@ -78,7 +88,6 @@
     "fix_3": "Discord maneja una jerarquía de roles por posición; es decir solo puedo asignar roles que estén por debajo de mi rol más arriba.\n\nTeniendo en cuenta que mi rol es \"Meltryllis con Arma!\" y es el único o el que está más arriba, así es como quedaría los que puedo asignar:",
     "help_footer": "¡Reacciona y obtén tu rol!"
   },
-
   "youtube": {
     "titulo": "Ayuda del Comando de YouTube",
     "descripcion": "Aquí encontrarás información sobre cómo usar los comandos de YouTube.",
@@ -88,14 +97,13 @@
     "Field_Value_2": "`/youtube seguir`: Añade un canal.\n`/youtube lista`: Muestra los canales seguidos.\n`/youtube dejar`: Elimina un canal.\n`/youtube test`: Publica el último video de un canal para probar.",
     "footer": "💡 /youtube dejar id_canal:ID - • - /youtube test id_canal:ID"
   },
-
   "clean": {
     "title": "Comando /cleanup",
+    "description": "Herramienta para el borrado masivo de mensajes en canales.",
     "name_1": "Uso y limitaciones:",
-    "value_1": "Este comando permite borrar mensajes en canales específicos usando un mensaje de referencia, ya sea para borrar los que están antes o después de él por medio de su id. También puede borrar mensajes solo de bots o usuarios; por defecto, borra sin revisar el autor.\n\nPor limitaciones de la API de Discord, solo se pueden borrar 100 mensajes a la vez con un máximo de 3 semanas de antigüedad.",
+    "value_1": "Este comando permite borrar mensajes en canales específicos usando un mensaje de referencia, ya sea para borrar los que están antes o después de él por medio de su id. También puede borrar mensajes solo de bots o usuarios; por defecto, borra sin revisar el autor. \n\n Por limitaciones de la API de Discord, solo se pueden borrar 100 mensajes a la vez con un máximo de 3 semanas de antigüedad. \n\n Puedes usar la opcion `edit` para modificar los mensajes de /buttonrole y /buttonlink",
     "footer": "/cleanup start:<valor> mesanje_id:<id> count:<1-100> type:<bot/user/all>"
   },
-
   "embed": {
     "title": "Comando /embed configurar",
     "description": "Configuraciones sobre el reemplazamiento, desactivación y customización de los dominios de los embeds, API o \"locales\".\nEl embedding prioriza primero la API; en caso de no estar disponible o fuese desactivada, el sitio pasará al embedding \"local\".",
@@ -105,7 +113,6 @@
     "value_2": "Los dominios locales son supervisados en intervalos de 10 min para verificar si están disponibles y, en caso de no estarlo, cambiará a uno alterno o al dominio original.\n- Los dominios locales se pueden desactivar o customizar con otro dominio; los dominios custom no se pueden auto-switchear si no están disponibles.\n\nDiscord limita el listado a solo 25, puedes poner NSFW/SFW/Local para ver los dominios disponibles.\n`SFW: Suelen ser redes sociales. ej: Tiktok/Reddit`\n`NSFW: Suelen ser páginas de imágenes. ej: Danbooru/yande.re`",
     "footer": "Tienes 20s para reaccionar a ❌ y borrar el post"
   },
-
   "jointovoice": {
     "title": "Ayuda del comando /jointovoice",
     "name_1": "/jointovoice set!!",
@@ -114,19 +121,15 @@
     "value_2": "Cleanup: Borra todos los canales temporales existentes.\nStatus: Muestra la configuración.\nDisable: Desactiva la creación de canales (se vuelve a activar usando **set**).",
     "footer": "¡Únete para tener tu propio canal de voz!"
   },
-
   "musica": {
     "lavalink_off": "¡Lo siento, mi Host desactivó la reproducción de música!",
     "title": "Comandos de Música",
     "description": "Si no tienes permiso \"❌\" puedes pedir a algún admin que te dé permiso vía **/permisos**, ya sea individual o por rol.",
-    "can_run_yes": "✅",
-    "can_run_no": "❌",
     "name_1": "Puedes usar /play | /skip | /stop | /queue:",
     "name_5": "Comandos básicos para poner música, Tips:",
     "value_5": "- Si quieres agregar listas usa /play... queue:yes.\n- Para borrar la lista usa /queue clean:true\n- Después de 10s sola en el canal se detiene la reproducción.",
     "footer": "🎵 ¡Comandos de música! 🎵"
   },
-
   "post": {
     "title": "Comando /post",
     "description": "Permite enviar mensajes en mi nombre o copiar, responder, editar mensajes.",
@@ -138,7 +141,6 @@
     "value_3": "Puedes editar mensajes que ya había enviado, se debe escribir desde cero.",
     "footer": "¡Publicación de mensajes!"
   },
-
   "test": {
     "title": "Ayuda del comando /test",
     "description": "Permite revisar las configuraciones de los canales del server y permisos.\nSi tienes canales privados se suele tener conflicto con el permiso **\"ver canal\"**, haciendo que no pueda trabajar en esos canales.",
@@ -152,16 +154,35 @@
     "value_4": "Revisa todos los dominios de embedding para comprobar su estado, **excepto los custom**.",
     "footer": "¡Configuraciones!"
   },
-
   "welcome": {
     "title": "Ayuda del comando /welcome",
     "description": "Puedes asignar un canal en el que se enviará un mensaje de bienvenida con banner a los nuevos integrantes y de salida.\nEn tu mensaje puedes usar \"<user>\" para mencionar a quien se une; \nej. `Hola <user> bienvenido al server`",
     "footer": "Registro de entradas y salidas"
   },
-  
   "work": {
     "title": "Comando /work",
     "description": "Funcionamiento del embedding en canales.\n- **Modo:** workhere: Permite desactivar el funcionamiento en el canal donde se ejecuta el comando.\n- **Modo:** replybots: permite que responda a bots en el canal donde se ejecuta el comando. `(por defecto está desactivado)`",
     "footer": "Comportamiento en canales"
+  },
+  "buttonRole": {
+    "title": "Comando /buttonrole",
+    "description": "Permite crear botones interactivos que asignan un rol al dar click.",
+    "footer": "Permite crear botones que asignan un Rol al dar click"
+  },
+  "buttonLink": {
+    "title": "Comando /buttonlink",
+    "description": "Permite crear botones con enlaces personalizados.",
+    "footer": "Permite la creacion de hasta 5 botones con link. \n Si deceas agregarles un mensaje puede usar `/post edit` para añadir un mensaje. "
+  },
+  "cronpost": {
+    "title": "comando /cronpost",
+    "description": "Permite programar hasta 5 post automaticos. \n\n > **TZ = America/Mexico_City | UTC -6**",
+    "footer": "Sistema cron para posts automaticos!! ",
+    "name_1": "> /cronpost crear:",
+    "value_1": "**Canal:** Se espesifica en que canal se realizaran los psot. \n\n **Mensaje:** Pega el ID del mensaje que quieres que se copie, el mensaje debe estar en mismo canal donde se ejecuto el coamndo. \n\n  **Dia | hora | Minuto:**  Marca si es diario o un dia espesifico de la semana, la hora se maneja en formato de 24hrs. \n\n **repirt:** Permite establecer el numero de veces que se repetira el post automatico. 0 = Nunca se detendra. \n\n **delete_msg:** Borrar el post automaticamente despues de un tiempo, tiempo en minutos. 0 = Nunca se borrara. \n\n **Los dias lunes a las 00:00hrs se raliza mantenimiento con reincio, si tienes planeado hacer uno los dias lunes procura que sea despues de las 00:15hrss**",
+    "name_2": "> /cronpost lista | borrar:",
+    "value_2": "**Lista:** Enumera todos tus post automaticos con su ID y una pequela vista previa. (no incluye multimedia) \n\n **Borrar:** Permite borrar el post automatico, requiere el ID.",
+    "name_3": "> /cronpost showpost:",
+    "value_3": "Muestra los detalles del post como Canal y hora, como el contenido del mensaje que se enviara! "
   }
 }

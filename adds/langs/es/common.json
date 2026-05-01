@@ -1,21 +1,23 @@
 {
   "embedService": {
     "format_link": "[Embedding de {{Site}}]({{RemUrl}})",
-    "format_link_spoiler": "||[Embedding de {{Site}}]({{RemUrl}})|| \n No carga?, prueba mandar sin \"espoiler\"",
+    "format_link_spoiler": "||[Embedding de {{Site}}]({{RemUrl}})|| ",
     "msgFail": "Discord no genero el embed. \n Usa `$$` al inico del mensaje si no quieres que lo procese. `Este mensaje se borrara en 10s`",
     "msgFail_fb": "Enlace \"compartir\" de Facebook `facebook.com/share/...` tiende a fallar mucho; mejor usa el link directo `facebook.com/rell|/video|/post...`!! \n `Este mensaje se borrara en 10s`",
     "try": "🔄 Reintentando embeding. Intento: {{a1}} 🔄",
-    "emojErr": "Me faltan permisos. \"usa /test para verificar los permisos\""
+    "emojErr": "Me faltan permisos. \"usa /test para verificar los permisos\"",
+    "msgFail_spoiler": "Los mensajes marcados como spoiler pueden no generar embed; reintentalo sin spoiler."
   },
-
   "Errores": {
     "isAllowed": "⛔⛔ No te han asiganmado permisos para ejecutar este comando ⛔⛔",
     "isAdmin": "⛔⛔ Uso exclusivo para Administradores!! ⛔⛔",
     "noChannel": "⛔⛔ Este comando solo funciona en canales de texto del servidor ⛔⛔",
     "switchGeneral": "Error en procesar el comando!!",
-    "noGuild": "⛔⛔ Este comando solo funciona en servidores!! ⛔⛔"
+    "noGuild": "⛔⛔ Este comando solo funciona en servidores!! ⛔⛔",
+    "missing_permissions": "❌ Me faltan permisos en el canal de destino {{a1}}: {{a2}}",
+    "missing_permissions_origen": "❌ Me faltan permisos en el canal de origen {{a1}}: \n {{a2}}",
+    "servLimit": "Se alcanzo el limite de este comando. {{a1}}/{{a2}}"
   },
-  
   "neTools": {
     "embed_title": "🌐 Estado de los  **dominios** de Embedding",
     "embed_description": "**{{a1}}/{{a2}} dominios funcionando**",

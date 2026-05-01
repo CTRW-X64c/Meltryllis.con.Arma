@@ -1,8 +1,8 @@
 // src/services/voicEvent.ts 
 import { Client, VoiceState, VoiceChannel, Guild} from "discord.js";
-import { error, debug, info } from "../../sys/logging";
-import { getVoiceConfig, addTempVoiceChannel, removeTempVoiceChannel, isTempVoiceChannel, getAllTempVoiceChannels } from "../../sys/DB-Engine/links/JointoVoice";
-import { checkVoiceEmptyShoukaku } from "../commands/music";
+import { error, debug, info } from "../sys/logging";
+import { getVoiceConfig, addTempVoiceChannel, removeTempVoiceChannel, isTempVoiceChannel, getAllTempVoiceChannels } from "../sys/DB-Engine/links/JointoVoice";
+import { checkVoiceEmptyShoukaku } from "../commands/commands/music";
 
 export class VoiceChannelService {
     private client: Client;

@@ -1,10 +1,10 @@
 // src/client/coreCommands/redditCheck.ts
 import { Client, TextChannel } from 'discord.js';
-import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed, removeRedditFeed } from '../../sys/DB-Engine/links/Reddit';
-import { info, debug, error } from '../../sys/logging';
+import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed, removeRedditFeed } from '../sys/DB-Engine/links/Reddit';
+import { info, debug, error } from '../sys/logging';
 import i18next from 'i18next';
-import { redditApi } from '../../sys/zGears/RedditApi';
-import urlStatusManager from '../../sys/embedding/domainChecker';
+import { redditApi } from '../sys/zGears/RedditApi';
+import urlStatusManager from '../sys/embedding/domainChecker';
 
 export interface RedditApiResponse {
     data: {
@@ -196,7 +196,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 }
                      
                 await textChannel.send(messageContent);
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                await new Promise(resolve => setTimeout(resolve, 3000));
             }           
 
             const latestPostId = newPosts[newPosts.length - 1].name;

@@ -1,46 +1,56 @@
 // src/sys/core.ts
 import { Client, Events, GatewayIntentBits, Interaction } from "discord.js";
-import { sysUpRegister, sysUpCommands, sysUpAutoComplete, sysUpModals, sysUpButtons} from "../Events-Commands/upCommands";
+import { sysUpRegister, sysUpCommands, sysUpAutoComplete, sysUpModals, sysUpButtons } from "../commands/upCommands";
 import { getEnvironmentMode } from "./environment";
 import { error, info, initLogger, loggerAvailable } from "./logging";
-import { initializeDatabase } from "./DB-Engine/database";
+import { initializeDatabase, isBdReady } from "./DB-Engine/database";
 import startEmbedService from "./embedding/embedService";
 import { startStatusRotation } from "./zGears/setStatus";
 import urlStatusManager from "./embedding/domainChecker";
 import { initI18n } from "./i18n";
 import { validateAllTranslations } from "./i18n/nsKeyCheck";
-import { startWelcomeEvents } from "../Events-Commands/eventGear/welcomeEvents";
-import { registerRolemojiEvents, preloadRolemojiMessages } from "../Events-Commands/eventGear/rolemojiEvents";
-import { startYoutubeService } from "../Events-Commands/eventGear/youtubeCheck";
-import { startRedditChecker } from "../Events-Commands/eventGear/redditCheck";
-import { startMangadexChecker } from "../Events-Commands/eventGear/mangadexChek";
-import { startVoiceChannelService } from "../Events-Commands/eventGear/voicEvent";
-import lavalinkManager from "../Events-Commands/eventGear/lavalinkConnect";
+import { startWelcomeEvents } from "../bgProcess/welcomeEvents";
+import { registerRolemojiEvents, preloadRolemojiMessages } from "../bgProcess/rolemojiEvents";
+import { startYoutubeService } from "../bgProcess/youtubeCheck";
+import { startRedditChecker } from "../bgProcess/redditCheck";
+import { startMangadexChecker } from "../bgProcess/mangadexChek";
+import { startVoiceChannelService } from "../bgProcess/voicEvent";
+import { startCronpost } from "../bgProcess/exeCron";
+import lavalinkManager from "../bgProcess/lavalinkConnect";
 import registerIOevent from "./zGears/IO-Server";
+
 
 /*========= Inicializadores =========*/
 
 async function main(): Promise<void> {
-const locale = (process.env.LOCALE ?? "es");
-const client = createClient();
+    const locale = (process.env.LOCALE ?? "es");
+    const client = createClient();
     try {
         initLogger(getEnvironmentMode());
         await initI18n(locale);
-        await initializeDatabase();     
+        await initializeDatabase();
+        const BDready = await isBdReady();
         await validateAllTranslations();
-        if (lavalinkManager) {lavalinkManager.init(client);}
+        if (lavalinkManager) { lavalinkManager.init(client); }
         urlStatusManager.start();
         await client.login(process.env.DISCORD_BOT_TOKEN); /* Algunos ocupan ir antes del login, como lavalink */
-        await startWelcomeEvents(client);     
+        startEmbedService(client);
         sysUpRegister(client);
         await registerIOevent(client);
         registerRolemojiEvents(client);
-        startYoutubeService(client); // by nep  
-        startRedditChecker(client);  // by nowa
-        startVoiceChannelService(client);
         startStatusRotation(client);
-        startEmbedService(client);
-        startMangadexChecker(client);
+        if (BDready) {
+            info("💽​ Base de datos lista, iniciando servicios...")
+            startVoiceChannelService(client);
+            startMangadexChecker(client);
+            startYoutubeService(client); // by nep  
+            startRedditChecker(client);  // by nowa
+            await startWelcomeEvents(client);
+            startCronpost(client);
+        } else {
+            error("❌ La BD no arranco, bye bye~");
+            process.exit(1);
+        }
         logInfo(`✅ Inicializacion completada!! | 🌐 Idioma de los comandos: ${locale}`);
     } catch (error) {
         logFatalError(error);
@@ -68,7 +78,7 @@ function createClient(): Client {
         info(`Actualmente en ${guildCount} ${guildCount === 1 ? "server!" : "servidores!"}`, "Events.ClientReady");
         preloadRolemojiMessages(client);
     });
-    
+
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         if (interaction.isChatInputCommand()) {
             await sysUpCommands(interaction);
@@ -103,7 +113,7 @@ function logInfo(message: string): void {
 function logFatalError(error: unknown): void {
     const errorObj = error instanceof Error ? error : new Error(String(error));
     const message = `Error fatal: ${errorObj.name}: ${errorObj.message}`;
-    
+
     if (loggerAvailable()) {
         if (typeof error === 'function') {
             error(message, "Main");
