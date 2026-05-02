@@ -7,7 +7,6 @@ package-lock.json
 tsconfig.json
 tsconfig.prod.json
 .env
-dockerfile
 Intirko.txt
 i18n-unused.config.js
 
