@@ -488,7 +488,7 @@ export async function sendLimitsDashboard(interaction: ChatInputCommandInteracti
     if (interaction.isButton && interaction.isButton()) {
         await interaction.deferUpdate();
     } else {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        if (!interaction.deferred) await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     }
 
     const guild = await interaction.client.guilds.fetch(idGuild).catch(() => null);
