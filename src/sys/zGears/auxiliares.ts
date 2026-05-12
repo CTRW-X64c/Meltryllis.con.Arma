@@ -89,29 +89,65 @@ export async function adminChannel(client: Client): Promise<{ upChannel: boolean
 }
 
 /* ======================================== Check Permisos ======================================== */
-
 export function testPermisos(chkPerm: any, idComamnd: string) {
     const mngrBitsList = [
+        // --- Maximo nivel ---
         { id: "admin", name: i18next.t("help:embMaker.bitAdmin"), bit: PermissionFlagsBits.Administrator },
         { id: "srvManager", name: i18next.t("help:embMaker.bitSrvManager"), bit: PermissionFlagsBits.ManageGuild },
-        { id: "banMember", name: i18next.t("help:embMaker.bitBanMember"), bit: PermissionFlagsBits.BanMembers },
+
+        // --- Gestión Estructural ---
+        { id: "roles", name: i18next.t("help:embMaker.bitRoles"), bit: PermissionFlagsBits.ManageRoles },
+        { id: "chManager", name: i18next.t("help:embMaker.bitChManager"), bit: PermissionFlagsBits.ManageChannels },
+        { id: "manageWebhooks", name: i18next.t("help:embMaker.bitManageWebhooks"), bit: PermissionFlagsBits.ManageWebhooks },
+        { id: "manageEmojisAndStickers", name: i18next.t("help:embMaker.bitManageEmojisAndStickers"), bit: PermissionFlagsBits.ManageGuildExpressions },
+        { id: "manageEvents", name: i18next.t("help:embMaker.bitManageEvents"), bit: PermissionFlagsBits.ManageEvents },
+
+        // --- Moderación de Texto y Usuarios ---
+        { id: "auditLog", name: i18next.t("help:embMaker.bitViewAuditLog"), bit: PermissionFlagsBits.ViewAuditLog },
+        { id: "msgManager", name: i18next.t("help:embMaker.bitMsgManager"), bit: PermissionFlagsBits.ManageMessages },
+        { id: "manageThreads", name: i18next.t("help:embMaker.bitManageThreads"), bit: PermissionFlagsBits.ManageThreads },
+        { id: "manageNicknames", name: i18next.t("help:embMaker.bitManageNicknames"), bit: PermissionFlagsBits.ManageNicknames },
+        { id: "moderateMembers", name: i18next.t("help:embMaker.bitModerateMembers"), bit: PermissionFlagsBits.ModerateMembers },
         { id: "kickMember", name: i18next.t("help:embMaker.bitKickMember"), bit: PermissionFlagsBits.KickMembers },
-        { id: "auditLog", name: i18next.t("help:embMaker.bitViewAuditLog"), bit: PermissionFlagsBits.ViewAuditLog, },
+        { id: "banMember", name: i18next.t("help:embMaker.bitBanMember"), bit: PermissionFlagsBits.BanMembers },
+
+        // --- Moderación de Voz ---
+        { id: "muteMembers", name: i18next.t("help:embMaker.bitMuteMembers"), bit: PermissionFlagsBits.MuteMembers },
+        { id: "deafenMembers", name: i18next.t("help:embMaker.bitDeafenMembers"), bit: PermissionFlagsBits.DeafenMembers },
+        { id: "voiceMove", name: i18next.t("help:embMaker.bitVoiceMove"), bit: PermissionFlagsBits.MoveMembers },
     ];
 
     const meltrysList = [
+        // --- Lectura y Escritura Básica ---
         { id: "viewCh", name: i18next.t("help:embMaker.bitChSee"), bit: PermissionFlagsBits.ViewChannel },
-        { id: "msgManager", name: i18next.t("help:embMaker.bitMsgManager"), bit: PermissionFlagsBits.ManageMessages },
         { id: "readMsg", name: i18next.t("help:embMaker.bitReedMsg"), bit: PermissionFlagsBits.ReadMessageHistory },
         { id: "sendMsg", name: i18next.t("help:embMaker.bitSendMessages"), bit: PermissionFlagsBits.SendMessages },
+
+        // --- Hilos (Threads) ---
+        { id: "sendMsgThreads", name: i18next.t("help:embMaker.bitSendMessagesInThreads"), bit: PermissionFlagsBits.SendMessagesInThreads },
+        { id: "cPublicT", name: i18next.t("help:embMaker.bitCreatePublicThreads"), bit: PermissionFlagsBits.CreatePublicThreads },
+        { id: "cPrivateT", name: i18next.t("help:embMaker.bitCreatePrivateThreads"), bit: PermissionFlagsBits.CreatePrivateThreads },
+
+        // --- Multimedia y Formato ---
         { id: "addlink", name: i18next.t("help:embMaker.bitAddLink"), bit: PermissionFlagsBits.EmbedLinks },
         { id: "addfiles", name: i18next.t("help:embMaker.bitAddFiles"), bit: PermissionFlagsBits.AttachFiles },
-        { id: "roles", name: i18next.t("help:embMaker.bitRoles"), bit: PermissionFlagsBits.ManageRoles },
         { id: "reactions", name: i18next.t("help:embMaker.bitReacciones"), bit: PermissionFlagsBits.AddReactions },
         { id: "emojis", name: i18next.t("help:embMaker.bitEmojis"), bit: PermissionFlagsBits.UseExternalEmojis },
-        { id: "chManager", name: i18next.t("help:embMaker.bitChManager"), bit: PermissionFlagsBits.ManageChannels },
-        { id: "voiceMove", name: i18next.t("help:embMaker.bitVoiceMove"), bit: PermissionFlagsBits.MoveMembers },
+        { id: "useExStickers", name: i18next.t("help:embMaker.bitUseExternalStickers"), bit: PermissionFlagsBits.UseExternalStickers },
+
+        // --- Interacción ---
+        { id: "useComm", name: i18next.t("help:embMaker.bitUseApplicationCommands"), bit: PermissionFlagsBits.UseApplicationCommands },
+        { id: "everyone", name: i18next.t("help:embMaker.bitMentionEveryone"), bit: PermissionFlagsBits.MentionEveryone },
+        { id: "createInvite", name: i18next.t("help:embMaker.bitCreateInvite"), bit: PermissionFlagsBits.CreateInstantInvite },
+        { id: "changeNickname", name: i18next.t("help:embMaker.bitChangeNickname"), bit: PermissionFlagsBits.ChangeNickname },
+
+        // --- Permisos de Voz ---
         { id: "voiceConnect", name: i18next.t("help:embMaker.bitVoiceConnect"), bit: PermissionFlagsBits.Connect },
+        { id: "speak", name: i18next.t("help:embMaker.bitSpeak"), bit: PermissionFlagsBits.Speak },
+        { id: "stream", name: i18next.t("help:embMaker.bitStream"), bit: PermissionFlagsBits.Stream },
+        { id: "useVAD", name: i18next.t("help:embMaker.bitUseVAD"), bit: PermissionFlagsBits.UseVAD },
+        { id: "prioSpeak", name: i18next.t("help:embMaker.bitPrioritySpeaker"), bit: PermissionFlagsBits.PrioritySpeaker },
+        { id: "toSpeak", name: i18next.t("help:embMaker.bitRequestToSpeak"), bit: PermissionFlagsBits.RequestToSpeak },
     ];
 
     const allBits = [...mngrBitsList, ...meltrysList];
@@ -132,7 +168,7 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
     return bits.map(bitObj => {
         const hasPerm = chkPerm?.has(bitObj.bit) ?? false;
         const chkEmoji = hasPerm ? "✅" : "❌";
-        return `> **${bitObj.name}**ㅤ${chkEmoji}`;
+        return `> ${chkEmoji} | **${bitObj.name}**`;
     });
 }
 

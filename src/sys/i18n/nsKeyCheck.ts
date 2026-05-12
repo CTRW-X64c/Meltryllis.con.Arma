@@ -8,11 +8,11 @@ type TranslationConfig = {
 };
 
 const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
-//Agrega todos los i18next.t que esten dentro de la funcion "SlashCommandBuilder"
-    "help":[
+    //Agrega todos los i18next.t que esten dentro de la funcion "SlashCommandBuilder"
+    "help": [
         "comBuild.*"
     ],
-    "commands":[
+    "commands": [
         "joinCreate.slashBuilder.*",
         "cleanup.slashBuilder.*",
         "mussic.slashBuilder.*",
@@ -26,9 +26,10 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "test.slashBuilder.*",
         "work.slashBuilder.*",
         "embed.slashBuilder.*",
-        "cronpost.slashBuilder.*"
+        "cronpost.slashBuilder.*",
+        "chkPerm.slashBuilder.*"
     ],
-    "botones":[
+    "botones": [
         "buttonLink.slashbuilder.*",
         "roleButton.slashbuilder.*"
     ]
@@ -38,7 +39,7 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
 
 export async function validateAllTranslations(): Promise<void> {
     info("🔍 Validando las traducciones de los comandos...");
-    
+
     let totalErrors = 0;
     const missingTranslations: string[] = [];
 
@@ -46,7 +47,7 @@ export async function validateAllTranslations(): Promise<void> {
         if (obj === null || typeof obj !== 'object') {
             return [];
         }
-    
+
         return Object.keys(obj).flatMap(key => {
             const fullKey = prefix ? `${prefix}.${key}` : key;
             const value = obj[key];
@@ -60,10 +61,10 @@ export async function validateAllTranslations(): Promise<void> {
     const getKeysFromPath = (lng: string, ns: string, path: string): string[] => {
         const resource = i18next.getResourceBundle(lng, ns);
         if (!resource) return [];
-    
+
         const pathPrefix = path.replace('.*', '');
         let obj = resource;
-    
+
         if (pathPrefix) {
             const pathParts = pathPrefix.split('.');
             for (const part of pathParts) {
@@ -71,7 +72,7 @@ export async function validateAllTranslations(): Promise<void> {
                 obj = obj[part];
             }
         }
-    
+
         return collectLeafKeys(obj, pathPrefix);
     };
 
@@ -80,11 +81,11 @@ export async function validateAllTranslations(): Promise<void> {
         let languageErrors = 0;
 
         await i18next.changeLanguage(language);
-        
+
         for (const [namespace, keys] of Object.entries(TRANSLATIONS_TO_VALIDATE)) {
             let namespaceErrors = 0;
             let namespaceMissing = 0;
-            
+
             const expandedKeys = keys.flatMap(key => {
                 if (key.endsWith('.*')) {
                     return getKeysFromPath(language, namespace, key);
@@ -94,7 +95,7 @@ export async function validateAllTranslations(): Promise<void> {
 
             expandedKeys.forEach(key => {
                 const translationExists = i18next.exists(key, { ns: namespace });
-                
+
                 if (!translationExists) {
                     totalErrors++;
                     languageErrors++;
@@ -103,14 +104,14 @@ export async function validateAllTranslations(): Promise<void> {
                     error(`   ❌ ${namespace}.${key} - NO EXISTE en ${language}`);
                     return;
                 }
-                
+
                 const translation = i18next.t(key, { ns: namespace });
-                
+
                 if (translation.length > 100) {
                     totalErrors++;
                     languageErrors++;
                     namespaceErrors++;
-                    
+
                     error(`   ❌ NS:${namespace} Llave: ${key} - DEMASIADO LARGO`);
                     error(`       Longitud: ${translation.length}/100`);
                     error(`       Archivo: adds/langs/${language}/${namespace}.json`);
@@ -124,24 +125,24 @@ export async function validateAllTranslations(): Promise<void> {
                 info(`   ⚠️  ${namespace} - ${namespaceMissing} clave(s) faltante(s)`);
             }
         }
-        
+
         if (languageErrors === 0) {
             info(`   ✅ Idioma ${language} - SIN ERRORES`);
         } else {
             info(`   ❌ Idioma ${language} - ${languageErrors} error(es)`);
         }
     }
-    
+
     if (totalErrors > 0) {
         error(`💥 RESUMEN: Se encontraron ${totalErrors} errores`);
-        
+
         if (missingTranslations.length > 0) {
             error("📋 Traducciones faltantes:");
             missingTranslations.forEach(missing => {
                 error(`   - ${missing}`);
             });
         }
-        
+
         error("🚫 Corrige los errores antes de continuar\n");
         process.exit(1);
     } else {

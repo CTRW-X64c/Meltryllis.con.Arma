@@ -22,6 +22,7 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
     { name: "/jointovoice", value: "03" },
     { name: "/mangadex", value: "04" },
     { name: "/permisos", value: "06" },
+    { name: "/permisos-server", value: "17" },
     { name: "/post", value: "07" },
     { name: "/reddit", value: "08" },
     { name: "/rolemoji", value: "09" },
@@ -57,10 +58,10 @@ export async function registerHelpCommand(): Promise<SlashCommandBuilder[]> {
 
 // ============================================= embedMaker ============================================= //
 
-function rngColor(): string { const color = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase(); return `0x${color.padStart(6, '0')}` }
 interface hData { command: string; title: string; description?: string; color?: number; imageUrl?: string; fields?: hField[]; footer?: string; srvPerm?: string; chPerm?: string }
 interface hField { name: string; value: string; inline?: boolean }
 async function embedMaker(interaction: ChatInputCommandInteraction, data: hData): Promise<void> {
+  const rngColor = (): string => { const color = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase(); return `0x${color.padStart(6, '0')}` };
   const { command, title, description, color, imageUrl, fields = [], footer, srvPerm, chPerm } = data;
   const Meltryllis = interaction.guild?.members.me;
   const embColor = color ? color : parseInt(rngColor(), 16);
@@ -309,6 +310,17 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
           { name: i18next.t("help:cronpost.name_3"), value: i18next.t("help:cronpost.value_3") },
         ],
         chPerm: "viewCh|readMsg|sendMsg|addlink|msgManager"
+      }); break;
+      /* ======================== permisos-server ======================== */
+      case "17": await embedMaker(interaction, {
+        command: "permisos-server",
+        title: i18next.t("help:permisos-server.title"),
+        description: i18next.t("help:permisos-server.description"),
+        footer: i18next.t("help:permisos-server.footer"),
+        fields: [
+          { name: i18next.t("help:permisos-server.name_1"), value: i18next.t("help:permisos-server.value_1") },
+          { name: i18next.t("help:permisos-server.name_2"), value: i18next.t("help:permisos-server.value_2") },
+        ]
       }); break;
       /* ======================== default ======================== */
       default:

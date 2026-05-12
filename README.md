@@ -76,6 +76,10 @@ Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dom
     - list: Muestra los usuarios/roles con permisos.
     - remove: Quita los permisos de un rol/usurio.
     - limpiar: Quita todos los permisos del server.
+  - /perpermisos-server: Permite revisar los permisos que pose un Usuario y los que otorga un Rol.
+    - Canal:
+      - on: Muestras los permisos que tiene el usuario o Rol en un canal espesifico. 
+      - off: Muestra los permisos por default que tiene el usuario o Rol en general, difieren en canales con permisos personalizados.
   - /buttonlink
     - Permite crear botones con links. Mx. 5 por post
   - /buttonrole
@@ -224,6 +228,7 @@ services:
 ┃ ┃ ┃ ┣ 📜modalLimits.ts
 ┃ ┃ ┃ ┗ 📜reportHelp.ts
 ┃ ┃ ┣ 📂commands
+┃ ┃ ┃ ┣ 📜chkperm.ts
 ┃ ┃ ┃ ┣ 📜cleanup.ts
 ┃ ┃ ┃ ┣ 📜cronpost.ts
 ┃ ┃ ┃ ┣ 📜embed.ts

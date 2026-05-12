@@ -468,5 +468,41 @@
       "error_al_borrar": "❌ Ocurrió un error al intentar borrar la tarea.",
       "error_al_procesar_datos": "❌ Error al procesar los datos del mensaje!!"
     }
+  },
+  "chkPerm": {
+    "slashBuilder": {
+      "description": "Muestra los permisos que pose el usuario.",
+      "user_description": "Usuario",
+      "rol_description": "ROL",
+      "modo_description": "Categoria de permisos a revisar",
+      "modo_mngrBits": "Permisos de gestion de Servidor!!",
+      "modo_meltrys": "Permisos regulares como \"ver canal\", \"añadir reacciones\"...",
+      "modo_todos": "Revisar todos los permisos",
+      "canal_description": "Ver los permisos de un rol o usuario en un canal en espesifico! "
+    },
+    "interacciones": {
+      "nousernorole": "Debes indicar un rol o usuario, se priorisa el Rol en caso de poner ambos.",
+      "error": "No se pudo generar el listado de permisos.",
+      "error_noguildch": "El canal seleccionado no es válido para revisar permisos.",
+      "f1_name_m1": "Mostrando solo permisos de gestion de servidor!",
+      "f1_name_m2": "Mostrando permisos basicos!",
+      "f1_name_m3": "Mostrando todos los permisos!",
+      "f1_value_rol": "Rol: {{a1}}",
+      "f1_value_user": "Usuario: {{a1}}",
+      "f3_name": "Permisos que se tienen en el canal:",
+      "f2_name": "Permisos globales del servidor:",
+      "footer": "El permiso Administrador da control total del sevidor!! ",
+      "f4_Admin": "Listado de permisos de administracion:",
+      "f4_Non": "Listado de permisos regulares:",
+      "noch_title": "Mostrando los permiso por default",
+      "noch_desc": "⚠️`Los permisos regulares solo aplican en canales con permisos por default. @everyone`",
+      "ch_title": "Mostrando los permisos que se tiene el Rol/Usuario!!",
+      "ch_desc": "Canal en revision: {{a1}} ",
+      "ch_desc_Catg": "Permisos sincronizados con categoria {{a2}}",
+      "ch_desc_Catg2": "Canal con permisos independientes de su categoria!!",
+      "ch_desc_thr": "Canal tipo Hilo, este hereda sus permisos de {{a1}}",
+      "ch_desc_CatCat": "Categoria de canales: {{a1}}",
+      "ch_desc_wire": "Mostrando los permisos del hilo: {{a1}}"
+    }
   }
 }
