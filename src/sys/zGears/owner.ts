@@ -1,5 +1,5 @@
 // src/Events-Commands/commands/owner.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, ModalSubmitInteraction, EmbedBuilder } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, ModalSubmitInteraction, EmbedBuilder, PresenceStatusData } from "discord.js";
 import { debug, error, warn, } from "../logging";
 import { Buffer } from 'node:buffer';
 import { checkAllDomains, buildDomainStatusEmbed } from "./neTools";
@@ -7,7 +7,21 @@ import { deleteGuildConfig } from "./IO-Server";
 import { closeBD } from "../DB-Engine/database";
 import { getGuildLimits } from "../DB-Engine/links/noRules";
 import { adminChannel } from "./auxiliares";
+import { addStatusBD, addTempStatus, changeTimmer, clerTempStatus, deleteStatusBD, listStatus, setiState } from "./setStatus";
 
+/* ================================================================== Listado de comandos ================================================================== */
+const listCom = [
+    { name: "Modificacion de estados", value: "status" },
+    { name: "Responder reporte", value: "respond" },
+    { name: "Revisar dominios (embedServices)", value: "checkdomains" },
+    { name: "Lista de servidores", value: "list" },
+    { name: "Parametros de Servers", value: "rules" },
+    { name: "Reiniciar", value: "restart" },
+    { name: "Abandonar servidor", value: "leave" },
+    { name: "Purgar configuracion de server de la BD", value: "purge" },
+]
+
+/* ================================================================== Registro ================================================================== */
 export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
     const leaveServerCommand = new SlashCommandBuilder()
         .setName("owner")
@@ -17,15 +31,7 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
             op.setName("funcion")
                 .setDescription("Herramienta de administración")
                 .setRequired(true)
-                .addChoices(
-                    { name: "Responder reporte", value: "respond" },
-                    { name: "Revisar dominios (embedServices)", value: "checkdomains" },
-                    { name: "Lista de servidores", value: "list" },
-                    { name: "Parametros de Servers", value: "rules" },
-                    { name: "Reiniciar", value: "restart" },
-                    { name: "Abandonar servidor", value: "leave" },
-                    { name: "Purgar configuracion de server de la BD", value: "purge" }
-                )
+                .addChoices(listCom)
         )
         .addStringOption(op =>
             op.setName("server_id")
@@ -37,10 +43,15 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
                 .setDescription("ID del mensaje a responder")
                 .setRequired(false)
         )
+        .addStringOption(op =>
+            op.setName("data")
+                .setDescription("Información adicional para el comando")
+                .setRequired(false)
+        )
     return [leaveServerCommand] as SlashCommandBuilder[];
 }
 
-interface runCommands { interaccion: ChatInputCommandInteraction; subcomando: string; serverId: string; idUsr: string }
+interface runCommands { interaccion: ChatInputCommandInteraction; subcomando: string; serverId: string; idUsr: string; data: string; }
 const waitCommand = new Map<string, runCommands>();
 let cacheToken: { token: string } | null = null;
 
@@ -54,8 +65,9 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
     const subcommand = interaction.options.getString("funcion", true);
     const serverId = interaction.options.getString("server_id") || "nosrv";
     const idUsr = interaction.options.getString("id_usr") || "noid";
-    const idUser = interaction.user.id;
+    const data = interaction.options.getString("data") || "nodata";
 
+    const idUser = interaction.user.id;
     const admCh = await adminChannel(interaction.client);
     if (admCh.upChannel === false || admCh.channelId !== interaction.channelId) {
         await interaction.reply({
@@ -64,9 +76,9 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
         }); return
     }
 
-    const noTkn = ["restart", "checkdomains", "list"];
+    const noTkn = ["restart", "checkdomains", "list", "status"];
     if (noTkn.includes(subcommand)) {
-        await runCommand(interaction, subcommand, serverId, idUsr);
+        await runCommand(interaction, subcommand, serverId, idUsr, data);
         return;
     }
 
@@ -80,7 +92,7 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
 
     cacheToken = { token: newToken };
     warn(`🔐 SOLICITUD DE TOKEN GENERADA: ${newToken}`, "SecuritySys");
-    waitCommand.set(idCommands, { interaccion: interaction, subcomando: subcommand, serverId: serverId, idUsr: idUsr });
+    waitCommand.set(idCommands, { interaccion: interaction, subcomando: subcommand, serverId: serverId, idUsr: idUsr, data: data });
 
     setTimeout(() => {
         if (waitCommand.has(idCommands)) {
@@ -138,9 +150,9 @@ export async function modalTkn(interaction: ModalSubmitInteraction): Promise<voi
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     warn(`✅ TOKEN VERIFICADO por ${interaction.user.tag}`, "SecurityToken");
-    const { subcomando: subComand, serverId, idUsr } = pendingCommand;
+    const { subcomando: subComand, serverId, idUsr, data } = pendingCommand;
     try {
-        await runCommand(interaction, subComand, serverId, idUsr);
+        await runCommand(interaction, subComand, serverId, idUsr, data);
         waitCommand.delete(commandId);
 
         await interaction.editReply({
@@ -155,9 +167,9 @@ export async function modalTkn(interaction: ModalSubmitInteraction): Promise<voi
     cacheToken = null;
     warn("Token eliminado!!!", "SecurityToken")
 }
-/* ================================================================== runCommands ================================================================== */
 
-async function runCommand(integrations: any, subcommand: string, serverId: string, idUser: string): Promise<void> {
+/* ================================================================== runCommands ================================================================== */
+async function runCommand(integrations: any, subcommand: string, serverId: string, idUser: string, data: string): Promise<void> {
     switch (subcommand) {
         case "respond":
             await respondReport(integrations, idUser); break
@@ -173,6 +185,8 @@ async function runCommand(integrations: any, subcommand: string, serverId: strin
             await LeaveServer(integrations, serverId); break
         case "purge":
             await purgueConfig(integrations, serverId); break
+        case "status":
+            await sendStatus(integrations, data); break
         default:
             await integrations.reply({ content: "Subcomando no reconocido.", flags: MessageFlags.Ephemeral });
     }
@@ -190,13 +204,19 @@ async function ListServers(interaction: ChatInputCommandInteraction): Promise<vo
 
     let serverList = `Lista de Servidores - Total: ${guildCount}\n\n`;
     guilds.forEach(guild => {
-        serverList += `Nombre: ${guild.name} | ID: ${guild.id} | Miembros: ${guild.memberCount}\n`;
+        serverList += `Nombre: ${guild.name} | ID: ${guild.id} | Miembros: ${guild.memberCount} | Me uni: ${guild.joinedAt.toLocaleDateString}\n`;
     });
+
+    let memberCount = 0;
+    for (const guild of guilds.values()) {
+        memberCount += guild.memberCount;
+    }
+    if (memberCount !== 0) serverList += `y ${memberCount} miembros!`;
 
     const buffer = Buffer.from(serverList, 'utf-8');
 
     await interaction.editReply({
-        content: `**Estoy en ${guildCount} servidores:**\n\n📁 Aquí tienes la lista completa.`,
+        content: `**Estoy en ${guildCount} servidores!**\n**Miembros totales: ${memberCount}**\n\n📁 Aquí tienes la lista completa.`,
         files: [{
             attachment: buffer,
             name: `servers.txt`
@@ -378,6 +398,7 @@ async function Restart(interaction: ChatInputCommandInteraction): Promise<void> 
     }
 }
 
+/* ================================================================== Respuesta report ================================================================== */
 async function respondReport(interaction: ChatInputCommandInteraction, idUser: string): Promise<void> {
     if (idUser === "noid") {
         await interaction.editReply({ content: "❌ Faltó el ID del usuario a responder en la opción 'id_usr'." });
@@ -520,4 +541,98 @@ export async function sendLimitsDashboard(interaction: ChatInputCommandInteracti
         .setStyle(ButtonStyle.Danger);
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(btnEdit, btnDomain, btnNode, btnReset);
     await interaction.editReply({ embeds: [embed], components: [row] });
+}
+
+/* ================================================================== Status ================================================================== */
+async function sendStatus(interaction: ChatInputCommandInteraction, data: string): Promise<void> {
+    if (!interaction.deferred) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
+
+    /* === === === help emb === === === */
+    const embid = new EmbedBuilder()
+        .setTitle("Formato de inputs")
+        .setDescription(`Todo se maneja con un solo string enviando en "data": Modo|X|Y"`)
+        .addFields(
+            { name: "Añadir estado permanente", value: "data = addP|Mensaje", inline: false },
+            { name: "Lista de estados", value: "data = list", inline: false },
+            { name: "Borrar estado permante", value: "data = delete|ID", inline: false },
+            { name: "Añadir estado temporal", value: "data = addT|Mensaje|Minutos", inline: false },
+            { name: "Limpiar Estados temporales", value: " data = clear", inline: false },
+            { name: "Cambiar Timer", value: "data = timmer|Minutos", inline: false },
+            { name: "Cambiar Estado", value: `data = stado|Estado|Minutos \nEstado: "online", "idle", "dnd", "invisible"`, inline: false },
+        )
+        .setColor(0xff0000);
+
+    /* === === === Valores === === === */
+    const P = data.split("|");
+    const modo = P[0] || "nodata";
+    const X = P[1] || "nodata"; const Y = P[2] || "nodata";
+
+    let status = "nodata"; let num = -1; let stado = "nodata";
+    switch (modo) {
+        case "addP": status = X; break;
+        case "addT": status = X; num = parseInt(Y, 10); break;
+        case "stado": stado = X; num = parseInt(Y, 10); break;
+        case "timmer": num = parseInt(X, 10); break;
+        case "delete": num = parseInt(X, 10); break;
+        case "list": await listStatus(interaction); return;
+        case "clear": const c = await clerTempStatus();
+            if (!c) await interaction.editReply({ content: "❌ No se pudo remover el estado temporal" });
+            else await interaction.editReply({ content: "✅ Estado temporal removido" });
+            return;
+        default: await interaction.editReply({ embeds: [embid] }); return;
+    }
+
+    /* === === === chks === === === */
+    if (modo === "addP" || modo === "addT") {
+        if (status === "nodata" || status.length === 0) { await interaction.editReply({ content: "❌ Se te olvido el stado!!", embeds: [embid] }); return; }
+        if (status.length > 60) { await interaction.editReply({ content: "❌ Mensaje demasiado largo!!", embeds: [embid] }); return; }
+    }
+
+    if (modo === "stado") {
+        if (!["online", "idle", "dnd", "invisible"].includes(stado)) { await interaction.editReply({ content: "❌ Estado inválido!!", embeds: [embid] }); return; }
+    }
+
+    if ((modo === "timmer" || modo === "delete" || modo === "addT" || modo === "stado")) {
+        if (num < -1) { await interaction.editReply({ content: "❌ Debes introducir un número válido, revisa los comandos que piden tiempo o ID", embeds: [embid] }); return; }
+        if (modo !== "stado" && num < 1) { await interaction.editReply({ content: `${modo === "delete" ? "❌ El ID no puede ser menor a 1" : "❌ El timer minimo es de 1 minuto."}` }); return; }
+    }
+
+    /* === === === Run === === === */
+    try {
+        switch (modo) {
+            case "stado":
+                const s = await setiState(stado as PresenceStatusData, num);
+                if (!s) await interaction.editReply({ content: "❌ No se pudo cambiar el estado" });
+                else await interaction.editReply({ content: `✅ Estado cambiado a: ${stado} ${num === 0 ? "." : ` durante ${num} minutos.`}` }); break;
+
+            case "addT":
+                const aT = addTempStatus(status, num);
+                if (!aT) await interaction.editReply({ content: "❌ No se pudo establecer el estado temporal!!" });
+                else await interaction.editReply({ content: `✅ Estado establecido: "${status}" por ${num} minutos.` });
+                break;
+
+            case "addP":
+                const aP = await addStatusBD(status);
+                if (!aP) await interaction.editReply({ content: "❌ Ocurrió un error al establecer el estado" });
+                else await interaction.editReply({ content: `✅ Estado establecido: "${status}"` });
+                break;
+
+            case "timmer":
+                const t = await changeTimmer(num);
+                if (!t) await interaction.editReply({ content: "❌ Ocurrió un error al cambiar el timer" });
+                else await interaction.editReply({ content: `Nuevo timer establecido: ${t / 60 / 1000} minutos` });
+                break;
+
+            case "delete":
+                const d = await deleteStatusBD(num);
+                if (!d) await interaction.editReply({ content: "❌ No se pudo eliminar el estado" });
+                else await interaction.editReply({ content: `✅ Estado ${num} eliminado` });
+                break;
+        }
+    } catch (e) {
+        error(`Se produjo un error: ${e}`);
+        await interaction.editReply({ content: "❌ Ocurrió un error al procesar el comando" });
+    }
 }

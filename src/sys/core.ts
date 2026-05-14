@@ -38,7 +38,6 @@ async function main(): Promise<void> {
         sysUpRegister(client);
         await registerIOevent(client);
         registerRolemojiEvents(client);
-        startStatusRotation(client);
         if (BDready) {
             info("💽​ Base de datos lista, iniciando servicios...")
             startVoiceChannelService(client);
@@ -47,6 +46,7 @@ async function main(): Promise<void> {
             startRedditChecker(client);  // by nowa
             await startWelcomeEvents(client);
             startCronpost(client);
+            startStatusRotation(client);
         } else {
             error("❌ La BD no arranco, bye bye~");
             process.exit(1);

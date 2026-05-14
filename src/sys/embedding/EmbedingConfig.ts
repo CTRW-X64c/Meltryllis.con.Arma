@@ -48,10 +48,17 @@ export const replacementMetaList: ReplacementMeta[] = [
     takesUrl: true,
   },
   {
+    name: "FacebookVideo",
+    envVar: "FACEBOOK_VIDEO_FIX_URL",
+    Class: Facebook,
+    regexKeys: ["(\\/\\/|\\.)?(facebook|fb)\\.com\\/(share\\/)?(r\\/|v\\/|reel\\/|watch\\?v=|\\d+\\/videos\\/)"],
+    takesUrl: true,
+  },
+  {
     name: "Facebook",
     envVar: "FACEBOOK_FIX_URL",
     Class: Facebook,
-    regexKeys: ["(\\/\\/|\\.)?facebook\\.com/"],
+    regexKeys: ["(\\/\\/|\\.)?(facebook|fb)\\.com\\/.*"],
     takesUrl: true,
   },
   {
@@ -112,7 +119,7 @@ export const replacementMetaList: ReplacementMeta[] = [
     Class: TikTok,
     regexKeys: ["\\/\\/(\\w+\\.)?tiktok.com\\/((t\\/)?\\w+|@[^\\s]+\\/video)"],
     takesUrl: true,
-  },  
+  },
   {
     name: "Tumblr",
     envVar: "TUMBLR_FIX_URL",

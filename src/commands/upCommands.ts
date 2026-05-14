@@ -53,7 +53,7 @@ export async function sysUpRegister(client: Client) {
   const comandList = commands.map((command) => command.name).join(", /");
 
   client.application?.commands.set(commands)
-    .then(() => info(`Comandos /${comandList} registrados con éxito`, "Commands.Register"))
+    .then(() => info(`Comandos registrados (${commands.length}):\n/${comandList}`, "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 

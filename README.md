@@ -144,6 +144,7 @@ services:
     #Dominios embeding. Puedes usar mas de un dominio separados por "|" y se recomienda poner el original al final
       INSTAGRAM_FIX_URL: 
       FACEBOOK_FIX_URL: facebed.com|facebook.com
+      FACEBOOK_VIDEO_FIX_URL: fixacebook.com|facebook.com
       PIXIV_FIX_URL: phixiv.net|pixiv.net
       REDDIT_FIX_URL: rxddit.com|reddit.com
       TIKTOK_FIX_URL: tnktok.com|tiktok.com
