@@ -5,18 +5,25 @@ import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
+import { sites } from "../../sys/embedding/domainChecker";
 
-const localSites = replacementMetaList.map((meta) => ({ name: "Local: " + meta.name, value: meta.name }));  //cambio estetico para separa los sitios NSFW & SFW del APi y locales 
-const dominiosAPIsfw = process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : [];
-const apiSitesSFW = dominiosAPIsfw.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
-const dominiosAPInsfw = process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [];
-const apiSitesNSFW = dominiosAPInsfw.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
-const allSites = [...localSites, ...apiSitesSFW, ...apiSitesNSFW];
+function list(i: string): any[] {
+    const localSites = replacementMetaList.map((meta) => ({ name: "Local: " + meta.name, value: meta.name }));  //cambio estetico para separa los sitios NSFW & SFW del APi y locales 
+    const d_SFW = sites["API_SFW"] ? sites["API_SFW"].split('|').map(s => s.trim()) : []
+    const apiSitesSFW = d_SFW.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
+    const d_NSFW = sites["API_NSFW"] ? sites["API_NSFW"].split('|').map(s => s.trim()) : []
+    const apiSitesNSFW = d_NSFW.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
+    const allSites = [...localSites, ...apiSitesSFW, ...apiSitesNSFW];
+    const Api = [...d_NSFW, ...d_SFW]
+    if (i === "all") return allSites;
+    if (i === "api") return Api;
+    return [];
+}
 
 // --- Cambio para autocompletar 
 export async function embedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const focusedValue = interaction.options.getFocused().toLowerCase();  
-    const filtered = allSites.filter(choice => 
+    const focusedValue = interaction.options.getFocused().toLowerCase();
+    const filtered = list("all").filter(choice =>
         choice.name.toLowerCase().includes(focusedValue)
     );
 
@@ -27,7 +34,7 @@ export async function embedAutocomplete(interaction: AutocompleteInteraction): P
 
 export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
     const embedCommand = new SlashCommandBuilder()
-        .setName("embed") 
+        .setName("embed")
         .setDescription(i18next.t("commands:embed.slashBuilder.embed_description"))
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addSubcommand((subcommand) =>
@@ -39,18 +46,18 @@ export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
                         .setName("sitio")
                         .setDescription(i18next.t("commands:embed.slashBuilder.site_description"))
                         .setRequired(true)
-                        .setAutocomplete(true) 
+                        .setAutocomplete(true)
                 )
                 .addStringOption((option) =>
                     option
                         .setName("modo")
-                        .setDescription(i18next.t("commands:embed.slashBuilder.action_description")) 
+                        .setDescription(i18next.t("commands:embed.slashBuilder.action_description"))
                         .setRequired(true)
                         .addChoices(
-                            { name: i18next.t("commands:embed.slashBuilder.enable"), value: "enable" }, 
+                            { name: i18next.t("commands:embed.slashBuilder.enable"), value: "enable" },
                             { name: i18next.t("commands:embed.slashBuilder.disable"), value: "disable" },
                             { name: i18next.t("commands:embed.slashBuilder.custom"), value: "custom" },
-                            { name: i18next.t("commands:embed.slashBuilder.default"), value: "default" } 
+                            { name: i18next.t("commands:embed.slashBuilder.default"), value: "default" }
                         )
                 )
                 .addStringOption((option) =>
@@ -84,7 +91,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         const site = interaction.options.getString("sitio", true);
         const action = interaction.options.getString("modo", true);
         const customUrlInput = interaction.options.getString("personalizar", false);
-        const isApiDomain = dominiosAPIsfw.includes(site) || dominiosAPInsfw.includes(site);
+        const isApiDomain = list("api").includes(site);
 
         let customUrl: string | null = null;
         let enabled = true;
@@ -93,7 +100,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         if (action === "default") {
             if (isApiDomain) {
                 await interaction.reply({
-                    content: i18next.t("commands:embed.interacciones.Api_default"), 
+                    content: i18next.t("commands:embed.interacciones.Api_default"),
                     flags: MessageFlags.Ephemeral,
                 });
                 return;
@@ -101,7 +108,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
             customUrl = null;
             enabled = true;
             userId = null;
-        } else if (action === "enable") { 
+        } else if (action === "enable") {
             customUrl = null;
             enabled = true;
             userId = interaction.user.id;
@@ -150,7 +157,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
             successMessage = i18next.t("commands:embed.interacciones.enable_description", { a1: userMention, a2: site });
         } else if (action === "custom") {
             successMessage = i18next.t("commands:embed.interacciones.custom_description", { a1: userMention, a2: site, a3: customUrlInput });
-        } else { 
+        } else {
             successMessage = i18next.t("commands:embed.interacciones.default_description", { a1: userMention, a2: site });
         }
 

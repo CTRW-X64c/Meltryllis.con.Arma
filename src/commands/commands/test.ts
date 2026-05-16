@@ -9,9 +9,7 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 import { checkAllDomains, buildDomainStatusEmbed } from "../../sys/zGears/neTools";
 import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
-
-const sfwDomains = process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : [];
-const nsfwDomains = process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [];
+import { sites } from "../../sys/embedding/domainChecker";
 
 export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
   const testCommand = new SlashCommandBuilder()
@@ -245,6 +243,8 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
     throw new Error(i18next.t("commands:test.interacciones.dont_gg"));
   }
 
+  const sfwDomains = sites["API_SFW"] ? sites["API_SFW"].split('|').map(s => s.trim()) : [] /*process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : [];*/
+  const nsfwDomains = sites["API_NSFW"] ? sites["API_NSFW"].split('|').map(s => s.trim()) : [] /*process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [];*/
   const replacementConfig = await getGuildReplacementConfig(guildId);
   embed.setDescription(i18next.t("commands:test.interacciones.not_replacement"));
 

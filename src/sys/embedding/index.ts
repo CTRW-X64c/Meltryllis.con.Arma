@@ -1,6 +1,6 @@
 // src/sys/embeding/index.ts
 import { replacementMetaList } from "./EmbedingConfig";
-import urlStatusManager from "./domainChecker"; 
+import urlStatusManager from "./domainChecker";
 
 export default function buildReplacements(guildConfig: Map<string, { custom_url: string | null; enabled: boolean }>): {
   [identifier: string]: (messageContent: string) => string | null;
@@ -16,12 +16,12 @@ export default function buildReplacements(guildConfig: Map<string, { custom_url:
       const depConfig = guildConfig.get(meta.dependsOn) || { enabled: true, custom_url: null };
       if (!depConfig.enabled) continue;
 
-      const depUrl = depConfig.custom_url || urlStatusManager.getActiveUrl(meta.envVar);
-      
+      const depUrl = depConfig.custom_url || urlStatusManager.getActiveUrl(meta.dbKey);
+
       if (!depUrl) continue;
     }
 
-    const url = config.custom_url || urlStatusManager.getActiveUrl(meta.envVar);
+    const url = config.custom_url || urlStatusManager.getActiveUrl(meta.dbKey);
 
     if (meta.takesUrl && !url) continue;
 
@@ -38,9 +38,9 @@ export default function buildReplacements(guildConfig: Map<string, { custom_url:
     for (const key of meta.regexKeys) {
       replacements[key] = (messageContent: string) => {
         if (meta.dependsOn) {
-           const depConfig = guildConfig.get(meta.dependsOn);
-           const depUrl = depConfig?.custom_url || urlStatusManager.getActiveUrl(meta.envVar);               
-           return instance.replaceURLs(messageContent, depUrl || undefined);
+          const depConfig = guildConfig.get(meta.dependsOn);
+          const depUrl = depConfig?.custom_url || urlStatusManager.getActiveUrl(meta.dbKey);
+          return instance.replaceURLs(messageContent, depUrl || undefined);
         }
         return instance.replaceURLs(messageContent);
       };

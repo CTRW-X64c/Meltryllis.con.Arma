@@ -6,7 +6,7 @@ import { error, info, initLogger, loggerAvailable } from "./logging";
 import { initializeDatabase, isBdReady } from "./DB-Engine/database";
 import startEmbedService from "./embedding/embedService";
 import { startStatusRotation } from "./zGears/setStatus";
-import urlStatusManager from "./embedding/domainChecker";
+import urlStatusManager, { startListDomains } from "./embedding/domainChecker";
 import { initI18n } from "./i18n";
 import { validateAllTranslations } from "./i18n/nsKeyCheck";
 import { startWelcomeEvents } from "../bgProcess/welcomeEvents";
@@ -32,14 +32,18 @@ async function main(): Promise<void> {
         const BDready = await isBdReady();
         await validateAllTranslations();
         if (lavalinkManager) { lavalinkManager.init(client); }
-        urlStatusManager.start();
         await client.login(process.env.DISCORD_BOT_TOKEN); /* Algunos ocupan ir antes del login, como lavalink */
-        startEmbedService(client);
         sysUpRegister(client);
         await registerIOevent(client);
         registerRolemojiEvents(client);
         if (BDready) {
             info("💽​ Base de datos lista, iniciando servicios...")
+            const sld = await startListDomains()
+            if (sld) {
+                urlStatusManager.start();
+                startEmbedService(client);
+                info("Servicio de embed inicializado")
+            } else { error("❌ ERROR AL INICIAR EL SISTEMA DE EMBEDDING!!") }
             startVoiceChannelService(client);
             startMangadexChecker(client);
             startYoutubeService(client); // by nep  

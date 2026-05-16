@@ -1,7 +1,8 @@
 // src/client/coreCommands/neetTools.ts
 import { EmbedBuilder } from 'discord.js';
-import { debug, info } from '../logging'; // Asegúrate de tener los imports
+import { debug, error, info } from '../logging'; // Asegúrate de tener los imports
 import i18next from 'i18next';
+import { sites } from '../../sys/embedding/domainChecker';
 
 interface DomainStatus {
     name: string;
@@ -14,20 +15,17 @@ interface DomainStatus {
 
 function getDomainsFromEnv(): Array<{ name: string; url: string; expectedStatus: number }> {
     const domains: Array<{ name: string; url: string; expectedStatus: number }> = [];
-    for (const [key, value] of Object.entries(process.env)) {
-        if (key.endsWith('_FIX_URL') && value && value.trim() !== '') {
-            const serviceName = key.replace('_FIX_URL', '');
-            const rawUrls = value.trim();
-            const splitURL = rawUrls.split('|').map(url => url.trim()).filter(url => url.length > 0);
-            
-            for (const url of splitURL) {
-                const fullUrl = ensureProtocol(url);
-                domains.push({
-                    name: formatServiceName(serviceName),
-                    url: fullUrl,
-                    expectedStatus: 200
-                });
-            }
+    if (Object.keys(sites).length === 0) { error("embeding service no esta funcionando!"); return []; }
+    for (const [key, value] of Object.entries(sites)) {
+        if (key === "API_SFW" || key === "API_NSFW" || key === "Api") continue;
+        const splitURL = value.split('|');
+        for (const url of splitURL) {
+            const fullUrl = ensureProtocol(url.trim());
+            domains.push({
+                name: formatServiceName(key),
+                url: fullUrl,
+                expectedStatus: 200
+            });
         }
     }
     return domains;
@@ -48,20 +46,20 @@ async function checkDomain(domain: { name: string; url: string; expectedStatus: 
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
-         const header = { 'User-Agent': 'MeltryllistHealthCheck/1.0' }
-        
+        const header = { 'User-Agent': 'MeltryllistHealthCheck/1.0' }
+
         const response = await fetch(domain.url, {
             method: 'HEAD',
             signal: controller.signal,
             headers: header,
         }).catch(() => {
-            return fetch(domain.url, { method: 'GET', signal: controller.signal, headers: header});
+            return fetch(domain.url, { method: 'GET', signal: controller.signal, headers: header });
         });
-        
+
         clearTimeout(timeoutId);
         const responseTime = Date.now() - startTime;
         const isSuccess = response.status >= 200 && response.status < 499;
-        
+
         return {
             name: domain.name, url: domain.url, status: response.status,
             responseTime: responseTime, isWorking: isSuccess
@@ -71,7 +69,7 @@ async function checkDomain(domain: { name: string; url: string; expectedStatus: 
         let errorMessage = 'Error desconocido';
         if (err.name === 'AbortError') errorMessage = 'Timeout (15s)';
         else errorMessage = err.message || 'Error desconocido';
-        
+
         return {
             name: domain.name, url: domain.url, status: 0,
             responseTime: responseTime, isWorking: false, error: errorMessage
@@ -81,14 +79,12 @@ async function checkDomain(domain: { name: string; url: string; expectedStatus: 
 
 export async function checkAllDomains(): Promise<DomainStatus[]> {
     const domains = getDomainsFromEnv();
-    if (domains.length === 0) {
-        throw new Error("No se encontraron variables *_FIX_URL en .env");
-    }
+    if (domains.length === 0) { throw new Error("No se encontraron dominios revise domainCheker.ts") }
     info(`Verificando ${domains.length} dominios...`, "CheckDomains");
     const results: DomainStatus[] = [];
     const batchPromises = domains.map(domain => checkDomain(domain));
     results.push(...await Promise.all(batchPromises));
-    
+
     debug(`Verificación completada. ${results.filter(r => r.isWorking).length}/${results.length} dominios OK`, "CheckDomains");
     return results;
 }
@@ -97,12 +93,12 @@ export function buildDomainStatusEmbed(domainStatuses: DomainStatus[]): EmbedBui
     const embed = new EmbedBuilder()
         .setTitle(i18next.t("common:neTools.embed_title", { ns: "neTools" }))
         .setTimestamp();
-    
+
     const workingCount = domainStatuses.filter(d => d.isWorking).length;
     const totalCount = domainStatuses.length;
-    
+
     embed.setDescription(i18next.t("common:neTools.embed_description", { ns: "neTools", a1: workingCount, a2: totalCount }));
-    
+
     if (workingCount === totalCount) {
         embed.setColor("#00ff00");
     } else if (workingCount === 0) {
@@ -110,9 +106,9 @@ export function buildDomainStatusEmbed(domainStatuses: DomainStatus[]): EmbedBui
     } else {
         embed.setColor("#ffaa00");
     }
-    
+
     const groupedDomains: { [key: string]: DomainStatus[] } = {};
-    
+
     domainStatuses.forEach(domain => {
         if (!groupedDomains[domain.name]) {
             groupedDomains[domain.name] = [];
@@ -124,7 +120,7 @@ export function buildDomainStatusEmbed(domainStatuses: DomainStatus[]): EmbedBui
         const fieldContent = domains.map(d => {
             const statusIcon = d.isWorking ? "✅" : "🔻";
             const cleanUrl = d.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
-            return `  ${cleanUrl} ${statusIcon}`;
+            return `  ${statusIcon} | ${cleanUrl}`;
         }).join('\n');
 
         embed.addFields({
@@ -133,18 +129,18 @@ export function buildDomainStatusEmbed(domainStatuses: DomainStatus[]): EmbedBui
             inline: true
         });
     }
-    
+
     const workingDomains = domainStatuses.filter(d => d.isWorking);
-    const avgResponseTime = workingDomains.length > 0 
-        ? workingDomains.reduce((sum, d) => sum + d.responseTime, 0) / workingDomains.length 
+    const avgResponseTime = workingDomains.length > 0
+        ? workingDomains.reduce((sum, d) => sum + d.responseTime, 0) / workingDomains.length
         : 0;
-        
+
     embed.addFields({
         name: i18next.t("common:neTools.embed_resumen", { ns: "neTools" }),
         value: i18next.t("common:neTools.embed_resumen_value_1", { ns: "neTools", a1: Math.round(avgResponseTime) }) +
-               i18next.t("common:neTools.embed_resumen_value_2", { ns: "neTools", a1: ((workingCount / totalCount) * 100).toFixed(1)}),
+            i18next.t("common:neTools.embed_resumen_value_2", { ns: "neTools", a1: ((workingCount / totalCount) * 100).toFixed(1) }),
         inline: false
     });
-    
+
     return embed;
 }

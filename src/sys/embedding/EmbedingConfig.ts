@@ -18,7 +18,7 @@ import YouTube from "./webs/YouTube";
 
 interface ReplacementMeta {
   name: string;
-  envVar: string;
+  dbKey: string;
   Class: new (...args: any[]) => { replaceURLs: (content: string, base?: string) => string | null };
   regexKeys: string[];
   dependsOn?: string;
@@ -28,77 +28,77 @@ interface ReplacementMeta {
 export const replacementMetaList: ReplacementMeta[] = [
   {
     name: "Bilibili",
-    envVar: "BILILI_FIX_URL",
+    dbKey: "bilibili",
     Class: Bilibili,
     regexKeys: ["(\\/\\/|\\.)?bilibili\\.com"],
     takesUrl: true,
   },
   {
     name: "Bluesky",
-    envVar: "BSKY_FIX_URL",
+    dbKey: "bluesky",
     Class: Bsky,
     regexKeys: ["(\\/\\/|\\.)?bsky\\.app"],
     takesUrl: true,
   },
   {
     name: "Deviantart",
-    envVar: "DEVIAN_FIX_URL",
+    dbKey: "deviantart",
     Class: DeviantArt,
     regexKeys: ["(\\/\\/|\\.)?deviantart\\.com/"],
     takesUrl: true,
   },
   {
     name: "FacebookVideo",
-    envVar: "FACEBOOK_VIDEO_FIX_URL",
+    dbKey: "facebookVideo",
     Class: Facebook,
     regexKeys: ["(\\/\\/|\\.)?(facebook|fb)\\.com\\/(share\\/)?(r\\/|v\\/|reel\\/|watch\\?v=|\\d+\\/videos\\/)"],
     takesUrl: true,
   },
   {
     name: "Facebook",
-    envVar: "FACEBOOK_FIX_URL",
+    dbKey: "facebook",
     Class: Facebook,
     regexKeys: ["(\\/\\/|\\.)?(facebook|fb)\\.com\\/.*"],
     takesUrl: true,
   },
   {
     name: "Furaffinity",
-    envVar: "FURAFF_FIX_URL",
+    dbKey: "furaffinity",
     Class: Furaffinity,
     regexKeys: ["(\\/\\/|\\.)?furaffinity\\.net/"],
     takesUrl: true,
   },
   {
     name: "Imgur",
-    envVar: "IMGUR_FIX_URL",
+    dbKey: "imgur",
     Class: Imgur,
     regexKeys: ["(\\/\\/|\\.)?imgur\\.com/"],
     takesUrl: true,
   },
   {
     name: "Intagram",
-    envVar: "INSTAGRAM_FIX_URL",
+    dbKey: "instagram",
     Class: Instagram,
     regexKeys: ["\\/\\/(\\w+\\.)?instagram.com\\/(p|reels?|stories)\\/"],
     takesUrl: true,
   },
   {
     name: "Iwara",
-    envVar: "IWARA_FIX_URL",
+    dbKey: "iwara",
     Class: Iwara,
     regexKeys: ["(\\/\\/|\\.)?iwara\\.tv/"],
     takesUrl: true,
   },
   {
     name: "Pixiv",
-    envVar: "PIXIV_FIX_URL",
+    dbKey: "pixiv",
     Class: Pixiv,
     regexKeys: ["https?:\\/\\/(\\w+\\.)?pixiv\\.net\\/(\\w+\\/)?(artworks|member_illust\\.php)(\\/|\\?illust_id=)\\d+(\\/?\\d+)?"],
     takesUrl: true,
   },
   {
     name: "Reddit",
-    envVar: "REDDIT_FIX_URL",
+    dbKey: "reddit",
     Class: Reddit,
     regexKeys: [
       "\\/\\/(\\w+\\.)?reddit\\.com\\/(r|u|user)\\/\\w+\\/(s|comments)\\/\\w+",
@@ -108,45 +108,44 @@ export const replacementMetaList: ReplacementMeta[] = [
   },
   {
     name: "Threads",
-    envVar: "THRENDS_FIX_URL",
+    dbKey: "threads",
     Class: Threads,
     regexKeys: ["(\\/\\/|\\.)?threads\\.com/"],
     takesUrl: true,
   },
   {
     name: "Tiktok",
-    envVar: "TIKTOK_FIX_URL",
+    dbKey: "tiktok",
     Class: TikTok,
     regexKeys: ["\\/\\/(\\w+\\.)?tiktok.com\\/((t\\/)?\\w+|@[^\\s]+\\/video)"],
     takesUrl: true,
   },
   {
     name: "Tumblr",
-    envVar: "TUMBLR_FIX_URL",
+    dbKey: "tumblr",
     Class: Tumblr,
     regexKeys: ["(\\/\\/|\\.)?tumblr\\.com/"],
     takesUrl: true,
   },
   {
     name: "Twitch",
-    envVar: "TWITCH_FIX_URL",
+    dbKey: "twitch",
     Class: Twitch,
     regexKeys: ["(\\/\\/|\\.)?twitch\\.tv"],
     takesUrl: true,
   },
   {
     name: "Twitter | X",
-    envVar: "TWITTER_FIX_URL",
+    dbKey: "twitter",
     Class: Twitter,
     regexKeys: ["(\\/\\/|\\.)(x|twitter)\\.com"],
     takesUrl: true,
   },
   {
     name: "Youtube",
-    envVar: "YOUTUBE_FIX_URL",
+    dbKey: "youtube",
     Class: YouTube,
     regexKeys: ["(m|www)\\.youtube\\.com/shorts/"],
     takesUrl: true,
   },
 ];
-

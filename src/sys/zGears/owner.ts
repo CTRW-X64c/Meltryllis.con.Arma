@@ -8,11 +8,14 @@ import { closeBD } from "../DB-Engine/database";
 import { getGuildLimits } from "../DB-Engine/links/noRules";
 import { adminChannel } from "./auxiliares";
 import { addStatusBD, addTempStatus, changeTimmer, clerTempStatus, deleteStatusBD, listStatus, setiState } from "./setStatus";
+import { addSite, deleteSite, deletLast, editDomain, listDomains } from "../embedding/domainChecker";
+
 
 /* ================================================================== Listado de comandos ================================================================== */
 const listCom = [
     { name: "Modificacion de estados", value: "status" },
     { name: "Responder reporte", value: "respond" },
+    { name: "Dominios", value: "dominios" },
     { name: "Revisar dominios (embedServices)", value: "checkdomains" },
     { name: "Lista de servidores", value: "list" },
     { name: "Parametros de Servers", value: "rules" },
@@ -76,7 +79,7 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
         }); return
     }
 
-    const noTkn = ["restart", "checkdomains", "list", "status"];
+    const noTkn = ["restart", "checkdomains", "list", "status", "dominios"];
     if (noTkn.includes(subcommand)) {
         await runCommand(interaction, subcommand, serverId, idUsr, data);
         return;
@@ -187,6 +190,8 @@ async function runCommand(integrations: any, subcommand: string, serverId: strin
             await purgueConfig(integrations, serverId); break
         case "status":
             await sendStatus(integrations, data); break
+        case "dominios":
+            await domainManager(integrations, data); break
         default:
             await integrations.reply({ content: "Subcomando no reconocido.", flags: MessageFlags.Ephemeral });
     }
@@ -634,5 +639,91 @@ async function sendStatus(interaction: ChatInputCommandInteraction, data: string
     } catch (e) {
         error(`Se produjo un error: ${e}`);
         await interaction.editReply({ content: "❌ Ocurrió un error al procesar el comando" });
+    }
+}
+
+/* ================================================================== domainManager ================================================================== */
+async function domainManager(interaction: ChatInputCommandInteraction, data: string) {
+    if (!interaction.deferred) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
+
+    const emb = new EmbedBuilder()
+        .setTitle("Dominios Manager")
+        .setDescription("Los Dominios se agregan con el siguiente formato en data = modo#X=Y")
+        .addFields(
+            { name: "Añadir dominio a sitio", value: "data = addD#X=Y \n ej: addD#facebok=fixbook.com", inline: false },
+            { name: "Borrar ultimo dominio de un sitio", value: "data = delD#X \n ej: delD#facebok", inline: false },
+            { name: "Añadir/Remplazar un sitio con dominios", value: "data = add#X=Y \n ej: add#facebok=alt.com|alt2.com|...", inline: false },
+            { name: "Borrar sitio completo!!", value: "data = del#X \n ej: del#facebok", inline: false },
+            { name: "Lista de dominios", value: "data = list", inline: false },
+        )
+        .setColor(0x00FF00);
+
+    const p1 = data.split("#");
+    const modo = p1[0] || "nodata";
+    const siteDom = p1[1] || "";
+
+    const siteIdom = siteDom.split("=");
+    const site = siteIdom[0] || "nodata";
+    const dom = siteIdom[1] || "nodata";
+
+    try {
+        switch (modo) {
+            case "delD":
+                if (siteDom === "" || siteDom === "nodata" || siteDom.includes("=")) {
+                    await interaction.editReply({ content: "❌ ¡El formato es incorrecto! Solo manda el nombre del sitio.", embeds: [emb] });
+                    return;
+                }
+
+                const d = await deletLast(siteDom);
+                if (!d) await interaction.editReply({ content: "❌ No se pudo eliminar el dominio" });
+                else await interaction.editReply({ content: `✅ Dominio eliminado` });
+                return;
+
+            case "addD":
+                if (site === "nodata" || site === "" || siteDom === "" || siteDom.includes("|")) {
+                    await interaction.editReply({ content: "❌ ¡El formado de adicion de dominio es incorrecto!", embeds: [emb] });
+                    return;
+                }
+
+                const e = await editDomain(site, dom);
+                if (!e) await interaction.editReply({ content: `❌ No se pudo añadir el dominio ${dom} al sitio ${site}!!` });
+                else await interaction.editReply({ content: `✅ Se añadio el dominio ${dom} al sitio ${site}` });
+                return;
+
+            case "addS":
+                if (siteDom === "" || siteDom === "nodata" || siteDom.includes("=")) {
+                    await interaction.editReply({ content: "❌ ¡El formato es incorrecto! Solo manda el nombre del sitio.", embeds: [emb] });
+                    return;
+                }
+
+                const addDB = await addSite(site, dom);
+                if (!addDB) await interaction.editReply({ content: `❌ ¡No se pudieron añadir los nuevos dominios ${dom} para el sitio ${site}!` });
+                else await interaction.editReply({ content: `✅ ¡Se añadieron los nuevos dominios ${dom} para el sitio ${site}!` });
+                break;
+
+            case "delS":
+                if (siteDom === "" || siteDom === "nodata") {
+                    await interaction.editReply({ content: "❌ ¡No se especificó Sitio!", embeds: [emb] });
+                    return;
+                }
+
+                const delDB = await deleteSite(siteDom);
+                if (!delDB) await interaction.editReply({ content: `❌ ¡No se pudo eliminar el dominio ${siteDom}!` });
+                else await interaction.editReply({ content: `✅ ¡Se eliminó el dominio ${siteDom}!` });
+                break;
+
+            case "list":
+                await listDomains(interaction);
+                break;
+
+            default:
+                await interaction.editReply({ embeds: [emb] });
+                break;
+        }
+    } catch (e) {
+        error(`Error en domainManager: ${e}`);
+        await interaction.editReply({ content: "❌ Ocurrió un error al procesar el comando de dominios." });
     }
 }

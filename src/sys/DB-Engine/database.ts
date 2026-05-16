@@ -37,7 +37,6 @@ export async function initializeDatabase(): Promise<void> {
 
         await poolManager();
 
-        info(`✅ Base de datos completamente inicializada y todas las tablas verificadas`, "Database");
         return;
       } catch (err) {
         if (attempt < maxRetries) {
@@ -223,6 +222,7 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  // Tabla de limites
   await pool.query(`
     CREATE TABLE IF NOT EXISTS guild_limits (
       guild_id VARCHAR(50) PRIMARY KEY,
@@ -235,10 +235,19 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  // Tabla de estados
   await pool.query(`
     CREATE TABLE IF NOT EXISTS status_configs (
       id INT AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(255) NOT NULL
+    )
+  `);
+
+  // Tabla de Dominios
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS domains (
+      site VARCHAR(255) PRIMARY KEY,
+      domains VARCHAR(255) NOT NULL
     )
   `);
 
