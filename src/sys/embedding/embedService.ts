@@ -6,7 +6,7 @@ import buildReplacements from "./index";
 import ApiReplacement from "./ApiReplacement";
 import { debug, error } from "../logging";
 import i18next from "i18next";
-import { sites } from "./domainChecker"
+import { embedingList } from "./domainChecker"
 
 
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
@@ -20,8 +20,8 @@ export default function startEmbedService(client: Client): void {
         }
 
         const apiDomains = [
-            ...(sites["API_SFW"] ? sites["API_SFW"].split('|').map(s => s.trim()) : []),
-            ...(sites["API_NSFW"] ? sites["API_NSFW"].split('|').map(s => s.trim()) : []),
+            ...(embedingList["API_SFW"] ? embedingList["API_SFW"].split('|').map(s => s.trim()) : []),
+            ...(embedingList["API_NSFW"] ? embedingList["API_NSFW"].split('|').map(s => s.trim()) : []),
         ];
 
         const guildId = message.guild?.id;

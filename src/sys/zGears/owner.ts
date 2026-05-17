@@ -199,17 +199,15 @@ async function runCommand(integrations: any, subcommand: string, serverId: strin
 
 /* ================================================================== Listado ================================================================== */
 async function ListServers(interaction: ChatInputCommandInteraction): Promise<void> {
-    if (!interaction.deferred) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    }
+    if (!interaction.deferred) { await interaction.deferReply({ flags: MessageFlags.Ephemeral }); }
+
     const guilds = interaction.client.guilds.cache;
-    const guildCount = guilds.size;
+    if (guilds.size === 0) { await interaction.editReply({ content: "No estoy en ningún servidor actualmente." }); return; }
 
-    if (guildCount === 0) { await interaction.editReply({ content: "No estoy en ningún servidor actualmente." }); return; }
-
-    let serverList = `Lista de Servidores - Total: ${guildCount}\n\n`;
+    let serverList = `Lista de Servidores - Total: ${guilds.size}\n\n`;
     guilds.forEach(guild => {
-        serverList += `Nombre: ${guild.name} | ID: ${guild.id} | Miembros: ${guild.memberCount} | Me uni: ${guild.joinedAt.toLocaleDateString}\n`;
+        const meJoin = guild.members.me?.joinedAt?.toLocaleDateString();
+        serverList += `Nombre: ${guild.name} | ID: ${guild.id} | Miembros: ${guild.memberCount} | Añadida: ${meJoin ? meJoin : "No se encontro fecha!!"}\n`;
     });
 
     let memberCount = 0;
@@ -221,14 +219,14 @@ async function ListServers(interaction: ChatInputCommandInteraction): Promise<vo
     const buffer = Buffer.from(serverList, 'utf-8');
 
     await interaction.editReply({
-        content: `**Estoy en ${guildCount} servidores!**\n**Miembros totales: ${memberCount}**\n\n📁 Aquí tienes la lista completa.`,
+        content: `**Estoy en ${guilds.size} servidores!**\n**Miembros totales: ${memberCount}**\n\n📁 Aquí tienes la lista completa.`,
         files: [{
             attachment: buffer,
             name: `servers.txt`
         }],
     });
 
-    debug(`Lista de servidores generada para el dueño. Total: ${guildCount}`, "LeaveServerCommand");
+    debug(`Lista de servidores generada para el dueño. Total: ${guilds.size}`, "LeaveServerCommand");
 }
 
 /* ================================================================== Leave Servers ================================================================== */

@@ -1,121 +1,106 @@
-import { warn, info, error, debug } from "../logging";
+import { warn, info, error } from "../logging";
 import { replacementMetaList } from "./EmbedingConfig";
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import getPool from "../DB-Engine/database";
 
-export let sites: { [key: string]: string } = {};
-let sitesCache = false;
+export let embedingList: { [key: string]: string } = {};
+let autoRunChecks: NodeJS.Timeout | null = null;
+let wait: NodeJS.Timeout | null = null;
+
+// ======== core ======== //
+const updateList = (s: string, d?: string) => {
+    if (s && d) { embedingList[s] = d }
+    else { delete embedingList[s] };
+    if (autoRunChecks) clearInterval(autoRunChecks);
+    if (wait) clearTimeout(wait);
+    wait = setTimeout(() => { urlStatusManager.start(); }, 30_000);
+    info("Lista de dominios actualizada (Esperando 30s para hacer ping)!!", "embedingService");
+};
 
 export async function startListDomains(): Promise<boolean> {
     try {
         const pool = await getPool();
         const [List]: any = await pool.query("SELECT site, domains FROM domains");
-        sites = {};
         if (!List || List.length === 0) { warn("embeding service no esta funcionando!"); return false }
-        for (const domain of List) {
-            sites[domain.site] = domain.domains;
-        }
-        sitesCache = true;
+        embedingList = {};
+        for (const emb of List) {
+            embedingList[emb.site] = emb.domains;
+        };
         return true;
-    } catch (e) {
-        error(`Error al obtener la lista de dominios: ${e}`);
-        return false;
-    }
+    } catch (e) { error(`Error al obtener la lista de dominios: ${e}`, "embedingService"); return false }
 }
 
-export async function addSite(site: string, domains: string): Promise<boolean> {
+// ======== BD ======== //
+export async function addSite(s: string, d: string): Promise<boolean> {
     try {
         const pool = await getPool();
-        await pool.query(
-            "INSERT INTO domains (site, domains) VALUES (?, ?) ON DUPLICATE KEY UPDATE domains = VALUES(domains)",
-            [site, domains]
-        );
-        delete sites[site];
-        sites[site] = domains;
-        urlStatusManager.runChecks();
+        await pool.query("INSERT INTO domains (site, domains) VALUES (?, ?) ON DUPLICATE KEY UPDATE domains = VALUES(domains)", [s, d]);
+        updateList(s, d);
         return true;
-    } catch (e) {
-        error(`Error al insertar dominio: ${e}`);
-        return false;
-    }
+    } catch (e) { error(`Error al insertar dominio: ${e}`, "embedingService"); return false }
 }
 
-export async function deleteSite(site: string): Promise<boolean> {
+export async function deleteSite(s: string): Promise<boolean> {
     try {
         const pool = await getPool();
-        await pool.query("DELETE FROM domains WHERE site = ?", [site]);
-        delete sites[site];
+        await pool.query("DELETE FROM domains WHERE site = ?", [s]);
+        updateList(s);
         return true;
-    } catch (e) {
-        error(`Error al eliminar dominio: ${e}`);
-        return false;
-    }
-}
-
-export async function listDomains(interaccion: ChatInputCommandInteraction): Promise<void> {
-    try {
-        const fields: { name: string, value: string, inline: boolean }[] = [];
-        if (!sitesCache || Object.keys(sites).length === 0) {
-            await interaccion.editReply("No hay lista de dominios disponible");
-        }
-        for (const [site, domains] of Object.entries(sites)) {
-            const dF = domains.split("|").map(d => `🔗 ${d}`).join("\n");
-            fields.push({ name: `Sitio: ${site}`, value: `RawDominios:\n > ${domains}` + "\n" + dF, inline: false });
-        }
-
-        const emb = new EmbedBuilder()
-            .setTitle("Lista de Dominios")
-            .addFields(fields)
-            .setColor(0x000000);
-
-        await interaccion.editReply({ embeds: [emb] });
-
-
-    } catch (e) {
-        await interaccion.editReply("Hubo un problema al obtener la lista de dominios");
-        error(`Error al obtener la lista de dominios: ${e}`);
-    }
+    } catch (e) { error(`Error al eliminar dominio: ${e}`, "embedingService"); return false }
 }
 
 export async function editDomain(s: string, d: string): Promise<boolean> {
     try {
         const pool = await getPool();
-        const [update]: any = await pool.query("SELECT site, domains FROM domains WHERE site = ?", [s]);
-        if (!update || update.length === 0) { error("No existe el sitio!!"); return false; }
-        const x = update[0];
-        const newDomains = `${d}|${x.domains}`;
-        await pool.query("UPDATE domains SET domains = ? WHERE site = ?", [newDomains, s]);
-        delete sites[s];
-        sites[s] = newDomains;
-        urlStatusManager.runChecks();
+        const [edit]: any = await pool.query("SELECT site, domains FROM domains WHERE site = ?", [s]);
+        if (!edit || edit.length === 0) { error("No existe el sitio!!"); return false; }
+        const x = edit[0];
+        const dx = `${d}|${x.domains}`;
+        await pool.query("UPDATE domains SET domains = ? WHERE site = ?", [dx, s]);
+        updateList(s, dx);
         return true;
-    } catch (e) {
-        error(`Error al editar dominio: ${e}`);
-        return false;
-    }
+    } catch (e) { error(`Error al editar dominio: ${e}`, "embedingService"); return false; }
 }
 
 export async function deletLast(s: string): Promise<boolean> {
     try {
         const pool = await getPool();
         const [dLast]: any = await pool.query("SELECT site, domains FROM domains WHERE site = ?", [s]);
-        if (!dLast || dLast.length === 0) { error("No existe el sitio!!"); return false; }
-        const Y = dLast[0];
-        const X = Y.domains;
-        const Z = X.split("|").slice(1).join("|");
-        if (Z !== "") {
-            await pool.query("UPDATE domains SET domains = ? WHERE site = ?", [Z, s]);
-            delete sites[s];
-            sites[s] = Z;
-            urlStatusManager.runChecks();
+        if (!dLast || dLast.length === 0) { error("No existe el sitio!!", "embedingService"); return false }
+        const X = dLast[0];
+        const Y = X.domains;
+        const d = Y.split("|").slice(1).join("|");
+        if (d !== "") {
+            await pool.query("UPDATE domains SET domains = ? WHERE site = ?", [d, s]);
+            updateList(s, d);
             return true;
         } else {
             await pool.query("DELETE FROM domains WHERE site = ?", [s]);
-            delete sites[s];
-            urlStatusManager.runChecks();
+            updateList(s);
             return true;
         }
-    } catch { return false; }
+    } catch (e) { error("Error al eliminar el ultimo dominio", "embedingService"); return false }
+}
+
+// ======== Domand ======== //
+export async function listDomains(i: ChatInputCommandInteraction): Promise<void> {
+    try {
+        const fields: { name: string, value: string, inline: boolean }[] = [];
+        if (Object.keys(embedingList).length === 0) { await i.editReply("No hay lista de dominios disponible"); return; }
+        for (const [site, domains] of Object.entries(embedingList)) {
+            const list = domains.split("|").map(d => `🔗 ${d}`).join("\n");
+            fields.push({ name: `Sitio: ${site}`, value: `RawDominios:\n > ${domains}` + "\n\n" + list, inline: false });
+        }
+        const emb = new EmbedBuilder()
+            .setTitle("Lista de Dominios")
+            .addFields(fields)
+            .setColor(0x000000);
+
+        await i.editReply({ embeds: [emb] });
+    } catch (e) {
+        await i.editReply("Hubo un problema al obtener la lista de dominios");
+        error(`Error al obtener la lista de dominios: ${e}`, "embedingService");
+    }
 }
 
 /* ================================================ Cheker de dominios ================================================ */
@@ -124,19 +109,19 @@ class UrlStatusManager {
     private readonly CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutos
 
     public start() {
-        info("🌐 Iniciando servicio de verificación de dominios...");
-        this.runChecks(); // Esto poblará activeUrls en la primera pasada
-        setInterval(() => this.runChecks(), this.CHECK_INTERVAL);
+        this.runChecks(); // Peimer run al iniciar
+        if (autoRunChecks) clearInterval(autoRunChecks);
+        autoRunChecks = setInterval(() => this.runChecks(), this.CHECK_INTERVAL);
     }
 
-    public async runChecks() {
+    private async runChecks() {
         const targets = [
             ...replacementMetaList.map(map => ({ name: map.name, dbKey: map.dbKey })),
             { name: "Api", dbKey: "Api" }
         ];
 
         for (const meta of targets) {
-            const rawString = sites[meta.dbKey];
+            const rawString = embedingList[meta.dbKey];
 
             if (!rawString) {
                 this.activeUrls.delete(meta.dbKey);
@@ -165,7 +150,7 @@ class UrlStatusManager {
             }
 
             if (!foundWorking && candidates.length > 0) {
-                error(`⚠️ [${meta.name}] Todos los dominios están caídos. Usando default: ${candidates[0]}`);
+                error(`⚠️ [${meta.name}] Todos los dominios están caídos. Usando default: ${candidates[0]}, "embedingService"`);
                 this.activeUrls.set(meta.dbKey, candidates[0]);
             }
         }
@@ -191,7 +176,7 @@ class UrlStatusManager {
             return response.status < 500;
 
         } catch (e) {
-            debug(`[DomainCheck] Error crítico verificando ${domain}: ${e}`);
+            error(`[DomainCheck] Error crítico verificando ${domain}: ${e}`, "embedingService");
             return false;
         }
     }
@@ -202,4 +187,10 @@ class UrlStatusManager {
 }
 
 const urlStatusManager = new UrlStatusManager();
+export const startUrlStatusManager = () => {
+    urlStatusManager.start();
+    info("🌐 Iniciando servicio de verificación de dominios...");
+};
 export default urlStatusManager;
+
+/* ==================================================================================================================== */

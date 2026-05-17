@@ -2,7 +2,7 @@
 import { EmbedBuilder } from 'discord.js';
 import { debug, error, info } from '../logging'; // Asegúrate de tener los imports
 import i18next from 'i18next';
-import { sites } from '../../sys/embedding/domainChecker';
+import { embedingList } from '../../sys/embedding/domainChecker';
 
 interface DomainStatus {
     name: string;
@@ -15,8 +15,8 @@ interface DomainStatus {
 
 function getDomainsFromEnv(): Array<{ name: string; url: string; expectedStatus: number }> {
     const domains: Array<{ name: string; url: string; expectedStatus: number }> = [];
-    if (Object.keys(sites).length === 0) { error("embeding service no esta funcionando!"); return []; }
-    for (const [key, value] of Object.entries(sites)) {
+    if (Object.keys(embedingList).length === 0) { error("embeding service no esta funcionando!"); return []; }
+    for (const [key, value] of Object.entries(embedingList)) {
         if (key === "API_SFW" || key === "API_NSFW" || key === "Api") continue;
         const splitURL = value.split('|');
         for (const url of splitURL) {

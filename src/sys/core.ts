@@ -6,7 +6,7 @@ import { error, info, initLogger, loggerAvailable } from "./logging";
 import { initializeDatabase, isBdReady } from "./DB-Engine/database";
 import startEmbedService from "./embedding/embedService";
 import { startStatusRotation } from "./zGears/setStatus";
-import urlStatusManager, { startListDomains } from "./embedding/domainChecker";
+import { startUrlStatusManager, startListDomains } from "./embedding/domainChecker";
 import { initI18n } from "./i18n";
 import { validateAllTranslations } from "./i18n/nsKeyCheck";
 import { startWelcomeEvents } from "../bgProcess/welcomeEvents";
@@ -40,7 +40,7 @@ async function main(): Promise<void> {
             info("💽​ Base de datos lista, iniciando servicios...")
             const sld = await startListDomains()
             if (sld) {
-                urlStatusManager.start();
+                startUrlStatusManager();
                 startEmbedService(client);
                 info("Servicio de embed inicializado")
             } else { error("❌ ERROR AL INICIAR EL SISTEMA DE EMBEDDING!!") }

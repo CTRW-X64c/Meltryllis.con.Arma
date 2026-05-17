@@ -5,13 +5,13 @@ import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
-import { sites } from "../../sys/embedding/domainChecker";
+import { embedingList } from "../../sys/embedding/domainChecker";
 
 function list(i: string): any[] {
     const localSites = replacementMetaList.map((meta) => ({ name: "Local: " + meta.name, value: meta.name }));  //cambio estetico para separa los sitios NSFW & SFW del APi y locales 
-    const d_SFW = sites["API_SFW"] ? sites["API_SFW"].split('|').map(s => s.trim()) : []
+    const d_SFW = embedingList["API_SFW"] ? embedingList["API_SFW"].split('|').map(s => s.trim()) : []
     const apiSitesSFW = d_SFW.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
-    const d_NSFW = sites["API_NSFW"] ? sites["API_NSFW"].split('|').map(s => s.trim()) : []
+    const d_NSFW = embedingList["API_NSFW"] ? embedingList["API_NSFW"].split('|').map(s => s.trim()) : []
     const apiSitesNSFW = d_NSFW.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
     const allSites = [...localSites, ...apiSitesSFW, ...apiSitesNSFW];
     const Api = [...d_NSFW, ...d_SFW]
