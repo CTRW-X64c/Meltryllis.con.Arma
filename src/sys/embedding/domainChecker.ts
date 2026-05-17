@@ -82,7 +82,7 @@ export async function deletLast(s: string): Promise<boolean> {
     } catch (e) { error("Error al eliminar el ultimo dominio", "embedingService"); return false }
 }
 
-// ======== Domand ======== //
+// ======== Command ======== //
 export async function listDomains(i: ChatInputCommandInteraction): Promise<void> {
     try {
         const fields: { name: string, value: string, inline: boolean }[] = [];
