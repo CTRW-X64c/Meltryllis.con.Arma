@@ -6,7 +6,7 @@ import buildReplacements from "./index";
 import ApiReplacement from "./ApiReplacement";
 import { debug, error } from "../logging";
 import i18next from "i18next";
-import urlStatusManager, { embedingList } from "./domainChecker"
+import urlStatusManager, { embedezSFW, embedezNSFW } from "./domainChecker"
 
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
 export default function startEmbedService(client: Client): void {
@@ -30,11 +30,6 @@ export default function startEmbedService(client: Client): void {
         }
 
         const guildReplacementConfig = guildId ? await getGuildReplacementConfig(guildId) : new Map();
-        const apiDomains = [
-            ...(embedingList["API_SFW"] ? embedingList["API_SFW"].split('|').map(s => s.trim()) : []),
-            ...(embedingList["API_NSFW"] ? embedingList["API_NSFW"].split('|').map(s => s.trim()) : []),
-        ];
-
         const replacements = buildReplacements(guildReplacementConfig);
         const API = urlStatusManager.getActiveUrl("Api")
         const apiReplacer = new ApiReplacement();
@@ -55,7 +50,7 @@ export default function startEmbedService(client: Client): void {
             /* ==================================================== Ajuste para prioridad del API ==================================================== */
             try {
                 if (API !== null && API.includes("embedez.com")) {
-                    const matchingDomain = apiDomains.find(d => domainSite?.endsWith(d));
+                    const matchingDomain = [...embedezSFW, ...embedezNSFW].find(d => domainSite?.endsWith(d));
                     if (matchingDomain) {
                         const apiDomainConfig = guildReplacementConfig.get(matchingDomain);
                         let apiEnabled = true;
@@ -112,6 +107,7 @@ export default function startEmbedService(client: Client): void {
         }
     });
 };
+
 
 // =========== embdClean =========== //
 const embeRemove = async (msg: Message) => {

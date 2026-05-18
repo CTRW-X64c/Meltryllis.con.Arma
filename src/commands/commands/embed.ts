@@ -5,25 +5,20 @@ import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
-import { embedingList } from "../../sys/embedding/domainChecker";
+import { embedezSFW, embedezNSFW } from "../../sys/embedding/domainChecker";
 
-function list(i: string): any[] {
+const list = (): any[] => {
     const localSites = replacementMetaList.map((meta) => ({ name: "Local: " + meta.name, value: meta.name }));  //cambio estetico para separa los sitios NSFW & SFW del APi y locales 
-    const d_SFW = embedingList["API_SFW"] ? embedingList["API_SFW"].split('|').map(s => s.trim()) : []
-    const apiSitesSFW = d_SFW.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
-    const d_NSFW = embedingList["API_NSFW"] ? embedingList["API_NSFW"].split('|').map(s => s.trim()) : []
-    const apiSitesNSFW = d_NSFW.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
+    const apiSitesSFW = embedezSFW.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
+    const apiSitesNSFW = embedezNSFW.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
     const allSites = [...localSites, ...apiSitesSFW, ...apiSitesNSFW];
-    const Api = [...d_NSFW, ...d_SFW]
-    if (i === "all") return allSites;
-    if (i === "api") return Api;
-    return [];
+    return allSites;
 }
 
 // --- Cambio para autocompletar 
 export async function embedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const focusedValue = interaction.options.getFocused().toLowerCase();
-    const filtered = list("all").filter(choice =>
+    const filtered = list().filter(choice =>
         choice.name.toLowerCase().includes(focusedValue)
     );
 
@@ -91,7 +86,7 @@ export async function handleEmbedCommand(interaction: ChatInputCommandInteractio
         const site = interaction.options.getString("sitio", true);
         const action = interaction.options.getString("modo", true);
         const customUrlInput = interaction.options.getString("personalizar", false);
-        const isApiDomain = list("api").includes(site);
+        const isApiDomain = [...embedezSFW, ...embedezNSFW].includes(site);
 
         let customUrl: string | null = null;
         let enabled = true;

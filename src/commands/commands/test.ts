@@ -9,7 +9,7 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 import { checkAllDomains, buildDomainStatusEmbed } from "../../sys/zGears/neTools";
 import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
-import { embedingList } from "../../sys/embedding/domainChecker";
+import { embedezSFW, embedezNSFW } from "../../sys/embedding/domainChecker";
 
 export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
   const testCommand = new SlashCommandBuilder()
@@ -243,8 +243,6 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
     throw new Error(i18next.t("commands:test.interacciones.dont_gg"));
   }
 
-  const sfwDomains = embedingList["API_SFW"] ? embedingList["API_SFW"].split('|').map(s => s.trim()) : []
-  const nsfwDomains = embedingList["API_NSFW"] ? embedingList["API_NSFW"].split('|').map(s => s.trim()) : []
   const replacementConfig = await getGuildReplacementConfig(guildId);
   embed.setDescription(i18next.t("commands:test.interacciones.not_replacement"));
 
@@ -287,7 +285,7 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
   addCategoryFields("🛠️ Reemplazos Locales", localLines);
   /* Lista SFW */
   const sfwLines: string[] = [];
-  sfwDomains.forEach(domain => {
+  embedezSFW.forEach(domain => {
     const config = replacementConfig.get(domain);
     const status = (config === undefined || config.enabled) ?
       i18next.t("commands:test.interacciones.field_api_enabled") :
@@ -297,7 +295,7 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
   addCategoryFields("🌐 API SFW", sfwLines);
   /* Lista SFW */
   const nsfwLines: string[] = [];
-  nsfwDomains.forEach(domain => {
+  embedezNSFW.forEach(domain => {
     const config = replacementConfig.get(domain);
     const status = (config === undefined || config.enabled) ?
       i18next.t("commands:test.interacciones.field_api_enabled") :

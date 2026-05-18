@@ -4,16 +4,29 @@ import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import getPool from "../DB-Engine/database";
 
 export let embedingList: { [key: string]: string } = {};
+
 let autoRunChecks: NodeJS.Timeout | null = null;
 let wait: NodeJS.Timeout | null = null;
 
+// ======== Api ======== //
+export let embedezSFW: string[] = [];
+export let embedezNSFW: string[] = [];
+
+const ApiList = () => {
+    embedezSFW = []; embedezNSFW = [];
+    embedingList["API_SFW"].split('|').map(x => x.trim()).forEach(s => embedezSFW.push(s));
+    embedingList["API_NSFW"].split('|').map(y => y.trim()).forEach(s => embedezNSFW.push(s));
+    info(`Embedez Api ready con ${embedezSFW.length} SFW  y ${embedezNSFW.length} NSFW sitios!!`, "embedingService")
+}
+
 // ======== core ======== //
+
 const updateList = (s: string, d?: string) => {
     if (s && d) { embedingList[s] = d }
     else { delete embedingList[s] };
     if (autoRunChecks) clearInterval(autoRunChecks);
     if (wait) clearTimeout(wait);
-    wait = setTimeout(() => { urlStatusManager.start(); }, 30_000);
+    wait = setTimeout(() => { urlStatusManager.start(); ApiList(); }, 30_000);
     info("Lista de dominios actualizada (Esperando 30s para hacer ping)!!", "embedingService");
 };
 
@@ -26,6 +39,7 @@ export async function startListDomains(): Promise<boolean> {
         for (const emb of List) {
             embedingList[emb.site] = emb.domains;
         };
+        ApiList();
         return true;
     } catch (e) { error(`Error al obtener la lista de dominios: ${e}`, "embedingService"); return false }
 }
