@@ -4,14 +4,13 @@ import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import getPool from "../DB-Engine/database";
 
 export let embedingList: { [key: string]: string } = {};
+export let embedezSFW: string[] = [];
+export let embedezNSFW: string[] = [];
 
 let autoRunChecks: NodeJS.Timeout | null = null;
 let wait: NodeJS.Timeout | null = null;
 
 // ======== Api ======== //
-export let embedezSFW: string[] = [];
-export let embedezNSFW: string[] = [];
-
 const ApiList = () => {
     embedezSFW = []; embedezNSFW = [];
     embedingList["API_SFW"].split('|').map(x => x.trim()).forEach(s => embedezSFW.push(s));
@@ -20,7 +19,6 @@ const ApiList = () => {
 }
 
 // ======== core ======== //
-
 const updateList = (s: string, d?: string) => {
     if (s && d) { embedingList[s] = d }
     else { delete embedingList[s] };
