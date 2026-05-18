@@ -690,7 +690,7 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
                 else await interaction.editReply({ content: `✅ Se añadio el dominio ${dom} al sitio ${site}` });
                 return;
 
-            case "nuevo": // Cambiado de "addS" a "add"
+            case "nuevo":
                 if (!siteDom || siteDom === "nodata" || !siteDom.includes("=")) {
                     await interaction.editReply({ content: "❌ ¡Formato para nuevo sitio es incorrecto! \n**Usa: nuevo#sitio=dominio1|dominio2**", embeds: [emb] });
                     return;
@@ -701,7 +701,7 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
                 else await interaction.editReply({ content: `✅ ¡Se añadieron los nuevos dominios ${dom} para el sitio ${site}!` });
                 break;
 
-            case "borrar": // Cambiado de "delS" a "del" para coincidir con el embed
+            case "borrar":
                 if (!siteDom || siteDom === "nodata") {
                     await interaction.editReply({ content: "❌ ¡Formato para borrar un sitio es incorrecto! \n**Usa:** borrar#sitio**", embeds: [emb] });
                     return;
