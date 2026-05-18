@@ -7,24 +7,14 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
 import { embedezSFW, embedezNSFW } from "../../sys/embedding/domainChecker";
 
-const list = (): any[] => {
-    const localSites = replacementMetaList.map((meta) => ({ name: "Local: " + meta.name, value: meta.name }));  //cambio estetico para separa los sitios NSFW & SFW del APi y locales 
-    const apiSitesSFW = embedezSFW.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
-    const apiSitesNSFW = embedezNSFW.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
-    const allSites = [...localSites, ...apiSitesSFW, ...apiSitesNSFW];
-    return allSites;
-}
-
 // --- Cambio para autocompletar 
 export async function embedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const focusedValue = interaction.options.getFocused().toLowerCase();
-    const filtered = list().filter(choice =>
-        choice.name.toLowerCase().includes(focusedValue)
-    );
-
-    await interaction.respond(
-        filtered.slice(0, 25).map(choice => ({ name: choice.name, value: choice.value }))
-    );
+    const L = replacementMetaList.map((meta) => ({ name: "Local: " + meta.name, value: meta.name }));
+    const eS = embedezSFW.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
+    const eN = embedezNSFW.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
+    const X = interaction.options.getFocused().toLowerCase();
+    const list = [...L, ...eS, ...eN].filter(y => y.name.toLowerCase().includes(X));
+    await interaction.respond(list.slice(0, 25).map(c => ({ name: c.name, value: c.value })));
 }
 
 export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
@@ -62,108 +52,69 @@ export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
                         .setRequired(false)
                 )
         );
-
     return [embedCommand] as SlashCommandBuilder[];
 }
 
-export async function handleEmbedCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promise<void> {
+    await i.deferReply({ flags: MessageFlags.Ephemeral })
+    const guildId = i.guild?.id;
+    if (!guildId) {
+        await i.editReply({ content: "Este comando solo se puede usar en un servidor." });
+        return;
+    }
+
+    const isAllowed = await hasPermission(i, i.commandName);
+    if (!isAllowed) {
+        await i.editReply({ content: i18next.t("common:Errores.isAllowed") });
+        return;
+    }
+
+    const site = i.options.getString("sitio", true);
+    const action = i.options.getString("modo", true);
+    const customUrlInput = i.options.getString("personalizar", false);
+    const isApiDomain = [...embedezSFW, ...embedezNSFW].includes(site);
+
+    let customUrl: string | null = null;
+    let enabled = true;
+    let userId: string | null = null;
+    let respuesta = "";
+
     try {
-        const guildId = interaction.guild?.id;
-        if (!guildId) {
-            await interaction.reply({ content: "Este comando solo se puede usar en un servidor.", flags: MessageFlags.Ephemeral });
-            return;
+        switch (action) {
+            case "default":
+                if (isApiDomain) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_default") }); return; }
+                customUrl = null; enabled = true; userId = null;
+                respuesta = i18next.t("commands:embed.interacciones.default_description", { a1: `<@${i.user.id}>`, a2: site });
+                break;
+
+            case "enable":
+                customUrl = null; enabled = true; userId = i.user.id;
+                respuesta = i18next.t("commands:embed.interacciones.enable_description", { a1: `<@${i.user.id}>`, a2: site });
+                break;
+
+            case "disable":
+                customUrl = null; enabled = false; userId = i.user.id;
+                respuesta = i18next.t("commands:embed.interacciones.disable_description", { a1: `<@${i.user.id}>`, a2: site });
+                break;
+
+            case "custom":
+                if (isApiDomain) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_custom") }); return; }
+                if (!customUrlInput) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_url_custom") }); return; }
+                try {
+                    const parsedUrl = new URL(customUrlInput.startsWith("http") ? customUrlInput : `https://${customUrlInput}`);
+                    let hostname = parsedUrl.hostname.startsWith("www.") ? parsedUrl.hostname.substring(4) : parsedUrl.hostname;
+                    customUrl = hostname; enabled = true; userId = i.user.id;
+                } catch (e) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_url_custom") }); return; }
+                respuesta = i18next.t("commands:embed.interacciones.custom_description", { a1: `<@${i.user.id}>`, a2: site })
+                break;
+
+            default:
+                await i.editReply({ content: i18next.t("commands:embed.interacciones.invalid_action") }); return;
         }
-
-        const isAllowed = await hasPermission(interaction, interaction.commandName);
-        if (!isAllowed) {
-            await interaction.reply({
-                content: i18next.t("common:Errores.isAllowed"),
-                flags: MessageFlags.Ephemeral,
-            });
-            return;
-        }
-
-        const site = interaction.options.getString("sitio", true);
-        const action = interaction.options.getString("modo", true);
-        const customUrlInput = interaction.options.getString("personalizar", false);
-        const isApiDomain = [...embedezSFW, ...embedezNSFW].includes(site);
-
-        let customUrl: string | null = null;
-        let enabled = true;
-        let userId: string | null = null;
-
-        if (action === "default") {
-            if (isApiDomain) {
-                await interaction.reply({
-                    content: i18next.t("commands:embed.interacciones.Api_default"),
-                    flags: MessageFlags.Ephemeral,
-                });
-                return;
-            }
-            customUrl = null;
-            enabled = true;
-            userId = null;
-        } else if (action === "enable") {
-            customUrl = null;
-            enabled = true;
-            userId = interaction.user.id;
-        } else if (action === "custom") {
-            if (isApiDomain) {
-                await interaction.reply({
-                    content: i18next.t("commands:embed.interacciones.Api_custom"),
-                    flags: MessageFlags.Ephemeral,
-                });
-                return;
-            }
-            if (!customUrlInput) {
-                await interaction.reply({
-                    content: i18next.t("commands:embed.interacciones.Api_url_custom"),
-                    flags: MessageFlags.Ephemeral,
-                });
-                return;
-            }
-            try {
-                const parsedUrl = new URL(customUrlInput.startsWith("http") ? customUrlInput : `https://${customUrlInput}`);
-                let hostname = parsedUrl.hostname.startsWith("www.") ? parsedUrl.hostname.substring(4) : parsedUrl.hostname;
-                customUrl = hostname;
-                enabled = true;
-                userId = interaction.user.id;
-            } catch (e) {
-                await interaction.reply({
-                    content: i18next.t("commands:embed.interacciones.Api_url_custom"),
-                    flags: MessageFlags.Ephemeral,
-                });
-                return;
-            }
-        } else if (action === "disable") {
-            customUrl = null;
-            enabled = false;
-            userId = interaction.user.id;
-        }
-
-        await setGuildReplacementConfig(interaction.guildId!, site, { custom_url: customUrl, enabled, user_id: userId });
-
-        const userMention = `<@${interaction.user.id}>`;
-        let successMessage: string;
-
-        if (action === "disable") {
-            successMessage = i18next.t("commands:embed.interacciones.disable_description", { a1: userMention, a2: site });
-        } else if (action === "enable") {
-            successMessage = i18next.t("commands:embed.interacciones.enable_description", { a1: userMention, a2: site });
-        } else if (action === "custom") {
-            successMessage = i18next.t("commands:embed.interacciones.custom_description", { a1: userMention, a2: site, a3: customUrlInput });
-        } else {
-            successMessage = i18next.t("commands:embed.interacciones.default_description", { a1: userMention, a2: site });
-        }
-
-        await interaction.reply({
-            content: successMessage,
-        });
+        await setGuildReplacementConfig(i.guildId!, site, { custom_url: customUrl, enabled, user_id: userId });
+        await i.editReply({ content: respuesta });
     } catch (err) {
-        error(`handleEmbedCommand()\tFallo para Guild: ${interaction.guildId}\tUsuario: ${interaction.user.id}\tError: ${err}`);
-        await interaction.reply({
-            content: i18next.t("commands:embed.interacciones.failed"),
-            flags: MessageFlags.Ephemeral,
-        });
+        error(`handleEmbedCommand()\tFallo para Guild: ${i.guildId}\tUsuario: ${i.user.id}\tError: ${err}`);
+        await i.editReply({ content: i18next.t("commands:embed.interacciones.failed"), });
     }
 }

@@ -425,7 +425,8 @@
       "disable_description": "{{a1}} desactivó el embed de: **{{a2}}**!",
       "enable_description": "{{a1}} habilitó el embed de: **{{a2}}**!",
       "custom_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo **personalizado** con la siguiente URL: **{{a3}}**!",
-      "default_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo: **Default**!"
+      "default_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo: **Default**!",
+      "invalid_action": "Modo de configuracion no valido!!"
     }
   },
   "cronpost": {
