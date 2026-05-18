@@ -114,7 +114,7 @@ const embeRemove = async (msg: Message) => {
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     for (let attempt = 1; attempt <= 4; attempt++) {
         try {
-            await wait(attempt * 1200);
+            await wait(attempt * 1_500);
             const freshMsg = await msg.channel.messages.fetch(msg.id);
             if (freshMsg.flags.has('SuppressEmbeds')) {
                 debug(`Se borro el embed de ${msg.id} despues de ${attempt} intentos.`, "Events.MessageCreate");
@@ -144,6 +144,7 @@ const embeRemove = async (msg: Message) => {
 const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const MAX_MSG = 5;
+    const mxAtt = 3;
     const canSend = msg.channel.isSendable();
     if (!canSend) return;
 
@@ -164,32 +165,32 @@ const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
     const content = replacedUrls.join(' | ');
     if (replacedUrls.length <= MAX_MSG) {
         let sentMsg = await msg.reply({ content: content, allowedMentions: { repliedUser: false } });
-        await wait(3000);
+        await wait(3_000);
 
         let freshMsg = await msg.channel.messages.fetch(sentMsg.id).catch(() => null);
         try {
-            for (let attempt = 1; attempt <= 2 && freshMsg && freshMsg.embeds.length === 0; attempt++) {
+            for (let attempt = 1; attempt <= mxAtt && freshMsg && freshMsg.embeds.length === 0; attempt++) {
                 debug(`Sin embed, forzando regeneración - Intento ${attempt}`, "Events.MessageCreate");
 
-                await sentMsg.edit({ content: i18next.t("common:embedService.try", { a1: `${attempt}/2` }), allowedMentions: { repliedUser: false } });
-                await wait(1500);
+                await sentMsg.edit({ content: i18next.t("common:embedService.try", { a1: `${attempt}/${mxAtt}` }), allowedMentions: { repliedUser: false } });
+                await wait(2_000);
 
                 await sentMsg.edit({ content: content, allowedMentions: { repliedUser: false } });
-                await wait(2000 * attempt);
+                await wait(2_500 * attempt);
                 freshMsg = await msg.channel.messages.fetch(sentMsg.id).catch(() => null);
             }
 
             if (freshMsg && freshMsg.embeds.length === 0) {
                 debug(`No se pudo generar embed después de reintentos`, "Events.MessageCreate");
                 await sentMsg.edit({ content: i18next.t("common:embedService.msgFail"), allowedMentions: { repliedUser: false } }).catch(() => null);
-                await wait(10000);
+                await wait(10_000);
                 await sentMsg.delete().catch(() => null);
                 return;
             }
 
             if (freshMsg && freshMsg.embeds.length > 0 && badEmbed(freshMsg.embeds[0])) {
                 await sentMsg.edit({ content: i18next.t("common:embedService.badEmbed"), allowedMentions: { repliedUser: false } }).catch(() => null);
-                await wait(10000);
+                await wait(10_000);
                 await sentMsg.delete().catch(() => null);
                 return;
             }
@@ -220,7 +221,7 @@ const deleteMSG = async (msg: Message, autorId: string) => {
         const collector = msg.createReactionCollector({
             filter: (reaction, user) => reaction.emoji.name === '❌' && user.id === autorId,
             max: 1,
-            time: 20000
+            time: 20_000
         });
 
         collector.on('collect', async () => {
