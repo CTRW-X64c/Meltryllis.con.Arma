@@ -11,21 +11,25 @@ let autoRunChecks: NodeJS.Timeout | null = null;
 let wait: NodeJS.Timeout | null = null;
 
 // ======== Api ======== //
-const ApiList = () => {
-    embedezSFW = []; embedezNSFW = [];
-    embedingList["API_SFW"].split('|').map(x => x.trim()).forEach(s => embedezSFW.push(s));
-    embedingList["API_NSFW"].split('|').map(y => y.trim()).forEach(s => embedezNSFW.push(s));
-    info(`Embedez Api ready con ${embedezSFW.length} SFW  y ${embedezNSFW.length} NSFW sitios!!`, "embedingService")
+export const ApiList = () => {
+    embedezSFW = embedingList["API_SFW"]
+        ? embedingList["API_SFW"].split('|').map(x => x.trim())
+        : [];
+    embedezNSFW = embedingList["API_NSFW"]
+        ? embedingList["API_NSFW"].split('|').map(y => y.trim())
+        : [];
+    info(`Embedez Api ready con ${embedezSFW.length} SFW y ${embedezNSFW.length} NSFW sitios!!`, "embedingService");
 }
 
 // ======== core ======== //
-const updateList = (s: string, d?: string) => {
-    if (s && d) { embedingList[s] = d }
-    else { delete embedingList[s] };
+export const updateList = (s: string, d?: string) => {
+    if (s && d) { embedingList[s] = d; }
+    else { delete embedingList[s]; }
+    if (s === "API_SFW" || s === "API_NSFW") ApiList();
     if (autoRunChecks) clearInterval(autoRunChecks);
     if (wait) clearTimeout(wait);
-    wait = setTimeout(() => { urlStatusManager.start(); ApiList(); }, 30_000);
-    info("Lista de dominios actualizada (Esperando 30s para hacer ping)!!", "embedingService");
+    wait = setTimeout(() => { urlStatusManager.start(); }, 30_000);
+    info(`Lista de dominios actualizada (Esperando 30s para hacer ping a: ${s})!!`, "embedingService");
 };
 
 export async function startListDomains(): Promise<boolean> {
