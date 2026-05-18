@@ -650,10 +650,10 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
         .setTitle("Dominios Manager")
         .setDescription("Los Dominios se agregan con el siguiente formato en data = modo#X=Y")
         .addFields(
-            { name: "Añadir dominio a sitio", value: "data = addD#X=Y \n ej: addD#facebok=fixbook.com", inline: false },
-            { name: "Borrar ultimo dominio de un sitio", value: "data = delD#X \n ej: delD#facebok", inline: false },
-            { name: "Añadir/Remplazar un sitio con dominios", value: "data = add#X=Y \n ej: add#facebok=alt.com|alt2.com|...", inline: false },
-            { name: "Borrar sitio completo!!", value: "data = del#X \n ej: del#facebok", inline: false },
+            { name: "Añadir dominio a sitio", value: "data = addD#X=Y \n ej: addDom#facebok=fixbook.com", inline: false },
+            { name: "Borrar ultimo dominio de un sitio", value: "data = delD#X \n ej: delDom#facebok", inline: false },
+            { name: "Añadir/Remplazar un sitio con dominios", value: "data = add#X=Y \n ej: nuevo#facebok=alt.com|alt2.com|...", inline: false },
+            { name: "Borrar sitio completo!!", value: "data = del#X \n ej: borrar#facebok", inline: false },
             { name: "Lista de dominios", value: "data = list", inline: false },
         )
         .setColor(0x00FF00);
@@ -668,9 +668,9 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
 
     try {
         switch (modo) {
-            case "delD":
-                if (siteDom === "" || siteDom === "nodata" || siteDom.includes("=")) {
-                    await interaction.editReply({ content: "❌ ¡El formato es incorrecto! Solo manda el nombre del sitio.", embeds: [emb] });
+            case "delDom":
+                if (!siteDom || siteDom === "nodata" || siteDom.includes("=")) {
+                    await interaction.editReply({ content: "❌ ¡El formato para borrar un dominio es incorrecto! \n**Usa: delDom#sitio**.", embeds: [emb] });
                     return;
                 }
 
@@ -679,9 +679,9 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
                 else await interaction.editReply({ content: `✅ Dominio eliminado` });
                 return;
 
-            case "addD":
-                if (site === "nodata" || site === "" || siteDom === "" || siteDom.includes("|")) {
-                    await interaction.editReply({ content: "❌ ¡El formado de adicion de dominio es incorrecto!", embeds: [emb] });
+            case "addDom":
+                if (!site || site === "nodata" || !dom || dom === "nodata" || siteDom.includes("|")) {
+                    await interaction.editReply({ content: "❌ ¡El formato pada añadir un dominio es incorrecto! \n**Usa: addDom#sitio=dominio**", embeds: [emb] });
                     return;
                 }
 
@@ -690,9 +690,9 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
                 else await interaction.editReply({ content: `✅ Se añadio el dominio ${dom} al sitio ${site}` });
                 return;
 
-            case "addS":
-                if (siteDom === "" || siteDom === "nodata" || siteDom.includes("=")) {
-                    await interaction.editReply({ content: "❌ ¡El formato es incorrecto! Solo manda el nombre del sitio.", embeds: [emb] });
+            case "nuevo": // Cambiado de "addS" a "add"
+                if (!siteDom || siteDom === "nodata" || !siteDom.includes("=")) {
+                    await interaction.editReply({ content: "❌ ¡Formato para nuevo sitio es incorrecto! \n**Usa: nuevo#sitio=dominio1|dominio2**", embeds: [emb] });
                     return;
                 }
 
@@ -701,15 +701,15 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
                 else await interaction.editReply({ content: `✅ ¡Se añadieron los nuevos dominios ${dom} para el sitio ${site}!` });
                 break;
 
-            case "delS":
-                if (siteDom === "" || siteDom === "nodata") {
-                    await interaction.editReply({ content: "❌ ¡No se especificó Sitio!", embeds: [emb] });
+            case "borrar": // Cambiado de "delS" a "del" para coincidir con el embed
+                if (!siteDom || siteDom === "nodata") {
+                    await interaction.editReply({ content: "❌ ¡Formato para borrar un sitio es incorrecto! \n**Usa:** borrar#sitio**", embeds: [emb] });
                     return;
                 }
 
                 const delDB = await deleteSite(siteDom);
-                if (!delDB) await interaction.editReply({ content: `❌ ¡No se pudo eliminar el dominio ${siteDom}!` });
-                else await interaction.editReply({ content: `✅ ¡Se eliminó el dominio ${siteDom}!` });
+                if (!delDB) await interaction.editReply({ content: `❌ ¡No se pudo eliminar el sitio ${siteDom}!` });
+                else await interaction.editReply({ content: `✅ ¡Se eliminó el sitio ${siteDom}!` });
                 break;
 
             case "list":
@@ -720,8 +720,8 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
                 await interaction.editReply({ embeds: [emb] });
                 break;
         }
-    } catch (e) {
-        error(`Error en domainManager: ${e}`);
-        await interaction.editReply({ content: "❌ Ocurrió un error al procesar el comando de dominios." });
+    } catch (error) {
+        console.error(error);
+        await interaction.editReply({ content: "❌ Ocurrió un error inesperado" });
     }
 }
