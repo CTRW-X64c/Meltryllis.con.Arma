@@ -70,9 +70,9 @@ export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promis
     }
 
     const site = i.options.getString("sitio", true);
-    const action = i.options.getString("modo", true);
-    const customUrlInput = i.options.getString("personalizar", false);
-    const isApiDomain = [...embedezSFW, ...embedezNSFW].includes(site);
+    const modo = i.options.getString("modo", true);
+    const url = i.options.getString("personalizar", false);
+    const isApi = [...embedezSFW, ...embedezNSFW].includes(site);
 
     let customUrl: string | null = null;
     let enabled = true;
@@ -80,9 +80,9 @@ export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promis
     let respuesta = "";
 
     try {
-        switch (action) {
+        switch (modo) {
             case "default":
-                if (isApiDomain) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_default") }); return; }
+                if (isApi) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_default") }); return; }
                 customUrl = null; enabled = true; userId = null;
                 respuesta = i18next.t("commands:embed.interacciones.default_description", { a1: `<@${i.user.id}>`, a2: site });
                 break;
@@ -98,10 +98,10 @@ export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promis
                 break;
 
             case "custom":
-                if (isApiDomain) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_custom") }); return; }
-                if (!customUrlInput) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_url_custom") }); return; }
+                if (isApi) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_custom") }); return; }
+                if (!url) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_url_custom") }); return; }
                 try {
-                    const parsedUrl = new URL(customUrlInput.startsWith("http") ? customUrlInput : `https://${customUrlInput}`);
+                    const parsedUrl = new URL(url.startsWith("http") ? url : `https://${url}`);
                     let hostname = parsedUrl.hostname.startsWith("www.") ? parsedUrl.hostname.substring(4) : parsedUrl.hostname;
                     customUrl = hostname; enabled = true; userId = i.user.id;
                 } catch (e) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_url_custom") }); return; }
