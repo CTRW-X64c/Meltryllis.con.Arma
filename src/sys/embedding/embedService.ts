@@ -3,10 +3,9 @@ import { Client, Events, Message } from "discord.js";
 import { getGuildReplacementConfig } from "../DB-Engine/links/Embed";
 import { getConfigMap } from "../DB-Engine/links/ReplyBots";
 import buildReplacements from "./index";
-import ApiReplacement from "./ApiReplacement";
 import { debug, error } from "../logging";
 import i18next from "i18next";
-import urlStatusManager, { embedezSFW, embedezNSFW } from "./domainChecker"
+import { urlProsses } from "./embedingSwitch";
 
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
 export default function startEmbedService(client: Client): void {
@@ -31,12 +30,9 @@ export default function startEmbedService(client: Client): void {
 
         const guildReplacementConfig = guildId ? await getGuildReplacementConfig(guildId) : new Map();
         const replacements = buildReplacements(guildReplacementConfig);
-        const API = urlStatusManager.getActiveUrl("Api")
-        const apiReplacer = new ApiReplacement();
         const replacedUrls: string[] = [];
 
         for (const match of urls) {
-            let replacedUrl: string | null = null;
             let domainSite: string | null = null;
             const originalUrl = match[1];
 
@@ -47,51 +43,9 @@ export default function startEmbedService(client: Client): void {
                 debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate");
                 continue;
             }
-            /* ==================================================== Ajuste para prioridad del API ==================================================== */
-            try {
-                if (API !== null && API.includes("embedez.com")) {
-                    const matchingDomain = [...embedezSFW, ...embedezNSFW].find(d => domainSite?.endsWith(d));
-                    if (matchingDomain) {
-                        const apiDomainConfig = guildReplacementConfig.get(matchingDomain);
-                        let apiEnabled = true;
-                        if (apiDomainConfig) {
-                            if (apiDomainConfig.enabled === false) {
-                                debug(`El uso del API esta deshabilitado para el dominio: ${matchingDomain} en el gremio: ${guildId}`, "Events.MessageCreate");
-                                apiEnabled = false;
-                            }
-                        }
 
-                        if (apiEnabled) {
-                            const apiResult = await apiReplacer.getEmbedUrl(originalUrl);
-                            if (apiResult) {
-                                replacedUrl = apiResult;
-                                debug(`Sitio: ${domainSite} a sido procesado por ApiReplacement`, "Events.MessageCreate");
-                            }
-                        }
-                    }
-                }
-            } catch (err) {
-                debug(`Erro en el API: ${(err as Error).message}`, "Events.MessageCreate");
-            }
-            /* ==================================================== No API ==================================================== */
-            if (!replacedUrl) {
-                for (const [key, replaceFunc] of Object.entries(replacements)) {
-                    const manualDomainConfig = guildReplacementConfig.get(key);
-                    if (manualDomainConfig && manualDomainConfig.enabled === false) {
-                        continue;
-                    }
+            const replacedUrl = await urlProsses(originalUrl, domainSite, guildId!, guildReplacementConfig, replacements);
 
-                    if (new RegExp(key).test(originalUrl)) {
-                        const result = (replaceFunc as any)(originalUrl.replace(/\|/g, ""));
-                        if (result) {
-                            replacedUrl = result;
-                            debug(`Se uso el reemplazador local: ${key}`, "Events.MessageCreate");
-                            break;
-                        }
-                    }
-                }
-            }
-            /* ==================================================== Procesamiento del mensaje ==================================================== */
             if (replacedUrl) {
                 const hiddenMessage = message.content.split("||").length > 2;
                 let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl });
@@ -101,13 +55,13 @@ export default function startEmbedService(client: Client): void {
                 replacedUrls.push(messageContent);
             }
         }
+
         if (replacedUrls.length > 0) {
             embeRemove(message);
             post(message, replacedUrls, autorId);
         }
     });
 };
-
 
 // =========== embdClean =========== //
 const embeRemove = async (msg: Message) => {

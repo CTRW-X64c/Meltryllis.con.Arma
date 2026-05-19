@@ -2,7 +2,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, AutocompleteInteraction } from "discord.js";
 import i18next from "i18next";
 import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
-import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
+import { replacementMetaList } from "../../sys/embedding/embedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
 import { embedezSFW, embedezNSFW } from "../../sys/embedding/domainChecker";

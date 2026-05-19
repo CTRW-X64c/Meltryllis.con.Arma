@@ -1,5 +1,5 @@
 // src/sys/embeding/index.ts
-import { replacementMetaList } from "./EmbedingConfig";
+import { replacementMetaList } from "./embedingConfig";
 import urlStatusManager from "./domainChecker";
 
 export default function buildReplacements(guildConfig: Map<string, { custom_url: string | null; enabled: boolean }>): {

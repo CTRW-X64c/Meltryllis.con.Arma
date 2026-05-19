@@ -1,5 +1,5 @@
 import { warn, info, error } from "../logging";
-import { replacementMetaList } from "./EmbedingConfig";
+import { replacementMetaList } from "./embedingConfig";
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import getPool from "../DB-Engine/database";
 
