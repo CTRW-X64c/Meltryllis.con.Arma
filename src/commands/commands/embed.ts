@@ -72,7 +72,7 @@ export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promis
     const site = i.options.getString("sitio", true);
     const modo = i.options.getString("modo", true);
     const url = i.options.getString("personalizar", false);
-    const isApi = [...embedezSFW, ...embedezNSFW].includes(site);
+    const isApi = embedezNSFW.includes(site) || embedezSFW.includes(site);
 
     let customUrl: string | null = null;
     let enabled = true;

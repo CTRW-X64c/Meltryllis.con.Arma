@@ -259,6 +259,18 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
     const queue = musicQueue.get(guildId) || [];
     const current = currentPlaying.get(guildId);
     const cleanqueue = interaction.options.getString("clean");
+    const list: { name: string, value: string, inline: boolean }[] = []
+    const time = (num: number): string => {
+        const hours = Math.floor(num / 3600000);
+        const minutes = Math.floor((num % 3600000) / 60000)
+        const seconds = Math.floor((num % 60000) / 1000);
+        if (hours > 0) { return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}` }
+        else { return `${minutes}:${String(seconds).padStart(2, "0")}` }
+    }
+
+    const embed = new EmbedBuilder()
+        .setTitle(i18next.t("commands:mussic.interacciones.Queue_02"))
+        .setColor(0x00AE86)
 
     if (cleanqueue === "yes") { /*Ahora permite borrar la lista*/
         if (queue.length === 0 || !current) {
@@ -276,29 +288,27 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
     }
 
     if (!current && queue.length === 0) {
-        await interaction.reply(i18next.t("commands:mussic.interacciones.Queue_01"));
-        await deletReplyMsg(interaction);
-        return;
+        embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_01"));
+        list.push({ name: i18next.t("commands:mussic.interacciones.Queue_"), value: i18next.t("commands:mussic.interacciones.Queue_09"), inline: false })
     }
-
-    const embed = new EmbedBuilder()
-        .setTitle(i18next.t("commands:mussic.interacciones.Queue_02"))
-        .setColor(0x00AE86);
 
     if (current) {
-        embed.addFields({ name: i18next.t("commands:mussic.interacciones.Queue_03_name"), value: i18next.t("commands:mussic.interacciones.Queue_03_value", { a1: current.title, a2: current.uri, a3: current.requester }), inline: false });
+        if (queue.length === 0) {
+            embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_03_name") + `\n` + i18next.t("commands:mussic.interacciones.Queue_03_value", { a1: current.title, a2: current.uri, a3: current.requester }));
+            list.push({ name: i18next.t("commands:mussic.interacciones.Queue_01"), value: i18next.t("commands:mussic.interacciones.Queue_09"), inline: false })
+        }
+        else {
+            embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_03_name") + `\n` + i18next.t("commands:mussic.interacciones.Queue_03_value", { a1: current.title, a2: current.uri, a3: current.requester }) + `\n\n ${'='.repeat(70)}`);
+            let number = 0;
+            for (const data of queue) {
+                number++;
+                const X = data.title.length > 50 ? data.title.slice(0, 50) + "..." : data.title;
+                list.push({ name: `${number}.- ${X}`, value: `Añadida por: @${data.requester} | Duración: ${time(data.duration)} | [Ver en web](${data.uri})`, inline: false });
+                if (number >= 15) { embed.setFooter({ text: `Mostrando 15 de ${queue.length} canciones` }); break }
+            }
+        }
     }
-
-    if (queue.length > 0) {
-        const list = queue.slice(0, 10).map((song, i) =>
-            `**${i + 1}.** [${song.title}](${song.uri})`
-        ).join("\n");
-
-        const shortlist = queue.length > 10 ? `\n\n*...y ${queue.length - 10} más.*` : '';
-        embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_04", { a1: list, a2: shortlist }));
-    } else {
-        embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_05"));
-    }
+    embed.addFields(list);
 
     await interaction.reply({ embeds: [embed] });
     await deletReplyMsg(interaction);

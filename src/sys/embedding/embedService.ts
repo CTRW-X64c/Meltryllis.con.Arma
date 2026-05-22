@@ -5,7 +5,7 @@ import { getConfigMap } from "../DB-Engine/links/ReplyBots";
 import buildReplacements from "./index";
 import { debug, error } from "../logging";
 import i18next from "i18next";
-import { urlProsses } from "./embedingSwitch";
+import { urlProcess } from "./embedingSwitch";
 
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
 export default function startEmbedService(client: Client): void {
@@ -28,8 +28,8 @@ export default function startEmbedService(client: Client): void {
             if (isBot && channelConfig?.replyBots !== true) return;
         }
 
-        const guildReplacementConfig = guildId ? await getGuildReplacementConfig(guildId) : new Map();
-        const replacements = buildReplacements(guildReplacementConfig);
+        const guildConfigs = guildId ? await getGuildReplacementConfig(guildId) : new Map();
+        const replacements = buildReplacements(guildConfigs);
         const replacedUrls: string[] = [];
 
         for (const match of urls) {
@@ -44,7 +44,7 @@ export default function startEmbedService(client: Client): void {
                 continue;
             }
 
-            const replacedUrl = await urlProsses(originalUrl, domainSite, guildId!, guildReplacementConfig, replacements);
+            const replacedUrl = await urlProcess(originalUrl, domainSite, guildId!, guildConfigs, replacements);
 
             if (replacedUrl) {
                 const hiddenMessage = message.content.split("||").length > 2;
@@ -71,24 +71,23 @@ const embeRemove = async (msg: Message) => {
             await wait(attempt * 1_500);
             const freshMsg = await msg.channel.messages.fetch(msg.id);
             if (freshMsg.flags.has('SuppressEmbeds')) {
-                debug(`Se borro el embed de ${msg.id} despues de ${attempt} intentos.`, "Events.MessageCreate");
                 return;
             }
             await freshMsg.suppressEmbeds(true);
-            debug(`Intento ${attempt} para borrar el embed de ${msg.id}.`, "Events.MessageCreate");
+            debug(`Intento ${attempt} para borrar el embed de ${msg.id}, Guild: ${msg.guild?.name}`, "Events.MessageCreate");
 
         } catch (err) {
             const errMsg: string = (err as Error).message;
             if (errMsg.includes("Unknown Message")) {
-                debug(`Al guien borro el embed antes - Server: ${msg.guild?.id}`, "Events.MessageCreate");
+                debug(`Al guien borro el embed antes - Server: ${msg.guild?.name}`, "Events.MessageCreate");
                 return;
             }
             if (errMsg.includes("Missing Permissions")) {
-                debug(`No tengo permisos para borrar mensajes en el canal: ${msg.channel.id} -Server: ${msg.guild?.id}`, "Events.MessageCreate");
+                debug(`No tengo permisos para borrar mensajes en el canal: ${msg.channel.id} -Server: ${msg.guild?.name}`, "Events.MessageCreate");
                 return;
             }
             if (attempt === 4) {
-                debug(`No se puedo borrar el embed del mensaje original, Error: ${errMsg}`, "Events.MessageCreate");
+                debug(`No se puedo borrar el embed del mensaje original, , Guild: ${msg.guild?.name}, Error: ${errMsg}`, "Events.MessageCreate");
             }
         }
     }
@@ -135,7 +134,7 @@ const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
             }
 
             if (freshMsg && freshMsg.embeds.length === 0) {
-                debug(`No se pudo generar embed después de reintentos`, "Events.MessageCreate");
+                debug(`No se pudo generar embed después de reintentos, Guild: ${msg.guild?.name}.`, "Events.MessageCreate");
                 await sentMsg.edit({ content: i18next.t("common:embedService.msgFail"), allowedMentions: { repliedUser: false } }).catch(() => null);
                 await wait(10_000);
                 await sentMsg.delete().catch(() => null);
@@ -150,7 +149,7 @@ const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
             }
 
         } catch (e) {
-            error(`error al generar embeds: ${e}`, "Events.MessageCreate")
+            error(`error al generar embeds: ${e}, Guild: ${msg.guild?.name}`, "Events.MessageCreate")
         }
 
         if (sentMsg && autorId) deleteMSG(sentMsg, autorId);
@@ -203,7 +202,7 @@ const deleteMSG = async (msg: Message, autorId: string) => {
         }
         // No loguear errores menores como Missing Access
         if (!errMsg.includes("Missing Access")) {
-            error(`Error en deleteMSG: ${errMsg}`, "Events.MessageCreate");
+            error(`Error en deleteMSG: ${errMsg}, Guild: ${msg.guild?.name}`, "Events.MessageCreate");
         }
     }
 };

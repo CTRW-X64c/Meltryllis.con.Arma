@@ -1,69 +1,96 @@
-import { debug } from "../logging";
-import { embedezAPI } from "./ApiReplacement";
+import { debug, error } from "../logging";
 import urlStatusManager, { embedezNSFW, embedezSFW } from "./domainChecker";
 
 interface ApiHandler {
     name: string;
     isAvailable(): boolean;
-    isDommain(domain: string): boolean;
-    guildChk(domain: string, guildId: string | null, guildReplacementConfig: Map<string, any>): Promise<boolean>;
-    process(url: string, domain: string, guildId?: string | null, guildReplacementConfig?: Map<string, any>): Promise<string | null>;
+    isDomain(domain: string): boolean;
+    guildChk(domain: string, guildId: string, guildConfigs: Map<string, any>): Promise<boolean>;
+    process(url: string): Promise<string | null>;
 }
 
-// =========== Embedez Api =========== //
+// =========== APi: Embedez =========== //
 class apiEmbedez implements ApiHandler {
-    name = "EmbedEzAPI";
-    private apiReplacer = new embedezAPI();
+    name = "Embedez";
 
     isAvailable(): boolean {
         const apiUrl = urlStatusManager.getActiveUrl("Api");
         return apiUrl !== null && apiUrl.includes("embedez.com");
     }
 
-    isDommain(domain: string): boolean {
+    isDomain(domain: string): boolean {
         if (!domain) return false;
         return embedezSFW.some(d => domain.endsWith(d)) || embedezNSFW.some(d => domain.endsWith(d));
     }
 
-    async guildChk(domain: string, guildId: string | null, guildReplacementConfig: Map<string, any>): Promise<boolean> {
+    async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
         const matchingDomain = embedezSFW.find(d => domain.endsWith(d)) || embedezNSFW.find(d => domain.endsWith(d));
         if (!matchingDomain) return false;
 
-        const apiDomainConfig = guildReplacementConfig.get(matchingDomain);
+        const apiDomainConfig = guildConfigs.get(matchingDomain);
         if (apiDomainConfig && apiDomainConfig.enabled === false) {
-            debug(`El uso del API EmbedEz esta deshabilitado para el dominio: ${matchingDomain} en el gremio: ${guildId}`, "Events.MessageCreate");
+            debug(`El uso del API EmbedEz está deshabilitado para el dominio: ${matchingDomain} en el gremio: ${guildId}`, "Events.MessageCreate");
             return false;
-        }
-        return true;
+        } return true;
     }
-    async process(url: string, domain: string): Promise<string | null> {
-        const result = await this.apiReplacer.getEmbedUrl(url);
-        if (result) {
-            debug(`Sitio: ${domain} ha sido procesado por EmbedEzApi`, "Events.MessageCreate");
-        }
-        return result;
+
+    async process(originalUrl: string): Promise<string | null> {
+        const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+        interface embedezApi { success: boolean; shareUrl?: string; }
+        const MAX_ATTEMPTS = 2;
+
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                const encodedUrl = encodeURIComponent(originalUrl);
+                const apiUrl = `https://embedez.com/api/v1/providers/combined?q=${encodedUrl}`;
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    const responseError = await response.text();
+                    debug(`[Intento ${attempt}/${MAX_ATTEMPTS}] API de Embedez devolvió estado: ${response.status} - ${responseError}`, "ApiReplacement");
+                    if (attempt === MAX_ATTEMPTS) return null;
+                    await wait(1000);
+                    continue;
+                }
+
+                const data = (await response.json()) as embedezApi;
+                if (!data?.success) {
+                    debug(`API de Embedez falló para la URL: ${originalUrl}. Respuesta: ${JSON.stringify(data)}`, "ApiReplacement");
+                    return null;
+                }
+
+                debug(`API de Embedez exitosa: ${originalUrl} -> https://embedez.com/download?q=${originalUrl}`, "ApiReplacement");
+                return `https://embedez.com/download?q=${originalUrl}`;
+
+            } catch (err) {
+                error(`[Intento ${attempt}/${MAX_ATTEMPTS}] Error de red al llamar a la API de Embedez para ${originalUrl}: ${err}`, "ApiReplacement");
+                if (attempt === MAX_ATTEMPTS) return null;
+                await wait(1000);
+            }
+        } return null;
     }
 }
 
-// =========== Espacio para nuevas Apis =========== //
+// =========== API: Nueva =========== //
+
 
 // =========== Registro de APIs =========== //
 const apiHandlers: ApiHandler[] = [
     new apiEmbedez(),
 ];
 
-// =========== Procesador principal de URLs =========== //
-export async function urlProsses(originalUrl: string, domainSite: string, guildId: string | null, guildReplacementConfig: Map<string, any>, replacements: Record<string, any>): Promise<string | null> {
+// =========== Procesador principal =========== //
+export async function urlProcess(originalUrl: string, domainSite: string, guildId: string, guildConfigs: Map<string, any>, replacements: Record<string, any>): Promise<string | null> {
     for (const apiHandler of apiHandlers) {
         if (!apiHandler.isAvailable()) continue;
-        if (!apiHandler.isDommain(domainSite)) continue;
+        if (!apiHandler.isDomain(domainSite)) continue;
 
-        const shouldUse = await apiHandler.guildChk(domainSite, guildId, guildReplacementConfig);
+        const shouldUse = await apiHandler.guildChk(domainSite, guildId, guildConfigs);
         if (!shouldUse) continue;
 
         try {
-            const apiResult = await apiHandler.process(originalUrl, domainSite, guildId, guildReplacementConfig);
+            const apiResult = await apiHandler.process(originalUrl);
             if (apiResult) {
                 return apiResult;
             }
@@ -72,12 +99,9 @@ export async function urlProsses(originalUrl: string, domainSite: string, guildI
         }
     }
 
-    // 2. Fase de Reemplazos Locales (Fallback)
     for (const [key, replaceFunc] of Object.entries(replacements)) {
-        const manualDomainConfig = guildReplacementConfig.get(key);
-        if (manualDomainConfig && manualDomainConfig.enabled === false) {
-            continue;
-        }
+        const manualDomainConfig = guildConfigs.get(key);
+        if (manualDomainConfig && manualDomainConfig.enabled === false) continue;
 
         if (new RegExp(key).test(originalUrl)) {
             const result = (replaceFunc as any)(originalUrl.replace(/\|/g, ""));
@@ -86,7 +110,5 @@ export async function urlProsses(originalUrl: string, domainSite: string, guildI
                 return result;
             }
         }
-    }
-
-    return null;
+    } return null;
 }
