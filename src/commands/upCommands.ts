@@ -6,7 +6,7 @@ import { registerTestCommand, handleTestCommand } from "./commands/test";
 import { registerHelpCommand, handleHelpCommand, helpAutocomplete } from "./commands/help";
 import { registerWorkCommand, handleWorkCommand } from "./commands/work";
 import { registerEmbedCommand, handleEmbedCommand, embedAutocomplete } from "./commands/embed";
-import { registerWelcomeCommand, handleWelcomeCommand } from "./commands/welcome";
+import { registerWelcomeCommand, handleWelcomeCommand, fontsAutocomplete } from "./commands/welcome";
 import { registerRolemojiCommand, handleRolemojiCommand } from "./commands/rolemoji"
 import { registerOwnerCommands, handleOwnerCommands, respondReportModal, modalTkn } from "../sys/zGears/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "./commands/youtube";
@@ -120,6 +120,8 @@ export async function sysUpAutoComplete(interaction: AutocompleteInteraction) {
       await permisosAutocomplete(interaction); break;
     case "help":
       await helpAutocomplete(interaction); break;
+    case "welcome":
+      await fontsAutocomplete(interaction); break;
     default:
       error(`Autocompletado (${interaction.commandName}) inexistente!!`, "upCommands.AutoComplete"); break;
   }
@@ -138,6 +140,7 @@ export async function sysUpModals(interaction: ModalSubmitInteraction) {
     case interaction.customId.startsWith("token_verify_"):
       await modalTkn(interaction); break;
     default:
+      if (interaction.customId && interaction.customId.startsWith("modal_")) { return; }
       error(`Modal (${interaction.customId}) no manejado!!`, "upCommands.Modals"); break;
   }
 }
@@ -153,6 +156,7 @@ export async function sysUpButtons(interaction: ButtonInteraction) {
     case interaction.customId.startsWith("btn_openreport_"):
       await handleReportResponseButton(interaction); break;
     default:
+      if (interaction.customId && (interaction.customId.startsWith("btn_"))) { return; }
       error(`Boton (${interaction.customId}) no manejado!!`, "upCommands.Buttons"); break;
   }
 }

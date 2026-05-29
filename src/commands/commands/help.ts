@@ -6,6 +6,7 @@ import { Report } from "../commandModales/reportHelp";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import lavalinkManager from "../../bgProcess/lavalinkConnect";
 import { testPermisos } from "../../sys/zGears/auxiliares";
+import { fonts } from "../../bgProcess/welcomeEvents";
 
 // ============================================= Autocomplete ============================================= //
 
@@ -38,6 +39,10 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
     filtered.slice(0, 25).map(list => ({ name: list.name, value: list.value }))
   );
 }
+
+// ============================================= Fonts ============================================= //
+
+const listadoFonts = () => fonts.map(f => f.name).join("\n > ");
 
 // ============================================= Register ============================================= //
 
@@ -261,6 +266,14 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         command: "welcome",
         title: i18next.t("help:welcome.title"),
         description: i18next.t("help:welcome.description"),
+        fields: [
+          {name: i18next.t("help:welcome.name_0"), value: i18next.t("help:welcome.value_0")},
+          { name: i18next.t("help:welcome.name_2"), value: i18next.t("help:welcome.value_2") },
+          { name: i18next.t("help:welcome.name_1"), value: i18next.t("help:welcome.value_1") },
+          { name: i18next.t("help:welcome.name_3"), value: i18next.t("help:welcome.value_3") },
+          { name: i18next.t("help:welcome.name_4"), value: i18next.t("help:welcome.value_4") },
+          { name: i18next.t("help:welcome.name_5"), value: `> ${listadoFonts()}` }
+        ],
         footer: i18next.t("help:welcome.footer"),
         chPerm: "viewCh|msgManager"
       }); break;

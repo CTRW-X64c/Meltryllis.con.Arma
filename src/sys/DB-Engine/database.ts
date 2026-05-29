@@ -84,11 +84,16 @@ async function poolManager(): Promise<void> {
 
   // Tabla de comandos /welcome
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS welcome_configs (
+    CREATE TABLE IF NOT EXISTS welcome_banner (
       guild_id VARCHAR(30) NOT NULL,
       channel_id VARCHAR(30),
-      enabled BOOLEAN DEFAULT FALSE,
       custom_message TEXT,
+      fText TEXT,
+      sText TEXT,
+      tText TEXT,
+      background VARCHAR(255),
+      ringcolor VARCHAR(7),
+      exitmesseng BOOLEAN DEFAULT FALSE,
       PRIMARY KEY (guild_id)
     )
   `);

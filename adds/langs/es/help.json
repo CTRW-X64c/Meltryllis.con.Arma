@@ -177,8 +177,20 @@
   },
   "welcome": {
     "title": "Ayuda del comando /welcome",
-    "description": "Puedes asignar un canal en el que se enviará un mensaje de bienvenida con banner a los nuevos integrantes y de salida.\nEn tu mensaje puedes usar \"<user>\" para mencionar a quien se une; \nej. `Hola <user> bienvenido al server`",
-    "footer": "Registro de entradas y salidas"
+    "description": "Puedes asignar un canal en el que se enviará un mensaje de bienvenida con banner a los nuevos integrantes y de salida.\nEn tu mensaje puedes usar \"<user>\" para mencionar a quien se une; \nej. `Hola <user> bienvenido al server`\n\n **====================================================================**",
+    "footer": "Registro de entradas y salidas",
+    "name_1": "/welcome slash_builder",
+    "value_1": "Permite crear el mensaje de bienvenida de manera directa con las opciones de fuente y con los limites del tamaño del texto; tambien facilita la mencion de canales y otros usuarios!! \n `Solo puede establecer configuracion mas no editar!`",
+    "name_2": "/welcome modal_builder",
+    "value_2": "Permite crear el mensaje de bienvenida de manera interactiva, no muestra las fuentes que puedes usar ni los limites de tamaños; se puede complicar el mencionar canales u otros usuarios ya que requiere copiar ids y formato de menciones! \n `Permite editar o establecer nueva configuracion!!`",
+    "name_3": "/welcome preview",
+    "value_3": "Muestra el mensaje de bienvenida!",
+    "name_4": "/welcome delete",
+    "value_4": "Borra el mensaje de bienvenida juento con su configuracion",
+    "name_5": "Fuentes disponibles:",
+    "value_5": "Agbalumo \n Bitcount \n Chewy \n ConcertOne \n FrederickatheGreat \n MarckScript \n Metamorphous \n MiltonianTattoo \n NerkoOne \n PermanentMarker \n SingleDay \n StoryScript \n WalterTurncoat",
+    "name_0": "💡 Tips:",
+    "value_0": "Si usas imgur usa el link directo \n Ej. `https://imgur.com/334eyBb` => `https://i.imgur.com/334eyBb.jpeg` \n\nTambien puedes usar imagenes de Twitter/x cambiando la URL de la imagen\nPost: `https://x.com/yoyoyoiida/status/2060276735690858630` => \nAbrir imagen: `https://pbs.twimg.com/media/HJeSjTFbgAAnrnO?format=jpg&name=small` => \nURL: `https://pbs.twimg.com/media/HJeSjTFbgAAnrnO.jpg` \n\n Si tu imagen depende de **\"?\"** puede no funcionar \n\n **====================================================================**"
   },
   "work": {
     "title": "Comando /work",

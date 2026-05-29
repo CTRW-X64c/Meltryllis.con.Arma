@@ -204,22 +204,21 @@ async function ListServers(interaction: ChatInputCommandInteraction): Promise<vo
     const guilds = interaction.client.guilds.cache;
     if (guilds.size === 0) { await interaction.editReply({ content: "No estoy en ningún servidor actualmente." }); return; }
 
-    let serverList = `Lista de Servidores - Total: ${guilds.size}\n\n`;
+    let memberCount = 0;
+    for (const guild of guilds.values()) {
+        memberCount += guild.memberCount;
+    }
+
+    let serverList = `Total de servidores: ${guilds.size} | Miembros Totales: ${memberCount}\n\nLista de Servidores:`;
     guilds.forEach(guild => {
         const meJoin = guild.members.me?.joinedAt?.toLocaleDateString();
         serverList += `Nombre: ${guild.name} | ID: ${guild.id} | Miembros: ${guild.memberCount} | Añadida: ${meJoin ? meJoin : "No se encontro fecha!!"}\n`;
     });
 
-    let memberCount = 0;
-    for (const guild of guilds.values()) {
-        memberCount += guild.memberCount;
-    }
-    if (memberCount !== 0) serverList += `y ${memberCount} miembros!`;
-
     const buffer = Buffer.from(serverList, 'utf-8');
 
     await interaction.editReply({
-        content: `**Estoy en ${guilds.size} servidores!**\n**Miembros totales: ${memberCount}**\n\n📁 Aquí tienes la lista completa.`,
+        content: `📁 Listado completo de servidores.`,
         files: [{
             attachment: buffer,
             name: `servers.txt`

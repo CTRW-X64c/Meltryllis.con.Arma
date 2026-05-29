@@ -4,7 +4,7 @@ import { info, error } from "../logging";
 import { adminChannel } from "./auxiliares";
 import { removeVoiceConfig } from "../DB-Engine/links/JointoVoice";
 import { clearGuildPermissions } from "../DB-Engine/links/Permission";
-import { removeWelcomeConfig } from "../DB-Engine/links/Welcome";
+import { removeWelcome } from "../DB-Engine/links/Welcome";
 import { deleteAllEmbedConfig } from "../DB-Engine/links/Embed";
 import { delleteAllMangadexConfig } from "../DB-Engine/links/Mangadex";
 import { delleteAllRedditConfig } from "../DB-Engine/links/Reddit";
@@ -110,7 +110,7 @@ export async function deleteGuildConfig(guild: Guild): Promise<boolean> {
     const resultados = await Promise.allSettled([
       removeVoiceConfig(guild.id),
       clearGuildPermissions(guild.id),
-      removeWelcomeConfig(guild.id),
+      removeWelcome(guild.id),
       deleteAllEmbedConfig(guild.id),
       delleteAllMangadexConfig(guild.id),
       delleteAllRedditConfig(guild.id),
