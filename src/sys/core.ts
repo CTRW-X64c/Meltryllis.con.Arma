@@ -16,7 +16,7 @@ import { startRedditChecker } from "../bgProcess/redditCheck";
 import { startMangadexChecker } from "../bgProcess/mangadexChek";
 import { startVoiceChannelService } from "../bgProcess/voicEvent";
 import { startCronpost } from "../bgProcess/exeCron";
-import lavalinkManager, { loadNodes } from "../bgProcess/lavalinkConnect";
+import lavalinkManager from "../bgProcess/lavalinkConnect";
 import registerIOevent from "./zGears/IO-Server";
 
 
@@ -44,7 +44,7 @@ async function main(): Promise<void> {
                 startEmbedService(client);
                 info("Servicio de embed inicializado")
             } else { error("❌ ERROR AL INICIAR EL SISTEMA DE EMBEDDING!!") }
-            loadNodes()
+            //loadNodes()
             startVoiceChannelService(client);
             startMangadexChecker(client);
             startYoutubeService(client); // by nep  
