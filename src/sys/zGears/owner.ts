@@ -9,6 +9,7 @@ import { getGuildLimits } from "../DB-Engine/links/noRules";
 import { adminChannel } from "./auxiliares";
 import { addStatusBD, addTempStatus, changeTimmer, clerTempStatus, deleteStatusBD, listStatus, setiState } from "./setStatus";
 import { addSite, deleteSite, deletLast, editDomain, listDomains } from "../embedding/domainChecker";
+import lavalinkManager from "../../bgProcess/lavalinkConnect";
 
 
 /* ================================================================== Listado de comandos ================================================================== */
@@ -192,6 +193,8 @@ async function runCommand(integrations: any, subcommand: string, serverId: strin
             await sendStatus(integrations, data); break
         case "dominios":
             await domainManager(integrations, data); break
+        case "lavalink":
+            await lavalinkTools(integrations, data); break
         default:
             await integrations.reply({ content: "Subcomando no reconocido.", flags: MessageFlags.Ephemeral });
     }
@@ -723,4 +726,32 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
         console.error(error);
         await interaction.editReply({ content: "❌ Ocurrió un error inesperado" });
     }
+}
+
+/* ================================================================== lavalinkTools ================================================================== */
+async function lavalinkTools(interaction: ChatInputCommandInteraction, data: string) {
+    try {
+        const p1 = data.split("=")
+        const modo = p1[0] || "nodata";
+        //const dta = p1[1] || "nodata";
+        //const auth = dta.split("|")
+
+        if (!lavalinkManager) { await interaction.editReply("Lavalink no esta activado!!"); return }
+
+        if (modo === "Reset") {
+            await lavalinkManager.hardReset();
+            await interaction.editReply("Lavalink reseteado!!"); return;
+        }
+
+        if (modo === "Conect") {
+            lavalinkManager.reconnectAllNodes();
+        }
+
+        /*if (modo === "add") {
+            if (!auth[0] || !auth[1] || !auth[2]) { await interaction.editReply("Faltaron datos, formato Name|Ip/URL:Port|Password"); return }
+            lavalinkManager.addNode(auth[0], auth[1], auth[2])
+            await interaction.editReply("Nodo lavavalink agregado!!"); return;
+        }*/
+
+    } catch { await interaction.editReply("Error al procesar el comando!!") }
 }
