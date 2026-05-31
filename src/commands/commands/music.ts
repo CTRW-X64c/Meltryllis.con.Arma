@@ -175,7 +175,8 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
 
         if (!currentPlaying.has(guildId)) {
             await playNext(guildId, player, interaction);
-            await deletReplyMsg(interaction);
+            const msg = await interaction.editReply(i18next.t("commands:mussic.interacciones.playlist_start"));
+            setTimeout(() => msg.delete().catch(() => { }), 2000);
             if (result.loadType === 'playlist') {
                 const msg = await (interaction.channel as TextChannel).send(message);
                 setTimeout(() => { msg.delete().catch(() => { }); }, 30000);

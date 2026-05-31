@@ -85,7 +85,8 @@
       "onCooldown": "❌ Ocurrio un error grave en los nodos y el comando entro en espera!! \n Tiempo restante: {{a1}}",
       "Queue_": "No se esta reproduciendo nada!!",
       "Queue_09": "Añade mas musica con /play!!  \n Tambien puedes añadir una lista con /play <link> queue: yes",
-      "span_skip": "‼️Debes esperar {{a1}} para skipear de nuevo. "
+      "span_skip": "‼️Debes esperar {{a1}} para skipear de nuevo. ",
+      "playlist_start": "Iniciando reproducción..."
     }
   },
   "permisos": {

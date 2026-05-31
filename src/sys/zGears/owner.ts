@@ -731,6 +731,9 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
 
 /* ================================================================== lavalinkTools ================================================================== */
 async function lavalinkTools(interaction: ChatInputCommandInteraction, data: string) {
+    if (!interaction.deferred) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
     try {
         const p1 = data.split("=")
         const modo = p1[0] || "nodata";

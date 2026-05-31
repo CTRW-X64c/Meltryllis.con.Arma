@@ -8,11 +8,11 @@ const logDir = `logs/${now.toLocaleDateString('en-CA')} [${fixHour}hrs]`;
 
 let logger: Logger | null = null;
 
-export function initLogger( environmentMode: EnvironmentMode ): void {
+export function initLogger(environmentMode: EnvironmentMode): void {
   const logLevel = environmentMode === "development" ? "debug" : "info";
   const clientFormat = winston.format.cli();
   const fileFormat = winston.format.combine(
-    winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     winston.format.printf(({ timestamp, label, level, message }) => {
       return `[${timestamp}] ${label} - ${level}: ${message}`;
     }),
@@ -21,12 +21,12 @@ export function initLogger( environmentMode: EnvironmentMode ): void {
   logger = winston.createLogger({
     level: logLevel,
     transports: [
-      new winston.transports.Console({level: logLevel,  format: clientFormat,}),
-      new winston.transports.File({level: logLevel, format: fileFormat, filename: `${logDir}/combined.log`,}),
-      new winston.transports.File({level: "error", format: fileFormat, filename: `${logDir}/error.log`,}),
-      new winston.transports.File({level: "info", format: fileFormat, filename: `${logDir}/info.log`,}),
-      new winston.transports.File({level: "debug", format: fileFormat, filename: `${logDir}/debug.log`,}),
-      new winston.transports.File({level: "warn", format: fileFormat, filename: `${logDir}/warn.log`,}),
+      new winston.transports.Console({ level: logLevel, format: clientFormat, }),
+      new winston.transports.File({ level: logLevel, format: fileFormat, filename: `${logDir}/combined.log`, }),
+      new winston.transports.File({ level: "error", format: fileFormat, filename: `${logDir}/error.log`, }),
+      new winston.transports.File({ level: "info", format: fileFormat, filename: `${logDir}/info.log`, }),
+      new winston.transports.File({ level: "debug", format: fileFormat, filename: `${logDir}/debug.log`, }),
+      new winston.transports.File({ level: "warn", format: fileFormat, filename: `${logDir}/warn.log`, }),
     ],
   });
 }
