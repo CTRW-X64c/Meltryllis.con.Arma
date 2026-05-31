@@ -14,7 +14,19 @@ const COOLDOWN_TIMES: Record<string, number> = {
     "netCommand": 30 * minutos,
     "playMusic": 5 * minutos,
     "netCommandNoWait": 5 * minutos,
+    "skip": 2_500,
 };
+
+const left = (time: number): string => {
+    const h = Math.floor(time / 3600000);
+    const m = Math.floor((time % 3600000) / 60000);
+    const s = Math.floor((time % 60000) / 1000);
+    const t = [];
+    if (h >= 1) t.push(h === 1 ? "una hora" : `${h} horas`);
+    if (m >= 1) t.push(m === 1 ? "un minuto" : `${m} minutos`);
+    if (s > 0 && h === 0) t.push(s === 1 ? "un segundo" : `${s} segundos`);
+    return t.join(' y ') || '0 segundos';
+}
 
 export function startCooldown(guild: string, idCommand: string) {
     const key = `${guild}-${idCommand}`;
@@ -31,8 +43,7 @@ export function checkCooldown(guild: string, idCommand: string): { onCooldown: b
     }
     const timeRemaining = expirationTime - Date.now();
     if (timeRemaining > 0) {
-        const minutesLeft = Math.ceil(timeRemaining / 60000);
-        return { onCooldown: true, timeLeft: minutesLeft < hrs ? `${minutesLeft} minuto(s) y ${minutesLeft % 60} segundo(s)` : `${Math.floor(minutesLeft / 60)} hora(s) y ${minutesLeft % 60} minuto(s)` };
+        return { onCooldown: true, timeLeft: left(timeRemaining) };
     }
     cooldownsMap.delete(key);
     return { onCooldown: false, timeLeft: '' };
@@ -188,4 +199,3 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
         return;
     }
 */
-

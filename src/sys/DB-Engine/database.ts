@@ -256,6 +256,15 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  //Tabla lavalink
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS lavalinks (
+      name VARCHAR(255) PRIMARY KEY,
+      host VARCHAR(255) NOT NULL,
+      password VARCHAR(255) NOT NULL
+    )
+  `);
+
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;
   info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");

@@ -9,7 +9,7 @@ import { getGuildLimits } from "../DB-Engine/links/noRules";
 import { adminChannel } from "./auxiliares";
 import { addStatusBD, addTempStatus, changeTimmer, clerTempStatus, deleteStatusBD, listStatus, setiState } from "./setStatus";
 import { addSite, deleteSite, deletLast, editDomain, listDomains } from "../embedding/domainChecker";
-import lavalinkManager from "../../bgProcess/lavalinkConnect";
+import lavalinkManager, { addNodeBD, removeNodeBD, listNode } from "../../bgProcess/lavalinkConnect";
 
 
 /* ================================================================== Listado de comandos ================================================================== */
@@ -17,6 +17,7 @@ const listCom = [
     { name: "Modificacion de estados", value: "status" },
     { name: "Responder reporte", value: "respond" },
     { name: "Dominios", value: "dominios" },
+    { name: "Lavalink", value: "lavalink" },
     { name: "Revisar dominios (embedServices)", value: "checkdomains" },
     { name: "Lista de servidores", value: "list" },
     { name: "Parametros de Servers", value: "rules" },
@@ -80,7 +81,7 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
         }); return
     }
 
-    const noTkn = ["restart", "checkdomains", "list", "status", "dominios"];
+    const noTkn = ["restart", "checkdomains", "list", "status", "dominios", "lavalink"];
     if (noTkn.includes(subcommand)) {
         await runCommand(interaction, subcommand, serverId, idUsr, data);
         return;
@@ -733,25 +734,62 @@ async function lavalinkTools(interaction: ChatInputCommandInteraction, data: str
     try {
         const p1 = data.split("=")
         const modo = p1[0] || "nodata";
-        //const dta = p1[1] || "nodata";
-        //const auth = dta.split("|")
+        const dta = p1[1] || "nodata";
+        const auth = dta.split("|")
+        const nodeName = auth[0] || "nodata"; const nodeUrl = auth[1] || "nodata"; const nodePass = auth[2] || "nodata";
 
         if (!lavalinkManager) { await interaction.editReply("Lavalink no esta activado!!"); return }
 
-        if (modo === "Reset") {
-            await lavalinkManager.hardReset();
-            await interaction.editReply("Lavalink reseteado!!"); return;
+        switch (modo) {
+            case "add":
+                if (!data.includes("=") || !data.includes("|")) { await interaction.editReply("Formato incorrecto!!"); return }
+                if (nodeName === "nodata" || nodeUrl === "nodata" || nodePass === "nodata") { await interaction.editReply("Faltaron datos, formato Name|Ip/URL:Port|Password"); return }
+                const addNode = await addNodeBD(nodeName, nodeUrl, nodePass)
+                if (!addNode) { await interaction.editReply("Error al agregar el nodo!!"); return }
+                await interaction.editReply("Nodo lavalink agregado!!"); return;
+
+            case "reset":
+                await lavalinkManager.hardReset();
+                await interaction.editReply("Lavalink reseteado!!"); return;
+
+            case "reconect":
+                lavalinkManager.reconnectAllNodes();
+                await interaction.editReply("Nodos lavalink reconectados!!"); return;
+
+            case "delet":
+                if (!data.includes("=")) { await interaction.editReply("Formato incorrecto!!"); return }
+                if (dta === "nodata") { await interaction.editReply("Faltó el nombre del nodo!!"); return }
+                const delNode = await removeNodeBD(dta);
+                if (!delNode) { await interaction.editReply("Error al borrar el nodo!!"); return }
+                await interaction.editReply("Nodo lavalink borrado!!"); return;
+
+            case "list":
+                const listNodes = await listNode();
+                if (!listNodes || listNodes.length === 0) { await interaction.editReply("No hay nodos activos!!"); return }
+                let des = "";
+                for (const node of listNodes) {
+                    const estado = node.state === 1 ? "🟢 Conectado" : "🔴 Desconectado/Conectando";
+                    des += `**${node.name}** | Estado: ${estado}\n`;
+                }
+                const embed = new EmbedBuilder()
+                    .setTitle("Listado de Nodos Lavalink")
+                    .setColor(0x00FF00)
+                    .setDescription(des);
+                await interaction.editReply({ embeds: [embed] }); return
+
+            default:
+                const emb = new EmbedBuilder()
+                    .setTitle("Lavalink Manager")
+                    .setDescription("Configurar lavalink")
+                    .addFields(
+                        { name: "Añadir nodo", value: "data = add#nodoName|nodoUUL:port|password", inline: false },
+                        { name: "Borrar nodo", value: "data = delet#nodoName", inline: false },
+                        { name: "Lista de nodos", value: "data = list", inline: false },
+                        { name: "Reiniciar nodos", value: "data = reset", inline: false },
+                        { name: "Reconectar nodos", value: "data = reconect", inline: false },
+                    )
+                    .setColor(0x00FF00);
+                await interaction.editReply({ embeds: [emb] }); return;
         }
-
-        if (modo === "Conect") {
-            lavalinkManager.reconnectAllNodes();
-        }
-
-        /*if (modo === "add") {
-            if (!auth[0] || !auth[1] || !auth[2]) { await interaction.editReply("Faltaron datos, formato Name|Ip/URL:Port|Password"); return }
-            lavalinkManager.addNode(auth[0], auth[1], auth[2])
-            await interaction.editReply("Nodo lavavalink agregado!!"); return;
-        }*/
-
     } catch { await interaction.editReply("Error al procesar el comando!!") }
 }

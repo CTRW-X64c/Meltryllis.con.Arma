@@ -13,6 +13,7 @@ interface QueueEntry {
     title: string;
     uri: string;
     duration: number;
+    textChannelId: string;
 }
 
 const musicQueue = new Map<string, QueueEntry[]>();
@@ -151,7 +152,8 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
             requester,
             title: track.info.title,
             uri: track.info.uri || "",
-            duration: track.info.length
+            duration: track.info.length,
+            textChannelId: interaction.channelId
         });
 
         if (result.loadType === 'playlist') {
@@ -234,6 +236,15 @@ async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: La
     const player = lavalink.getPlayer(interaction.guildId!);
     const queue = musicQueue.get(interaction.guildId!) || [];
     const inChannelPlaying = currentPlaying.get(interaction.guildId!);
+    const guildId = interaction.guildId!;
+
+    startCooldown(guildId, "skip");
+    const t = checkCooldown(guildId, "skip");
+    if (t.onCooldown) {
+        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.span_skip", { a1: t.timeLeft }) });
+        await deletReplyMsg(interaction);
+        return;
+    }
 
     if (inChannelPlaying && queue.length > 0) {
         await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_01") });
@@ -331,14 +342,16 @@ async function playNext(guildId: string, player: any, interaction?: ChatInputCom
 
     const song = queue.shift()!;
     currentPlaying.set(guildId, song);
-
     await player.playTrack({ track: { encoded: song.track } });
 
     const msg = i18next.t("commands:mussic.interacciones.pNext_02", { a1: song.title, a2: song.requester });
 
     try {
-        if (interaction && interaction.deferred && !interaction.replied) await interaction.editReply(msg);
-        else if (interaction?.channel) (interaction.channel as TextChannel).send(msg);
+        const channel = (lavalinkManager?.shoukaku?.connector as any).client.channels.cache.get(song.textChannelId) as TextChannel;
+        if (channel) {
+            const playingMsg = await channel.send(msg);
+            setTimeout(() => playingMsg.delete().catch(() => { }), 30_000);
+        }
     } catch (e) { }
 
     if (player.listenerCount('end') === 0) {
@@ -364,28 +377,40 @@ export async function checkVoiceEmptyShoukaku(oldState: VoiceState): Promise<voi
     }
 
     const botChannel = Meltrys.voice.channel;
-    if (botChannel && botChannel.members.size === 1) {
-        if (mapTimmers.has(guildId)) return;
-        const timer = setTimeout(async () => {
-            try {
-                const currentChannel = oldState.guild.members.me?.voice.channel;
-                if (currentChannel && currentChannel.members.size === 1) {
+    if (!botChannel) return;
+
+    const humanCount = botChannel.members.filter(m => !m.user.bot).size;
+
+    const leave = async () => {
+        try {
+            const currentChannel = oldState.guild.members.me?.voice.channel;
+            if (currentChannel) {
+                const noBots = currentChannel.members.filter(m => !m.user.bot).size;
+                if (noBots === 0) {
                     musicQueue.delete(guildId);
                     currentPlaying.delete(guildId);
                     await lavalinkManager?.shoukaku?.leaveVoiceChannel(guildId);
-                    debug(`Me desconecte en ${guildId}, nadie escuchando`);
+                    debug(`Me desconecté en ${guildId}, nadie escuchando`);
                 }
-            } catch (e) {
-                error(`Error en checkVoiceEmptyShoukaku: ${e}`);
-            } finally {
-                mapTimmers.delete(guildId);
             }
-        }, 10 * 1000); // 10 segundos
-        mapTimmers.set(guildId, timer);
-    } else {
-        if (mapTimmers.has(guildId)) {
-            clearTimeout(mapTimmers.get(guildId));
+        } catch (e) {
+            error(`Error en checkVoiceEmptyShoukaku: ${e}`);
+        } finally {
             mapTimmers.delete(guildId);
+        }
+    };
+
+    if (humanCount === 0) {
+        if (!mapTimmers.has(guildId)) {
+            const timer = setTimeout(() => leave(), 10 * 1000); // 10 segundos
+            mapTimmers.set(guildId, timer);
+        }
+    } else {
+        // Si hay humanos, CANCELAMOS cualquier temporizador activo (alguien volvió a entrar)
+        if (mapTimmers.has(guildId)) {
+            clearTimeout(mapTimmers.get(guildId)!);
+            mapTimmers.delete(guildId);
+            debug(`Usuario entró al canal en ${guildId}, cancelación abortada.`);
         }
     }
 }
