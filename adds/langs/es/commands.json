@@ -549,5 +549,21 @@
       "ch_desc_CatCat": "Categoria de canales: {{a1}}",
       "ch_desc_wire": "Mostrando los permisos del hilo: {{a1}}"
     }
+  },
+  "noeveryone": {
+    "slashBuilder": {
+      "description": "Borra automaticamente los mensaje con @everyone/@here",
+      "estado_description": "Activa/Desactiva el sistema!",
+      "rol_description": "Asigan el Rol al que no se le borraran sus mensaje con @everyone/@here"
+    },
+    "interacciones": {
+      "embMaker_title": "Estado del sistema!!",
+      "embMaker_estado": "Estado actual:",
+      "embMaker_rol": "Rol sin restricciones:",
+      "embMaker_estado_on": "🟢 Activado!!",
+      "embMaker_estado_off": "🔴 Desactivado!!",
+      "embMaker_footer": "Si deseas retirar el Rol sin restricciones, ¡menciónalo de nuevo!",
+      "embMaker_rol_none": "**Ninguno**"
+    }
   }
 }

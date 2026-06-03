@@ -8,7 +8,7 @@ import { closeBD } from "../DB-Engine/database";
 import { getGuildLimits } from "../DB-Engine/links/noRules";
 import { adminChannel } from "./auxiliares";
 import { addStatusBD, addTempStatus, changeTimmer, clerTempStatus, deleteStatusBD, listStatus, setiState } from "./setStatus";
-import { addSite, deleteSite, deletLast, editDomain, listDomains } from "../embedding/domainChecker";
+import { addSite, deleteSite, deletLast, editDomain, embedingList } from "../embedding/domainChecker";
 import lavalinkManager, { addNodeBD, removeNodeBD, listNode } from "../../bgProcess/lavalinkConnect";
 
 
@@ -551,9 +551,7 @@ export async function sendLimitsDashboard(interaction: ChatInputCommandInteracti
 
 /* ================================================================== Status ================================================================== */
 async function sendStatus(interaction: ChatInputCommandInteraction, data: string): Promise<void> {
-    if (!interaction.deferred) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    }
+    if (!interaction.deferred) { await interaction.deferReply({ flags: MessageFlags.Ephemeral }); }
 
     /* === === === help emb === === === */
     const embid = new EmbedBuilder()
@@ -645,9 +643,7 @@ async function sendStatus(interaction: ChatInputCommandInteraction, data: string
 
 /* ================================================================== domainManager ================================================================== */
 async function domainManager(interaction: ChatInputCommandInteraction, data: string) {
-    if (!interaction.deferred) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    }
+    if (!interaction.deferred) { await interaction.deferReply({ flags: MessageFlags.Ephemeral }); }
 
     const emb = new EmbedBuilder()
         .setTitle("Dominios Manager")
@@ -716,8 +712,17 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
                 break;
 
             case "list":
-                await listDomains(interaction);
-                break;
+                if (!embedingList || Object.keys(embedingList).length === 0) { await interaction.editReply("No hay lista de dominios disponible"); return; }
+                const fieList: { name: string, value: string, inline: boolean }[] = [];
+                for (const [site, domains] of Object.entries(embedingList)) {
+                    const list = domains.split("|").map(d => `🔗 ${d}`).join("\n");
+                    fieList.push({ name: `Sitio: ${site}`, value: `RawDominios:\n > ${domains}` + "\n\n" + list, inline: false });
+                }
+                const embList = new EmbedBuilder()
+                    .setTitle("Lista de Dominios")
+                    .addFields(fieList)
+                    .setColor(0x000000);
+                await interaction.editReply({ embeds: [embList] }); return;
 
             default:
                 await interaction.editReply({ embeds: [emb] });
@@ -731,18 +736,16 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
 
 /* ================================================================== lavalinkTools ================================================================== */
 async function lavalinkTools(interaction: ChatInputCommandInteraction, data: string) {
-    if (!interaction.deferred) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    }
+    if (!interaction.deferred) { await interaction.deferReply({ flags: MessageFlags.Ephemeral }); }
+    if (!lavalinkManager) { await interaction.editReply("Lavalink no esta activado!!"); return }
+
+    const p1 = data.split("=")
+    const modo = p1[0] || "nodata";
+    const dta = p1[1] || "nodata";
+    const auth = dta.split("|")
+    const nodeName = auth[0] || "nodata"; const nodeUrl = auth[1] || "nodata"; const nodePass = auth[2] || "nodata";
+
     try {
-        const p1 = data.split("=")
-        const modo = p1[0] || "nodata";
-        const dta = p1[1] || "nodata";
-        const auth = dta.split("|")
-        const nodeName = auth[0] || "nodata"; const nodeUrl = auth[1] || "nodata"; const nodePass = auth[2] || "nodata";
-
-        if (!lavalinkManager) { await interaction.editReply("Lavalink no esta activado!!"); return }
-
         switch (modo) {
             case "add":
                 if (!data.includes("=") || !data.includes("|")) { await interaction.editReply("Formato incorrecto!!"); return }
@@ -768,7 +771,7 @@ async function lavalinkTools(interaction: ChatInputCommandInteraction, data: str
 
             case "list":
                 const listNodes = await listNode();
-                if (!listNodes || listNodes.length === 0) { await interaction.editReply("No hay nodos activos!!"); return }
+                if (!listNodes) { await interaction.editReply("No hay nodos activos!!"); return }
                 let des = "";
                 for (const node of listNodes) {
                     const estado = node.state === 1 ? "🟢 Conectado" : "🔴 Desconectado/Conectando";
@@ -778,7 +781,7 @@ async function lavalinkTools(interaction: ChatInputCommandInteraction, data: str
                     .setTitle("Listado de Nodos Lavalink")
                     .setColor(0x00FF00)
                     .setDescription(des);
-                await interaction.editReply({ embeds: [embed] }); return
+                await interaction.editReply({ embeds: [embed] }); return;
 
             default:
                 const emb = new EmbedBuilder()
@@ -796,3 +799,5 @@ async function lavalinkTools(interaction: ChatInputCommandInteraction, data: str
         }
     } catch { await interaction.editReply("Error al procesar el comando!!") }
 }
+
+/* ================================================================== noting ================================================================== */

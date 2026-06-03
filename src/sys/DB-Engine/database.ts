@@ -265,6 +265,16 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  //Tabla noeveryone
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS noeveryone (
+      guild_id VARCHAR(50) PRIMARY KEY,
+      state BOOLEAN DEFAULT FALSE,
+      role VARCHAR(50)
+    )
+  `);
+
+
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;
   info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");

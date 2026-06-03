@@ -99,6 +99,7 @@ const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
     const MAX_MSG = 5;
     const mxAtt = 3;
     const canSend = msg.channel.isSendable();
+    const content = replacedUrls.join(' | ');
     if (!canSend) return;
 
     const badEmbed = (embed: any): boolean => {
@@ -115,9 +116,17 @@ const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
         return noAllowed.some(p => embedText.includes(p));
     };
 
-    const content = replacedUrls.join(' | ');
     if (replacedUrls.length <= MAX_MSG) {
-        let sentMsg = await msg.reply({ content: content, allowedMentions: { repliedUser: false } });
+        let sentMsg: Message;
+        try {
+            sentMsg = await msg.reply({ content: content, allowedMentions: { repliedUser: false } });
+        } catch (err) {
+            const errMsg = (err as Error).message;
+            if (!errMsg.includes("Missing Access") && !errMsg.includes("Missing Permissions")) {
+                error(`Error al enviar embed inicial: ${errMsg}, Guild: ${msg.guild?.name}`, "EmbedService");
+            } return
+        }
+
         await wait(3_000);
 
         let freshMsg = await msg.channel.messages.fetch(sentMsg.id).catch(() => null);
@@ -158,10 +167,14 @@ const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
 
     for (let i = 0; i < replacedUrls.length; i += MAX_MSG) {
         const batch = replacedUrls.slice(i, i + MAX_MSG);
-        const sentMsg = i === 0
-            ? await msg.reply({ content: batch.join(' | '), allowedMentions: { repliedUser: false } })
-            : await msg.channel.send(batch.join(' | '));
-        if (sentMsg && autorId) deleteMSG(sentMsg, autorId);
+        try {
+            const sentMsg = i === 0 ? await msg.reply({ content: batch.join(' | '), allowedMentions: { repliedUser: false } }) : await msg.channel.send(batch.join(' | '));
+            if (sentMsg && autorId) deleteMSG(sentMsg, autorId);
+        } catch (err) {
+            const errMsg = (err as Error).message;
+            if (!errMsg.includes("Missing Access") && !errMsg.includes("Missing Permissions")) { error(`Error en ráfaga de embeds: ${errMsg}, Guild: ${msg.guild?.name}`, "EmbedService"); }
+            break;
+        }
         await wait(1000);
     }
 };

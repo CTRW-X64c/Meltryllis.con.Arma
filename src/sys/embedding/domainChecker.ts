@@ -1,6 +1,5 @@
-import { warn, info, error } from "../logging";
+import { warn, info, error, debug } from "../logging";
 import { replacementMetaList } from "./embedingConfig";
-import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import getPool from "../DB-Engine/database";
 
 export let embedingList: { [key: string]: string } = {};
@@ -98,27 +97,6 @@ export async function deletLast(s: string): Promise<boolean> {
     } catch (e) { error("Error al eliminar el ultimo dominio", "embedingService"); return false }
 }
 
-// ======== Command ======== //
-export async function listDomains(i: ChatInputCommandInteraction): Promise<void> {
-    try {
-        const fields: { name: string, value: string, inline: boolean }[] = [];
-        if (Object.keys(embedingList).length === 0) { await i.editReply("No hay lista de dominios disponible"); return; }
-        for (const [site, domains] of Object.entries(embedingList)) {
-            const list = domains.split("|").map(d => `🔗 ${d}`).join("\n");
-            fields.push({ name: `Sitio: ${site}`, value: `RawDominios:\n > ${domains}` + "\n\n" + list, inline: false });
-        }
-        const emb = new EmbedBuilder()
-            .setTitle("Lista de Dominios")
-            .addFields(fields)
-            .setColor(0x000000);
-
-        await i.editReply({ embeds: [emb] });
-    } catch (e) {
-        await i.editReply("Hubo un problema al obtener la lista de dominios");
-        error(`Error al obtener la lista de dominios: ${e}`, "embedingService");
-    }
-}
-
 /* ================================================ Cheker de dominios ================================================ */
 class UrlStatusManager {
     private activeUrls: Map<string, string> = new Map();
@@ -192,7 +170,7 @@ class UrlStatusManager {
             return response.status < 500;
 
         } catch (e) {
-            error(`[DomainCheck] Error crítico verificando ${domain}: ${e}`, "embedingService");
+            debug(`[DomainCheck] Error crítico verificando ${domain}: ${e}`, "embedingService");
             return false;
         }
     }

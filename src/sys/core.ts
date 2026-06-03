@@ -18,6 +18,7 @@ import { startVoiceChannelService } from "../bgProcess/voicEvent";
 import { startCronpost } from "../bgProcess/exeCron";
 import lavalinkManager, { loadNodes } from "../bgProcess/lavalinkConnect";
 import registerIOevent from "./zGears/IO-Server";
+import { initNoEveryone } from "../bgProcess/noEvery";
 
 
 /*========= Inicializadores =========*/
@@ -52,6 +53,7 @@ async function main(): Promise<void> {
             await startWelcomeEvents(client);
             startCronpost(client);
             startStatusRotation(client);
+            initNoEveryone(client);
         } else {
             error("❌ La BD no arranco, bye bye~");
             process.exit(1);

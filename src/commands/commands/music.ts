@@ -238,8 +238,6 @@ async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: La
     const queue = musicQueue.get(interaction.guildId!) || [];
     const inChannelPlaying = currentPlaying.get(interaction.guildId!);
     const guildId = interaction.guildId!;
-
-    startCooldown(guildId, "skip");
     const t = checkCooldown(guildId, "skip");
     if (t.onCooldown) {
         await interaction.reply({ content: i18next.t("commands:mussic.interacciones.span_skip", { a1: t.timeLeft }) });
@@ -262,6 +260,7 @@ async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: La
 
     await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_03") });
     await deletReplyMsg(interaction);
+    startCooldown(guildId, "skip");
 }
 
 /* ========================= QUEUE ========================= */

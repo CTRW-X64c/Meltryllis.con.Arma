@@ -3,7 +3,7 @@ export type EnvironmentMode = "production" | "development";
 
 export function getEnvironmentMode(): EnvironmentMode {
   const debugFlag = process.env.DEBUG_MODE ?? "OFF";
-  const isDebugMode = debugFlag === "ON" || debugFlag === "1" || debugFlag === "TRUE";
+  const isDebugMode = debugFlag === "ON" || debugFlag === "on" || debugFlag === "1" || debugFlag === "TRUE" || debugFlag === "true";
   return isDebugMode ? "development" : "production";
 }
 

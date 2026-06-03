@@ -15,8 +15,6 @@ export class LavalinkManager {
             auth: process.env.LAVALINK_PASSWORD!
         };
 
-        this.nodeConfigs.set(MeltrysNode.name, MeltrysNode);
-
         const Options = {
             resume: false,
             resumeTimeout: 30,
@@ -27,6 +25,7 @@ export class LavalinkManager {
             resumeKey: process.env.LAVALINK_NAME || 'Shoukaku',
         };
 
+        this.nodeConfigs.set(MeltrysNode.name, MeltrysNode);
         this.shoukaku = new Shoukaku(new Connectors.DiscordJS(client), [MeltrysNode], Options);
         this.shoukaku.on('error', (name: string, error: Error) => {
             console.error(`❌ [Lavalink] Error en ${name}: ${error.message}`);
@@ -92,21 +91,13 @@ export class LavalinkManager {
 
         try {
             console.log(`[Lavalink] 🔄 Purgando nodo ${nodeName} de la memoria (Borrando sesión fantasma)...`);
-
-            if (this.shoukaku?.nodes.has(nodeName)) {
-                this.shoukaku.removeNode(nodeName);
-            }
-
-            // Damos tiempo a Docker/Red para liberar puertos
-            await delay(3000);
-
+            if (this.shoukaku?.nodes.has(nodeName)) { this.shoukaku.removeNode(nodeName) }
+            await delay(3000); // Tiempo a liberar puertos
             console.log(`[Lavalink] 🔌 Reanexando el nodo ${nodeName}...`);
             this.shoukaku?.addNode(config);
-
         } catch (error) {
             console.error(`[Lavalink] ❌ Error en hard-reset de ${nodeName}:`, error);
         } finally {
-            // Mantenemos el candado 10 segundos extra para evitar rebotes
             setTimeout(() => this.isReconnecting.delete(nodeName), 10000);
         }
     }
@@ -145,31 +136,21 @@ export class LavalinkManager {
     }
 
     public reconnectAllNodes() {
-        if (!this.shoukaku) {
-            console.error('[Lavalink] Shoukaku no inicializado, no se puede reconectar.');
-            return;
-        }
-        console.log('[Lavalink] Intentando reconectar TODOS los nodos de forma profunda...');
-        for (const node of this.shoukaku.nodes.values()) {
-            this.fullReconnectNode(node.name);
-        }
+        if (!this.shoukaku) { console.error('[Lavalink] Shoukaku no inicializado, no se puede reconectar.'); return }
+        console.log('[Lavalink] Intentando reconectar TODOS los nodos caidos...');
+        for (const node of this.shoukaku.nodes.values()) { if (node.state !== 1) this.fullReconnectNode(node.name) }
     }
 
     public async hardReset() {
-        if (!this.shoukaku) return;
+        if (!this.shoukaku) { console.error('[Lavalink] Shoukaku no inicializado, no se puede reconectar.'); return }
         console.log('[Lavalink] 🚨 Realizando hard reset...');
-        const nodes = Array.from(this.shoukaku.nodes.values());
-        for (const node of nodes) {
-            this.fullReconnectNode(node.name);
-        }
+        for (const node of this.shoukaku.nodes.values()) { this.fullReconnectNode(node.name) }
     }
 
     public async connect(nodeName: string) {
         if (!this.shoukaku) return;
         const node = this.shoukaku.nodes.get(nodeName);
-        if (node && node.state !== 1) {
-            await node.connect();
-        }
+        if (node && node.state !== 1) { await node.connect() }
     }
 
     getPlayer(guildId: string) {

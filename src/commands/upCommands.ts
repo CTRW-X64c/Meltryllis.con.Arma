@@ -23,6 +23,7 @@ import { registerCronpostCommand, handleCronPost } from "./commands/cronpost";
 import { handleLimitsModal } from "./commandModales/modalLimits";
 import { handleLimitsButton } from "./commandButtons/NewLimits";
 import { handleMypermissionsCommand, registerMypermissionsCommands } from "./commands/chkperm";
+import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess/noEvery";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -46,6 +47,7 @@ export async function sysUpRegister(client: Client) {
     ...(await registerButtonLinkCommand()),
     ...(await registerCronpostCommand()),
     ...(await registerMypermissionsCommands()),
+    ...(await registernoEveryoneCommand())
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -105,6 +107,8 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handleCronPost(interaction); break;
     case 'permisos-server':
       await handleMypermissionsCommand(interaction); break;
+    case 'noeveryone':
+      await handleNoEveryoneCommand(interaction); break;
     default:
       fail(interaction); break;
   }
