@@ -64,7 +64,7 @@ export async function registernoEveryoneCommand(): Promise<SlashCommandBuilder[]
         .setName("noeveryone")
         .setDescription(i18next.t("commands:noeveryone.slashBuilder.description"))
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
-        .addBooleanOption(o => o.setName("estado").setRequired(false).setDescription(i18next.t("commands:noeveryone.slashBuilder.estado_description")))
+        .addBooleanOption(o => o.setName("activado").setRequired(false).setDescription(i18next.t("commands:noeveryone.slashBuilder.estado_description")))
         .addRoleOption(o => o.setName("rol").setRequired(false).setDescription(i18next.t("commands:noeveryone.slashBuilder.rol_description")));
     return [noEveryoneCommand] as SlashCommandBuilder[];
 }
