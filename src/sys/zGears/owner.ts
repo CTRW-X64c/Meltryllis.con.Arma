@@ -649,10 +649,10 @@ async function domainManager(interaction: ChatInputCommandInteraction, data: str
         .setTitle("Dominios Manager")
         .setDescription("Los Dominios se agregan con el siguiente formato en data = modo#X=Y")
         .addFields(
-            { name: "Añadir dominio a sitio", value: "data = addD#X=Y \n ej: addDom#facebok=fixbook.com", inline: false },
-            { name: "Borrar ultimo dominio de un sitio", value: "data = delD#X \n ej: delDom#facebok", inline: false },
-            { name: "Añadir/Remplazar un sitio con dominios", value: "data = add#X=Y \n ej: nuevo#facebok=alt.com|alt2.com|...", inline: false },
-            { name: "Borrar sitio completo!!", value: "data = del#X \n ej: borrar#facebok", inline: false },
+            { name: "Añadir dominio a sitio", value: "data = addDom#X=Y \n ej: addDom#facebok=fixbook.com", inline: false },
+            { name: "Borrar ultimo dominio de un sitio", value: "data = delDom#X \n ej: delDom#facebok", inline: false },
+            { name: "Añadir/Remplazar un sitio con dominios", value: "data = nuevo#X=Y \n ej: nuevo#facebok=alt.com|alt2.com|...", inline: false },
+            { name: "Borrar sitio completo!!", value: "data = borrar#X \n ej: borrar#facebok", inline: false },
             { name: "Lista de dominios", value: "data = list", inline: false },
         )
         .setColor(0x00FF00);
