@@ -554,7 +554,8 @@
     "slashBuilder": {
       "description": "Borra automaticamente los mensaje con @everyone/@here",
       "estado_description": "Activa/Desactiva el sistema!",
-      "rol_description": "Asigan el Rol al que no se le borraran sus mensaje con @everyone/@here"
+      "rol_description": "Asigan el Rol al que no se le borraran sus mensaje con @everyone/@here",
+      "penalidad_description": "Activa el sistema de suspension por spam!!"
     },
     "interacciones": {
       "embMaker_title": "Estado del sistema!!",
@@ -562,8 +563,11 @@
       "embMaker_rol": "Rol sin restricciones:",
       "embMaker_estado_on": "🟢 Activado!!",
       "embMaker_estado_off": "🔴 Desactivado!!",
-      "embMaker_footer": "Si deseas retirar el Rol sin restricciones, ¡menciónalo de nuevo!",
-      "embMaker_rol_none": "**Ninguno**"
+      "embMaker_rol_none": "**Ninguno**",
+      "embMaker_penalidad": "Suspender en caso de spam:",
+      "embMaker_desc": "Si deseas retirar el Rol sin restricciones, menciónalo de nuevo! \n La penalizacion por spam dura una hora y se aplica al 3er aviso, un minuto entre avisos!!",
+      "embMaker_desc_2": "\n **Debo tener el permiso \"moderar miembros\" y el rol con el permiso debe estar por encima de a quienes suspender**",
+      "no_Perms": "❌ No tengo permisos suficientes para ejecutar este comando: \n {{a1}}"
     }
   }
 }

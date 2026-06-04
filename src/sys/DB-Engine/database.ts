@@ -270,6 +270,7 @@ async function poolManager(): Promise<void> {
     CREATE TABLE IF NOT EXISTS noeveryone (
       guild_id VARCHAR(50) PRIMARY KEY,
       state BOOLEAN DEFAULT FALSE,
+      penality BOOLEAN DEFAULT FALSE,
       role VARCHAR(50)
     )
   `);

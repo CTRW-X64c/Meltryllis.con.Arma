@@ -75,7 +75,7 @@ export class LavalinkManager {
                     this.fullReconnectNode(node.name);
                 }
             });
-        }, 5 * 60 * 1000);
+        }, 60 * 60 * 1000);
     }
 
     private async fullReconnectNode(nodeName: string) {

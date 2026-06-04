@@ -788,8 +788,8 @@ async function lavalinkTools(interaction: ChatInputCommandInteraction, data: str
                     .setTitle("Lavalink Manager")
                     .setDescription("Configurar lavalink")
                     .addFields(
-                        { name: "Añadir nodo", value: "data = add#nodoName|nodoUUL:port|password", inline: false },
-                        { name: "Borrar nodo", value: "data = delet#nodoName", inline: false },
+                        { name: "Añadir nodo", value: "data = add=nodoName|nodoUUL:port|password", inline: false },
+                        { name: "Borrar nodo", value: "data = delet=nodoName", inline: false },
                         { name: "Lista de nodos", value: "data = list", inline: false },
                         { name: "Reiniciar nodos", value: "data = reset", inline: false },
                         { name: "Reconectar nodos", value: "data = reconect", inline: false },
