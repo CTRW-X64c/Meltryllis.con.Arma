@@ -5,80 +5,7 @@ import i18next from "i18next";
 import { hasPermission } from "../sys/zGears/mPermission";
 import { testPermisos } from "../sys/zGears/auxiliares";
 
-let banCount: { [key: string]: number } = {};
-let time4ban: Map<string, NodeJS.Timeout> = new Map();
-const banSpam = (member: GuildMember): boolean => {
-    try {
-        const id = `${member.guild.id}-${member.id}`;
-        banCount[id] = (banCount[id] || 0) + 1;
-        if (time4ban.has(id)) clearTimeout(time4ban.get(id));
-        time4ban.set(id, setTimeout(() => { delete banCount[id]; time4ban.delete(id); }, 60_000));
-        if (banCount[id] >= 3) {
-            delete banCount[id]; clearTimeout(time4ban.get(id)); time4ban.delete(id); member.timeout(60 * 60_000, "No se permite el spam de menciones globales").catch(() => { });
-            return true;
-        } return false;
-    } catch { return false; }
-}
-
-let cacheGuilds: { [key: string]: { state: boolean, penality: boolean, rol: string | null } } = {};
-const mentionRegex = /@(here|everyone)\b/i;
-function noEveryone(client: Client): void {
-    client.on(Events.MessageCreate, async (message) => {
-        if (!mentionRegex.test(message.content)) return;
-        if (!client.user || message.author.bot) return;
-        if (!message.guild?.id || !message.member) return;
-
-        const guildConfig = cacheGuilds[message.guild.id];
-        if (!guildConfig || !guildConfig.state) return;
-
-        const allowedRole = guildConfig.rol;
-        if (allowedRole && message.member.roles.cache.has(allowedRole)) return;
-        try {
-            let response = "";
-            if (message.deletable) { await message.delete(); response = `❌ <@${message.author.id}>, las menciones globales \`@here/@everyone\` no están permitidas aquí.`; }
-            if (guildConfig.penality) {
-                const ban = banSpam(message.member);
-                if (ban) { response = `🔨 <@${message.author.id}> fue suspendido 60 minutos por el anti-spam.`; }
-            }
-            if (response !== "") {
-                const msg = await message.channel.send(response);
-                setTimeout(async () => { if (msg.deletable) await msg.delete().catch(() => { }); }, 10_000);
-            }
-        } catch (e) {
-            const err = (e as Error).message;
-            if (!err.includes("Missing Permissions") && !err.includes("Missing Access")) { error(`Error en sistema anti-menciones, Guild: ${message.guild.name}, Error: ${e}`) }
-        }
-    });
-}
-
-/* ======================================== BD system ======================================== */
-async function genCache(): Promise<boolean> {
-    try {
-        const pool = await getPool();
-        const [rows]: any = await pool.query("SELECT guild_id, state, penality, role FROM noeveryone");
-        cacheGuilds = {};
-        for (const config of rows) {
-            cacheGuilds[config.guild_id] = { state: Boolean(config.state), penality: Boolean(config.penality), rol: config.role || null };
-        } return true;
-    } catch (e) { error(`Error cargando cache de anti-menciones: ${e}`); return false }
-}
-
-async function updateCache(guildId: string, state: boolean, penality: boolean, role: string | null): Promise<void> {
-    try {
-        const pool = await getPool();
-        await pool.query("INSERT INTO noeveryone (guild_id, state, penality, role) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE state = ?, penality = ?, role = ? ", [guildId, state, penality, role, state, penality, role]);
-        cacheGuilds[guildId] = { state, penality, rol: role };
-    } catch (e) { error(`Error actualizando cache de anti-menciones: ${e}`) }
-}
-
-/* ======================================== Init ======================================== */
-export async function initNoEveryone(client: Client) {
-    const rdy = await genCache();
-    if (!rdy) error("¡No se pudo cargar la cache de anti-menciones!");
-    noEveryone(client);
-}
-
-/* ======================================== Comando ======================================== */
+/* ======================================== registro ======================================== */
 export async function registernoEveryoneCommand(): Promise<SlashCommandBuilder[]> {
     const noEveryoneCommand = new SlashCommandBuilder()
         .setName("noeveryone")
@@ -90,6 +17,62 @@ export async function registernoEveryoneCommand(): Promise<SlashCommandBuilder[]
     return [noEveryoneCommand] as SlashCommandBuilder[];
 }
 
+/* ======================================== Engine ======================================== */
+let cBan: Map<string, number> = new Map();
+let tBan: Map<string, NodeJS.Timeout> = new Map();
+const banSpam = (m: GuildMember): { on: boolean, msg?: string } => {
+    try {
+        const id = `${m.guild.id}-${m.id}`;
+        const bBan = 3_600_000; const bc = (cBan.get(id) || 0) + 1; cBan.set(id, bc);
+        if (tBan.has(id)) clearTimeout(tBan.get(id));
+        tBan.set(id, setTimeout(() => { cBan.delete(id); tBan.delete(id); }, bBan));
+        switch (bc) {
+            case 1: return { on: false };
+            case 2:
+                if (tBan.has(id)) clearTimeout(tBan.get(id));
+                m.timeout(bBan, i18next.t("commands:test.interacciones.ban_msg_1")).catch(() => { });
+                tBan.set(id, setTimeout(() => { cBan.delete(id); tBan.delete(id); }, bBan * 2));
+                return { on: true, msg: i18next.t("commands:test.interacciones.ban_msg_1_return", { a1: `<@${m.id}>` }) };
+            case 3:
+                if (tBan.has(id)) clearTimeout(tBan.get(id));
+                m.timeout(bBan * 2, i18next.t("commands:test.interacciones.ban_msg_2")).catch(() => { });
+                tBan.set(id, setTimeout(() => { cBan.delete(id); tBan.delete(id); }, bBan * 3));
+                return { on: true, msg: i18next.t("commands:test.interacciones.ban_msg_2_return", { a1: `<@${m.id}>` }) };
+            default:
+                if (tBan.has(id)) clearTimeout(tBan.get(id));
+                m.timeout(bBan * 12, i18next.t("commands:test.interacciones.ban_msg_3")).catch(() => { });
+                cBan.delete(id); tBan.delete(id);
+                return { on: true, msg: i18next.t("commands:test.interacciones.ban_msg_3_return", { a1: `<@${m.id}>` }) };
+        }
+    } catch { return { on: false } }
+}
+
+let kchG: { [key: string]: { state: boolean, penality: boolean, rol: string | null } } = {};
+const mr = /@(here|everyone)\b/i;
+function noEveryone(cli: Client): void {
+    cli.on(Events.MessageCreate, async (msg) => {
+        if (!mr.test(msg.content)) return;
+        if (!cli.user || msg.author.bot) return;
+        if (!msg.guild?.id || !msg.member) return;
+
+        const gc = kchG[msg.guild.id];
+        if (!gc || !gc.state) return;
+
+        const onRol = gc.rol;
+        if (onRol && msg.member.roles.cache.has(onRol)) return;
+        try {
+            let response = "";
+            if (msg.deletable) { await msg.delete(); response = i18next.t("commands:test.interacciones.del_msg", { a1: `<@${msg.author.id}>` }); }
+            if (gc.penality && !msg.member.permissions.has(PermissionFlagsBits.Administrator)) { const ban = banSpam(msg.member); if (ban && ban.msg) { response = ban.msg; } }
+            if (response !== "") { const x = await msg.channel.send(response); setTimeout(async () => { if (x.deletable) await x.delete().catch(() => { }); }, 10_000); }
+        } catch (e) {
+            const err = (e as Error).message;
+            if (!err.includes("Missing Permissions") && !err.includes("Missing Access")) { error(`Error en sistema anti-menciones, Guild: ${msg.guild.name}, Error: ${e}`) }
+        }
+    });
+}
+
+/* ======================================== commandos ======================================== */
 export async function handleNoEveryoneCommand(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
@@ -106,7 +89,7 @@ export async function handleNoEveryoneCommand(interaction: ChatInputCommandInter
         const state = interaction.options.getBoolean("activado");
         const role = interaction.options.getRole("rol");
         const punish = interaction.options.getBoolean("penalizar");
-        const actual = cacheGuilds[guildId];
+        const actual = kchG[guildId];
         const tState = state !== null ? state : (actual?.state ?? false);
         let castigo = punish !== null ? punish : (actual?.penality ?? false);
         let tRole = role ? role.id : (actual?.rol ?? null);
@@ -129,4 +112,31 @@ export async function handleNoEveryoneCommand(interaction: ChatInputCommandInter
 
         await interaction.editReply({ embeds: [emb] });
     } catch (e) { error(`Error ejecutando comando noeveryone: ${e}`, "Commands.NoEveryone"); }
+}
+
+/* ======================================== BD system ======================================== */
+async function genCache(): Promise<boolean> {
+    try {
+        const pool = await getPool();
+        const [rows]: any = await pool.query("SELECT guild_id, state, penality, role FROM noeveryone");
+        kchG = {};
+        for (const config of rows) {
+            kchG[config.guild_id] = { state: Boolean(config.state), penality: Boolean(config.penality), rol: config.role || null };
+        } return true;
+    } catch (e) { error(`Error cargando cache de anti-menciones: ${e}`); return false }
+}
+
+async function updateCache(guildId: string, state: boolean, penality: boolean, role: string | null): Promise<void> {
+    try {
+        const pool = await getPool();
+        await pool.query("INSERT INTO noeveryone (guild_id, state, penality, role) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE state = ?, penality = ?, role = ? ", [guildId, state, penality, role, state, penality, role]);
+        kchG[guildId] = { state, penality, rol: role };
+    } catch (e) { error(`Error actualizando cache de anti-menciones: ${e}`) }
+}
+
+/* ======================================== Init ======================================== */
+export async function initNoEveryone(client: Client) {
+    const rdy = await genCache();
+    if (!rdy) error("¡No se pudo cargar la cache de anti-menciones!");
+    noEveryone(client);
 }

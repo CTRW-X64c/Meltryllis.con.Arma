@@ -413,7 +413,14 @@
       "footer": "Canal privado?, Esto provoca que no pueda ver el canal!!",
       "test_domaind_error": "❌ Este comando tiene un cooldown. Inténtalo de nuevo en {{a1}}.",
       "test_domaind_verificando": "🔄 Verificando estado de dominios... Esto puede tomar unos segundos.",
-      "command_error_verificando": "❌ Error al verificar dominios: {{a1}}"
+      "command_error_verificando": "❌ Error al verificar dominios: {{a1}}",
+      "ban_msg_3": "Suspendido por 12hrs por spam masivo de menciones globales",
+      "ban_msg_2": "2da sancion; spam de menciones globales",
+      "ban_msg_1": "No se permite el spam de menciones globales, 1ra sancion!!",
+      "ban_msg_2_return": "🔨 {{a1}} fue suspendido por 2 horas por reincidir en menciones globales",
+      "ban_msg_1_return": "🔨 {{a1}} fue suspendido por 1 hora por uso de menciones globales.",
+      "ban_msg_3_return": "🔨 {{a1}} fue suspendido por 12 horas por insistir en usar menciones globales.",
+      "del_msg": "❌ {{a1}}, las menciones globales `@here/@everyone` no están permitidas aquí"
     },
     "permisos": {
       "view_channel": "Canal Privado? - Ver Canal:",

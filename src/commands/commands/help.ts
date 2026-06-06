@@ -22,6 +22,7 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
     { name: "/embed", value: "02" },
     { name: "/jointovoice", value: "03" },
     { name: "/mangadex", value: "04" },
+    { name: "/noeveryone", value: "18" },
     { name: "/permisos", value: "06" },
     { name: "/permisos-server", value: "17" },
     { name: "/post", value: "07" },
@@ -267,7 +268,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         title: i18next.t("help:welcome.title"),
         description: i18next.t("help:welcome.description"),
         fields: [
-          {name: i18next.t("help:welcome.name_0"), value: i18next.t("help:welcome.value_0")},
+          { name: i18next.t("help:welcome.name_0"), value: i18next.t("help:welcome.value_0") },
           { name: i18next.t("help:welcome.name_2"), value: i18next.t("help:welcome.value_2") },
           { name: i18next.t("help:welcome.name_1"), value: i18next.t("help:welcome.value_1") },
           { name: i18next.t("help:welcome.name_3"), value: i18next.t("help:welcome.value_3") },
@@ -334,6 +335,17 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
           { name: i18next.t("help:permisos-server.name_1"), value: i18next.t("help:permisos-server.value_1") },
           { name: i18next.t("help:permisos-server.name_2"), value: i18next.t("help:permisos-server.value_2") },
         ]
+      }); break;
+      /* ======================== noEveryone ======================== */
+      case "18": await embedMaker(interaction, {
+        command: "noeveryone",
+        title: i18next.t("help:noeveryone.title"),
+        description: i18next.t("help:noeveryone.description"),
+        footer: i18next.t("help:noeveryone.footer"),
+        fields: [
+          { name: i18next.t("help:noeveryone.name_1"), value: i18next.t("help:noeveryone.value_1") },
+        ],
+        srvPerm: "viewCh|readMsg|msgManager|moderateMembers"
       }); break;
       /* ======================== default ======================== */
       default:

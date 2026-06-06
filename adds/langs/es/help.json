@@ -226,5 +226,12 @@
     "value_1": "Si no se espesifica un canal mostrara los permisos generales del servidor, estos pueden no tener efecto si el canal cuenta con sus propios permisos. \n > Solo aplican en canales @everyone!!",
     "name_2": "Marcar modo:",
     "value_2": "Permisos de gestion: Permisos como Gestor de roles, Ban, Expulsar miembros... son inherentes a los permisos por canal. \n\n Regulares: Estos permisos dependen completamente de la configuracion del canal. \n\n > Por default se muestran todos los permisos! \n\n **Ser Administrador otorga todos los permisos!!**"
+  },
+  "noeveryone": {
+    "title": "comando /noeveryone",
+    "description": "Borra todos los mensaje que contengan la mension @everyone/@here!",
+    "footer": "Limpio de mensiones globales!! ",
+    "name_1": "Sobre las funcione:",
+    "value_1": "El comando funciona de manera de \"update\" si ocupas cambiar una cosa solo mandas esa modificacion! \n Rol: te permite asignal un rol el cual no se ve afectado por el sistema. si queires removerlo solo mandalo denuevo! \n\n Penalizar: Al hacerlo por 2da vez \"aislara\" al usuario por una hora, despues 2hrs y cuando sea la 4ta vez 12hrs. \n\n La penalizacion no afecta, Bots, Owner y administradores; de igual manera a nadie cuya jerarquía de roles este por encima de mi \nPara poder penalizar usuarios ocupo el permiso \"Moderar Miembros\""
   }
 }
