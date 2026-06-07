@@ -1,5 +1,5 @@
 // sc/sys/auxiliares.ts
-import { Client, PermissionFlagsBits } from "discord.js";
+import { Client, Guild, PermissionFlagsBits } from "discord.js";
 import { error } from "../logging";
 import i18next from "i18next";
 
@@ -199,3 +199,21 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
         return;
     }
 */
+
+/* ======================================== Check Permisos ======================================== */
+export async function topRol(guild: Guild): Promise<string[]> {
+    const meltrys = guild.members.me!.roles.highest;
+    const lRole = guild.roles.cache.filter(r => r.position < meltrys.position && r.name !== "@everyone");
+    if (lRole.size === 0) { return ["No hay roles por debajo de mi rol mas alto"] }
+
+    const roleList = lRole.map(r => `<@&${r.id}>`);
+    const chunks: string[] = [];
+    let builChunk = "";
+    for (const role of roleList) {
+        const tstBuild = builChunk ? `${builChunk} | ${role}` : role;
+        if (tstBuild.length > 1024) { chunks.push(builChunk); builChunk = role; }
+        else { builChunk = tstBuild; }
+    }
+    if (builChunk) { chunks.push(builChunk); }
+    return chunks;
+}

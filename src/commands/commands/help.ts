@@ -5,7 +5,7 @@ import { error } from "../../sys/logging";
 import { Report } from "../commandModales/reportHelp";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import lavalinkManager from "../../bgProcess/lavalinkConnect";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { testPermisos, topRol } from "../../sys/zGears/auxiliares";
 import { fonts } from "../../bgProcess/welcomeEvents";
 
 // ============================================= Autocomplete ============================================= //
@@ -64,11 +64,11 @@ export async function registerHelpCommand(): Promise<SlashCommandBuilder[]> {
 
 // ============================================= embedMaker ============================================= //
 
-interface hData { command: string; title: string; description?: string; color?: number; imageUrl?: string; fields?: hField[]; footer?: string; srvPerm?: string; chPerm?: string }
+interface hData { command: string; title: string; description?: string; color?: number; imageUrl?: string; fields?: hField[]; footer?: string; srvPerm?: string; chPerm?: string; roles?: string; }
 interface hField { name: string; value: string; inline?: boolean }
 async function embedMaker(interaction: ChatInputCommandInteraction, data: hData): Promise<void> {
   const rngColor = (): string => { const color = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase(); return `0x${color.padStart(6, '0')}` };
-  const { command, title, description, color, imageUrl, fields = [], footer, srvPerm, chPerm } = data;
+  const { command, title, description, color, imageUrl, fields = [], footer, srvPerm, chPerm, roles } = data;
   const Meltryllis = interaction.guild?.members.me;
   const embColor = color ? color : parseInt(rngColor(), 16);
   let finText = i18next.t("help:embMaker.no_need_permission");
@@ -98,6 +98,12 @@ async function embedMaker(interaction: ChatInputCommandInteraction, data: hData)
     }
   }
 
+  if (roles) {
+    const rParts = await topRol(interaction.guild!);
+    if (rParts.length === 1) { fields.push({ name: `${roles}:`, value: rParts[0], inline: false }) }
+    else { for (let i = 0; i < rParts.length; i++) { fields.push({ name: `${roles} ${i === 0 ? "" : `(Parte ${i + 1})`}`, value: rParts[i], inline: false }) } }
+  }
+
   const embed = new EmbedBuilder()
     .setColor(embColor)
     .setTitle(title)
@@ -106,12 +112,15 @@ async function embedMaker(interaction: ChatInputCommandInteraction, data: hData)
   if (fields.length > 0) { embed.addFields(fields); }
   if (footer) { embed.setFooter({ text: footer }); }
   if (imageUrl) { embed.setImage(imageUrl); }
-  await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+  await interaction.editReply({ embeds: [embed] });
 }
 
 // ============================================= Handler principal ============================================= //
 
 export async function handleHelpCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  const guild = interaction.guild;
+  if (!guild) { await interaction.editReply({ content: i18next.t(i18next.t("common:Errores.noGuild")) }); return; }
   try {
     const opHelp = interaction.options.getString("command") || "00";
     switch (opHelp) {
@@ -124,11 +133,12 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         fields: [
           { name: i18next.t("help:info.field_invite_name"), value: i18next.t("help:info.field_invite_value"), inline: true },
           { name: i18next.t("help:info.field_terms_name"), value: i18next.t("help:info.field_terms_value"), inline: true },
-          { name: i18next.t("help:info.field_issue_name"), value: i18next.t("help:info.field_issue_value"), inline: false }
+          { name: i18next.t("help:info.field_issue_name"), value: i18next.t("help:info.field_issue_value"), inline: false },
         ],
         imageUrl: "https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/RemodelCommands/Pict/embedd.gif",
         footer: i18next.t("help:info.footer_text"),
-        srvPerm: "meltrys"
+        srvPerm: "meltrys",
+        roles: i18next.t("help:info.roles")
       }); break;
       /* ======================== CleanUp ======================== */
       case "01": await embedMaker(interaction, {
@@ -180,10 +190,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
       }); break;
       /* ======================== Musica ======================== */
       case "05":
-        if (!lavalinkManager) {
-          await interaction.reply({ content: i18next.t("help:musica.lavalink_off"), flags: MessageFlags.Ephemeral });
-          break;
-        }
+        if (!lavalinkManager) { await interaction.editReply({ content: i18next.t("help:musica.lavalink_off") }); break }
         await embedMaker(interaction, {
           command: "play /stop /skip /queue",
           title: i18next.t("help:musica.title"),
@@ -247,7 +254,8 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         imageUrl: "https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/main/Pict/RolemojiHelp.png",
         footer: i18next.t("help:rolemoji.help_footer"),
         srvPerm: "roles",
-        chPerm: "viewCh|reactions|emojis"
+        chPerm: "viewCh|reactions|emojis",
+        roles: i18next.t("help:rolemoji.roles")
       }); break;
       /* ======================== test ======================== */
       case "10": await embedMaker(interaction, {
@@ -345,11 +353,12 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         fields: [
           { name: i18next.t("help:noeveryone.name_1"), value: i18next.t("help:noeveryone.value_1") },
         ],
-        srvPerm: "viewCh|readMsg|msgManager|moderateMembers"
+        srvPerm: "viewCh|readMsg|msgManager|moderateMembers",
+        roles: i18next.t("help:noeveryone.roles")
       }); break;
       /* ======================== default ======================== */
       default:
-        await interaction.reply({ content: i18next.t("help:comBuild.default_switch_error"), flags: MessageFlags.Ephemeral, });
+        await interaction.editReply({ content: i18next.t("help:comBuild.default_switch_error") });
         break;
     }
   } catch (e) {

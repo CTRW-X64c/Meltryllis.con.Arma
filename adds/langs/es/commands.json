@@ -572,9 +572,11 @@
       "embMaker_estado_off": "🔴 Desactivado!!",
       "embMaker_rol_none": "**Ninguno**",
       "embMaker_penalidad": "Suspender en caso de spam:",
-      "embMaker_desc": "Si deseas retirar el Rol sin restricciones, menciónalo de nuevo! \n La penalizacion por spam dura una hora y se aplica al 3er aviso, un minuto entre avisos!!",
-      "embMaker_desc_2": "\n **Debo tener el permiso \"moderar miembros\" y el rol con el permiso debe estar por encima de a quienes suspender**",
-      "no_Perms": "❌ No tengo permisos suficientes para ejecutar este comando: \n {{a1}}"
+      "embMaker_desc": "Si deseas retirar el Rol sin restricciones, menciónalo de nuevo! \n La penalizacion puede esacalar desde una hora a 12 horas; la sancion esacalan si se repite en un lapso de una hora.",
+      "embMaker_desc_2": "\n\n\n\n **Debo tener el permiso \"moderar miembros\" y el rol con el permiso debe estar por encima de a quienes suspender** \n {{a1}}",
+      "no_Perms": "❌ No tengo permisos suficientes para ejecutar este comando: \n {{a1}}",
+      "embMaker_top": "Roles que puedo sancionar:",
+      "embMaker_top_none": "Desactivado!!"
     }
   }
 }
