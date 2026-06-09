@@ -75,7 +75,7 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
         const perChTo = testPermisos(me, "viewCh|chManager");
         if (perChTo.some(p => p.includes("❌"))) {
             await interaction.reply({
-                content: i18next.t("common:Errores.missing_permissions", { a1: `<#${channel.id}>`, a2: perChTo.join("\n") }),
+                content: i18next.t("common:Errores.missing_permissions", { a1: `<#${channel.id}>`, a2: perChTo[0] }),
                 flags: MessageFlags.Ephemeral,
             });
             return;

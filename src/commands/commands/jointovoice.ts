@@ -83,7 +83,7 @@ async function setMasterChannel(interaction: ChatInputCommandInteraction, guild:
         const me = channel.permissionsFor(guild.members.me!);
         const perChTo = testPermisos(me, "viewCh|chManager|voiceMove|voiceConnect");
         if (perChTo.some(p => p.includes("❌"))) {
-            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${channel.id}>`, a2: perChTo.join("\n") }) });
+            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${channel.id}>`, a2: perChTo[0] }) });
             return;
         }
 

@@ -64,7 +64,7 @@ export async function registerHelpCommand(): Promise<SlashCommandBuilder[]> {
 
 // ============================================= embedMaker ============================================= //
 
-interface hData { command: string; title: string; description?: string; color?: number; imageUrl?: string; fields?: hField[]; footer?: string; srvPerm?: string; chPerm?: string; roles?: string; }
+interface hData { command: string; title: string; description?: string; color?: number; imageUrl?: string; fields?: hField[]; footer?: string; srvPerm?: string; chPerm?: string; roles?: { data: string, id?: string }; }
 interface hField { name: string; value: string; inline?: boolean }
 async function embedMaker(interaction: ChatInputCommandInteraction, data: hData): Promise<void> {
   const rngColor = (): string => { const color = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase(); return `0x${color.padStart(6, '0')}` };
@@ -79,36 +79,36 @@ async function embedMaker(interaction: ChatInputCommandInteraction, data: hData)
   if (description) { finText += '\n\n' + description };
   if (Meltryllis) {
     if (srvPerm) {
-      const gPerm = Meltryllis.permissions;
-      const tPerm = testPermisos(gPerm, srvPerm);
+      const gPerm = Meltryllis.permissions; const tPerm = testPermisos(gPerm, srvPerm);
       if (tPerm.length > 0) {
-        fields.push({ name: i18next.t("help:embMaker.hasGlobalPermission"), value: tPerm.join("\n") + "\n" + i18next.t("help:embMaker.hasGlobalNota"), inline: false });
+        for (let i = 0; i < tPerm.length; i++) {
+          const N = i === 0 ? i18next.t("help:embMaker.hasGlobalPermission") : `(Parte ${i + 1})`; let V = tPerm[i];
+          if (i === tPerm.length - 1) { V += "\n" + i18next.t("help:embMaker.hasGlobalNota"); }
+          fields.push({ name: N, value: V, inline: false });
+        }
       }
     }
-
     if (chPerm) {
       const channel = interaction.channel;
       if (channel && 'permissionsFor' in channel) {
-        const cPerm = channel.permissionsFor(Meltryllis);
-        const tPerm = testPermisos(cPerm, chPerm);
+        const cPerm = channel.permissionsFor(Meltryllis); const tPerm = testPermisos(cPerm, chPerm);
         if (tPerm.length > 0) {
-          fields.push({ name: i18next.t("help:embMaker.hasPermission", { a1: `<#${channel.id}>` }), value: tPerm.join("\n"), inline: false });
+          for (let i = 0; i < tPerm.length; i++) {
+            const fieldName = i === 0 ? i18next.t("help:embMaker.hasPermission", { a1: `<#${channel.id}>` }) : `(Parte ${i + 1})`;
+            fields.push({ name: fieldName, value: tPerm[i], inline: false });
+          }
         }
       }
     }
   }
 
   if (roles) {
-    const rParts = await topRol(interaction.guild!);
-    if (rParts.length === 1) { fields.push({ name: `${roles}:`, value: rParts[0], inline: false }) }
-    else { for (let i = 0; i < rParts.length; i++) { fields.push({ name: `${roles} ${i === 0 ? "" : `(Parte ${i + 1})`}`, value: rParts[i], inline: false }) } }
+    const rParts = await topRol(interaction.guild!, roles.id);
+    if (rParts.length === 1) { fields.push({ name: `${roles.data}:`, value: rParts[0], inline: false }) }
+    else { for (let i = 0; i < rParts.length; i++) { fields.push({ name: `${i === 0 ? `${roles.data}:` : `(Parte ${i + 1})`}`, value: rParts[i], inline: false }) } }
   }
 
-  const embed = new EmbedBuilder()
-    .setColor(embColor)
-    .setTitle(title)
-    .setTimestamp()
-    .setDescription(finText)
+  const embed = new EmbedBuilder().setColor(embColor).setTitle(title).setTimestamp().setDescription(finText)
   if (fields.length > 0) { embed.addFields(fields); }
   if (footer) { embed.setFooter({ text: footer }); }
   if (imageUrl) { embed.setImage(imageUrl); }
@@ -137,8 +137,8 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         ],
         imageUrl: "https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/RemodelCommands/Pict/embedd.gif",
         footer: i18next.t("help:info.footer_text"),
-        srvPerm: "meltrys",
-        roles: i18next.t("help:info.roles")
+        srvPerm: "todos",
+        roles: { data: i18next.t("help:info.roles") }
       }); break;
       /* ======================== CleanUp ======================== */
       case "01": await embedMaker(interaction, {
@@ -255,7 +255,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         footer: i18next.t("help:rolemoji.help_footer"),
         srvPerm: "roles",
         chPerm: "viewCh|reactions|emojis",
-        roles: i18next.t("help:rolemoji.roles")
+        roles: { data: i18next.t("help:rolemoji.roles"), id: "roles" }
       }); break;
       /* ======================== test ======================== */
       case "10": await embedMaker(interaction, {
@@ -354,7 +354,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
           { name: i18next.t("help:noeveryone.name_1"), value: i18next.t("help:noeveryone.value_1") },
         ],
         srvPerm: "viewCh|readMsg|msgManager|moderateMembers",
-        roles: i18next.t("help:noeveryone.roles")
+        roles: { data: i18next.t("help:noeveryone.roles"), id: "moderateMembers" }
       }); break;
       /* ======================== default ======================== */
       default:

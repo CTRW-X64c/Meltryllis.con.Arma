@@ -6,48 +6,62 @@ import { testPermisos } from "../../sys/zGears/auxiliares";
 import { error } from "../../sys/logging";
 
 export async function registerMypermissionsCommands() {
+    const bitsChoise = [
+        { name: i18next.t("commands:chkPerm.slashBuilder.modo_mngrBits"), value: "mngrBits" },
+        { name: i18next.t("commands:chkPerm.slashBuilder.modo_meltrys"), value: "meltrys" },
+        { name: i18next.t("commands:chkPerm.slashBuilder.modo_todos"), value: "todos" }
+    ];
+    const roles = [
+        { name: "Administrador", value: "admin" },
+        { name: "Manager Roles", value: "roles" },
+        { name: "Manager Members", value: "moderateMembers" },
+    ]
+
     const mypermissionsCommand = new SlashCommandBuilder()
         .setName("permisos-server")
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .setDescription(i18next.t("commands:chkPerm.slashBuilder.description"))
-        .addUserOption(o =>
-            o.setName("user")
-                .setDescription(i18next.t("commands:chkPerm.slashBuilder.user_description"))
-                .setRequired(false)
-        )
-        .addRoleOption(o =>
-            o.setName("rol")
-                .setDescription(i18next.t("commands:chkPerm.slashBuilder.rol_description"))
-                .setRequired(false)
-        )
-        .addChannelOption(o =>
-            o.setName("canal")
-                .setDescription(i18next.t("commands:chkPerm.slashBuilder.canal_description"))
-                .setRequired(false)
+        .addSubcommand(s => s.setName("bits").setDescription(i18next.t("commands:chkPerm.slashBuilder.bits"))
+            .addUserOption(o => o.setName("user").setRequired(false).setDescription(i18next.t("commands:chkPerm.slashBuilder.user_description"))
+            )
+            .addRoleOption(o => o.setName("rol").setRequired(false).setDescription(i18next.t("commands:chkPerm.slashBuilder.rol_description"))
+            )
+            .addChannelOption(o => o.setName("canal").setRequired(false).setDescription(i18next.t("commands:chkPerm.slashBuilder.canal_description"))
                 .addChannelTypes(ChannelType.GuildText, ChannelType.GuildVoice, ChannelType.GuildCategory, ChannelType.GuildAnnouncement, ChannelType.PublicThread, ChannelType.PrivateThread, ChannelType.GuildStageVoice, ChannelType.GuildForum, ChannelType.GuildMedia)
+            )
+            .addStringOption(o => o.setName("modo").setRequired(false).addChoices(bitsChoise).setDescription(i18next.t("commands:chkPerm.slashBuilder.modo_description"))
+            )
         )
-        .addStringOption(o =>
-            o.setName("modo")
-                .setDescription(i18next.t("commands:chkPerm.slashBuilder.modo_description"))
-                .setRequired(false)
-                .addChoices(
-                    { name: i18next.t("commands:chkPerm.slashBuilder.modo_mngrBits"), value: "mngrBits" },
-                    { name: i18next.t("commands:chkPerm.slashBuilder.modo_meltrys"), value: "meltrys" },
-                    { name: i18next.t("commands:chkPerm.slashBuilder.modo_todos"), value: "todos" }
-                )
+        .addSubcommand(s => s.setName("roles").setDescription(i18next.t("commands:chkPerm.slashBuilder.roles.description"))
+            .addRoleOption(o => o.setName("rol").setRequired(true).setDescription(i18next.t("commands:chkPerm.slashBuilder.rol_description"))
+            )
+            .addStringOption(o => o.setName("permiso").setRequired(true).addChoices(roles).setDescription(i18next.t("commands:chkPerm.slashBuilder.permiso_description"))
+            )
         )
     return [mypermissionsCommand] as SlashCommandBuilder[];
+
 }
 
+// =============== switch master =============== //
 export async function handleMypermissionsCommand(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
     const guild = interaction.guild;
     if (!guild) { await interaction.editReply(i18next.t("common:Errores.noGuild")); return }
 
     const isAllowed = await hasPermission(interaction, interaction.commandName);
     if (!isAllowed) { await interaction.editReply({ content: i18next.t("common:Errores.isAllowed") }); return }
 
+    switch (interaction.options.getSubcommand()) {
+        case "bits": await bitPermissions(interaction); break;
+        case "roles": await interaction.editReply("Comando en construcción!"); return;
+    }
+}
+
+// =============== bit Permisos =============== //
+async function bitPermissions(interaction: ChatInputCommandInteraction) {
     try {
+        const guild = interaction.guild!;
         const ch = interaction.options.getChannel("canal");
         const modo = interaction.options.getString("modo") || "todos";
         const user = interaction.options.getUser("user"); // User

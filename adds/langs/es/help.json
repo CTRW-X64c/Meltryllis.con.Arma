@@ -9,7 +9,7 @@
     "can_run_yes": "✅ Tienes permiso para usar el comando!!",
     "can_run_no": "❌ No puedes usar este comando!!",
     "hasPermission": "Permisos que tengo en {{a1}} y necesita el comando",
-    "hasGlobalPermission": "Permisos de servidor",
+    "hasGlobalPermission": "Permisos en el servidor:",
     "hasGlobalNota": "`Sin efecto en canales privados`",
     "bitRoles": "🛠️ Gestionar roles",
     "bitReacciones": "➕ Agregar reacciones",
@@ -49,7 +49,16 @@
     "bitUseVAD": "🎤​ Usar detección de voz",
     "bitDeafenMembers": "🎧​ Ensordecer miembros",
     "bitMuteMembers": "🔈​ Silenciar miembros",
-    "top_rol": "Roles que estan debajo de mi, que podria modificar segun mis permisos:"
+    "top_rol": "Roles que estan debajo de mi, que podria modificar segun mis permisos:",
+    "bitGuildInsights": "📈​ Estadisticas del servidor",
+    "bitGuildMoney": "🪙 Ver análisis de monetización",
+    "bitUseEmbeddedActivities": "🕹️​ Usar actividades",
+    "bitUseSoundboard": "🎛️​ Usar panel de sonidos",
+    "bitUseExternalSounds": "➡️​🎛️​ Usar sonidos externos",
+    "bitSendTTS": "🗯️​ Enviar mensajes TTS",
+    "bitSendVoiceMessages": "📟​ Enviar mensajes de voz",
+    "bitSendPolls": "📊​ Crear encuestas",
+    "bitUseExternalApps": "📲​ Usar aplicaciones externas"
   },
   "info": {
     "embed_title": "¡Hola!",
@@ -239,5 +248,8 @@
     "value_1": "El comando funciona de manera de \"update\" si ocupas cambiar una cosa solo mandas esa modificacion! \n Rol: te permite asignal un rol el cual no se ve afectado por el sistema. si queires removerlo solo mandalo denuevo! \n\n Penalizar: Al hacerlo por 2da vez \"aislara\" al usuario por una hora, despues 2hrs y cuando sea la 4ta vez 12hrs. \n\n La penalizacion no afecta, Bots, Owner y administradores; de igual manera a nadie cuya jerarquía de roles este por encima de mi \nPara poder penalizar usuarios ocupo el permiso \"Moderar Miembros\"",
     "name_2": "Estos son los roles que podria sancionar: ",
     "roles": "Roles que podria sancionar si activas la opcion y tengo los permisos"
+  },
+  "rolemaker": {
+    "sin_roles_con_permisos": "Tengo permisos pero ningun rol esta por debajo de mi!!"
   }
 }

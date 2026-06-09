@@ -128,7 +128,7 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guild: Guil
     const me = discordChannel.permissionsFor(guild.members.me!);
     const perChTo = testPermisos(me, "viewCh|sendMsg|addlink");
     if (perChTo.some(p => p.includes("❌"))) {
-        await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo.join("\n") }) });
+        await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo[0] }) });
         return;
     }
 

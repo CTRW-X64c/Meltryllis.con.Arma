@@ -530,7 +530,12 @@
       "modo_mngrBits": "Permisos de gestion de Servidor!!",
       "modo_meltrys": "Permisos regulares como \"ver canal\", \"añadir reacciones\"...",
       "modo_todos": "Revisar todos los permisos",
-      "canal_description": "Ver los permisos de un rol o usuario en un canal en espesifico! "
+      "canal_description": "Ver los permisos de un rol o usuario en un canal en espesifico! ",
+      "bits": "Permite revizar los permisos individuales de un usario o rol!! ",
+      "roles": {
+        "description": "Permite ver que rol tiene injerencia sobre otros segun sus permisos!!"
+      },
+      "permiso_description": "Tipo de permisos a testear!! "
     },
     "interacciones": {
       "nousernorole": "Debes indicar un rol o usuario, se priorisa el Rol en caso de poner ambos.",

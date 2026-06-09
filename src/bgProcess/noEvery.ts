@@ -84,7 +84,7 @@ export async function handleNoEveryoneCommand(interaction: ChatInputCommandInter
 
         const im = guild.members.me?.permissions;
         const serPrm = testPermisos(im, "viewCh|readMsg|msgManager");
-        if (serPrm.some(p => p.includes("❌"))) { await interaction.editReply({ content: i18next.t("commands:noeveryone.interacciones.no_Perms", { a1: serPrm.join("\n") }) }); return }
+        if (serPrm.some(p => p.includes("❌"))) { await interaction.editReply({ content: i18next.t("commands:noeveryone.interacciones.no_Perms", { a1: serPrm[0] }) }); return }
         let desc = i18next.t("commands:noeveryone.interacciones.embMaker_desc")
         const state = interaction.options.getBoolean("activado");
         const role = interaction.options.getRole("rol");
@@ -94,7 +94,7 @@ export async function handleNoEveryoneCommand(interaction: ChatInputCommandInter
         const tState = state !== null ? state : (actual?.state ?? false);
         let castigo = punish !== null ? punish : (actual?.penality ?? false);
         if (role?.id === actual?.rol) tRole = null;
-        const x = testPermisos(im, "moderateMembers"); if (x.some(p => p.includes("❌"))) { castigo = false; desc += i18next.t("commands:noeveryone.interacciones.embMaker_desc_2", { a1: x.join("\n") }) };
+        const x = testPermisos(im, "moderateMembers"); if (x.some(p => p.includes("❌"))) { castigo = false; desc += i18next.t("commands:noeveryone.interacciones.embMaker_desc_2", { a1: x[0] }) };
         const fields: { name: string; value: string; inline?: boolean }[] = [
             { name: i18next.t("commands:noeveryone.interacciones.embMaker_estado"), value: tState ? i18next.t("commands:noeveryone.interacciones.embMaker_estado_on") : i18next.t("commands:noeveryone.interacciones.embMaker_estado_off") },
             { name: i18next.t("commands:noeveryone.interacciones.embMaker_rol"), value: tRole ? `<@&${tRole}>` : i18next.t("commands:noeveryone.interacciones.embMaker_rol_none") },
@@ -102,7 +102,7 @@ export async function handleNoEveryoneCommand(interaction: ChatInputCommandInter
         ];
 
         if (castigo) {
-            const rChunk = await topRol(guild);
+            const rChunk = await topRol(guild, "moderateMembers");
             if (rChunk.length === 1) fields.push({ name: i18next.t("commands:noeveryone.interacciones.embMaker_top"), value: castigo ? rChunk[0] : i18next.t("commands:noeveryone.interacciones.embMaker_top_none"), inline: false })
             else for (let i = 0; i < rChunk.length; i++) { fields.push({ name: `${i === 0 ? i18next.t("commands:noeveryone.interacciones.embMaker_top") : `(Parte ${i + 1})`}`, value: rChunk[i] }) }
         }

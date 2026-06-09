@@ -100,11 +100,13 @@ export async function adminChannel(client: Client): Promise<{ upChannel: boolean
 }
 
 /* ======================================== Check Permisos ======================================== */
-export function testPermisos(chkPerm: any, idComamnd: string) {
-    const mngrBitsList = [
+const listBits = (lis?: string): { id: string, name: string, bit: bigint }[] => {
+    const mngrBits = [
         // --- Maximo nivel ---
         { id: "admin", name: i18next.t("help:embMaker.bitAdmin"), bit: PermissionFlagsBits.Administrator },
         { id: "srvManager", name: i18next.t("help:embMaker.bitSrvManager"), bit: PermissionFlagsBits.ManageGuild },
+        { id: "guildInsights", name: i18next.t("help:embMaker.bitGuildInsights"), bit: PermissionFlagsBits.ViewGuildInsights },
+        { id: "guildMoney", name: i18next.t("help:embMaker.bitGuildMoney"), bit: PermissionFlagsBits.ViewCreatorMonetizationAnalytics },
 
         // --- Gestión Estructural ---
         { id: "roles", name: i18next.t("help:embMaker.bitRoles"), bit: PermissionFlagsBits.ManageRoles },
@@ -128,8 +130,8 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
         { id: "voiceMove", name: i18next.t("help:embMaker.bitVoiceMove"), bit: PermissionFlagsBits.MoveMembers },
     ];
 
-    const meltrysList = [
-        // --- Lectura y Escritura Básica ---
+    const commonBits = [
+        // --- Ver canales ---
         { id: "viewCh", name: i18next.t("help:embMaker.bitChSee"), bit: PermissionFlagsBits.ViewChannel },
         { id: "readMsg", name: i18next.t("help:embMaker.bitReedMsg"), bit: PermissionFlagsBits.ReadMessageHistory },
         { id: "sendMsg", name: i18next.t("help:embMaker.bitSendMessages"), bit: PermissionFlagsBits.SendMessages },
@@ -159,28 +161,50 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
         { id: "useVAD", name: i18next.t("help:embMaker.bitUseVAD"), bit: PermissionFlagsBits.UseVAD },
         { id: "prioSpeak", name: i18next.t("help:embMaker.bitPrioritySpeaker"), bit: PermissionFlagsBits.PrioritySpeaker },
         { id: "toSpeak", name: i18next.t("help:embMaker.bitRequestToSpeak"), bit: PermissionFlagsBits.RequestToSpeak },
+        { id: "embActiviti", name: i18next.t("help:embMaker.bitUseEmbeddedActivities"), bit: PermissionFlagsBits.UseEmbeddedActivities },
+        { id: "panelSound", name: i18next.t("help:embMaker.bitUseSoundboard"), bit: PermissionFlagsBits.UseSoundboard },
+        { id: "extSound", name: i18next.t("help:embMaker.bitUseExternalSounds"), bit: PermissionFlagsBits.UseExternalSounds },
+
+        // --- Mensajería Especial y Aplicaciones ---
+        { id: "sendTTS", name: i18next.t("help:embMaker.bitSendTTS"), bit: PermissionFlagsBits.SendTTSMessages },
+        { id: "sendVoiceMsg", name: i18next.t("help:embMaker.bitSendVoiceMessages"), bit: PermissionFlagsBits.SendVoiceMessages },
+        { id: "sendPolls", name: i18next.t("help:embMaker.bitSendPolls"), bit: PermissionFlagsBits.SendPolls },
+        { id: "useExApps", name: i18next.t("help:embMaker.bitUseExternalApps"), bit: PermissionFlagsBits.UseExternalApps },
     ];
 
-    const allBits = [...mngrBitsList, ...meltrysList];
+    if (lis === "mngrList") return mngrBits;
+    if (lis === "commonList") return commonBits;
+    return [...mngrBits, ...commonBits];
+}
 
-    let bits;
+export function testPermisos(chkPerm: any, idComamnd: string): string[] {
+    let bits: { id: string, name: string, bit: bigint }[] = [];
     switch (idComamnd) {
         case "meltrys":
-            bits = meltrysList; break;
+            bits = listBits("mngrList"); break;
         case "mngrBits":
-            bits = mngrBitsList; break;
+            bits = listBits("commonList"); break;
         case "todos":
-            bits = allBits; break;
+            bits = listBits(); break;
         default:
             const choisdBit = idComamnd.split("|");
-            bits = allBits.filter(bit => choisdBit.includes(bit.id)); break;
+            bits = listBits().filter(bit => choisdBit.includes(bit.id)); break;
     }
 
-    return bits.map(bitObj => {
+    const result: string[] = bits.map(bitObj => {
         const hasPerm = chkPerm?.has(bitObj.bit) ?? false;
-        const chkEmoji = hasPerm ? "✅" : "❌";
-        return `> ${chkEmoji} | **${bitObj.name}**`;
+        return `> ${hasPerm ? "✅" : "❌"} | **${bitObj.name}**`;
     });
+
+    const chunks: string[] = [];
+    let builChunk = "";
+    for (const line of result) {
+        const testBuild = builChunk ? `${builChunk}\n${line}` : line;
+        if (testBuild.length > 1024) { chunks.push(builChunk); builChunk = line; }
+        else { builChunk = testBuild; }
+    }
+    if (builChunk) chunks.push(builChunk);
+    return chunks;
 }
 
 // Nota: Modulo para llamar el check 
@@ -188,32 +212,51 @@ export function testPermisos(chkPerm: any, idComamnd: string) {
     const me = canalDestino.permissionsFor(guild.members.me!);
     const perChTo = testPermisos(me, "viewCh|sendMsg|addlink|addfiles");
     if (perChTo.some(p => p.includes("❌"))) {
-        await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo.join("\n") }) });
+        await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo[0] }) });
         return;
     }
 */ /* Tipo General!!
     const im = interaction.guild?.members.me?.permissions;
     const serPrm = testPermisos(im, "viewCh|sendMsg|addlink|addfiles");
     if (serPrm.some(p => p.includes("❌"))) {
-        await interaction.editReply({ content: `❌ El bot no tiene permisos suficientes en <#${canalDestino.id}>:\n${serPrm.join("\n")}` });
+        await interaction.editReply({ content: `❌ El bot no tiene permisos suficientes en <#${canalDestino.id}>:\n${serPrm.join[0]}` });
         return;
     }
 */
 
 /* ======================================== Check Permisos ======================================== */
-export async function topRol(guild: Guild): Promise<string[]> {
-    const meltrys = guild.members.me!.roles.highest;
-    const lRole = guild.roles.cache.filter(r => r.position < meltrys.position && r.name !== "@everyone");
-    if (lRole.size === 0) { return ["No hay roles por debajo de mi rol mas alto"] }
+export async function topRol(guild: Guild, permIds?: string): Promise<string[]> {
+    const me = guild.members.me!
+    let myTopRol = 0;
+    if (permIds) {
+        const needPerm = permIds.split("|");
+        const allBits = listBits();
+        const bitChk = allBits.filter(bitObj => needPerm.includes(bitObj.id)).map(bitObj => bitObj.bit);
+        if (bitChk.length > 0) {
+            const sortedRoles = me.roles.cache.sort((a, b) => b.position - a.position);
+            let foundPerm = false;
+            for (const role of sortedRoles.values()) {
+                const hasPerms = bitChk.every(bit => role.permissions.has(bit));
+                if (hasPerms) { myTopRol = role.position; foundPerm = true; break; }
+            }
+            if (!foundPerm) { return [i18next.t("help:rolemaker.sin_roles_con_permisos")]; }
+        } else { myTopRol = me.roles.highest.position; }
+    } else { myTopRol = me.roles.highest.position; }
 
-    const roleList = lRole.map(r => `<@&${r.id}>`);
+    const allRoles = await guild.roles.fetch();
+    let vRoles = allRoles.filter(r => r.position < myTopRol && !r.managed && r.id !== guild.id);
+    const rLines: string[] = vRoles.sort((a, b) => b.position - a.position).map(r => `> <@&${r.id}>`);
+
+    if (rLines.length === 0) return [i18next.t("help:rolemaker.sin_roles_con_permisos")];
+
     const chunks: string[] = [];
     let builChunk = "";
-    for (const role of roleList) {
-        const tstBuild = builChunk ? `${builChunk} | ${role}` : role;
-        if (tstBuild.length > 1024) { chunks.push(builChunk); builChunk = role; }
-        else { builChunk = tstBuild; }
+
+    for (const line of rLines) {
+        const tBuild = builChunk ? `${builChunk}\n${line}` : line;
+        if (tBuild.length > 1024) { chunks.push(builChunk); builChunk = line; }
+        else { builChunk = tBuild; }
     }
-    if (builChunk) { chunks.push(builChunk); }
+    if (builChunk) chunks.push(builChunk);
     return chunks;
 }
