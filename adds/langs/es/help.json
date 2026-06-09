@@ -250,6 +250,7 @@
     "roles": "Roles que podria sancionar si activas la opcion y tengo los permisos"
   },
   "rolemaker": {
-    "sin_roles_con_permisos": "Tengo permisos pero ningun rol esta por debajo de mi!!"
+    "sin_roles_con_permisos": "❌ Con permisos pero sin roles que gestionar!!",
+    "sin_roles_con_permisos_a": "❌ Sin permisos para esa funcion!!"
   }
 }

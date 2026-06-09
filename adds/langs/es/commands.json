@@ -535,7 +535,11 @@
       "roles": {
         "description": "Permite ver que rol tiene injerencia sobre otros segun sus permisos!!"
       },
-      "permiso_description": "Tipo de permisos a testear!! "
+      "permiso_description": "Tipo de permisos a testear!! ",
+      "permiso_admin": "Administrador",
+      "permiso_ban": "Banear Miembros",
+      "permiso_kick": "Expulsar Miembros",
+      "permiso_moderate": "Moderar Miembros"
     },
     "interacciones": {
       "nousernorole": "Debes indicar un rol o usuario, se priorisa el Rol en caso de poner ambos.",
@@ -559,7 +563,11 @@
       "ch_desc_Catg2": "Canal con permisos independientes de su categoria!!",
       "ch_desc_thr": "Canal tipo Hilo, este hereda sus permisos de {{a1}}",
       "ch_desc_CatCat": "Categoria de canales: {{a1}}",
-      "ch_desc_wire": "Mostrando los permisos del hilo: {{a1}}"
+      "ch_desc_wire": "Mostrando los permisos del hilo: {{a1}}",
+      "rol_desc_a": "Muestra si alguno de tus roles te da el permiso seleccionado y sobre que roles tienes injerencia.",
+      "rol_desc_b": "Ej: Moderar Miembros: Muestra que roles puedes sancionar.",
+      "rol_desc_c": "Ej. Gestor de Roles: Muestra que roles puedes asignar o quitar a los usuarios.",
+      "rol_desc_d": "> **Probando:** {{a1}} **con el Permiso:** {{a2}}"
     }
   },
   "noeveryone": {

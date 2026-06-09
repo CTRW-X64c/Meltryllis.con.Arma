@@ -2,7 +2,7 @@
 import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, MessageFlags, EmbedBuilder, GuildChannel, ChannelType, ThreadChannel } from "discord.js";
 import i18next from "i18next";
 import { hasPermission } from "../../sys/zGears/mPermission";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { testPermisos, topRol } from "../../sys/zGears/auxiliares";
 import { error } from "../../sys/logging";
 
 export async function registerMypermissionsCommands() {
@@ -12,13 +12,15 @@ export async function registerMypermissionsCommands() {
         { name: i18next.t("commands:chkPerm.slashBuilder.modo_todos"), value: "todos" }
     ];
     const roles = [
-        { name: "Administrador", value: "admin" },
-        { name: "Manager Roles", value: "roles" },
-        { name: "Manager Members", value: "moderateMembers" },
-    ]
+        { name: i18next.t("commands:chkPerm.slashBuilder.permiso_admin"), value: "admin" },
+        { name: i18next.t("commands:chkPerm.slashBuilder.permiso_ban"), value: "roles" },
+        { name: i18next.t("commands:chkPerm.slashBuilder.permiso_moderate"), value: "moderateMembers" },
+        { name: i18next.t("commands:chkPerm.slashBuilder.permiso_ban"), value: "banMember" },
+        { name: i18next.t("commands:chkPerm.slashBuilder.permiso_kick"), value: "kickMember" },
+    ];
 
     const mypermissionsCommand = new SlashCommandBuilder()
-        .setName("permisos-server")
+        .setName("server")
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .setDescription(i18next.t("commands:chkPerm.slashBuilder.description"))
         .addSubcommand(s => s.setName("bits").setDescription(i18next.t("commands:chkPerm.slashBuilder.bits"))
@@ -33,13 +35,12 @@ export async function registerMypermissionsCommands() {
             )
         )
         .addSubcommand(s => s.setName("roles").setDescription(i18next.t("commands:chkPerm.slashBuilder.roles.description"))
-            .addRoleOption(o => o.setName("rol").setRequired(true).setDescription(i18next.t("commands:chkPerm.slashBuilder.rol_description"))
+            .addUserOption(o => o.setName("user").setRequired(true).setDescription(i18next.t("commands:chkPerm.slashBuilder.user_description"))
             )
             .addStringOption(o => o.setName("permiso").setRequired(true).addChoices(roles).setDescription(i18next.t("commands:chkPerm.slashBuilder.permiso_description"))
             )
         )
     return [mypermissionsCommand] as SlashCommandBuilder[];
-
 }
 
 // =============== switch master =============== //
@@ -52,9 +53,11 @@ export async function handleMypermissionsCommand(interaction: ChatInputCommandIn
     const isAllowed = await hasPermission(interaction, interaction.commandName);
     if (!isAllowed) { await interaction.editReply({ content: i18next.t("common:Errores.isAllowed") }); return }
 
-    switch (interaction.options.getSubcommand()) {
+    const subcommand = interaction.options.getSubcommand();
+    switch (subcommand) {
         case "bits": await bitPermissions(interaction); break;
-        case "roles": await interaction.editReply("Comando en construcción!"); return;
+        case "roles": await rolPermisions(interaction); break;
+        default: await interaction.editReply(i18next.t("common:Errores.switchGeneral")); return
     }
 }
 
@@ -66,7 +69,8 @@ async function bitPermissions(interaction: ChatInputCommandInteraction) {
         const modo = interaction.options.getString("modo") || "todos";
         const user = interaction.options.getUser("user"); // User
         const member = user ? await guild.members.fetch(user.id).catch(() => null) : null;
-        const inRol = interaction.options.getRole("rol"); // Rol
+        const inRol = interaction.options.getRole("rol"); // Roltsc
+
         const role = inRol ? await guild.roles.fetch(inRol.id).catch(() => null) : null;
 
         if (!member && !role) { await interaction.editReply({ content: i18next.t("commands:chkPerm.interacciones.nousernorole") }); return }
@@ -133,4 +137,45 @@ async function bitPermissions(interaction: ChatInputCommandInteraction) {
         error(`No se pudo generar el listado de permisos! Error: ${e}`)
         await interaction.editReply({ content: i18next.t("commands:chkPerm.interacciones.error") });
     }
+}
+
+// =============== rol Permisos =============== //
+async function rolPermisions(interaction: ChatInputCommandInteraction) {
+    try {
+        const user = interaction.options.getUser("user", true);
+        const perm = interaction.options.getString("permiso", true);
+        const guild = interaction.guild!;
+        const member = await guild.members.fetch(user).catch(() => null);
+        if (!member) { await interaction.editReply("No se encontro al usuario"); return; }
+
+        const tl = (n: string): string => {
+            switch (n) {
+                case "admin": return i18next.t("help:embMaker.bitAdmin");
+                case "roles": return i18next.t("help:embMaker.bitRoles");
+                case "moderateMembers": return i18next.t("help:embMaker.bitModerateMembers");
+                case "banMember": return i18next.t("help:embMaker.bitBanMember");
+                case "kickMember": return i18next.t("help:embMaker.bitKickMember");
+                default: return "";
+            }
+        }
+
+        const fields: { name: string, value: string, inline: boolean }[] = [];
+        const des = i18next.t("commands:chkPerm.interacciones.rol_desc_a") + `\n\n` +
+            i18next.t("commands:chkPerm.interacciones.rol_desc_b") + `\n` +
+            i18next.t("commands:chkPerm.interacciones.rol_desc_c") + `\n\n` +
+            i18next.t("commands:chkPerm.interacciones.rol_desc_d", { a1: `<@${member.id}>`, a2: tl(perm) });
+
+        const test = await topRol(guild, member, perm);
+        const color = test.some(a => a.includes("❌")) ? 0xff0000 : 0x00ff00;
+        if (test.length === 1) { fields.push({ name: `Mostrando que roles puede manipular:`, value: test[0], inline: false }) }
+        else { for (let i = 0; i < test.length; i++) { fields.push({ name: `${i === 0 ? i18next.t("") : `(Parte ${i + 1})`}`, value: test[i], inline: false }) } }
+
+        const emb = new EmbedBuilder()
+            .setTitle("Sistema de jerarquia de roles segun el permiso")
+            .setDescription(des)
+            .setColor(color)
+            .setFields(fields)
+
+        await interaction.editReply({ embeds: [emb] });
+    } catch (e) { error(`No se pudo generar el listado de permisos! Error: ${e}`) }
 }

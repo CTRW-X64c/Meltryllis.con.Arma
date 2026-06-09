@@ -1,5 +1,5 @@
 // sc/sys/auxiliares.ts
-import { Client, Guild, PermissionFlagsBits } from "discord.js";
+import { Client, Guild, GuildMember, PermissionFlagsBits } from "discord.js";
 import { error } from "../logging";
 import i18next from "i18next";
 
@@ -225,38 +225,39 @@ export function testPermisos(chkPerm: any, idComamnd: string): string[] {
 */
 
 /* ======================================== Check Permisos ======================================== */
-export async function topRol(guild: Guild, permIds?: string): Promise<string[]> {
-    const me = guild.members.me!
-    let myTopRol = 0;
-    if (permIds) {
-        const needPerm = permIds.split("|");
-        const allBits = listBits();
-        const bitChk = allBits.filter(bitObj => needPerm.includes(bitObj.id)).map(bitObj => bitObj.bit);
-        if (bitChk.length > 0) {
-            const sortedRoles = me.roles.cache.sort((a, b) => b.position - a.position);
-            let foundPerm = false;
-            for (const role of sortedRoles.values()) {
-                const hasPerms = bitChk.every(bit => role.permissions.has(bit));
-                if (hasPerms) { myTopRol = role.position; foundPerm = true; break; }
-            }
-            if (!foundPerm) { return [i18next.t("help:rolemaker.sin_roles_con_permisos")]; }
-        } else { myTopRol = me.roles.highest.position; }
-    } else { myTopRol = me.roles.highest.position; }
+export async function topRol(guild: Guild, chkPerm: GuildMember, permIds?: string): Promise<string[]> {
+    try {
+        let myTopRol = 0;
+        if (permIds) {
+            const needPerm = permIds.split("|");
+            const allBits = listBits();
+            const bitChk = allBits.filter(bitObj => needPerm.includes(bitObj.id)).map(bitObj => bitObj.bit);
+            if (bitChk.length > 0) {
+                const sortedRoles = chkPerm.roles.cache.sort((a, b) => b.position - a.position);
+                let foundPerm = false;
+                for (const role of sortedRoles.values()) {
+                    const hasPerms = bitChk.every(bit => role.permissions.has(bit));
+                    if (hasPerms) { myTopRol = role.position; foundPerm = true; break; }
+                }
+                if (!foundPerm) { return [i18next.t("help:rolemaker.sin_roles_con_permisos_a")]; }
+            } else { myTopRol = chkPerm.roles.highest.position; }
+        } else { myTopRol = chkPerm.roles.highest.position; }
 
-    const allRoles = await guild.roles.fetch();
-    let vRoles = allRoles.filter(r => r.position < myTopRol && !r.managed && r.id !== guild.id);
-    const rLines: string[] = vRoles.sort((a, b) => b.position - a.position).map(r => `> <@&${r.id}>`);
+        const allRoles = await guild.roles.fetch();
+        let vRoles = allRoles.filter(r => r.position < myTopRol && !r.managed && r.id !== guild.id);
+        const rLines: string[] = vRoles.sort((a, b) => b.position - a.position).map(r => `> <@&${r.id}>`);
 
-    if (rLines.length === 0) return [i18next.t("help:rolemaker.sin_roles_con_permisos")];
+        if (rLines.length === 0) return [i18next.t("help:rolemaker.sin_roles_con_permisos")];
 
-    const chunks: string[] = [];
-    let builChunk = "";
+        const chunks: string[] = [];
+        let builChunk = "";
 
-    for (const line of rLines) {
-        const tBuild = builChunk ? `${builChunk}\n${line}` : line;
-        if (tBuild.length > 1024) { chunks.push(builChunk); builChunk = line; }
-        else { builChunk = tBuild; }
-    }
-    if (builChunk) chunks.push(builChunk);
-    return chunks;
+        for (const line of rLines) {
+            const tBuild = builChunk ? `${builChunk}\n${line}` : line;
+            if (tBuild.length > 1024) { chunks.push(builChunk); builChunk = line; }
+            else { builChunk = tBuild; }
+        }
+        if (builChunk) chunks.push(builChunk);
+        return chunks;
+    } catch (e) { error(`Error en generar topRol, Error: ${e}`); return [`ERROR AL GENERAR LISTA DE ROLES`]; };
 }

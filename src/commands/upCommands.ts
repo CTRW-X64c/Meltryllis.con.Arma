@@ -105,7 +105,7 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handleButtonLinkCommand(interaction); break;
     case 'cronpost':
       await handleCronPost(interaction); break;
-    case 'permisos-server':
+    case 'server':
       await handleMypermissionsCommand(interaction); break;
     case 'noeveryone':
       await handleNoEveryoneCommand(interaction); break;

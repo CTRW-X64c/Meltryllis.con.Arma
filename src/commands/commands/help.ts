@@ -100,12 +100,11 @@ async function embedMaker(interaction: ChatInputCommandInteraction, data: hData)
         }
       }
     }
-  }
-
-  if (roles) {
-    const rParts = await topRol(interaction.guild!, roles.id);
-    if (rParts.length === 1) { fields.push({ name: `${roles.data}:`, value: rParts[0], inline: false }) }
-    else { for (let i = 0; i < rParts.length; i++) { fields.push({ name: `${i === 0 ? `${roles.data}:` : `(Parte ${i + 1})`}`, value: rParts[i], inline: false }) } }
+    if (roles) {
+      const rParts = await topRol(interaction.guild!, Meltryllis, roles.id);
+      if (rParts.length === 1) { fields.push({ name: `${roles.data}:`, value: rParts[0], inline: false }) }
+      else { for (let i = 0; i < rParts.length; i++) { fields.push({ name: `${i === 0 ? `${roles.data}:` : `(Parte ${i + 1})`}`, value: rParts[i], inline: false }) } }
+    }
   }
 
   const embed = new EmbedBuilder().setColor(embColor).setTitle(title).setTimestamp().setDescription(finText)
