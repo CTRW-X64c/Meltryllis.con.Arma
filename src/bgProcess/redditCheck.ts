@@ -1,5 +1,5 @@
 // src/client/coreCommands/redditCheck.ts
-import { Client, TextChannel } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, TextChannel } from 'discord.js';
 import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed, removeRedditFeed } from '../sys/DB-Engine/links/Reddit';
 import { info, debug, error } from '../sys/logging';
 import i18next from 'i18next';
@@ -188,6 +188,9 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     .replace(/\|/g, ' ')
                     .replace(emojiRegex, '');
 
+                const orgL = new ActionRowBuilder<ButtonBuilder>();
+                orgL.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(`https://www.reddit.com/${permalink}`));
+
                 let messageContent;
                 if (nsfwCheck) {
                     messageContent = i18next.t("commands:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl });
@@ -195,7 +198,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     messageContent = i18next.t("commands:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl });
                 }
 
-                await textChannel.send(messageContent);
+                await textChannel.send({ content: messageContent, components: [orgL] });
                 await new Promise(resolve => setTimeout(resolve, 3000));
             }
 
