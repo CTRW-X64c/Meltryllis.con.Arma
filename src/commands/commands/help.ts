@@ -1,5 +1,5 @@
 // src/Events-Commands/commands/help.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, AutocompleteInteraction } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, AutocompleteInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import i18next from "i18next";
 import { error } from "../../sys/logging";
 import { Report } from "../commandModales/reportHelp";
@@ -64,13 +64,16 @@ export async function registerHelpCommand(): Promise<SlashCommandBuilder[]> {
 
 // ============================================= embedMaker ============================================= //
 
-interface hData { command: string; title: string; description?: string; color?: number; imageUrl?: string; fields?: hField[]; footer?: string; srvPerm?: string; chPerm?: string; roles?: { data: string, id?: string }; }
+interface hData { command: string; title: string; description?: string; color?: number; imageUrl?: string; fields?: hField[]; footer?: string; srvPerm?: string; chPerm?: string; roles?: hRole; URLs?: hLinks; }
 interface hField { name: string; value: string; inline?: boolean }
+interface hRole { data: string, id?: string }
+interface hLinks { data0: { link: string, text: string }; data1?: { link: string, text: string }; data2?: { link: string, text: string }; data3?: { link: string, text: string }; data4?: { link: string, text: string } };
 async function embedMaker(interaction: ChatInputCommandInteraction, data: hData): Promise<void> {
   const rngColor = (): string => { const color = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase(); return `0x${color.padStart(6, '0')}` };
-  const { command, title, description, color, imageUrl, fields = [], footer, srvPerm, chPerm, roles } = data;
+  const { command, title, description, color, imageUrl, fields = [], footer, srvPerm, chPerm, roles, URLs } = data;
   const Meltryllis = interaction.guild?.members.me;
   const embColor = color ? color : parseInt(rngColor(), 16);
+  const component: ActionRowBuilder<ButtonBuilder>[] = [];
   let finText = i18next.t("help:embMaker.no_need_permission");
   if (command !== "info") {
     const canRun = await hasPermission(interaction, command);
@@ -107,11 +110,22 @@ async function embedMaker(interaction: ChatInputCommandInteraction, data: hData)
     }
   }
 
+  if (URLs) {
+    const { data0, data1, data2, data3, data4 } = URLs;
+    const buttons = new ActionRowBuilder<ButtonBuilder>()
+    buttons.addComponents(new ButtonBuilder().setLabel(data0.text).setStyle(ButtonStyle.Link).setURL(data0.link).setEmoji("🔗"));
+    if (data1) buttons.addComponents(new ButtonBuilder().setLabel(data1.text).setStyle(ButtonStyle.Link).setURL(data1.link).setEmoji("🔗"));
+    if (data2) buttons.addComponents(new ButtonBuilder().setLabel(data2.text).setStyle(ButtonStyle.Link).setURL(data2.link).setEmoji("🔗"));
+    if (data3) buttons.addComponents(new ButtonBuilder().setLabel(data3.text).setStyle(ButtonStyle.Link).setURL(data3.link).setEmoji("🔗"));
+    if (data4) buttons.addComponents(new ButtonBuilder().setLabel(data4.text).setStyle(ButtonStyle.Link).setURL(data4.link).setEmoji("🔗"));
+    component.push(buttons);
+  }
+
   const embed = new EmbedBuilder().setColor(embColor).setTitle(title).setTimestamp().setDescription(finText)
   if (fields.length > 0) { embed.addFields(fields); }
   if (footer) { embed.setFooter({ text: footer }); }
   if (imageUrl) { embed.setImage(imageUrl); }
-  await interaction.editReply({ embeds: [embed] });
+  await interaction.editReply({ embeds: [embed], components: component });
 }
 
 // ============================================= Handler principal ============================================= //
@@ -130,14 +144,18 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         title: i18next.t("help:info.embed_title"),
         description: i18next.t("help:info.embed_description"),
         fields: [
-          { name: i18next.t("help:info.field_invite_name"), value: i18next.t("help:info.field_invite_value"), inline: true },
-          { name: i18next.t("help:info.field_terms_name"), value: i18next.t("help:info.field_terms_value"), inline: true },
+          /*{ name: i18next.t("help:info.field_invite_name"), value: i18next.t("help:info.field_invite_value"), inline: true },
+          { name: i18next.t("help:info.field_terms_name"), value: i18next.t("help:info.field_terms_value"), inline: true },*/
           { name: i18next.t("help:info.field_issue_name"), value: i18next.t("help:info.field_issue_value"), inline: false },
         ],
         imageUrl: "https://raw.githubusercontent.com/CTRW-X64c/Meltryllis.con.Arma/refs/heads/RemodelCommands/Pict/embedd.gif",
         footer: i18next.t("help:info.footer_text"),
         srvPerm: "todos",
-        roles: { data: i18next.t("help:info.roles") }
+        roles: { data: i18next.t("help:info.roles") },
+        URLs: {
+          data0: { link: "https://discord.com/oauth2/authorize?client_id=847989699083632671&permissions=1512150789200&scope=bot", text: i18next.t("help:info.field_invite_name") },
+          data1: { link: "https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md", text: i18next.t("help:info.field_terms_name") }
+        }
       }); break;
       /* ======================== CleanUp ======================== */
       case "01": await embedMaker(interaction, {

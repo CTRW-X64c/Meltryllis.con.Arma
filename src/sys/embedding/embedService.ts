@@ -1,5 +1,5 @@
 // src/sys/embeding/embedService.ts
-import { Client, Events, Message } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Events, Message } from "discord.js";
 import { getGuildReplacementConfig } from "../DB-Engine/links/Embed";
 import { getConfigMap } from "../DB-Engine/links/ReplyBots";
 import buildReplacements from "./index";
@@ -31,6 +31,7 @@ export default function startEmbedService(client: Client): void {
         const guildConfigs = guildId ? await getGuildReplacementConfig(guildId) : new Map();
         const replacements = buildReplacements(guildConfigs);
         const replacedUrls: string[] = [];
+        const origLink: string[] = [];
 
         for (const match of urls) {
             let domainSite: string | null = null;
@@ -48,17 +49,18 @@ export default function startEmbedService(client: Client): void {
 
             if (replacedUrl) {
                 const hiddenMessage = message.content.split("||").length > 2;
-                let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl });
+                let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl.remp });
                 if (hiddenMessage) {
-                    messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: replacedUrl });
+                    messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: replacedUrl.remp });
                 }
                 replacedUrls.push(messageContent);
+                origLink.push(replacedUrl.org);
             }
         }
 
-        if (replacedUrls.length > 0) {
+        if (replacedUrls.length > 0 && origLink.length > 0) {
             embeRemove(message);
-            post(message, replacedUrls, autorId);
+            post(message, replacedUrls, autorId, origLink);
         }
     });
 };
@@ -94,13 +96,20 @@ const embeRemove = async (msg: Message) => {
 };
 
 // =========== post =========== //
-const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
+const post = async (msg: Message, replacedUrls: string[], autorId: string, origLink: string[]) => {
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const MAX_MSG = 5;
     const mxAtt = 3;
     const canSend = msg.channel.isSendable();
     const content = replacedUrls.join(' | ');
     if (!canSend) return;
+
+    const xy = new ActionRowBuilder<ButtonBuilder>()
+    xy.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(origLink[0]));
+    if (origLink[1]) xy.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(origLink[1]));
+    if (origLink[2]) xy.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(origLink[2]));
+    if (origLink[3]) xy.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(origLink[3]));
+    if (origLink[4]) xy.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(origLink[4]));
 
     const badEmbed = (embed: any): boolean => {
         const embedText = JSON.stringify(embed).toLowerCase();
@@ -119,7 +128,7 @@ const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
     if (replacedUrls.length <= MAX_MSG) {
         let sentMsg: Message;
         try {
-            sentMsg = await msg.reply({ content: content, allowedMentions: { repliedUser: false } });
+            sentMsg = await msg.reply({ content: content, components: [xy], allowedMentions: { repliedUser: false } });
         } catch (err) {
             const errMsg = (err as Error).message;
             if (!errMsg.includes("Missing Access") && !errMsg.includes("Missing Permissions")) {
@@ -167,12 +176,23 @@ const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
 
     for (let i = 0; i < replacedUrls.length; i += MAX_MSG) {
         const batch = replacedUrls.slice(i, i + MAX_MSG);
+        const buttonBatch = origLink.slice(i, i + MAX_MSG);
+        const yx = new ActionRowBuilder<ButtonBuilder>();
+        if (buttonBatch[0]) yx.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(buttonBatch[0]));
+        if (buttonBatch[1]) yx.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(buttonBatch[1]));
+        if (buttonBatch[2]) yx.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(buttonBatch[2]));
+        if (buttonBatch[3]) yx.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(buttonBatch[3]));
+        if (buttonBatch[4]) yx.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(buttonBatch[4]));
         try {
-            const sentMsg = i === 0 ? await msg.reply({ content: batch.join(' | '), allowedMentions: { repliedUser: false } }) : await msg.channel.send(batch.join(' | '));
+            const sentMsg = i === 0
+                ? await msg.reply({ content: batch.join(' | '), components: [yx], allowedMentions: { repliedUser: false } })
+                : await msg.channel.send({ content: batch.join(' | '), components: [yx] });
             if (sentMsg && autorId) deleteMSG(sentMsg, autorId);
         } catch (err) {
             const errMsg = (err as Error).message;
-            if (!errMsg.includes("Missing Access") && !errMsg.includes("Missing Permissions")) { error(`Error en ráfaga de embeds: ${errMsg}, Guild: ${msg.guild?.name}`, "EmbedService"); }
+            if (!errMsg.includes("Missing Access") && !errMsg.includes("Missing Permissions")) {
+                error(`Error en ráfaga de embeds: ${errMsg}, Guild: ${msg.guild?.name}`, "EmbedService");
+            }
             break;
         }
         await wait(1000);
