@@ -1,5 +1,5 @@
 // src/client/coreCommands/redditCheck.ts
-import { Client, TextChannel } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, TextChannel } from 'discord.js';
 import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed, removeRedditFeed } from '../sys/DB-Engine/links/Reddit';
 import { info, debug, error } from '../sys/logging';
 import i18next from 'i18next';
@@ -35,27 +35,27 @@ function getSubredditNameFromUrl(input: string): string | null {
         const urlObject = new URL(input);
         const subredditMatch = urlObject.pathname.match(/\/r\/([a-zA-Z0-9_-]+)/);
         const userMatch = urlObject.pathname.match(/\/(?:user|u)\/([a-zA-Z0-9_-]+)/);
-        
+
         if (subredditMatch) return subredditMatch[1];
         if (userMatch) return userMatch[1];
     } catch (e) { /* Si falla el URL parsing, intentamos con regex directo */ }
 
     const urlMatch = input.match(/(?:reddit\.com\/(?:r|user|u)\/|^(?:r|u)\/)([a-zA-Z0-9_-]+)/);
     if (urlMatch) return urlMatch[1];
-    
+
     const rSlashMatch = input.match(/^(?:r|u)\/([a-zA-Z0-9_-]+)$/);
     if (rSlashMatch) return rSlashMatch[1];
-    
+
     const simpleMatch = input.match(/^[a-zA-Z0-9_-]+$/);
     if (simpleMatch) return simpleMatch[0];
-    
+
     return null;
 }
 
 function getDisplayNameFromUrl(url: string): string {
     const name = getSubredditNameFromUrl(url);
     if (!name) return 'unknown';
-    
+
     if (url.includes('/user/') || url.startsWith('u/')) {
         return `u/${name}`;
     } else {
@@ -73,9 +73,9 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
         }
 
         const isUser = feed.subreddit_url.includes('/user/') || feed.subreddit_url.startsWith('/u/');
-        const resourceType = isUser ? 'user' : 'subreddit';  
+        const resourceType = isUser ? 'user' : 'subreddit';
         const jsonData = await redditApi.getPosts(resourceName, resourceType, 20);
-        
+
         /* ====================================== CHEQUEO DE DISPONIBILIDAD ====================================== */
 
         if (jsonData?.reason === 'banned' || jsonData?.reason === 'private' || jsonData?.reason === 'quarantined') {
@@ -97,11 +97,11 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                             break;
                     }
                 }
-                debug(`[Reddit Checker]: Se eliminó ${displayName} por razón: ${jsonData.reason}.`); 
-            } catch (err) { 
-                error(`[Reddit Checker]: Error al eliminar ${displayName}: ${err}`); 
+                debug(`[Reddit Checker]: Se eliminó ${displayName} por razón: ${jsonData.reason}.`);
+            } catch (err) {
+                error(`[Reddit Checker]: Error al eliminar ${displayName}: ${err}`);
             }
-            return; 
+            return;
         }
 
         /* ====================================== AQUI CONTINUA NORMAL ====================================== */
@@ -110,7 +110,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
             throw new Error('Estructura de respuesta inválida de Reddit API');
         }
 
-        const posts = jsonData.data.children; 
+        const posts = jsonData.data.children;
 
         if (!posts || posts.length === 0) {
             return;
@@ -121,12 +121,12 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
 
         for (const postWrapper of posts) {
             const post = postWrapper.data;
-            
+
             if (post.pinned || post.stickied) {
                 debug(`[Reddit Checker]: Ignorando post pinned/stickied: ${post.title}`);
                 continue;
             }
-            
+
             if (post.name === lastPostId) {
                 break;
             }
@@ -135,7 +135,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
 
         if (newPosts.length > 0) {
             debug(`[Reddit Checker]: ¡${newPosts.length} post(s) nuevo(s) en ${displayName}`);
-            newPosts.reverse(); 
+            newPosts.reverse();
 
             const channel = await client.channels.fetch(feed.channel_id);
             if (!channel || !channel.isTextBased()) {
@@ -143,18 +143,18 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 return;
             }
             const textChannel = channel as TextChannel;
-            
+
             for (const post of newPosts) {
-                let apiDomain = urlStatusManager.getActiveUrl("APIs_FIX_URL");
-                    if (process.env.EMBEDEZ_REDDITCHECK === "0" || !apiDomain?.includes("embedez.com")) {apiDomain = null;}
-                const redditDomain = urlStatusManager.getActiveUrl("REDDIT_FIX_URL");
+                let apiDomain = urlStatusManager.getActiveUrl("Api");
+                if (process.env.EMBEDEZ_REDDITCHECK === "0" || !apiDomain?.includes("embedez.com")) { apiDomain = null; }
+                const redditDomain = urlStatusManager.getActiveUrl("reddit");
                 const upEmbeddingDomain = apiDomain ? `${apiDomain}?q=https://www.reddit.com` : redditDomain;
-                
+
                 const hint = post.post_hint;
                 const noHint = post.is_gallery || post.is_video;
                 switch (feed.filter_mode) {
                     case 'media_only':
-                        const visualHint = hint === 'image' || hint === 'hosted:video' || hint === 'rich:video' || hint === 'link'; 
+                        const visualHint = hint === 'image' || hint === 'hosted:video' || hint === 'rich:video' || hint === 'link';
                         const isMedia = visualHint || noHint;
                         if (!isMedia) {
                             continue;
@@ -167,7 +167,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     default:
                         break;
                 }
-                
+
                 // Hyperlink Fix & procesamiento de link
                 const nsfwPost = post.over_18;
                 const nsfwChannel = feed.nsfw_protect;
@@ -179,7 +179,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 const truncatedTitle = originalTitle.length > MAX_LENGTH
                     ? originalTitle.substring(0, MAX_LENGTH)
                     + "..." : originalTitle;
-                const emojiRegex = /<a?:[a-zA-Z0-9_]+:\d+>|[\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\p{Emoji_Component}\u{200D}]+/gu;  
+                const emojiRegex = /<a?:[a-zA-Z0-9_]+:\d+>|[\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\p{Emoji_Component}\u{200D}]+/gu;
                 const safeTitle = truncatedTitle
                     .replace(/\[/g, '')
                     .replace(/\]/g, '')
@@ -187,17 +187,20 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     .replace(/\//g, '')
                     .replace(/\|/g, ' ')
                     .replace(emojiRegex, '');
-                    
+
+                const orgL = new ActionRowBuilder<ButtonBuilder>();
+                orgL.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(`https://www.reddit.com/${permalink}`));
+
                 let messageContent;
                 if (nsfwCheck) {
-                    messageContent = i18next.t("commands:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
+                    messageContent = i18next.t("commands:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl });
                 } else {
-                    messageContent = i18next.t("commands:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl});
+                    messageContent = i18next.t("commands:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl });
                 }
-                     
-                await textChannel.send(messageContent);
+
+                await textChannel.send({ content: messageContent, components: [orgL] });
                 await new Promise(resolve => setTimeout(resolve, 3000));
-            }           
+            }
 
             const latestPostId = newPosts[newPosts.length - 1].name;
             await updateRedditFeedLastPost(feed.id, latestPostId, feed.guild_id);
@@ -237,13 +240,13 @@ export function startRedditChecker(client: Client) {
     const parsedMinutes = rawRssTime ? parseInt(rawRssTime, 10) : NaN;
     const minutes = !isNaN(parsedMinutes) ? Math.max(parsedMinutes, MIN_TIMMER) : DEFAULT_Timmer;
     const rssCheckTimmer = minutes * MStoMin;
-        info(`[Reddit Checker] Se revisarán ${BATCH_SIZE} feeds cada ${minutes} minutos.`);
+    info(`[Reddit Checker] Se revisarán ${BATCH_SIZE} feeds cada ${minutes} minutos.`);
 
     setTimeout(() => {
         checkRedditFeeds(client).catch(err => {
             error(`[Reddit Checker] Error al iniciar, ERROR: ${err}`);
         });
-    }, 30000); 
+    }, 30000);
 
     setInterval(() => {
         checkRedditFeeds(client).catch(err => {

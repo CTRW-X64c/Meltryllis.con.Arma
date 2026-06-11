@@ -77,14 +77,16 @@
       "Queue_02": "🎵 Lista de Reproducción",
       "Queue_03_name": "▶️ Sonando ahora:",
       "Queue_03_value": "**[{{a1}}]({{a2}})** - `{{a3}}`",
-      "Queue_04": "**Próximas canciones:** \n{{a1}}{{a2}}",
-      "Queue_05": "*No hay más canciones en espera.*",
       "Queue_06": "❌ No hay lista de reproduccion activa.",
       "Queue_07": "Lista de reproduccion eliminada.",
       "pNext_01": "💤 Cola terminada. Desconectando...",
       "pNext_02": "▶️ Reproduciendo: **{{a1}}** \nPedida por: {{a2}}",
       "error_play": "\"❌ Los nodo de musica parecen estar fallando. reporta con /help report\"",
-      "onCooldown": "❌ Ocurrio un error grave en los nodos y el comando entro en espera!! \n Tiempo restante: {{a1}}"
+      "onCooldown": "❌ Ocurrio un error grave en los nodos y el comando entro en espera!! \n Tiempo restante: {{a1}}",
+      "Queue_": "No se esta reproduciendo nada!!",
+      "Queue_09": "Añade mas musica con /play!!  \n Tambien puedes añadir una lista con /play <link> queue: yes",
+      "span_skip": "‼️Debes esperar {{a1}} para skipear de nuevo. ",
+      "playlist_start": "Iniciando reproducción..."
     }
   },
   "permisos": {
@@ -157,19 +159,15 @@
       "success": "✅ **¡Mensaje publicado exitosamente en {{a1}}!**",
       "error_publicar": "❌ Hubo un error al intentar enviar el mensaje al canal destino. Verifica que puedo postear en el.",
       "timeout": "⌛ Tiempo agotado para la publicacion!!",
-      "error_permisos_origen": "❌ No tengo permisos para leer mensajes en el canal origen",
-      "error_permisos_destino": "❌ No tengo permisos para enviar mensajes en el canal destino",
       "copy_success_with_delete": "✅ Mensaje copiado exitosamente de {{a1}} a {{a2}} y se borro el original",
       "copy_success": "✅ Mensaje copiado exitosamente de {{a1}} a {{a2}}",
       "copy_error": "❌ Error al copiar el mensaje",
-      "error_permisos_edicion": "❌ No tengo permisos para editar mensajes en este canal",
       "error_no_bot_message": "❌ Solo puedo editar mensajes que yo haya enviado",
       "edit_modo_interactivo": "✏️ **Modo edición interactivo**\nEnvía el nuevo contenido, embeds, archivos o componentes para este mensaje. Tienes 3 minutos.\n- Escribe `-cancelar` para cancelar.",
       "edit_success": "✅ Mensaje editado exitosamente",
       "edit_error": "❌ Error al editar el mensaje",
       "edit_timeout": "⌛ Tiempo agotado para la edición!!",
       "edit_error_general": "❌ Error general al editar el mensaje",
-      "error_permisos_reply": "❌ No tengo permisos para enviar mensajes en este canal",
       "reply_modo_interactivo": "↩️ **Modo respuesta interactivo**\n Escribe tu respuesta al mensaje.\n- Tienes **3 minutos** para enviarlo.\n- Escribe `-cancelar` para cancelar.",
       "reply_success": "✅ Respuesta enviada en {{a1}} {{a2}}",
       "reply_error": "❌ Error al enviar la respuesta",
@@ -205,17 +203,65 @@
   "welcome": {
     "slashBuilder": {
       "description": "Establece un mensaje de Bienvenida y Salida",
-      "config_description": "Establece un canal para la Bienvenida",
-      "channel_description": "Establece canal para mostrar el mensaje de Bienvenida/salida",
-      "enabled_description": "Borra la configuracion de /welcome",
-      "message_description": "Escribe tu mensaje de Bienvenida, usa <user> para mencionar, tambien pudes usar #canal"
+      "preview_description": "Muestra el mensaje de bienvenida.",
+      "remove_": "Elimina la configuracion de bienvenida",
+      "command_builder": "Establece la configuracion de bienvenida mediante comando slash",
+      "channel": "Establece el canal donde se enviara el mensaje de bienvenida",
+      "message": "Mensaje de texto en el embed; Usa <user> para mencionar al que se une",
+      "ringcolor": "Color del anillo que rodea la imagen del usuario",
+      "background": "Background del banner",
+      "ftext_text": "1er Linea Banner: Texto",
+      "ftext_color": "1er Linea Banner: Color del texto. Hexadecimal",
+      "ftext_font": "1er Linea Banner: Fuente",
+      "ftext_size": "1er Linea Banner: Tamaño del texto, recomendado \"80\"",
+      "stext_text": "2da Linea Banner: Texto",
+      "stext_color": "2da Linea Banner: Color del texto, Hexadecimal",
+      "stext_font": "2da Linea Banner: Fuente",
+      "stext_size": "2da Linea Banner: Tamaño del texto, recomendado \"60\"",
+      "ttext_text": "3er Limpia Banner: Texto",
+      "ttext_color": "3er Linea Banner: Color del texto, Hexadecimal",
+      "ttext_font": "3er Linea Banner: Fuente",
+      "ttext_size": "3er Linea Banner: Tamaño del texto, recomendado \"40\"",
+      "modal_builder": "Diseña el mensaje de bienvenida de manera interactiva. ",
+      "exitmesseng": "Habilitar o desactivar mensaje de salida. (Default: Desactivado)"
     },
     "interacciones": {
-      "welcome_config_set": "Se establecio la configuracion",
       "error": "Ocurrió un error al ejecutar el comando.",
-      "config_removed": "Se borro la configuracion de /welcome",
-      "no_choises_selected": "No se selecciono ninguna opcion, minimo borrar o canal",
-      "not_doing_nothing": "No habia configuracion previa!!"
+      "error_banner": "❌ Hubo un error al generar la vista previa del banner!",
+      "preview_success": "🖼️ **Preview de configuración de Welcome:** \n\n",
+      "remove_success": "Se removio la configuracion de bienvenida",
+      "error_remove": "Ocurrio un error al borrar la configuracion!!",
+      "slash_build_error_color": "❌ El color del texto 1 no es un HEX válido (Ejemplo: `#FF0000` para rojo).",
+      "slash_build_error_color_2do": "❌ El color del texto 2 no es un HEX válido.",
+      "slash_build_error_color_3er": "❌ El color del texto 3 no es un HEX válido.",
+      "slash_build_error_background": "❌ La URL del fondo no es un enlace válido.",
+      "slash_build_error_ringcolor": "❌ El color del anillo no es un HEX válido.",
+      "slash_build_success": "✅ Nueva configuración de banner guardada exitosamente.\n💡 *Tip: Usa `/welcome preview` para ver cómo quedó.*",
+      "modal_builder_success": "🎨 **Constructor de Bienvenida Activo** Usa los botones para configurar.",
+      "modal_builder_channel": "> 📍 Canal de bienvenida actual: {{a1}}",
+      "modal_builder_exitmsg": "> 📢 Mensaje de salida: {{a1}}",
+      "modal_builder_exitmsg_on": "**🟢 Activado**",
+      "modal_builder_exitmsg_off": "**🔴 Desactivado**",
+      "slash_build_error": "❌ Error al guardar la nueva configuración.",
+      "modal_builder_collector": "❌ No puedes usar este menú.",
+      "modal_builder_title": "Configuración General",
+      "modal_builder_message": "Mensaje de Bienvenida",
+      "modal_builder_ringcolor": "Color del anillo",
+      "modal_builder_background": "URL de Fondo!! ",
+      "modal_builder_text_1b": "Primera linea. (Usa <user> para mencionar)",
+      "modal_builder_color_1b": "Color del texto.  Formato hex ej. \"FF00FF\"",
+      "modal_builder_font_1b": "Selecciona una fuente. Usa /help welcome.",
+      "modal_builder_size_1b": "Tamaño del texto. Tamaño recomendado 80",
+      "modal_builder_size_3b": "Tamaño del texto. Tamaño recomendado 40",
+      "modal_builder_text_3b": "Texto de la ultima linea",
+      "modal_builder_title_3b": "Deja en blanco si quieres quitar el texto",
+      "modal_builder_size_2b": "Tamaño del texto, Recomandado 60",
+      "modal_builder_text_2b": "Opcional 2do texti",
+      "slash_build_error_channel": "El canal de ser tipo texto de un servidor!!",
+      "modal_builder_error_banner_format": "❌ ERROR: IMAGEN NO VALIDA!! Formato no valido o peso mayor a 250KB.\n`Formatos válidos: .jpg, .jpeg, .png, .webp`",
+      "modal_builder_error_no_banner": "\nError al generar banner.",
+      "slash_build_error_background_format_slash": "❌ Error en imagen!! Formato no valido o peso mayor a 250KB.\n`Formatos válidos: .jpg, .jpeg, .png, .webp`",
+      "modal_builder_error_color": "❌ ERROR EN FORMATO DE COLOR!! debe ser hexadecimal de 6 digitos!! "
     }
   },
   "mangadex": {
@@ -367,7 +413,14 @@
       "footer": "Canal privado?, Esto provoca que no pueda ver el canal!!",
       "test_domaind_error": "❌ Este comando tiene un cooldown. Inténtalo de nuevo en {{a1}}.",
       "test_domaind_verificando": "🔄 Verificando estado de dominios... Esto puede tomar unos segundos.",
-      "command_error_verificando": "❌ Error al verificar dominios: {{a1}}"
+      "command_error_verificando": "❌ Error al verificar dominios: {{a1}}",
+      "ban_msg_3": "Suspendido por 12hrs por spam masivo de menciones globales",
+      "ban_msg_2": "2da sancion; spam de menciones globales",
+      "ban_msg_1": "No se permite el spam de menciones globales, 1ra sancion!!",
+      "ban_msg_2_return": "🔨 {{a1}} fue suspendido por 2 horas por reincidir en menciones globales",
+      "ban_msg_1_return": "🔨 {{a1}} fue suspendido por 1 hora por uso de menciones globales.",
+      "ban_msg_3_return": "🔨 {{a1}} fue suspendido por 12 horas por insistir en usar menciones globales.",
+      "del_msg": "❌ {{a1}}, las menciones globales `@here/@everyone` no están permitidas aquí"
     },
     "permisos": {
       "view_channel": "Canal Privado? - Ver Canal:",
@@ -425,7 +478,8 @@
       "disable_description": "{{a1}} desactivó el embed de: **{{a2}}**!",
       "enable_description": "{{a1}} habilitó el embed de: **{{a2}}**!",
       "custom_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo **personalizado** con la siguiente URL: **{{a3}}**!",
-      "default_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo: **Default**!"
+      "default_description": "{{a1}} actualizó el sitio: **{{a2}}** a modo: **Default**!",
+      "invalid_action": "Modo de configuracion no valido!!"
     }
   },
   "cronpost": {
@@ -448,10 +502,8 @@
       "command_veces_dlt_msg": "Borrar el mensaje despues de un tiempo. (en minutos), 0 = No borrar."
     },
     "interacciones": {
-      "list_empty": "No existen mensajes programados!!",
       "formato_id_mensaje_invalido": "❌ Formato del ID invalido!!",
       "formato_canal_invalido": "❌ No pude acceder al canal actual, revisa mis permisos en este canal!! ",
-      "cron_limit_reached": "❌ **Límite alcanzado:** Este servidor ya tiene el máximo de 5 crons. Usa `/cronpost borrar` para liberar espacio.",
       "no_message_found": "❌ No pude encontrar ese mensaje. Asegúrate de ejecutar este comando **en el mismo canal** donde está el mensaje que quieres copiar.",
       "no_message_content": "❌ El mensaje original está vacío o tiene un formato no compatible!!",
       "mensaje_guardado": "✅ ¡Mensaje guardado! \n🗨️​ El mensaje se publicara en {{a1}} \n📅​ {{a2}} \n⚙️ Se repetira: {{a3}} \n🗑️​ Autoborrado: {{a4}}",
@@ -467,6 +519,77 @@
       "no_task_found": "❌ No se encontró ninguna tarea con ese ID!!",
       "error_al_borrar": "❌ Ocurrió un error al intentar borrar la tarea.",
       "error_al_procesar_datos": "❌ Error al procesar los datos del mensaje!!"
+    }
+  },
+  "chkPerm": {
+    "slashBuilder": {
+      "description": "Muestra los permisos que pose el usuario.",
+      "user_description": "Usuario",
+      "rol_description": "ROL",
+      "modo_description": "Categoria de permisos a revisar",
+      "modo_mngrBits": "Permisos de gestion de Servidor!!",
+      "modo_meltrys": "Permisos regulares como \"ver canal\", \"añadir reacciones\"...",
+      "modo_todos": "Revisar todos los permisos",
+      "canal_description": "Ver los permisos de un rol o usuario en un canal en espesifico! ",
+      "bits": "Permite revizar los permisos individuales de un usario o rol!! ",
+      "roles": {
+        "description": "Permite ver que rol tiene injerencia sobre otros segun sus permisos!!"
+      },
+      "permiso_description": "Tipo de permisos a testear!! ",
+      "permiso_admin": "Administrador",
+      "permiso_ban": "Banear Miembros",
+      "permiso_kick": "Expulsar Miembros",
+      "permiso_moderate": "Moderar Miembros"
+    },
+    "interacciones": {
+      "nousernorole": "Debes indicar un rol o usuario, se priorisa el Rol en caso de poner ambos.",
+      "error": "No se pudo generar el listado de permisos.",
+      "error_noguildch": "El canal seleccionado no es válido para revisar permisos.",
+      "f1_name_m1": "Mostrando solo permisos de gestion de servidor!",
+      "f1_name_m2": "Mostrando permisos basicos!",
+      "f1_name_m3": "Mostrando todos los permisos!",
+      "f1_value_rol": "Rol: {{a1}}",
+      "f1_value_user": "Usuario: {{a1}}",
+      "f3_name": "Permisos que se tienen en el canal:",
+      "f2_name": "Permisos globales del servidor:",
+      "footer": "El permiso Administrador da control total del sevidor!! ",
+      "f4_Admin": "Listado de permisos de administracion:",
+      "f4_Non": "Listado de permisos regulares:",
+      "noch_title": "Mostrando los permiso por default",
+      "noch_desc": "⚠️`Los permisos regulares solo aplican en canales con permisos por default. @everyone`",
+      "ch_title": "Mostrando los permisos que se tiene el Rol/Usuario!!",
+      "ch_desc": "Canal en revision: {{a1}} ",
+      "ch_desc_Catg": "Permisos sincronizados con categoria {{a2}}",
+      "ch_desc_Catg2": "Canal con permisos independientes de su categoria!!",
+      "ch_desc_thr": "Canal tipo Hilo, este hereda sus permisos de {{a1}}",
+      "ch_desc_CatCat": "Categoria de canales: {{a1}}",
+      "ch_desc_wire": "Mostrando los permisos del hilo: {{a1}}",
+      "rol_desc_a": "Muestra si alguno de tus roles te da el permiso seleccionado y sobre que roles tienes injerencia.",
+      "rol_desc_b": "Ej: Moderar Miembros: Muestra que roles puedes sancionar.",
+      "rol_desc_c": "Ej. Gestor de Roles: Muestra que roles puedes asignar o quitar a los usuarios.",
+      "rol_desc_d": "> **Probando:** {{a1}} **con el Permiso:** {{a2}}"
+    }
+  },
+  "noeveryone": {
+    "slashBuilder": {
+      "description": "Borra automaticamente los mensaje con @everyone/@here",
+      "estado_description": "Activa/Desactiva el sistema!",
+      "rol_description": "Asigan el Rol al que no se le borraran sus mensaje con @everyone/@here",
+      "penalidad_description": "Activa el sistema de suspension por spam!!"
+    },
+    "interacciones": {
+      "embMaker_title": "Estado del sistema!!",
+      "embMaker_estado": "Estado actual:",
+      "embMaker_rol": "Rol sin restricciones:",
+      "embMaker_estado_on": "🟢 Activado!!",
+      "embMaker_estado_off": "🔴 Desactivado!!",
+      "embMaker_rol_none": "**Ninguno**",
+      "embMaker_penalidad": "Suspender en caso de spam:",
+      "embMaker_desc": "Si deseas retirar el Rol sin restricciones, menciónalo de nuevo! \n La penalizacion puede esacalar desde una hora a 12 horas; la sancion esacalan si se repite en un lapso de una hora.",
+      "embMaker_desc_2": "\n\n\n\n **Debo tener el permiso \"moderar miembros\" y el rol con el permiso debe estar por encima de a quienes suspender** \n {{a1}}",
+      "no_Perms": "❌ No tengo permisos suficientes para ejecutar este comando: \n {{a1}}",
+      "embMaker_top": "Roles que puedo sancionar:",
+      "embMaker_top_none": "Desactivado!!"
     }
   }
 }

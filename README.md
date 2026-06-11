@@ -76,6 +76,10 @@ Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dom
     - list: Muestra los usuarios/roles con permisos.
     - remove: Quita los permisos de un rol/usurio.
     - limpiar: Quita todos los permisos del server.
+  - /perpermisos-server: Permite revisar los permisos que pose un Usuario y los que otorga un Rol.
+    - Canal:
+      - on: Muestras los permisos que tiene el usuario o Rol en un canal espesifico. 
+      - off: Muestra los permisos por default que tiene el usuario o Rol en general, difieren en canales con permisos personalizados.
   - /buttonlink
     - Permite crear botones con links. Mx. 5 por post
   - /buttonrole
@@ -137,28 +141,7 @@ services:
       LAVALINK_HOST_{id}:
       LAVALINK_PORT_{id}:
       LAVALINK_PASSWORD_{id}:
-    #Dominios embeding. Puedes usar mas de un dominio separados por "|" y se recomienda poner el original al final
-      INSTAGRAM_FIX_URL: 
-      FACEBOOK_FIX_URL: facebed.com|facebook.com
-      PIXIV_FIX_URL: phixiv.net|pixiv.net
-      REDDIT_FIX_URL: rxddit.com|reddit.com
-      TIKTOK_FIX_URL: tnktok.com|tiktok.com
-      TWITTER_FIX_URL: fxtwitter.com|fixvx.com|twitter.com
-      YOUTUBE_FIX_URL: youtu.be
-      BSKY_FIX_URL: bskyx.app|bsky.app
-      TWITCH_FIX_URL: fxtwitch.seria.moe|twitch.tv
-      BILILI_FIX_URL: vxbilibili.com|bilibili.com
-      THRENDS_FIX_URL: fixthreads.net|threads.com
-      DEVIAN_FIX_URL: fixdeviantart.com|deviantart.com
-      TUMBLR_FIX_URL: txtumblr.com|tumblr.com
-      FURAFF_FIX_URL: fxfuraffinity.net|furaffinity.net
-      IMGUR_FIX_URL:
-      IWARA_FIX_URL: fxiwara.seria.moe
-    #Sitios soportados por Embedez https://embedez.com/api
-      APIs_FIX_URL: embedez.com/download|discord.com #Recomendado no mover, tiene cierta funcion pero no afecta el embeding.
-      EMBEDEZ_SFW:  tiktok.com|reddit.com|ifunny.co|snapchat.com|imgur.com|pinterest.com
-      EMBEDEZ_NSFW: danbooru.donmai.us|derpibooru.org|e621.net|e926.net|gelbooru.com|rule34.xxx|safebooru.org|hypnohub.net|konachan.com|yande.re|rule34.paheal.net|xbooru.com|tbib.org
-    #Configuraciones Bot 
+    #Ahora los dominios se gestionan desde la BD con el comando de dueño
       BOT_STATUS: "Playing|Guns and Nuns: Storming Hell;Listening|kyOresu - MAGICAL DOOMER" #Tipos de activodad "Playing", "Watching", "Listening", "Streaming", "Competing"
       STATUS_TIME_MINUTOS: 60 #Tiempo de Rotacion de BOT_STATUS
     volumes:
@@ -224,6 +207,7 @@ services:
 ┃ ┃ ┃ ┣ 📜modalLimits.ts
 ┃ ┃ ┃ ┗ 📜reportHelp.ts
 ┃ ┃ ┣ 📂commands
+┃ ┃ ┃ ┣ 📜chkperm.ts
 ┃ ┃ ┃ ┣ 📜cleanup.ts
 ┃ ┃ ┃ ┣ 📜cronpost.ts
 ┃ ┃ ┃ ┣ 📜embed.ts

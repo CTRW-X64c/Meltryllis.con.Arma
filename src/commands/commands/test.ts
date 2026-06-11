@@ -4,14 +4,12 @@ import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
 import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
-import { replacementMetaList } from "../../sys/embedding/EmbedingConfig";
+import { replacementMetaList } from "../../sys/embedding/embedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { checkAllDomains, buildDomainStatusEmbed } from "../../sys/zGears/neTools";
 import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
-
-const sfwDomains = process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : [];
-const nsfwDomains = process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [];
+import { embedezSFW, embedezNSFW } from "../../sys/embedding/domainChecker";
 
 export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
   const testCommand = new SlashCommandBuilder()
@@ -287,7 +285,7 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
   addCategoryFields("🛠️ Reemplazos Locales", localLines);
   /* Lista SFW */
   const sfwLines: string[] = [];
-  sfwDomains.forEach(domain => {
+  embedezSFW.forEach(domain => {
     const config = replacementConfig.get(domain);
     const status = (config === undefined || config.enabled) ?
       i18next.t("commands:test.interacciones.field_api_enabled") :
@@ -297,7 +295,7 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
   addCategoryFields("🌐 API SFW", sfwLines);
   /* Lista SFW */
   const nsfwLines: string[] = [];
-  nsfwDomains.forEach(domain => {
+  embedezNSFW.forEach(domain => {
     const config = replacementConfig.get(domain);
     const status = (config === undefined || config.enabled) ?
       i18next.t("commands:test.interacciones.field_api_enabled") :

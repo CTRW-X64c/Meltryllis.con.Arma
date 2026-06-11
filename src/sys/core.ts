@@ -6,7 +6,7 @@ import { error, info, initLogger, loggerAvailable } from "./logging";
 import { initializeDatabase, isBdReady } from "./DB-Engine/database";
 import startEmbedService from "./embedding/embedService";
 import { startStatusRotation } from "./zGears/setStatus";
-import urlStatusManager from "./embedding/domainChecker";
+import { startUrlStatusManager, startListDomains } from "./embedding/domainChecker";
 import { initI18n } from "./i18n";
 import { validateAllTranslations } from "./i18n/nsKeyCheck";
 import { startWelcomeEvents } from "../bgProcess/welcomeEvents";
@@ -16,8 +16,9 @@ import { startRedditChecker } from "../bgProcess/redditCheck";
 import { startMangadexChecker } from "../bgProcess/mangadexChek";
 import { startVoiceChannelService } from "../bgProcess/voicEvent";
 import { startCronpost } from "../bgProcess/exeCron";
-import lavalinkManager from "../bgProcess/lavalinkConnect";
+import lavalinkManager, { loadNodes } from "../bgProcess/lavalinkConnect";
 import registerIOevent from "./zGears/IO-Server";
+import { initNoEveryone } from "../bgProcess/noEvery";
 
 
 /*========= Inicializadores =========*/
@@ -32,21 +33,27 @@ async function main(): Promise<void> {
         const BDready = await isBdReady();
         await validateAllTranslations();
         if (lavalinkManager) { lavalinkManager.init(client); }
-        urlStatusManager.start();
         await client.login(process.env.DISCORD_BOT_TOKEN); /* Algunos ocupan ir antes del login, como lavalink */
-        startEmbedService(client);
         sysUpRegister(client);
         await registerIOevent(client);
         registerRolemojiEvents(client);
-        startStatusRotation(client);
         if (BDready) {
             info("💽​ Base de datos lista, iniciando servicios...")
+            const sld = await startListDomains()
+            if (sld) {
+                startUrlStatusManager();
+                startEmbedService(client);
+                info("Servicio de embed inicializado")
+            } else { error("❌ ERROR AL INICIAR EL SISTEMA DE EMBEDDING!!") }
+            loadNodes()
             startVoiceChannelService(client);
             startMangadexChecker(client);
             startYoutubeService(client); // by nep  
             startRedditChecker(client);  // by nowa
             await startWelcomeEvents(client);
             startCronpost(client);
+            startStatusRotation(client);
+            initNoEveryone(client);
         } else {
             error("❌ La BD no arranco, bye bye~");
             process.exit(1);

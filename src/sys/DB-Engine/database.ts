@@ -37,7 +37,6 @@ export async function initializeDatabase(): Promise<void> {
 
         await poolManager();
 
-        info(`✅ Base de datos completamente inicializada y todas las tablas verificadas`, "Database");
         return;
       } catch (err) {
         if (attempt < maxRetries) {
@@ -85,11 +84,16 @@ async function poolManager(): Promise<void> {
 
   // Tabla de comandos /welcome
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS welcome_configs (
+    CREATE TABLE IF NOT EXISTS welcome_banner (
       guild_id VARCHAR(30) NOT NULL,
       channel_id VARCHAR(30),
-      enabled BOOLEAN DEFAULT FALSE,
       custom_message TEXT,
+      fText TEXT,
+      sText TEXT,
+      tText TEXT,
+      background VARCHAR(255),
+      ringcolor VARCHAR(7),
+      exitmesseng BOOLEAN DEFAULT FALSE,
       PRIMARY KEY (guild_id)
     )
   `);
@@ -223,6 +227,7 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  // Tabla de limites
   await pool.query(`
     CREATE TABLE IF NOT EXISTS guild_limits (
       guild_id VARCHAR(50) PRIMARY KEY,
@@ -234,6 +239,42 @@ async function poolManager(): Promise<void> {
       yt_max INT DEFAULT 10
     )
   `);
+
+  // Tabla de estados
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS status_configs (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL
+    )
+  `);
+
+  // Tabla de Dominios
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS domains (
+      site VARCHAR(255) PRIMARY KEY,
+      domains VARCHAR(255) NOT NULL
+    )
+  `);
+
+  //Tabla lavalink
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS lavalinks (
+      name VARCHAR(255) PRIMARY KEY,
+      host VARCHAR(255) NOT NULL,
+      password VARCHAR(255) NOT NULL
+    )
+  `);
+
+  //Tabla noeveryone
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS noeveryone (
+      guild_id VARCHAR(50) PRIMARY KEY,
+      state BOOLEAN DEFAULT FALSE,
+      penality BOOLEAN DEFAULT FALSE,
+      role VARCHAR(50)
+    )
+  `);
+
 
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;

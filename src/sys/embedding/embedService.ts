@@ -1,64 +1,42 @@
 // src/sys/embeding/embedService.ts
-import { Client, Events, Message } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Events, Message } from "discord.js";
 import { getGuildReplacementConfig } from "../DB-Engine/links/Embed";
 import { getConfigMap } from "../DB-Engine/links/ReplyBots";
 import buildReplacements from "./index";
-import ApiReplacement from "./ApiReplacement";
 import { debug, error } from "../logging";
 import i18next from "i18next";
+import { urlProcess } from "./embedingSwitch";
 
-const apiDomains = [
-    ...(process.env.EMBEDEZ_SFW ? process.env.EMBEDEZ_SFW.split('|').map(s => s.trim()) : []),
-    ...(process.env.EMBEDEZ_NSFW ? process.env.EMBEDEZ_NSFW.split('|').map(s => s.trim()) : [])
-    ];
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
-const MAX_EMBEDS = 5;
-
 export default function startEmbedService(client: Client): void {
     client.on(Events.MessageCreate, async (message) => {
-        if (!client.user || message.author.id === client.user.id) {
-            debug(`Ignorando mensaje propio...`, "Events.MessageCreate");
-            return;
-        }
+        if (!client.user || message.author.id === client.user.id) return;
+        if (message.content.startsWith("$$")) return;
+        if (message.content.includes("https://embedez.com")) return;
+
+        const urls = [...message.content.matchAll(urlRegex)];
+        if (urls.length === 0) return;
 
         const guildId = message.guild?.id;
         const channelId = message.channel.id;
-        const guildReplacementConfig = guildId ? await getGuildReplacementConfig(guildId) : new Map();
-        const originalAuthorId = message.author.id;
         const isBot = message.author.bot;
-        const noEmb = message.content.startsWith("$$");
-        const domEmbedez = message.content.includes("https://embedez.com");
-        
-        if (noEmb || domEmbedez) {
-            debug(`Ignorando mensaje empieza con $$ o embedez.com...`, "Events.MessageCreate");
-            return;
-        }
+        const autorId = message.author.id;
 
         if (guildId) {
             const channelConfig = (await getConfigMap()).get(guildId)?.get(channelId);
-            if (channelConfig?.enabled === false) {
-                debug(`Canal: ${channelId} deshabilitado en gremio: ${guildId}`, "Events.MessageCreate");
-                return;
-            }
-            if (isBot && channelConfig?.replyBots !== true) {
-                debug(`No respondere a bots en canal: ${channelId} del gremio: ${guildId}`, "Events.MessageCreate");
-                return;
-            }
-        } else if (isBot) {
-            debug(`Ignorando mensaje de BOT`, "Events.MessageCreate");
-            return;
+            if (channelConfig?.enabled === false) return;
+            if (isBot && channelConfig?.replyBots !== true) return;
         }
-        
-        const replacements = buildReplacements(guildReplacementConfig);
-        const apiReplacer = new ApiReplacement();
-        const urls = [...message.content.matchAll(urlRegex)];
+
+        const guildConfigs = guildId ? await getGuildReplacementConfig(guildId) : new Map();
+        const replacements = buildReplacements(guildConfigs);
         const replacedUrls: string[] = [];
+        const origLink: string[] = [];
 
         for (const match of urls) {
-            let replacedUrl: string | null = null;
             let domainSite: string | null = null;
             const originalUrl = match[1];
-            
+
             try {
                 const urlObject = new URL(originalUrl);
                 domainSite = urlObject.hostname.replace('www.', '');
@@ -66,173 +44,198 @@ export default function startEmbedService(client: Client): void {
                 debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate");
                 continue;
             }
-    /* ==================================================== Ajuste para prioridad del API ==================================================== */
-            try {
-                const matchingDomain = apiDomains.find(d => domainSite?.endsWith(d)); 
-                if (matchingDomain) {
-                    const apiDomainConfig = guildReplacementConfig.get(matchingDomain);
-                    let apiEnabled = true;
-                    if (apiDomainConfig) {
-                        if (apiDomainConfig.enabled === false) {
-                            debug(`El uso del API esta deshabilitado para el dominio: ${matchingDomain} en el gremio: ${guildId}`, "Events.MessageCreate");
-                            apiEnabled = false;
-                        }
-                    } 
 
-                    if (apiEnabled) {
-                        const apiResult = await apiReplacer.getEmbedUrl(originalUrl);
-                        if (apiResult) {
-                            replacedUrl = apiResult;
-                            debug(`Sitio: ${domainSite} a sido procesado por ApiReplacement`, "Events.MessageCreate");
-                        }
-                    }
-                }
-            } catch (err) {
-                debug(`Erro en el API: ${(err as Error).message}`, "Events.MessageCreate");
-            }
-    /* ==================================================== No API ==================================================== */
-            if (!replacedUrl) {
-                for (const [key, replaceFunc] of Object.entries(replacements)) {
-                    const manualDomainConfig = guildReplacementConfig.get(key); 
-                    if (manualDomainConfig && manualDomainConfig.enabled === false) {
-                        continue;
-                    }
-                    
-                    if (new RegExp(key).test(originalUrl)) {
-                        const result = (replaceFunc as any)(originalUrl.replace(/\|/g, ""));
-                        if (result) {
-                            replacedUrl = result;
-                            debug(`Se uso el reemplazador local: ${key}`, "Events.MessageCreate");
-                            break; 
-                        }
-                    }
-                }
-            }
-    /* ==================================================== Procesamiento del mensaje ==================================================== */
+            const replacedUrl = await urlProcess(originalUrl, domainSite, guildId!, guildConfigs, replacements);
+
             if (replacedUrl) {
                 const hiddenMessage = message.content.split("||").length > 2;
-                let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl });
+                let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl.remp });
                 if (hiddenMessage) {
-                    messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: replacedUrl });
+                    messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: replacedUrl.remp });
                 }
                 replacedUrls.push(messageContent);
+                origLink.push(replacedUrl.org);
             }
         }
-    /* ==================================================== Borrado de embed del msg original ==================================================== */
-        if (replacedUrls.length > 0) {
-            const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-            const suppressEmbedsWithRetry = async (msg: Message) => {
-                for (let attempt = 1; attempt <= 4; attempt++) {
-                    try {
-                        await wait(attempt * 1200);
-                        const freshMsg = await msg.channel.messages.fetch(msg.id);
-                        if (freshMsg.flags.has('SuppressEmbeds')) {
-                            debug(`Se borro el embed de ${msg.id} despues de ${attempt} intentos.`, "Events.MessageCreate");
-                            return; 
-                        }
-                        await freshMsg.suppressEmbeds(true);
-                        debug(`Intento ${attempt} para borrar el embed de ${msg.id}.`, "Events.MessageCreate");
 
-                    } catch (err) {
-                        const errMsg: string = (err as Error).message;
-                        if (errMsg.includes("Unknown Message")) {
-                            debug(`Al guien borro el embed antes - Server: ${msg.guild?.id}`, "Events.MessageCreate");
-                            return; 
-                        }
-                        if (errMsg.includes("Missing Permissions")) {
-                            debug(`No tengo permisos para borrar mensajes en el canal: ${msg.channel.id} -Server: ${msg.guild?.id}`, "Events.MessageCreate");
-                            return; 
-                        }
-                        if (attempt === 4) {
-                            debug(`No se puedo borrar el embed del mensaje original, Error: ${errMsg}`, "Events.MessageCreate");
-                        }
-                    }
-                }
-            };
-    /* ==================================================== Check para comprobar el nuevo embed ==================================================== */
-            suppressEmbedsWithRetry(message);
-            for (let i = 0; i < replacedUrls.length; i += MAX_EMBEDS) {
-                const currentBatch = replacedUrls.slice(i, i + MAX_EMBEDS);
-                const mxRetry = 3;
-                let replyContent = currentBatch.join('\n');
-        /* Despues de como 8 formas/tiempos para comprobar que el embed si se generara, y despues de probar renviando/borrando el mesanje llegamos a usa edit y tiempos */
-                let embMessage: Message | null = null;
-                let editMessage: Message | null = null;
-                const isFirstBatch = (i === 0);
-
-                for (let attempt = 1; attempt <= mxRetry; attempt++) {
-                    try {
-                        if (editMessage === null) {
-                            if (isFirstBatch) {
-                                editMessage = await message.reply({ content: replyContent, allowedMentions: { repliedUser: false } });
-                            } else {
-                                editMessage = await message.channel.send(replyContent);
-                            }
-                        } else {
-                            if (!editMessage.channel.isTextBased()) continue;
-                            await editMessage.edit({ content: i18next.t("common:embedService.try", { a1: `${attempt - 1}/${mxRetry - 1}`,}), allowedMentions: { repliedUser: false } });
-                            await wait(attempt * 1500);
-                            await editMessage.edit({ content: replyContent, allowedMentions: { repliedUser: false } });
-                        }
-
-                        await wait(attempt === 1 ? 4000 : attempt === 2 ? 4500 : 5500);
-                        const freshMessage = await message.channel.messages.fetch({ message: editMessage.id, force: true }).catch(() => null);
-
-                        if (freshMessage && freshMessage.embeds.length > 0) {
-                            embMessage = freshMessage;
-                            debug(`Embed generado correctamente en intento ${attempt}`, "Events.MessageCreate");
-                            break;
-                        } else if (attempt === mxRetry && freshMessage?.deletable && freshMessage.editable) {
-                            try {
-                                let failMsg = i18next.t("common:embedService.msgFail");
-                                    if (freshMessage.content.includes("facebed.com/share")) {failMsg = i18next.t("common:embedService.msgFail_fb")};
-                                    if (freshMessage.content.split("||").length > 2) {failMsg = i18next.t("common:embedService.msgFail_spoiler")};
-                                const failureMsg = await freshMessage.edit({ content: failMsg , allowedMentions: { repliedUser: true } });
-                                setTimeout(() => failureMsg.delete().catch(() => {}), 10000);
-                                error(`Discord no genero el embed tras ${attempt} intentos. Gremio: ${message.guild?.name} | embURL: ${replyContent}`, "Events.MessageCreate");
-                            }  catch (e) { }
-                        }
-                    } catch (err) {
-                        error(`Error fatal en intento de envío ${attempt}: ${err} - ${message.guild?.id}`, "Events.MessageCreate");
-                        if (editMessage?.deletable) {
-                            await editMessage.delete().catch(() => {});
-                        }
-                        break; 
-                    }
-                }             
-        /* ==================================================== Borrado mediante emoji ❌ ==================================================== */           
-                if (!embMessage) continue;               
-                    try {
-                        await embMessage.react('❌');                
-                        const collector = embMessage.createReactionCollector({ 
-                            filter: (mr, u) => mr.emoji.name === '❌' && u.id === originalAuthorId, 
-                            max: 1, 
-                            time: 20000
-                        });
-
-                        collector.on('collect', async () => {
-                            try {
-                                if (embMessage?.deletable) await embMessage.delete();
-                            } catch (e) { debug("Error borrando mensaje tras reacción", "Events.MessageCreate"); }
-                        });
-
-                        collector.on('end', async (_, reason) => {
-                            if (reason === 'time') {
-                                try {
-                                    const reaction = embMessage?.reactions.cache.get('❌');
-                                    if (reaction?.me) await reaction.users.remove(client.user?.id);
-                                } catch (e) { /* Ignorar si el error es por permisos */ }
-                            }
-                        });
-                    } catch (err) {
-                    const errMsg: string = (err as Error).message;
-                    if (errMsg.includes("Missing Permissions")) {
-                        await message.channel.send({ content: i18next.t("common:embedService.emojErr")});
-                        return;
-                    }
-                    error(`Error al responder: ${errMsg}`, "Events.MessageCreate");                  
-                }
-            }
+        if (replacedUrls.length > 0 && origLink.length > 0) {
+            embeRemove(message);
+            post(message, replacedUrls, autorId, origLink);
         }
     });
-}
+};
+
+// =========== embdClean =========== //
+const embeRemove = async (msg: Message) => {
+    const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    for (let attempt = 1; attempt <= 4; attempt++) {
+        try {
+            await wait(attempt * 1_500);
+            const freshMsg = await msg.channel.messages.fetch(msg.id);
+            if (freshMsg.flags.has('SuppressEmbeds')) {
+                return;
+            }
+            await freshMsg.suppressEmbeds(true);
+            debug(`Intento ${attempt} para borrar el embed de ${msg.id}, Guild: ${msg.guild?.name}`, "Events.MessageCreate");
+
+        } catch (err) {
+            const errMsg: string = (err as Error).message;
+            if (errMsg.includes("Unknown Message")) {
+                debug(`Al guien borro el embed antes - Server: ${msg.guild?.name}`, "Events.MessageCreate");
+                return;
+            }
+            if (errMsg.includes("Missing Permissions")) {
+                debug(`No tengo permisos para borrar mensajes en el canal: ${msg.channel.id} -Server: ${msg.guild?.name}`, "Events.MessageCreate");
+                return;
+            }
+            if (attempt === 4) {
+                debug(`No se puedo borrar el embed del mensaje original, , Guild: ${msg.guild?.name}, Error: ${errMsg}`, "Events.MessageCreate");
+            }
+        }
+    }
+};
+
+// =========== post =========== //
+const post = async (msg: Message, replacedUrls: string[], autorId: string, origLink: string[]) => {
+    const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const MAX_MSG = 5;
+    const mxAtt = 3;
+    const canSend = msg.channel.isSendable();
+    const content = replacedUrls.join(' | ');
+    if (!canSend) return;
+
+    const xy = new ActionRowBuilder<ButtonBuilder>()
+    xy.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(origLink[0]));
+    if (origLink[1]) xy.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(origLink[1]));
+    if (origLink[2]) xy.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(origLink[2]));
+    if (origLink[3]) xy.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(origLink[3]));
+    if (origLink[4]) xy.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(origLink[4]));
+
+    const badEmbed = (embed: any): boolean => {
+        const embedText = JSON.stringify(embed).toLowerCase();
+        const noAllowed = [
+            "log in or sign up to view",
+            "sign up to continue",
+            "login to view",
+            "you need to log in",
+            "content is private",
+            "this content is only available to",
+            "that post doesn't exist :("
+        ];
+        return noAllowed.some(p => embedText.includes(p));
+    };
+
+    if (replacedUrls.length <= MAX_MSG) {
+        let sentMsg: Message;
+        try {
+            sentMsg = await msg.reply({ content: content, components: [xy], allowedMentions: { repliedUser: false } });
+        } catch (err) {
+            const errMsg = (err as Error).message;
+            if (!errMsg.includes("Missing Access") && !errMsg.includes("Missing Permissions")) {
+                error(`Error al enviar embed inicial: ${errMsg}, Guild: ${msg.guild?.name}`, "EmbedService");
+            } return
+        }
+
+        await wait(3_000);
+
+        let freshMsg = await msg.channel.messages.fetch(sentMsg.id).catch(() => null);
+        try {
+            for (let attempt = 1; attempt <= mxAtt && freshMsg && freshMsg.embeds.length === 0; attempt++) {
+                debug(`Sin embed, forzando regeneración - Intento ${attempt}`, "Events.MessageCreate");
+
+                await sentMsg.edit({ content: i18next.t("common:embedService.try", { a1: `${attempt}/${mxAtt}` }), allowedMentions: { repliedUser: false } });
+                await wait(2_000);
+
+                await sentMsg.edit({ content: content, allowedMentions: { repliedUser: false } });
+                await wait(2_500 * attempt);
+                freshMsg = await msg.channel.messages.fetch(sentMsg.id).catch(() => null);
+            }
+
+            if (freshMsg && freshMsg.embeds.length === 0) {
+                debug(`No se pudo generar embed después de reintentos, Guild: ${msg.guild?.name}.`, "Events.MessageCreate");
+                await sentMsg.edit({ content: i18next.t("common:embedService.msgFail"), allowedMentions: { repliedUser: false } }).catch(() => null);
+                await wait(10_000);
+                await sentMsg.delete().catch(() => null);
+                return;
+            }
+
+            if (freshMsg && freshMsg.embeds.length > 0 && badEmbed(freshMsg.embeds[0])) {
+                await sentMsg.edit({ content: i18next.t("common:embedService.badEmbed"), allowedMentions: { repliedUser: false } }).catch(() => null);
+                await wait(10_000);
+                await sentMsg.delete().catch(() => null);
+                return;
+            }
+
+        } catch (e) {
+            error(`error al generar embeds: ${e}, Guild: ${msg.guild?.name}`, "Events.MessageCreate")
+        }
+
+        if (sentMsg && autorId) deleteMSG(sentMsg, autorId);
+        return;
+    }
+
+    for (let i = 0; i < replacedUrls.length; i += MAX_MSG) {
+        const batch = replacedUrls.slice(i, i + MAX_MSG);
+        const buttonBatch = origLink.slice(i, i + MAX_MSG);
+        const yx = new ActionRowBuilder<ButtonBuilder>();
+        if (buttonBatch[0]) yx.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(buttonBatch[0]));
+        if (buttonBatch[1]) yx.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(buttonBatch[1]));
+        if (buttonBatch[2]) yx.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(buttonBatch[2]));
+        if (buttonBatch[3]) yx.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(buttonBatch[3]));
+        if (buttonBatch[4]) yx.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(buttonBatch[4]));
+        try {
+            const sentMsg = i === 0
+                ? await msg.reply({ content: batch.join(' | '), components: [yx], allowedMentions: { repliedUser: false } })
+                : await msg.channel.send({ content: batch.join(' | '), components: [yx] });
+            if (sentMsg && autorId) deleteMSG(sentMsg, autorId);
+        } catch (err) {
+            const errMsg = (err as Error).message;
+            if (!errMsg.includes("Missing Access") && !errMsg.includes("Missing Permissions")) {
+                error(`Error en ráfaga de embeds: ${errMsg}, Guild: ${msg.guild?.name}`, "EmbedService");
+            }
+            break;
+        }
+        await wait(1000);
+    }
+};
+
+// =========== emojiDelet =========== //
+const deleteMSG = async (msg: Message, autorId: string) => {
+    if (!msg.channel.isSendable() || !msg.deletable) return;
+    try {
+        await msg.react('❌');
+        const collector = msg.createReactionCollector({
+            filter: (reaction, user) => reaction.emoji.name === '❌' && user.id === autorId,
+            max: 1,
+            time: 20_000
+        });
+
+        collector.on('collect', async () => {
+            if (msg.deletable) {
+                await msg.delete().catch(() => { });
+            }
+            collector.stop();
+        });
+
+        collector.on('end', async (_, reason) => {
+            if (reason === 'time' && msg.reactions.cache.has('❌')) {
+                const reaction = msg.reactions.cache.get('❌');
+                if (reaction?.me) {
+                    await reaction.users.remove(msg.client.user?.id).catch(() => { });
+                }
+            }
+        });
+    } catch (err) {
+        const errMsg = (err as Error).message;
+        if (errMsg.includes("Missing Permissions") && msg.channel.isSendable()) {
+            await msg.channel.send({
+                content: i18next.t("common:embedService.emojErr"),
+                allowedMentions: { repliedUser: false }
+            }).catch(() => { });
+        }
+        // No loguear errores menores como Missing Access
+        if (!errMsg.includes("Missing Access")) {
+            error(`Error en deleteMSG: ${errMsg}, Guild: ${msg.guild?.name}`, "Events.MessageCreate");
+        }
+    }
+};

@@ -3,10 +3,9 @@
     "format_link": "[Embedding de {{Site}}]({{RemUrl}})",
     "format_link_spoiler": "||[Embedding de {{Site}}]({{RemUrl}})|| ",
     "msgFail": "Discord no genero el embed. \n Usa `$$` al inico del mensaje si no quieres que lo procese. `Este mensaje se borrara en 10s`",
-    "msgFail_fb": "Enlace \"compartir\" de Facebook `facebook.com/share/...` tiende a fallar mucho; mejor usa el link directo `facebook.com/rell|/video|/post...`!! \n `Este mensaje se borrara en 10s`",
+    "badEmbed": "El post parece no estar disponible al publico o no existe!!\n `Este mensaje se borrara en 10s`",
     "try": "🔄 Reintentando embeding. Intento: {{a1}} 🔄",
-    "emojErr": "Me faltan permisos. \"usa /test para verificar los permisos\"",
-    "msgFail_spoiler": "Los mensajes marcados como spoiler pueden no generar embed; reintentalo sin spoiler."
+    "emojErr": "Me faltan permisos. \"usa /test para verificar los permisos\""
   },
   "Errores": {
     "isAllowed": "⛔⛔ No te han asiganmado permisos para ejecutar este comando ⛔⛔",

@@ -6,7 +6,7 @@ import { registerTestCommand, handleTestCommand } from "./commands/test";
 import { registerHelpCommand, handleHelpCommand, helpAutocomplete } from "./commands/help";
 import { registerWorkCommand, handleWorkCommand } from "./commands/work";
 import { registerEmbedCommand, handleEmbedCommand, embedAutocomplete } from "./commands/embed";
-import { registerWelcomeCommand, handleWelcomeCommand } from "./commands/welcome";
+import { registerWelcomeCommand, handleWelcomeCommand, fontsAutocomplete } from "./commands/welcome";
 import { registerRolemojiCommand, handleRolemojiCommand } from "./commands/rolemoji"
 import { registerOwnerCommands, handleOwnerCommands, respondReportModal, modalTkn } from "../sys/zGears/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "./commands/youtube";
@@ -22,6 +22,8 @@ import { registerButtonLinkCommand, handleButtonLinkCommand } from "./commandBut
 import { registerCronpostCommand, handleCronPost } from "./commands/cronpost";
 import { handleLimitsModal } from "./commandModales/modalLimits";
 import { handleLimitsButton } from "./commandButtons/NewLimits";
+import { handleMypermissionsCommand, registerMypermissionsCommands } from "./commands/chkperm";
+import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess/noEvery";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -44,6 +46,8 @@ export async function sysUpRegister(client: Client) {
     ...(await registerRoleButtonCommand()),
     ...(await registerButtonLinkCommand()),
     ...(await registerCronpostCommand()),
+    ...(await registerMypermissionsCommands()),
+    ...(await registernoEveryoneCommand())
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -51,7 +55,7 @@ export async function sysUpRegister(client: Client) {
   const comandList = commands.map((command) => command.name).join(", /");
 
   client.application?.commands.set(commands)
-    .then(() => info(`Comandos /${comandList} registrados con éxito`, "Commands.Register"))
+    .then(() => info(`Comandos registrados (${commands.length}):\n/${comandList}`, "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
 }
 
@@ -101,6 +105,10 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handleButtonLinkCommand(interaction); break;
     case 'cronpost':
       await handleCronPost(interaction); break;
+    case 'server':
+      await handleMypermissionsCommand(interaction); break;
+    case 'noeveryone':
+      await handleNoEveryoneCommand(interaction); break;
     default:
       fail(interaction); break;
   }
@@ -116,6 +124,8 @@ export async function sysUpAutoComplete(interaction: AutocompleteInteraction) {
       await permisosAutocomplete(interaction); break;
     case "help":
       await helpAutocomplete(interaction); break;
+    case "welcome":
+      await fontsAutocomplete(interaction); break;
     default:
       error(`Autocompletado (${interaction.commandName}) inexistente!!`, "upCommands.AutoComplete"); break;
   }
@@ -134,6 +144,7 @@ export async function sysUpModals(interaction: ModalSubmitInteraction) {
     case interaction.customId.startsWith("token_verify_"):
       await modalTkn(interaction); break;
     default:
+      if (interaction.customId && interaction.customId.startsWith("modal_")) { return; }
       error(`Modal (${interaction.customId}) no manejado!!`, "upCommands.Modals"); break;
   }
 }
@@ -149,6 +160,7 @@ export async function sysUpButtons(interaction: ButtonInteraction) {
     case interaction.customId.startsWith("btn_openreport_"):
       await handleReportResponseButton(interaction); break;
     default:
+      if (interaction.customId && (interaction.customId.startsWith("btn_"))) { return; }
       error(`Boton (${interaction.customId}) no manejado!!`, "upCommands.Buttons"); break;
   }
 }

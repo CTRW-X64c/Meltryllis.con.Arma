@@ -13,6 +13,7 @@ interface QueueEntry {
     title: string;
     uri: string;
     duration: number;
+    textChannelId: string;
 }
 
 const musicQueue = new Map<string, QueueEntry[]>();
@@ -151,7 +152,8 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
             requester,
             title: track.info.title,
             uri: track.info.uri || "",
-            duration: track.info.length
+            duration: track.info.length,
+            textChannelId: interaction.channelId
         });
 
         if (result.loadType === 'playlist') {
@@ -173,7 +175,8 @@ async function handlePlay(interaction: ChatInputCommandInteraction, lavalink: La
 
         if (!currentPlaying.has(guildId)) {
             await playNext(guildId, player, interaction);
-            await deletReplyMsg(interaction);
+            const msg = await interaction.editReply(i18next.t("commands:mussic.interacciones.playlist_start"));
+            setTimeout(() => msg.delete().catch(() => { }), 2000);
             if (result.loadType === 'playlist') {
                 const msg = await (interaction.channel as TextChannel).send(message);
                 setTimeout(() => { msg.delete().catch(() => { }); }, 30000);
@@ -234,6 +237,13 @@ async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: La
     const player = lavalink.getPlayer(interaction.guildId!);
     const queue = musicQueue.get(interaction.guildId!) || [];
     const inChannelPlaying = currentPlaying.get(interaction.guildId!);
+    const guildId = interaction.guildId!;
+    const t = checkCooldown(guildId, "skip");
+    if (t.onCooldown) {
+        await interaction.reply({ content: i18next.t("commands:mussic.interacciones.span_skip", { a1: t.timeLeft }) });
+        await deletReplyMsg(interaction);
+        return;
+    }
 
     if (inChannelPlaying && queue.length > 0) {
         await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_01") });
@@ -250,6 +260,7 @@ async function handleSkip(interaction: ChatInputCommandInteraction, lavalink: La
 
     await interaction.reply({ content: i18next.t("commands:mussic.interacciones.Skip_03") });
     await deletReplyMsg(interaction);
+    startCooldown(guildId, "skip");
 }
 
 /* ========================= QUEUE ========================= */
@@ -259,6 +270,18 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
     const queue = musicQueue.get(guildId) || [];
     const current = currentPlaying.get(guildId);
     const cleanqueue = interaction.options.getString("clean");
+    const list: { name: string, value: string, inline: boolean }[] = []
+    const time = (num: number): string => {
+        const hours = Math.floor(num / 3600000);
+        const minutes = Math.floor((num % 3600000) / 60000)
+        const seconds = Math.floor((num % 60000) / 1000);
+        if (hours > 0) { return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}` }
+        else { return `${minutes}:${String(seconds).padStart(2, "0")}` }
+    }
+
+    const embed = new EmbedBuilder()
+        .setTitle(i18next.t("commands:mussic.interacciones.Queue_02"))
+        .setColor(0x00AE86)
 
     if (cleanqueue === "yes") { /*Ahora permite borrar la lista*/
         if (queue.length === 0 || !current) {
@@ -276,29 +299,27 @@ async function handleQueue(interaction: ChatInputCommandInteraction) {
     }
 
     if (!current && queue.length === 0) {
-        await interaction.reply(i18next.t("commands:mussic.interacciones.Queue_01"));
-        await deletReplyMsg(interaction);
-        return;
+        embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_01"));
+        list.push({ name: i18next.t("commands:mussic.interacciones.Queue_"), value: i18next.t("commands:mussic.interacciones.Queue_09"), inline: false })
     }
-
-    const embed = new EmbedBuilder()
-        .setTitle(i18next.t("commands:mussic.interacciones.Queue_02"))
-        .setColor(0x00AE86);
 
     if (current) {
-        embed.addFields({ name: i18next.t("commands:mussic.interacciones.Queue_03_name"), value: i18next.t("commands:mussic.interacciones.Queue_03_value", { a1: current.title, a2: current.uri, a3: current.requester }), inline: false });
+        if (queue.length === 0) {
+            embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_03_name") + `\n` + i18next.t("commands:mussic.interacciones.Queue_03_value", { a1: current.title, a2: current.uri, a3: current.requester }));
+            list.push({ name: i18next.t("commands:mussic.interacciones.Queue_01"), value: i18next.t("commands:mussic.interacciones.Queue_09"), inline: false })
+        }
+        else {
+            embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_03_name") + `\n` + i18next.t("commands:mussic.interacciones.Queue_03_value", { a1: current.title, a2: current.uri, a3: current.requester }) + `\n\n ${'='.repeat(70)}`);
+            let number = 0;
+            for (const data of queue) {
+                number++;
+                const X = data.title.length > 50 ? data.title.slice(0, 50) + "..." : data.title;
+                list.push({ name: `${number}.- ${X}`, value: `Añadida por: @${data.requester} | Duración: ${time(data.duration)} | [Ver en web](${data.uri})`, inline: false });
+                if (number >= 15) { embed.setFooter({ text: `Mostrando 15 de ${queue.length} canciones` }); break }
+            }
+        }
     }
-
-    if (queue.length > 0) {
-        const list = queue.slice(0, 10).map((song, i) =>
-            `**${i + 1}.** [${song.title}](${song.uri})`
-        ).join("\n");
-
-        const shortlist = queue.length > 10 ? `\n\n*...y ${queue.length - 10} más.*` : '';
-        embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_04", { a1: list, a2: shortlist }));
-    } else {
-        embed.setDescription(i18next.t("commands:mussic.interacciones.Queue_05"));
-    }
+    embed.addFields(list);
 
     await interaction.reply({ embeds: [embed] });
     await deletReplyMsg(interaction);
@@ -321,14 +342,16 @@ async function playNext(guildId: string, player: any, interaction?: ChatInputCom
 
     const song = queue.shift()!;
     currentPlaying.set(guildId, song);
-
     await player.playTrack({ track: { encoded: song.track } });
 
     const msg = i18next.t("commands:mussic.interacciones.pNext_02", { a1: song.title, a2: song.requester });
 
     try {
-        if (interaction && interaction.deferred && !interaction.replied) await interaction.editReply(msg);
-        else if (interaction?.channel) (interaction.channel as TextChannel).send(msg);
+        const channel = (lavalinkManager?.shoukaku?.connector as any).client.channels.cache.get(song.textChannelId) as TextChannel;
+        if (channel) {
+            const playingMsg = await channel.send(msg);
+            setTimeout(() => playingMsg.delete().catch(() => { }), 30_000);
+        }
     } catch (e) { }
 
     if (player.listenerCount('end') === 0) {
@@ -354,28 +377,40 @@ export async function checkVoiceEmptyShoukaku(oldState: VoiceState): Promise<voi
     }
 
     const botChannel = Meltrys.voice.channel;
-    if (botChannel && botChannel.members.size === 1) {
-        if (mapTimmers.has(guildId)) return;
-        const timer = setTimeout(async () => {
-            try {
-                const currentChannel = oldState.guild.members.me?.voice.channel;
-                if (currentChannel && currentChannel.members.size === 1) {
+    if (!botChannel) return;
+
+    const humanCount = botChannel.members.filter(m => !m.user.bot).size;
+
+    const leave = async () => {
+        try {
+            const currentChannel = oldState.guild.members.me?.voice.channel;
+            if (currentChannel) {
+                const noBots = currentChannel.members.filter(m => !m.user.bot).size;
+                if (noBots === 0) {
                     musicQueue.delete(guildId);
                     currentPlaying.delete(guildId);
                     await lavalinkManager?.shoukaku?.leaveVoiceChannel(guildId);
-                    debug(`Me desconecte en ${guildId}, nadie escuchando`);
+                    debug(`Me desconecté en ${guildId}, nadie escuchando`);
                 }
-            } catch (e) {
-                error(`Error en checkVoiceEmptyShoukaku: ${e}`);
-            } finally {
-                mapTimmers.delete(guildId);
             }
-        }, 10 * 1000); // 10 segundos
-        mapTimmers.set(guildId, timer);
-    } else {
-        if (mapTimmers.has(guildId)) {
-            clearTimeout(mapTimmers.get(guildId));
+        } catch (e) {
+            error(`Error en checkVoiceEmptyShoukaku: ${e}`);
+        } finally {
             mapTimmers.delete(guildId);
+        }
+    };
+
+    if (humanCount === 0) {
+        if (!mapTimmers.has(guildId)) {
+            const timer = setTimeout(() => leave(), 10 * 1000); // 10 segundos
+            mapTimmers.set(guildId, timer);
+        }
+    } else {
+        // Si hay humanos, CANCELAMOS cualquier temporizador activo (alguien volvió a entrar)
+        if (mapTimmers.has(guildId)) {
+            clearTimeout(mapTimmers.get(guildId)!);
+            mapTimmers.delete(guildId);
+            debug(`Usuario entró al canal en ${guildId}, cancelación abortada.`);
         }
     }
 }

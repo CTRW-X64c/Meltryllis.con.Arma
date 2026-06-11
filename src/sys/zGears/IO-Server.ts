@@ -4,7 +4,7 @@ import { info, error } from "../logging";
 import { adminChannel } from "./auxiliares";
 import { removeVoiceConfig } from "../DB-Engine/links/JointoVoice";
 import { clearGuildPermissions } from "../DB-Engine/links/Permission";
-import { removeWelcomeConfig } from "../DB-Engine/links/Welcome";
+import { removeWelcome } from "../DB-Engine/links/Welcome";
 import { deleteAllEmbedConfig } from "../DB-Engine/links/Embed";
 import { delleteAllMangadexConfig } from "../DB-Engine/links/Mangadex";
 import { delleteAllRedditConfig } from "../DB-Engine/links/Reddit";
@@ -17,7 +17,6 @@ import { removeGuildLimits } from "../DB-Engine/links/noRules";
 
 
 /* ================================================ Inicializacion de cliente ================================================ */
-
 export default async function registerIOevent(client: Client): Promise<void> {
   try {
     client.on(Events.GuildCreate, async (guild: Guild) => {
@@ -35,17 +34,14 @@ export default async function registerIOevent(client: Client): Promise<void> {
 }
 
 /* ================================================ Registrador de entradas ================================================ */
-
 async function handleGuildCreate(guild: Guild): Promise<void> {
   try {
     info(`📥 Me uni al servidor: ${guild.name} (ID: ${guild.id})`, "GuildCreate");
     const owner = await guild.fetchOwner().catch(() => null);
     const reportConfig = await adminChannel(guild.client);
-
     const embed = new EmbedBuilder()
       .setColor(0x00FF00)
       .setTitle('📥 Nuevo Servidor')
-      .setThumbnail(guild.iconURL() || guild.client.user.displayAvatarURL())
       .addFields(
         { name: '📌 Nombre', value: guild.name, inline: true },
         { name: '🆔 ID', value: guild.id, inline: true },
@@ -55,6 +51,8 @@ async function handleGuildCreate(guild: Guild): Promise<void> {
       .setFooter({ text: `Total servidores: ${guild.client.guilds.cache.size}` })
       .setTimestamp()
       .setColor(0x00FF00);
+    if (guild.iconURL()) embed.setThumbnail(guild.iconURL());
+    else if (owner) embed.setThumbnail(owner.user.displayAvatarURL());
 
     if (reportConfig.upChannel) {
       const channel = await guild.client.channels.fetch(reportConfig.channelId).catch(() => null) as TextChannel | null;
@@ -75,7 +73,6 @@ async function handleGuildCreate(guild: Guild): Promise<void> {
 }
 
 /* ================================================ Registrador de salidas ================================================ */
-
 async function handleGuildDelete(guild: Guild): Promise<void> {
   try {
     info(`❌ Fui expulsado/salí del servidor: ${guild.name} (ID: ${guild.id})`, "GuildDelete");
@@ -106,7 +103,6 @@ async function handleGuildDelete(guild: Guild): Promise<void> {
 }
 
 /* ================================================ Borrador de configuraciones ================================================ */
-
 export async function deleteGuildConfig(guild: Guild): Promise<boolean> {
   try {
     info(`🧹 Iniciando limpieza de base de datos para el gremio: ${guild.name}`, "GuildCleanup");
@@ -114,7 +110,7 @@ export async function deleteGuildConfig(guild: Guild): Promise<boolean> {
     const resultados = await Promise.allSettled([
       removeVoiceConfig(guild.id),
       clearGuildPermissions(guild.id),
-      removeWelcomeConfig(guild.id),
+      removeWelcome(guild.id),
       deleteAllEmbedConfig(guild.id),
       delleteAllMangadexConfig(guild.id),
       delleteAllRedditConfig(guild.id),
