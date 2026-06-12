@@ -25,7 +25,7 @@ async function preloadImagesAndFonts(): Promise<void> {
             const filePath = path.join(fontsPath, file);
             const fontName = path.parse(file).name;
             const status = GlobalFonts.registerFromPath(filePath, fontName);
-            fontStatuses[fontName] = status;
+            fontStatuses[fontName] = !!status;
             fonts.push({ name: fontName, value: fontName });
             debug(`Font: ${fontName} - ${status ? '✓' : '✗'}`, "WelcomeEvents");
         }
