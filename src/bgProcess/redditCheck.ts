@@ -188,9 +188,6 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     .replace(/\|/g, ' ')
                     .replace(emojiRegex, '');
 
-                const orgL = new ActionRowBuilder<ButtonBuilder>();
-                orgL.addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(`https://www.reddit.com/${permalink}`));
-
                 let messageContent;
                 if (nsfwCheck) {
                     messageContent = i18next.t("commands:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl });
@@ -198,7 +195,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                     messageContent = i18next.t("commands:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: formattedUrl });
                 }
 
-                await textChannel.send({ content: messageContent, components: [orgL] });
+                await publisher(messageContent, textChannel, permalink);
                 await new Promise(resolve => setTimeout(resolve, 3000));
             }
 
@@ -209,6 +206,34 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
         error(`[Reddit Checker]: Error procesando el feed de ${displayName}: ${err}`);
     }
 }
+
+
+/* ====================================== Publisher ====================================== */
+const publisher = async (msg: string, ch: TextChannel, orgURL: string) => {
+    try {
+        const boton = new ActionRowBuilder<ButtonBuilder>()
+            .addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(`https://www.reddit.com/${orgURL}`));
+        const sMsg = await ch.send({ content: msg, components: [boton] });
+        await new Promise(resolve => setTimeout(resolve, 3_000));
+        let freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
+        for (let attempt = 1; attempt <= 2 && freshMsg && freshMsg.embeds.length === 0; attempt++) {
+            await sMsg.edit({ content: "⏳", components: [boton] });
+            await new Promise(resolve => setTimeout(resolve, 3_000));
+
+            await sMsg.edit({ content: msg, components: [boton] });
+            await new Promise(resolve => setTimeout(resolve, 3_000 + (attempt * 1_000)));
+            freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
+        }
+
+        if (freshMsg && freshMsg.embeds.length === 0) {
+            await sMsg.delete().catch(() => null);
+            debug(`[Reddit Publisher]: Mensaje eliminado - no se generaron embeds para: ${orgURL}`);
+            return;
+        }
+    } catch (e) { error(`[Reddit Publisher]: Error al publicar: ${e}`) };
+}
+
+
 
 async function checkRedditFeeds(client: Client) {
     debug("[Reddit Checker]: Iniciando ciclo de revisión de feeds...");
