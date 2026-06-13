@@ -154,7 +154,8 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         roles: { data: i18next.t("help:info.roles") },
         URLs: {
           data0: { link: "https://discord.com/oauth2/authorize?client_id=847989699083632671&permissions=1512150789200&scope=bot", text: i18next.t("help:info.field_invite_name") },
-          data1: { link: "https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md", text: i18next.t("help:info.field_terms_name") }
+          data1: { link: "https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md", text: i18next.t("help:info.field_terms_name") },
+          data2: { link: "https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20Privacidad%20de%20Meltryllis%20con%20Arma!.md", text: i18next.t("help:info.field_privacy_name") }
         }
       }); break;
       /* ======================== CleanUp ======================== */
@@ -204,6 +205,10 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
           { name: i18next.t("help:mangadex.HelpEmb_Field_Name_2"), value: i18next.t("help:mangadex.HelpEmb_Field_Value_2") },
         ],
         footer: i18next.t("help:mangadex.HelpEmb_footer"),
+        URLs: {
+          data0: { link: "https://mangadex.org/", text: "MangaDex" },
+          data1: { link: "https://mdrss.tijlvdb.me/", text: "MDRSS" }
+        }
       }); break;
       /* ======================== Musica ======================== */
       case "05":

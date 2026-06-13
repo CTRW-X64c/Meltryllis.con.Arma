@@ -2,8 +2,8 @@
   "embedService": {
     "format_link": "[Embedding de {{Site}}]({{RemUrl}})",
     "format_link_spoiler": "||[Embedding de {{Site}}]({{RemUrl}})|| ",
-    "msgFail": "Discord no genero el embed. \n Usa `$$` al inico del mensaje si no quieres que lo procese. `Este mensaje se borrara en 10s`",
-    "badEmbed": "El post parece no estar disponible al publico o no existe!!\n `Este mensaje se borrara en 10s`",
+    "msgFail": "Discord no generó el embed. \n Usa '$$' al inicio del mensaje si no quieres que lo procese. `Este mensaje se borrara en 10s`",
+    "badEmbed": "El post parece no estar disponible al público o no existe!! \n `Este mensaje se borrara en 10s`",
     "try": "🔄 Reintentando embeding. Intento: {{a1}} 🔄",
     "emojErr": "Me faltan permisos. \"usa /test para verificar los permisos\""
   },
@@ -11,11 +11,11 @@
     "isAllowed": "⛔⛔ No te han asiganmado permisos para ejecutar este comando ⛔⛔",
     "isAdmin": "⛔⛔ Uso exclusivo para Administradores!! ⛔⛔",
     "noChannel": "⛔⛔ Este comando solo funciona en canales de texto del servidor ⛔⛔",
-    "switchGeneral": "Error en procesar el comando!!",
+    "switchGeneral": "¡Error al procesar el comando!",
     "noGuild": "⛔⛔ Este comando solo funciona en servidores!! ⛔⛔",
     "missing_permissions": "❌ Me faltan permisos en el canal de destino {{a1}}: {{a2}}",
     "missing_permissions_origen": "❌ Me faltan permisos en el canal de origen {{a1}}: \n {{a2}}",
-    "servLimit": "Se alcanzo el limite de este comando. {{a1}}/{{a2}}"
+    "servLimit": "Se alcanzó el límite de este comando. {{a1}}/{{a2}}"
   },
   "neTools": {
     "embed_title": "🌐 Estado de los  **dominios** de Embedding",

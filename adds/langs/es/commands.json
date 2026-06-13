@@ -1,8 +1,8 @@
 {
   "joinCreate": {
     "slashBuilder": {
-      "jointocreate_description": "Permite crear canales temporales de voz apartir de un canal de voz maestro",
-      "jointocreate_usage": "modo de configuracion",
+      "jointocreate_description": "Permite crear canales temporales de voz a partir de un canal de voz maestro",
+      "jointocreate_usage": "modo de configuración",
       "join_chanel_set": "Selecciona el canal de voz a configurar",
       "join_set": "set - \"Establece canal maestro\"",
       "join_disable": "disable - \"Desactiva el sistema\"",
@@ -13,11 +13,11 @@
       "error_bot_permissions": "❌ No tengo los permisos requeridos para hacer esto 🥺​",
       "set_success": "✅ **Canal maestro establecido:** {{a1}}\nLos usuarios que se unan a este canal crearán automáticamente su propia sala temporal.",
       "set_error": "❌ Error al establecer el canal maestro",
-      "error_not_configured": "❌ No hay configuracion activa",
-      "disable_success": "✅ **/jointocreate desactivado** \nYa no se generaran canales de voz.",
+      "error_not_configured": "❌ No hay configuración activa",
+      "disable_success": "✅ /jointocreate desactivado \nYa no se generarán canales de voz.",
       "disable_error": "❌ Error, no se pudo desactivar /jointocreate",
       "status_error": "❌ No pude obtener el estatus de /jointocreate",
-      "cleanup_confirm": "⚠️ **Se limpiaran todos los canales de voz temporales!! \n 20seg para confirmar****",
+      "cleanup_confirm": "⚠️ Se limpiarán todos los canales de voz temporales!! \n 20 seg para confirmar",
       "cleanup_cancelled": "❌ **Cancelado**",
       "cleanup_result": "✅ **Limpieza completada**\n• Canales eliminados: {{a1}}\n• Errores: {{a2}}",
       "cleanup_timeout": "❌ **Tiempo de espera agotado**",
@@ -572,10 +572,10 @@
   },
   "noeveryone": {
     "slashBuilder": {
-      "description": "Borra automaticamente los mensaje con @everyone/@here",
+      "description": "Borra automáticamente los mensajes con @everyone/@here",
       "estado_description": "Activa/Desactiva el sistema!",
-      "rol_description": "Asigan el Rol al que no se le borraran sus mensaje con @everyone/@here",
-      "penalidad_description": "Activa el sistema de suspension por spam!!"
+      "rol_description": "Asigna el Rol al que no se le borrarán sus mensajes con @everyone/@here",
+      "penalidad_description": "Activa el sistema de suspensión por spam!!"
     },
     "interacciones": {
       "embMaker_title": "Estado del sistema!!",
@@ -585,7 +585,7 @@
       "embMaker_estado_off": "🔴 Desactivado!!",
       "embMaker_rol_none": "**Ninguno**",
       "embMaker_penalidad": "Suspender en caso de spam:",
-      "embMaker_desc": "Si deseas retirar el Rol sin restricciones, menciónalo de nuevo! \n La penalizacion puede esacalar desde una hora a 12 horas; la sancion esacalan si se repite en un lapso de una hora.",
+      "embMaker_desc": "Si deseas retirar el Rol sin restricciones, ¡menciónalo de nuevo! \n La penalización puede escalar desde una hora a 12 horas; la sanción escala si se repite en un lapso de una hora.",
       "embMaker_desc_2": "\n\n\n\n **Debo tener el permiso \"moderar miembros\" y el rol con el permiso debe estar por encima de a quienes suspender** \n {{a1}}",
       "no_Perms": "❌ No tengo permisos suficientes para ejecutar este comando: \n {{a1}}",
       "embMaker_top": "Roles que puedo sancionar:",

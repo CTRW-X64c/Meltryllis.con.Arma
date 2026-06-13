@@ -5,7 +5,7 @@
     "default_switch_error": "La ayuda de este comando aún no está disponible y solo está aquí por los loles"
   },
   "embMaker": {
-    "no_need_permission": "**Este comando no requiere permisos!**",
+    "no_need_permission": "**¡Este comando no requiere permisos!**",
     "can_run_yes": "✅ Tienes permiso para usar el comando!!",
     "can_run_no": "❌ No puedes usar este comando!!",
     "hasPermission": "Permisos que tengo en {{a1}} y necesita el comando",
@@ -49,7 +49,6 @@
     "bitUseVAD": "🎤​ Usar detección de voz",
     "bitDeafenMembers": "🎧​ Ensordecer miembros",
     "bitMuteMembers": "🔈​ Silenciar miembros",
-    "top_rol": "Roles que estan debajo de mi, que podria modificar segun mis permisos:",
     "bitGuildInsights": "📈​ Estadisticas del servidor",
     "bitGuildMoney": "🪙 Ver análisis de monetización",
     "bitUseEmbeddedActivities": "🕹️​ Usar actividades",
@@ -65,12 +64,13 @@
     "embed_description": "Estoy aquí para ayudarte con los Embeds en Discord, ¡porque la verdad muchos apestan!",
     "field_invite_name": "Enlace de Invitación",
     "field_invite_value": "[Meltryllis con Arma!](https://discord.com/oauth2/authorize?client_id=847989699083632671&permissions=1512150789200&scope=bot)",
-    "field_terms_name": "Términos de Uso y Privacidad",
+    "field_terms_name": "T. Servicio",
     "field_terms_value": "[Declaración](https://github.com/CTRW-X64c/Meltryllis.con.Arma/blob/main/Terminos%20de%20servicio%20de%20Meltryllis%20con%20Arma!.md)",
     "field_issue_name": "¿Algo anda mal?",
     "field_issue_value": "En canales @everyone no necesito más permisos que los que pido al ser invitada; en canales privados usa /test para ver qué permisos faltan y asignármelos.\n - Si no ves los comandos es porque requieren permisos de Administrador. \n - Discord solo procesa máximo 5 enlaces por mensaje así que se divide automáticamente en lotes de 5 y puedes borrar el repost reaccionando a ❌ antes de que desaparezca (20s). \n\n - Puedes poner `$` al inicio del mensaje para evitar el embedding!",
     "footer_text": "SI QUIERES MÁS AYUDA DE CADA COMANDO PUEDES USAR /help <comando>.",
-    "roles": "Roles que estan debajo de mi"
+    "roles": "Roles que estan debajo de mi",
+    "field_privacy_name": "T. Privacidad"
   },
   "mangadex": {
     "HelpEmb_titulo": "Ayuda Mangadex",
@@ -238,15 +238,15 @@
     "name_1": "Probar en Canal:",
     "value_1": "Si no se espesifica un canal mostrara los permisos generales del servidor, estos pueden no tener efecto si el canal cuenta con sus propios permisos. \n > Solo aplican en canales @everyone!!",
     "name_2": "Marcar modo:",
-    "value_2": "Permisos de gestion: Permisos como Gestor de roles, Ban, Expulsar miembros... son inherentes a los permisos por canal. \n\n Regulares: Estos permisos dependen completamente de la configuracion del canal. \n\n > Por default se muestran todos los permisos! \n\n **Ser Administrador otorga todos los permisos!!**"
+    "value_2": "Permisos de gestión: Permisos como Gestor de roles, Ban, Expulsar miembros... son inherentes a los permisos por canal. \n\n Regulares: Estos permisos dependen completamente de la configuración del canal. \n\n > Por default se muestran todos los permisos! \n\n **Ser Administrador otorga todos los permisos!!**"
   },
   "noeveryone": {
     "title": "comando /noeveryone",
-    "description": "Borra todos los mensaje que contengan la mension @everyone/@here!",
-    "footer": "Limpio de mensiones globales!! ",
-    "name_1": "Sobre las funcione:",
-    "value_1": "El comando funciona de manera de \"update\" si ocupas cambiar una cosa solo mandas esa modificacion! \n Rol: te permite asignal un rol el cual no se ve afectado por el sistema. si queires removerlo solo mandalo denuevo! \n\n Penalizar: Al hacerlo por 2da vez \"aislara\" al usuario por una hora, despues 2hrs y cuando sea la 4ta vez 12hrs. \n\n La penalizacion no afecta, Bots, Owner y administradores; de igual manera a nadie cuya jerarquía de roles este por encima de mi \nPara poder penalizar usuarios ocupo el permiso \"Moderar Miembros\"",
-    "name_2": "Estos son los roles que podria sancionar: ",
+    "description": "¡Borra todos los mensajes que contengan la mención @everyone/@here!",
+    "footer": "Limpio de menciones globales!!",
+    "name_1": "Sobre las funciones:",
+    "value_1": "El comando funciona a modo de \"update\". ¡Si ocupas cambiar una cosa solo mandas esa modificación! \n Rol: Te permite asignar un rol el cual no se ve afectado por el sistema. ¡Si quieres removerlo, solo mándalo de nuevo! \n\n Penalizar: Al hacerlo por 2da vez \"aislará\" al usuario por una hora, después 2hrs y cuando sea la 4ta vez 12hrs. \n\n La penalización no afecta a Bots, Owner y administradores; de igual manera a nadie cuya jerarquía de roles esté por encima de la mía. \nPara poder penalizar usuarios ocupo el permiso \"Moderar Miembros\"",
+    "name_2": "Estos son los roles que podría sancionar:",
     "roles": "Roles que podria sancionar si activas la opcion y tengo los permisos"
   },
   "rolemaker": {

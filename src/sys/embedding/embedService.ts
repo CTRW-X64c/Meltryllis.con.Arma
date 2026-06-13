@@ -40,10 +40,7 @@ export default function startEmbedService(client: Client): void {
             try {
                 const urlObject = new URL(originalUrl);
                 domainSite = urlObject.hostname.replace('www.', '');
-            } catch (err) {
-                debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate");
-                continue;
-            }
+            } catch (err) { debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate"); continue }
 
             const replacedUrl = await urlProcess(originalUrl, domainSite, guildId!, guildConfigs, replacements);
 
@@ -52,9 +49,7 @@ export default function startEmbedService(client: Client): void {
                 let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl.remp });
                 if (hiddenMessage) {
                     messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: replacedUrl.remp });
-                }
-                replacedUrls.push(messageContent);
-                origLink.push(replacedUrl.org);
+                } replacedUrls.push(messageContent); origLink.push(replacedUrl.org);
             }
         }
 
