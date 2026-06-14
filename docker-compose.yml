@@ -8,68 +8,42 @@ services:
       DISCORD_BOT_TOKEN:
       HOST_DISCORD_USER_ID:
       REPORT_CHANNEL_ID:
-      DEBUG_MODE:
-    #lenguaje
-      LANGS_SUPPORTED:
-      LOCALE:
-    #Timmers
-      YT_RSSCHECK_TIME:
-      REDDIT_RSSCHECK_TIME:
-      REDDIT_CLIENT_ID:
-      REDDIT_CLIENT_SECRET:
-      MANGADEX_CHECK_TIMME:
-    #Configs
+      DEBUG_MODE: #para activar usa "on", "true" o "1".
+      # lenguaje
+      LANGS_SUPPORTED: es # para añadir mas necesitar crear las traducciones
+      LOCALE: es
+      # Timmers
+      YT_RSSCHECK_TIME: #esto ya cuenta con tiempo minimo interno
+      REDDIT_RSSCHECK_TIME: # esto cuanta con tiempoo minimo interno
+      REDDIT_CLIENT_ID: #checalo en tu APP panel  
+      REDDIT_CLIENT_SECRET: #checalo en tu APP panel  
+      EMBEDEZ_REDDITCHECK: # off si quieres que no use embedez y solo los dominios de reddit
+      MANGADEX_CHECK_TIMME: #esto ya cuenta con tiempo minimo interno
+      # Configs
       WELCOME_BANNER_URL:
       PUID:
       PGID:
-      TZ:
-    #Estados
-      STATUS_TIME_MINUTOS:
-      BOT_STATUS:
-    # DB configs 
+      TZ: #zona horaria, necesaria para /cronpost
+      # DB configs 
       DB_HOST:
       DB_USER:
       DB_PASSWORD:
       DB_DATABASE:
-    # Dominios de remplazo local
-      INSTAGRAM_FIX_URL: 
-      FACEBOOK_FIX_URL: facebed.com|facebook.com
-      PIXIV_FIX_URL: phixiv.net|pixiv.net
-      REDDIT_FIX_URL: rxddit.com|reddit.com
-      TIKTOK_FIX_URL: tnktok.com|tiktok.com
-      TWITTER_FIX_URL: fxtwitter.com|fixvx.com|twitter.com
-      YOUTUBE_FIX_URL: youtu.be
-      BSKY_FIX_URL: bskyx.app|bsky.app
-      TWITCH_FIX_URL: fxtwitch.seria.moe|twitch.tv
-      BILILI_FIX_URL: vxbilibili.com|bilibili.com
-      THRENDS_FIX_URL: fixthreads.net|threads.com
-      DEVIAN_FIX_URL: fixdeviantart.com|deviantart.com
-      TUMBLR_FIX_URL: txtumblr.com|tumblr.com
-      FURAFF_FIX_URL: fxfuraffinity.net|furaffinity.net
-      IMGUR_FIX_URL:
-      IWARA_FIX_URL: fxiwara.seria.moe
-    #Sitios soportados por Embedez https://embedez.com/api
-      APIs_FIX_URL: embedez.com/download|discord.com
-      EMBEDEZ_SFW: "tiktok.com|reddit.com|ifunny.co|snapchat.com|imgur.com|pinterest.com"
-      EMBEDEZ_NSFW: "danbooru.donmai.us|derpibooru.org|e621.net|e926.net|gelbooru.com|rule34.xxx|safebooru.org|hypnohub.net|konachan.com|yande.re|rule34.paheal.net|xbooru.com|tbib.org"
-    #Lavalink configs  
+      # Lavalink configs  
       LAVALINK_NAME:
       LAVALINK_HOST:
       LAVALINK_PORT:
       LAVALINK_PASSWORD:
-    depends_on:
-      mariadb
-# Descomenta "lavalink" si vas a hostear tu propio server lavalink 
-#     lavalink  
-    volumes:
-      meltryllis_data/logs:/app/logs
+    depends_on: mariadb
+    # Descomenta "lavalink" si vas a hostear tu propio server lavalink 
+    #     lavalink  
+    volumes: meltryllis_data/logs:/app/logs
 
   mariadb:
     image: mariadb:latest
     restart: unless-stopped
     container_name: meltryllis-bd
-    ports:
-      3306:3306
+    ports: 3306:3306
     environment:
       MYSQL_ROOT_PASSWORD:
       MYSQL_USER:
@@ -77,8 +51,7 @@ services:
       MYSQL_DATABASE:
       PGID:
       PUID:
-    volumes:
-      meltryllis_data/db:/var/lib/mysql
+    volumes: meltryllis_data/db:/var/lib/mysql
 
 ############## Si buscas hostear tu propio server lavalink descomenta esto ##############
 #  lavalink:
