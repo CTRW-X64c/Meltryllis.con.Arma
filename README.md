@@ -102,7 +102,9 @@ Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dom
 </details>
 
 # Política de Privacidad
-Meltryllis con Arma! es un bot multifuncional para Discord, diseñado principalmente para mejorar el Embedding sustituyendo dominios de URLs/Links, generar mensajes de bienvenida/despedida, y crear sistemas de autoroles mediante reacciones. La privacidad de los usuarios y servidores es nuestra prioridad.
+<details> <summary> Leer; el no leerlo no te exime de responsabilidad! </summary>
+ <br>
+ Meltryllis con Arma! es un bot multifuncional para Discord, diseñado principalmente para mejorar el Embedding sustituyendo dominios de URLs/Links, generar mensajes de bienvenida/despedida, y crear sistemas de autoroles mediante reacciones. La privacidad de los usuarios y servidores es nuestra prioridad.
 
 ¿Qué datos recopilamos? El bot no guarda el contenido de los mensajes. Únicamente almacenamos identificadores (IDs) proporcionados por la API de Discord estrictamente necesarios para su funcionamiento:
 
@@ -121,9 +123,11 @@ Borrado Manual: Los administradores pueden restaurar las configuraciones a su es
 
 Seguridad de Acceso:
 Para evitar abusos, los comandos de configuración de Meltryllis están estrictamente limitados. Solo el propietario del servidor (Owner), administradores, o usuarios con permisos explícitamente delegados mediante el comando /permisos pueden interactuar con estas funciones.
-
+</details>
 
 # Términos de Servicio
+<details> <summary> Leer; el no leerlo no te exime de responsabilidad! </summary>
+<br>
 Estos Términos de Servicio rigen el uso de nuestro bot, "Meltryllis con Arma!", proporcionado a través de la plataforma Discord. Al invitar, mantener o interactuar con el bot en su servidor, usted acepta cumplir y estar sujeto a los siguientes términos.
 
 1. Acuerdos y Cumplimiento:<br>
@@ -145,6 +149,7 @@ Toda información de configuración guardada puede estar sujeta a pérdida o cor
 
 5. Terminación del Servicio:<br>
 Nos reservamos el derecho de bloquear el acceso al bot, denegar el servicio, o abandonar/eliminar el bot de cualquier servidor en cualquier momento, por cualquier motivo y sin previo aviso (especialmente en casos de abuso o incumplimiento de los términos de Discord).
+</details>
 
 ## 💾​ Seccion tecnica
 
