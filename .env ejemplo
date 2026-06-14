@@ -13,6 +13,7 @@ AUTO_CLEAN_YOUTUBE_TIMMER=
 REDDIT_CHECK_TIMMER=
 REDDIT_CLIENT_ID=
 REDDIT_CLIENT_SECRET=
+EMBEDEZ_REDDITCHECK= 
 WELCOME_BANNER_URL=
 
 #Lavalink
@@ -20,28 +21,6 @@ LAVALINK_NAME=
 LAVALINK_HOST=
 LAVALINK_PORT=
 LAVALINK_PASSWORD=
-
-#Dominios
-BILILI_FIX_URL=
-BSKY_FIX_URL=
-DEVIAN_FIX_URL=
-FACEBOOK_FIX_URL=
-FURAFF_FIX_URL=
-IMGUR_FIX_URL=
-INSTAGRAM_FIX_URL=
-IWARA_FIX_URL=
-PIXIV_FIX_URL=
-REDDIT_FIX_URL=
-THRENDS_FIX_URL=
-TIKTOK_FIX_URL=
-TUMBLR_FIX_URL=
-TWITTER_FIX_URL=
-TWITCH_FIX_URL=
-YOUTUBE_FIX_URL=
-
-EMBEDEZ_API_FIX_URL=
-EMBEDEZ_SFW=tiktok.com|reddit.com|ifunny.co|snapchat.com|imgur.com|pinterest.com
-EMBEDEZ_NSFW=danbooru.donmai.us|derpibooru.org|e621.net|e926.net|gelbooru.com|rule34.xxx|safebooru.org|hypnohub.net|konachan.com|yande.re|rule34.paheal.netxbooru.com|tbib.org
 
 #Base de datos
 DB_HOST=

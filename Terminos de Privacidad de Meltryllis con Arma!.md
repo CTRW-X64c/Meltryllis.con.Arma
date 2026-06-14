@@ -20,4 +20,3 @@ Borrado Manual: Los administradores pueden restaurar las configuraciones a su es
 Seguridad de Acceso:
 Para evitar abusos, los comandos de configuración de Meltryllis están estrictamente limitados. Solo el propietario del servidor (Owner), administradores, o usuarios con permisos explícitamente delegados mediante el comando /permisos pueden interactuar con estas funciones.
 
-Estos Términos de Servicio rigen el uso de nuestro bot, "Meltryllis con Arma!", proporcionado a través de la plataforma Discord. Al invitar, mantener o interactuar con el bot en su servidor, usted acepta cumplir y estar sujeto a los siguientes términos.

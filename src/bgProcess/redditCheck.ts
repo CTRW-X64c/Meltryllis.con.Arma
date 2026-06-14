@@ -137,6 +137,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 const rDmn = urlStatusManager.getActiveUrl("reddit");
                 if (process.env.EMBEDEZ_REDDITCHECK !== "off" && aDmn?.includes("embedez.com")) baseUrl = `${aDmn}?q=https://www.reddit.com`;
                 else baseUrl = rDmn;
+                if (baseUrl === null) { error("[Reddit Checker]: sin dominios disponibles!!"); return };
 
                 const hint = post.post_hint; const noHint = post.is_gallery || post.is_video;
                 switch (feed.filter_mode) {
@@ -182,30 +183,34 @@ let failPostQueue = new Map<string, data>();
 interface data { dmsg: string; dch: TextChannel; dlink: string; }
 const publisher = async (msg: string, ch: TextChannel, link: string, idPost?: string) => {
     try {
-        const URL = `https://www.reddit.com${link}`;
-        const boton = new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(URL));
+        let eMsg = msg; const URL = `https://www.reddit.com${link}`;
+        const boton = new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(URL));
+        if (!idPost) {
+            if (msg.includes("NSFW")) eMsg = i18next.t("commands:reddit.check.Reduit_pioste_nsfw_resend", { a1: URL });
+            else eMsg = i18next.t("commands:reddit.check.Reduit_pioste_resend", { a1: URL });
+        };
 
-        const sMsg = await ch.send({ content: msg, components: [boton] });
-        await wait(3_000);
+        const sMsg = await ch.send({ content: eMsg, components: [boton] });
+        if (idPost) {
+            await wait(3_000);
+            let freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
+            for (let attempt = 1; attempt <= 2 && freshMsg && freshMsg.embeds.length === 0; attempt++) {
+                await sMsg.edit({ content: "⏳", components: [boton] });
+                await wait(2_000);
 
-        let freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
-        for (let attempt = 1; attempt <= 2 && freshMsg && freshMsg.embeds.length === 0; attempt++) {
-            await sMsg.edit({ content: "⏳", components: [boton] });
-            await wait(2_000);
+                await sMsg.edit({ content: eMsg, components: [boton] });
+                await wait(2_500 + (attempt * 1_000));
+                freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
+            }
 
-            await sMsg.edit({ content: msg, components: [boton] });
-            await wait(2_500 + (attempt + 1_000));
-            freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
+            if (freshMsg && freshMsg.embeds.length === 0) {
+                failPostQueue.set(idPost, { dmsg: msg, dch: ch, dlink: link }); checkFailQueue();
+                await sMsg.delete().catch(() => null);
+                debug(`[Reddit Publisher]: Mensaje eliminado - no se generaron embeds para: ${URL} `);
+                return;
+            }
         }
-
-        if (freshMsg && freshMsg.embeds.length === 0) {
-            if (idPost) { failPostQueue.set(idPost, { dmsg: msg, dch: ch, dlink: link }); checkFailQueue(); }
-            await sMsg.delete().catch(() => null);
-            debug(`[Reddit Publisher]: Mensaje eliminado - no se generaron embeds para: ${URL}`);
-            return;
-        }
-    } catch (e) { error(`[Reddit Publisher]: Error al publicar: ${e}`) }
+    } catch (e) { error(`[Reddit Publisher]: Error al publicar: ${e} `) }
 }
 
 // Lista de fallidos
@@ -218,7 +223,7 @@ const checkFailQueue = async () => {
 
     for (const post of list) {
         await publisher(post.dmsg, post.dch, post.dlink);
-        await wait(2_000);
+        await wait(1_000);
     }
 
     failPost = false;
@@ -238,11 +243,11 @@ async function checkRedditFeeds(client: Client) {
         }
 
         const feedsToProcess = allFeeds.slice(currentFeedIndex, currentFeedIndex + BATCH_SIZE);
-        debug(`[Reddit Checker]: Revisando ${feedsToProcess.length} feeds (desde el índice ${currentFeedIndex}).`);
+        debug(`[Reddit Checker]: Revisando ${feedsToProcess.length} feeds(desde el índice ${currentFeedIndex}).`);
 
         await Promise.all(feedsToProcess.map(feed => processSingleFeed(client, feed)));
         currentFeedIndex += BATCH_SIZE;
-    } catch (err) { error(`[Reddit Checker]: Error en el ciclo principal del checker: ${err}`) }
+    } catch (err) { error(`[Reddit Checker]: Error en el ciclo principal del checker: ${err} `) }
 }
 
 // Inicializador de timer y espera al inicio. 
@@ -258,13 +263,13 @@ export function startRedditChecker(client: Client) {
 
     setTimeout(() => {
         checkRedditFeeds(client).catch(err => {
-            error(`[Reddit Checker] Error al iniciar, ERROR: ${err}`);
+            error(`[Reddit Checker] Error al iniciar, ERROR: ${err} `);
         });
     }, 30000);
 
     setInterval(() => {
         checkRedditFeeds(client).catch(err => {
-            error(`[Reddit Checker] Error durante check, ERROR: ${err}`);
+            error(`[Reddit Checker] Error durante check, ERROR: ${err} `);
         });
     }, rssCheckTimmer);
 }

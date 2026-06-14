@@ -25,70 +25,81 @@ Nosotros no tenemos ninguna injerencia, control o disponibilidad sobre estos dom
 
  Varios comandos como "/embed configurar", opciones de /help, usan Autocompletado debido al limite de 25 items, solo escribie lo que buscas hasta que aparesca. 
 
- - /help:
-    - Report: Permite mandar mansajes al desarrollador.
-    - Command: Muetras la informacion del comando seleccionmado, si puedes ejecutarlo y si cuanta con permisos en el canal para hacaerlo.
- - /embed configurar = Desactivar & Cambiar Dominio.
- - /rolemoji: 
-    - set: Establecer Emojis para reaccionar y recibir rol asociado. 
-    - list: Muestra todo los "Rolemoji" hechos.
-    - remove: Remover el "Rolemojis".
- - /welcome: Establece un mensaje de bienvenida, puedes usar <user> para mencionar al que se une.
- - /test: 
-    - Channel/Guild: Revisa por canal o todo el server, (max 24 canales), donde funciona el bot.
-    - Embed: para ver las configuraciones de los embeddings. 
-    - Chekdomainds: Pingea a los dominios de los embeds. (solo los default)
- - /work:
-    - workhere: permite desactivar la funcion de embed en el canal.
-    - replybot: habilita que procese link provenientes de bots en el canal.
- - /youtube:
-    - lista: Muestra todos los canales que se suiguen en el server.
-    - seguir: Sigue el canal de youtube.
-    - dejar: Dejas de seguir el canal de youtube.
-    - test: Piblica el ultimo video del canal seleccionado. 
- - /reddit:
-    - lista: Muestra los subreddits que se suiguen en el server.
-    - seguir: Seguir un Subreddit.
-    - dejar: Deja de seguir un Subreddit.
-    - test: Publica el ultimo pos del subreddit.
- - /cleanup:
-    - start: Apartir o anteriores del mesanje.
-    - menssage_id: Id del mensaje del cual see parte.
-    - count: cantidad de mesnjes a borrar, Limitado a 100 porlimitaciones de discord.
-    - type: Solo mesnajes de bots, solo usuarios, todos.
+- /help:
+  - Report: Permite mandar mansajes al desarrollador.
+  - Command: Muetras la informacion del comando seleccionmado, si puedes ejecutarlo y si cuanta con permisos en el canal para hacaerlo.
+- /embed configurar = Desactivar & Cambiar Dominio.
+- /rolemoji: 
+  - set: Establecer Emojis para reaccionar y recibir rol asociado. 
+  - list: Muestra todo los "Rolemoji" hechos.
+  - remove: Remover el "Rolemojis".
+- /welcome: Establece un mensaje de bienvenida, puedes usar <user> para mencionar al que se une.
+- /test: 
+  - Channel/Guild: Revisa por canal o todo el server, (max 24 canales), donde funciona el bot.
+  - Embed: para ver las configuraciones de los embeddings. 
+  - Chekdomainds: Pingea a los dominios de los embeds. (solo los default)
+- /work:  
+  - workhere: permite desactivar la funcion de embed en el canal.
+  - replybot: habilita que procese link provenientes de bots en el canal.
+- /youtube:
+  - lista: Muestra todos los canales que se suiguen en el server.
+  - seguir: Sigue el canal de youtube.
+  - dejar: Dejas de seguir el canal de youtube.
+  - test: Piblica el ultimo video del canal seleccionado. 
+- /reddit:
+  - lista: Muestra los subreddits que se suiguen en el server.
+  - seguir: Seguir un Subreddit.
+  - dejar: Deja de seguir un Subreddit.
+  - test: Publica el ultimo pos del subreddit.
+- /cleanup:
+  - start: Apartir o anteriores del mesanje.
+  - menssage_id: Id del mensaje del cual see parte.
+  - count: cantidad de mesnjes a borrar, Limitado a 100 porlimitaciones de discord.
+  - type: Solo mesnajes de bots, solo usuarios, todos.
 - /cronpost
-    - crear: Programa un post automatico, Pueden ser fechas exactas o todos/un dia de la semana.
-    - lista: Muestra todos los post automaticos acctivos.
-    - showpost: Muestra la previa del post automatico.
-    - borrar: Borrar el progrma ade un post automatico.
- - /jointovoice: 
-    - set: Establece el canal maestro de voz
-    - status: Muestra los canales temporales y configuraciones.
-    - disable: Desactiva "/jointovoice"
-    - cleanup: Borra todos los canales temporales activos. 
-  - /mangadex:
-    - lista = Muestra todos los mangas que se suiguen en el server.
-    - seguir = Publica las actualizaciones de un manga, se puede filtrar por idioma.
-    - dejar = Dejar de seguir un manga, requiere el ID de adicion, se puede ver con /mangadex lista.
-    - test = Planeado para algun futuro.
-  - /permisos: |ESTE PERMISO SOLO Y UNICAMENTE PUEDE SER USADO POR ADMINISTRADORES/DUEÑO DEL SERVER|
-    - set: Asigna a un usuario/rol permisos para usar comandos.
-    - list: Muestra los usuarios/roles con permisos.
-    - remove: Quita los permisos de un rol/usurio.
-    - limpiar: Quita todos los permisos del server.
-  - /perpermisos-server: Permite revisar los permisos que pose un Usuario y los que otorga un Rol.
-    - Canal:
-      - on: Muestras los permisos que tiene el usuario o Rol en un canal espesifico. 
-      - off: Muestra los permisos por default que tiene el usuario o Rol en general, difieren en canales con permisos personalizados.
-  - /buttonlink
-    - Permite crear botones con links. Mx. 5 por post
-  - /buttonrole
-    - Permite crear botones que asignan un Rol. Mx. 5 botones por post. 
-    - Se puede crear un mensaje personalizado al asignar el rol. 
-  - Comandos de musica [ /PLAY | /STOP | /QUEUE | /SKIP ]
+  - crear: Programa un post automatico, Pueden ser fechas exactas o todos/un dia de la semana.
+  - lista: Muestra todos los post automaticos acctivos.
+  - showpost: Muestra la previa del post automatico.
+  - borrar: Borrar el progrma ade un post automatico.
+- /jointovoice: 
+  - set: Establece el canal maestro de voz
+  - status: Muestra los canales temporales y configuraciones.
+  - disable: Desactiva "/jointovoice"
+  - cleanup: Borra todos los canales temporales activos. 
+- /mangadex:
+  - lista = Muestra todos los mangas que se suiguen en el server.
+  - seguir = Publica las actualizaciones de un manga, se puede filtrar por idioma.
+  - dejar = Dejar de seguir un manga, requiere el ID de adicion, se puede ver con /mangadex lista.
+  - test = Planeado para algun futuro.
+- /permisos: |ESTE PERMISO SOLO Y UNICAMENTE PUEDE SER USADO POR ADMINISTRADORES/DUEÑO DEL SERVER|
+  - set: Asigna a un usuario/rol permisos para usar comandos.
+  - list: Muestra los usuarios/roles con permisos.
+  - remove: Quita los permisos de un rol/usurio.
+  - limpiar: Quita todos los permisos del server.
+- /server: Permite revisar los permisos que pose un Usuario y los que otorga un Rol.
+  - Rol:
+    - Permite ver que roles estan debajo de otros segun el permiso. 
+  - Bits:
+    - on: Muestras los permisos que tiene el usuario o Rol en un canal espesifico. 
+    - off: Muestra los permisos por default que tiene el usuario o Rol en general, difieren en canales con permisos personalizados.
+- /buttonlink
+  - Permite crear botones con links. Mx. 5 por post
+- /buttonrole
+  - Permite crear botones que asignan un Rol. Mx. 5 botones por post. 
+  - Se puede crear un mensaje personalizado al asignar el rol. 
+- Comandos de musica [ /PLAY | /STOP | /QUEUE | /SKIP ]
+- /noeveryone: 
+  - Borra automaticamente automaticamente las menciones @everyone|@here.
+  - Permite añadir un rol el cual puede usarlos sin restriccion
+  - Puede auto penalizar usuarios que spamen las menciones @everyone|@here; restringe el chat, desde una hora hasta doce horas!
+- /post
+  - msg: envia un mensaje a un canal atravez del bot.
+  - copy: copia un mensaje existente y publicalo atravez del bot.
+  - reply; permite constestar mensajes.
+  - edit: permite editar cualquier mensaje publicado por el bot.
+
 
 </details>
-
 
 # Política de Privacidad
 Meltryllis con Arma! es un bot multifuncional para Discord, diseñado principalmente para mejorar el Embedding sustituyendo dominios de URLs/Links, generar mensajes de bienvenida/despedida, y crear sistemas de autoroles mediante reacciones. La privacidad de los usuarios y servidores es nuestra prioridad.
@@ -135,7 +146,6 @@ Toda información de configuración guardada puede estar sujeta a pérdida o cor
 5. Terminación del Servicio:<br>
 Nos reservamos el derecho de bloquear el acceso al bot, denegar el servicio, o abandonar/eliminar el bot de cualquier servidor en cualquier momento, por cualquier motivo y sin previo aviso (especialmente en casos de abuso o incumplimiento de los términos de Discord).
 
-
 ## 💾​ Seccion tecnica
 
 <details> <summary> ⚙️​ Variables de configuraciones </summary>
@@ -159,11 +169,11 @@ services:
       HOST_DISCORD_USER_ID: "Tu ID de Usuario de discord" #Marca a quien reconoce como dueño para ciertos comandos.
       REPORT_CHANNEL_ID: "guildId|channelId" #Aqui llegarn los reportes.
     #Idiomas
-      LANGS_SUPPORTED: "es, en, pt" #idiomas que soporta el bot
-      LOCALE: "es" #Idioma que tendra los comandos
+      LANGS_SUPPORTED: "es" #idiomas que soporta el bot "es, en, pt"
+      LOCALE: "es" #Idioma que tendra los comandos por defualt
     #Configuraciones
-      DEBUG_MODE: "0" #si se asigna 0 es debug, cualquier otros es produccion
-      WELCOME_BANNER_URL: "https://host.com/img.jpg" #URL para el Banner, 200x600
+      DEBUG_MODE: "" #por defaul es produccion, para modo debug usa, "on", "true" o "1"
+      WELCOME_BANNER_URL: "https://host.com/img.jpg" #URL para el Banner. Relacion 1:3 recomendada 
       PUID: 1000 #Usuario ID/Grupo para escribir datos
       PGID: 1000 #Grupo ID/Grupo para escribir datos
       TZ: "America/New_York" #Zona Horaria importante para /cronpost y el log
@@ -183,11 +193,6 @@ services:
       LAVALINK_HOST: "127.0.0.1" #IP/Dominio/Docker name
       LAVALINK_PORT: "2333" #Puerto default no seguro
       LAVALINK_PASSWORD: "youshallnotpass" # contraseña si no es la default
-    #Lavalink nodos adicionales
-      LAVALINK_NAME_{id}:
-      LAVALINK_HOST_{id}:
-      LAVALINK_PORT_{id}:
-      LAVALINK_PASSWORD_{id}:
     #Ahora los dominios se gestionan desde la BD con el comando de dueño
       BOT_STATUS: "Playing|Guns and Nuns: Storming Hell;Listening|kyOresu - MAGICAL DOOMER" #Tipos de activodad "Playing", "Watching", "Listening", "Streaming", "Competing"
       STATUS_TIME_MINUTOS: 60 #Tiempo de Rotacion de BOT_STATUS
@@ -235,116 +240,149 @@ services:
 
 ```
 📦
-┣ 📂src
-┃ ┣ 📂bgProcess
-┃ ┃ ┣ 📜exeCron.ts  
-┃ ┃ ┣ 📜lavalinkConnect.ts
-┃ ┃ ┣ 📜mangadexChek.ts
-┃ ┃ ┣ 📜redditCheck.ts
-┃ ┃ ┣ 📜rolemojiEvents.ts
-┃ ┃ ┣ 📜voicEvent.ts
-┃ ┃ ┣ 📜welcomeEvents.ts
-┃ ┃ ┗ 📜youtubeCheck.ts
-┃ ┣ 📂commands
-┃ ┃ ┣ 📂commandButtons
-┃ ┃ ┃ ┣ 📜buttonLink.ts
-┃ ┃ ┃ ┣ 📜NewLimits.ts
-┃ ┃ ┃ ┗ 📜roleButton.ts
-┃ ┃ ┣ 📂commandModales
-┃ ┃ ┃ ┣ 📜modalLimits.ts
-┃ ┃ ┃ ┗ 📜reportHelp.ts
-┃ ┃ ┣ 📂commands
-┃ ┃ ┃ ┣ 📜chkperm.ts
-┃ ┃ ┃ ┣ 📜cleanup.ts
-┃ ┃ ┃ ┣ 📜cronpost.ts
-┃ ┃ ┃ ┣ 📜embed.ts
-┃ ┃ ┃ ┣ 📜help.ts
-┃ ┃ ┃ ┣ 📜jointovoice.ts
-┃ ┃ ┃ ┣ 📜mangadex.ts
-┃ ┃ ┃ ┣ 📜music.ts
-┃ ┃ ┃ ┣ 📜permission.ts
-┃ ┃ ┃ ┣ 📜post.ts
-┃ ┃ ┃ ┣ 📜reddit.ts
-┃ ┃ ┃ ┣ 📜rolemoji.ts
-┃ ┃ ┃ ┣ 📜test.ts
-┃ ┃ ┃ ┣ 📜welcome.ts
-┃ ┃ ┃ ┣ 📜work.ts
-┃ ┃ ┃ ┗ 📜youtube.ts
-┃ ┃ ┗ 📜upCommands.ts
-┃ ┣ 📂sys
-┃ ┃ ┣ 📂DB-Engine
-┃ ┃ ┃ ┣ 📂links
-┃ ┃ ┃ ┃ ┣ 📜Cronpost.ts
-┃ ┃ ┃ ┃ ┣ 📜Embed.ts
-┃ ┃ ┃ ┃ ┣ 📜JointoVoice.ts
-┃ ┃ ┃ ┃ ┣ 📜Mangadex.ts
-┃ ┃ ┃ ┃ ┣ 📜noRules.ts
-┃ ┃ ┃ ┃ ┣ 📜Permission.ts
-┃ ┃ ┃ ┃ ┣ 📜Reddit.ts
-┃ ┃ ┃ ┃ ┣ 📜ReplyBots.ts
-┃ ┃ ┃ ┃ ┣ 📜roleButtons.ts
-┃ ┃ ┃ ┃ ┣ 📜Rolemoji.ts
-┃ ┃ ┃ ┃ ┣ 📜Welcome.ts
-┃ ┃ ┃ ┃ ┗ 📜Youtube.ts
-┃ ┃ ┃ ┗ 📜database.ts
-┃ ┃ ┣ 📂embedding
-┃ ┃ ┃ ┣ 📂webs
-┃ ┃ ┃ ┃ ┣ 📜Bilibili.ts
-┃ ┃ ┃ ┃ ┣ 📜Bsky.ts
-┃ ┃ ┃ ┃ ┣ 📜DeviantArt.ts
-┃ ┃ ┃ ┃ ┣ 📜Facebook.ts
-┃ ┃ ┃ ┃ ┣ 📜Furaffinity.ts
-┃ ┃ ┃ ┃ ┣ 📜Imgur.ts
-┃ ┃ ┃ ┃ ┣ 📜Instagram.ts
-┃ ┃ ┃ ┃ ┣ 📜Iwara.ts
-┃ ┃ ┃ ┃ ┣ 📜Pixiv.ts
-┃ ┃ ┃ ┃ ┣ 📜Reddit.ts
-┃ ┃ ┃ ┃ ┣ 📜Threads.ts
-┃ ┃ ┃ ┃ ┣ 📜TikTok.ts
-┃ ┃ ┃ ┃ ┣ 📜Tumblr.ts
-┃ ┃ ┃ ┃ ┣ 📜Twitch.ts
-┃ ┃ ┃ ┃ ┣ 📜Twitter.ts
-┃ ┃ ┃ ┃ ┗ 📜YouTube.ts
-┃ ┃ ┃ ┣ 📜ApiReplacement.ts
-┃ ┃ ┃ ┣ 📜domainChecker.ts
-┃ ┃ ┃ ┣ 📜EmbedingConfig.ts
-┃ ┃ ┃ ┣ 📜embedService.ts
-┃ ┃ ┃ ┣ 📜index.ts
-┃ ┃ ┃ ┗ 📜RuleReplacement.ts
-┃ ┃ ┣ 📂i18n
-┃ ┃ ┃ ┣ 📜index.ts
-┃ ┃ ┃ ┗ 📜nsKeyCheck.ts
-┃ ┃ ┣ 📂zGears
-┃ ┃ ┃ ┣ 📜auxiliares.ts
-┃ ┃ ┃ ┣ 📜IO-Server.ts
-┃ ┃ ┃ ┣ 📜mPermission.ts
-┃ ┃ ┃ ┣ 📜neTools.ts
-┃ ┃ ┃ ┣ 📜owner.ts
-┃ ┃ ┃ ┣ 📜RedditApi.ts
-┃ ┃ ┃ ┗ 📜setStatus.ts
-┃ ┃ ┣ 📜core.ts
-┃ ┃ ┣ 📜environment.ts
-┃ ┃ ┗ 📜logging.ts
-┃ ┗ 📜index.ts
-┃
-┣ 📂adds
-┃ ┣ 📂fonts
-┃ ┃ ┣ 📜Bitcount.ttf
-┃ ┃ ┗ 📜StoryScript-Regular.ttf
-┃ ┗ 📂langs
-┃   ┗ 📂es
-┃     ┣ 📜botones.json
-┃     ┣ 📜commands.json
-┃     ┣ 📜common.json
-┃     ┗ 📜help.json
-┃
-┗ 📂logs
-  ┗ 📂{date}
-    ┣ combined.log
-    ┣ debug.log
-    ┣ error.log
-    ┣ info.log
-    ┗ warn.log
+├── 📁 Pict/
+│   ├── 🖼️ Banner.webp
+│   ├── 🖼️ DockerHub.JPG
+│   ├── 🖼️ RolemojiHelp.png
+│   ├── 🖼️ banner-v1.jpg
+│   ├── 🖼️ banner-v2.jpg
+│   └── 🖼️ embedd.gif
+├── 📁 adds/
+│   ├── 📁 fonts/
+│   │   ├── 📄 Agbalumo.ttf
+│   │   ├── 📄 Bangers.ttf
+│   │   ├── 📄 Bitcount.ttf
+│   │   ├── 📄 BungeeShade.ttf
+│   │   ├── 📄 Chewy.ttf
+│   │   ├── 📄 ConcertOne.ttf
+│   │   ├── 📄 Creepster.ttf
+│   │   ├── 📄 FjallaOne.ttf
+│   │   ├── 📄 FrederickatheGreat.ttf
+│   │   ├── 📄 LuckiestGuy.ttf
+│   │   ├── 📄 MarckScript.ttf
+│   │   ├── 📄 Metamorphous.ttf
+│   │   ├── 📄 MiltonianTattoo.ttf
+│   │   ├── 📄 Monoton.ttf
+│   │   ├── 📄 NerkoOne.ttf
+│   │   ├── 📄 Orbitron.ttf
+│   │   ├── 📄 PermanentMarker.ttf
+│   │   ├── 📄 PlaywriteGBSGuides.ttf
+│   │   ├── 📄 PressStart2P.ttf
+│   │   ├── 📄 SingleDay.ttf
+│   │   ├── 📄 StoryScript.ttf
+│   │   ├── 📄 WalterTurncoat.ttf
+│   │   └── 📄 ZenDots.ttf
+│   └── 📁 langs/
+│       ├── 📁 es/
+│       │   ├── ⚙️ botones.json
+│       │   ├── ⚙️ commands.json
+│       │   ├── ⚙️ common.json
+│       │   └── ⚙️ help.json
+│       └── 📁 missing/
+├── 📁 src/
+│   ├── 📁 bgProcess/
+│   │   ├── 📄 exeCron.ts
+│   │   ├── 📄 lavalinkConnect.ts
+│   │   ├── 📄 mangadexChek.ts
+│   │   ├── 📄 noEvery.ts
+│   │   ├── 📄 redditCheck.ts
+│   │   ├── 📄 rolemojiEvents.ts
+│   │   ├── 📄 voicEvent.ts
+│   │   ├── 📄 welcomeEvents.ts
+│   │   └── 📄 youtubeCheck.ts
+│   ├── 📁 commands/
+│   │   ├── 📁 commandButtons/
+│   │   │   ├── 📄 NewLimits.ts
+│   │   │   ├── 📄 buttonLink.ts
+│   │   │   └── 📄 roleButton.ts
+│   │   ├── 📁 commandModales/
+│   │   │   ├── 📄 modalLimits.ts
+│   │   │   └── 📄 reportHelp.ts
+│   │   ├── 📁 commands/
+│   │   │   ├── 📄 chkperm.ts
+│   │   │   ├── 📄 cleanup.ts
+│   │   │   ├── 📄 cronpost.ts
+│   │   │   ├── 📄 embed.ts
+│   │   │   ├── 📄 help.ts
+│   │   │   ├── 📄 jointovoice.ts
+│   │   │   ├── 📄 mangadex.ts
+│   │   │   ├── 📄 music.ts
+│   │   │   ├── 📄 permission.ts
+│   │   │   ├── 📄 post.ts
+│   │   │   ├── 📄 reddit.ts
+│   │   │   ├── 📄 rolemoji.ts
+│   │   │   ├── 📄 test.ts
+│   │   │   ├── 📄 welcome.ts
+│   │   │   ├── 📄 work.ts
+│   │   │   └── 📄 youtube.ts
+│   │   └── 📄 upCommands.ts
+│   ├── 📁 sys/
+│   │   ├── 📁 DB-Engine/
+│   │   │   ├── 📁 links/
+│   │   │   │   ├── 📄 Cronpost.ts
+│   │   │   │   ├── 📄 Embed.ts
+│   │   │   │   ├── 📄 JointoVoice.ts
+│   │   │   │   ├── 📄 Mangadex.ts
+│   │   │   │   ├── 📄 Permission.ts
+│   │   │   │   ├── 📄 Reddit.ts
+│   │   │   │   ├── 📄 ReplyBots.ts
+│   │   │   │   ├── 📄 Rolemoji.ts
+│   │   │   │   ├── 📄 Welcome.ts
+│   │   │   │   ├── 📄 Youtube.ts
+│   │   │   │   ├── 📄 noRules.ts
+│   │   │   │   └── 📄 roleButtons.ts
+│   │   │   └── 📄 database.ts
+│   │   ├── 📁 embedding/
+│   │   │   ├── 📁 webs/
+│   │   │   │   ├── 📄 Bilibili.ts
+│   │   │   │   ├── 📄 Bsky.ts
+│   │   │   │   ├── 📄 DeviantArt.ts
+│   │   │   │   ├── 📄 Facebook.ts
+│   │   │   │   ├── 📄 Furaffinity.ts
+│   │   │   │   ├── 📄 Imgur.ts
+│   │   │   │   ├── 📄 Instagram.ts
+│   │   │   │   ├── 📄 Iwara.ts
+│   │   │   │   ├── 📄 Pixiv.ts
+│   │   │   │   ├── 📄 Reddit.ts
+│   │   │   │   ├── 📄 Threads.ts
+│   │   │   │   ├── 📄 TikTok.ts
+│   │   │   │   ├── 📄 Tumblr.ts
+│   │   │   │   ├── 📄 Twitch.ts
+│   │   │   │   ├── 📄 Twitter.ts
+│   │   │   │   └── 📄 YouTube.ts
+│   │   │   ├── 📄 RuleReplacement.ts
+│   │   │   ├── 📄 domainChecker.ts
+│   │   │   ├── 📄 embedService.ts
+│   │   │   ├── 📄 embedingConfig.ts
+│   │   │   ├── 📄 embedingSwitch.ts
+│   │   │   └── 📄 index.ts
+│   │   ├── 📁 i18n/
+│   │   │   ├── 📄 index.ts
+│   │   │   └── 📄 nsKeyCheck.ts
+│   │   ├── 📁 zGears/
+│   │   │   ├── 📄 IO-Server.ts
+│   │   │   ├── 📄 RedditApi.ts
+│   │   │   ├── 📄 auxiliares.ts
+│   │   │   ├── 📄 mPermission.ts
+│   │   │   ├── 📄 neTools.ts
+│   │   │   ├── 📄 owner.ts
+│   │   │   └── 📄 setStatus.ts
+│   │   ├── 📄 core.ts
+│   │   ├── 📄 environment.ts
+│   │   └── 📄 logging.ts
+│   └── 📄 index.ts
+├── ⚙️ .env ejemplo
+├── ⚙️ .gitignore
+├── 🐳 Dockerfile
+├── 📄 LICENSE.txt
+├── 📝 README.md
+├── 📝 Terminos de Privacidad de Meltryllis con Arma!.md
+├── 📝 Terminos de servicio de Meltryllis con Arma!.md
+├── ⚙️ application.yml
+├── ⚙️ docker-compose.yml
+└── 📄 domains.sql
 
  ```
 </details>
+
+
