@@ -213,7 +213,7 @@ async function ListServers(interaction: ChatInputCommandInteraction): Promise<vo
         memberCount += guild.memberCount;
     }
 
-    let serverList = `Total de servidores: ${guilds.size} | Miembros Totales: ${memberCount}\n\nLista de Servidores:`;
+    let serverList = `Total de servidores: ${guilds.size} | Miembros Totales: ${memberCount}\n\nLista de Servidores:\n\n`;
     guilds.forEach(guild => {
         const meJoin = guild.members.me?.joinedAt?.toLocaleDateString();
         serverList += `Nombre: ${guild.name} | ID: ${guild.id} | Miembros: ${guild.memberCount} | Añadida: ${meJoin ? meJoin : "No se encontro fecha!!"}\n`;
