@@ -15,3 +15,12 @@ Los usuarios son responsables de garantizar que el contenido compartido e intera
 ---
 3. Garantías y Disponibilidad:<br>
 Meltryllis con Arma! se proporciona "tal cual" (as-is). No ofrecemos garantías implícitas ni explícitas sobre la disponibilidad ininterrumpida, el funcionamiento perfecto libre de errores, o la periodicidad de las actualizaciones.
+---
+
+4. Limitación de Responsabilidad
+No nos hacemos responsables por daños directos, indirectos, incidentales o consecuentes que resulten del uso, incapacidad de uso o fallos del bot.
+No nos responsabilizamos por el mal uso que los usuarios de un servidor puedan darle a las herramientas proporcionadas por el bot.
+Toda información de configuración guardada puede estar sujeta a pérdida o corrupción de datos por factores externos; es responsabilidad de los administradores gestionar sus configuraciones.
+---
+5. Terminación del Servicio:<br>
+Nos reservamos el derecho de bloquear el acceso al bot, denegar el servicio, o abandonar/eliminar el bot de cualquier servidor en cualquier momento, por cualquier motivo y sin previo aviso (especialmente en casos de abuso o incumplimiento de los términos de Discord).
