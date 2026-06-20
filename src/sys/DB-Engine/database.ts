@@ -275,6 +275,14 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  //Tabla TimmerServices
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS timmersServices (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      service VARCHAR(255) NOT NULL,
+      timmer INT NOT NULL
+    )
+  `);
 
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;

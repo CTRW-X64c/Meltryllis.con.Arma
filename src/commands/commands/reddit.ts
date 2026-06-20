@@ -1,13 +1,11 @@
 // src/Events-Commands/commands/reddit.ts
 import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, Guild, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed } from "../../sys/DB-Engine/links/Reddit";
-import { RedditApiResponse } from "../../bgProcess/redditCheck";
 import { error, debug } from "../../sys/logging";
 import { redditApi } from "../../sys/zGears/RedditApi";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
 import { testPermisos } from "../../sys/zGears/auxiliares";
-import urlStatusManager from "../../sys/embedding/domainChecker";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { countItems } from "../../sys/DB-Engine/database";
 
@@ -16,55 +14,21 @@ export async function registerRedditCommand() {
         .setName("reddit")
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .setDescription(i18next.t("commands:reddit.slashBuilder.command_reddit"))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("seguir")
-                .setDescription(i18next.t("commands:reddit.slashBuilder.descripcion"))
-                .addStringOption(option =>
-                    option.setName("url_reddit")
-                        .setDescription(i18next.t("commands:reddit.slashBuilder.seguir"))
-                        .setRequired(true)
-                )
-                .addChannelOption(option =>
-                    option.setName("canal")
-                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
-                        .setDescription(i18next.t("commands:reddit.slashBuilder.canal"))
-                        .setRequired(true)
-                )
-                .addStringOption(option =>
-                    option.setName("filtro")
-                        .setDescription(i18next.t("commands:reddit.slashBuilder.filtro"))
-                        .setRequired(true)
-                        .addChoices(
-                            { name: i18next.t("commands:reddit.slashBuilder.sin_filtro"), value: 'all' },
-                            { name: i18next.t("commands:reddit.slashBuilder.filtro_multimedia"), value: 'media_only' },
-                            { name: i18next.t("commands:reddit.slashBuilder.filtro_texto"), value: 'text_only' }
-                        )))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("lista")
-                .setDescription(i18next.t("commands:reddit.slashBuilder.lista"))
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("dejar")
-                .setDescription(i18next.t("commands:reddit.slashBuilder.dejar"))
-                .addStringOption(option =>
-                    option.setName("url_reddit")
-                        .setDescription(i18next.t("commands:reddit.slashBuilder.id_canal"))
-                        .setRequired(true))
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("test")
-                .setDescription(i18next.t("commands:reddit.slashBuilder.test"))
-                .addStringOption(option =>
-                    option.setName("url_reddit")
-                        .setDescription(i18next.t("commands:reddit.slashBuilder.id_canal"))
-                        .setRequired(true)
-                )
-        );
-
+        .addSubcommand(s => s.setName("seguir").setDescription(i18next.t("commands:reddit.slashBuilder.descripcion"))
+            .addStringOption(o => o.setName("url_reddit").setRequired(true).setDescription(i18next.t("commands:reddit.slashBuilder.seguir")))
+            .addChannelOption(o => o.setName("canal").setRequired(true).setDescription(i18next.t("commands:reddit.slashBuilder.canal"))
+                .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement))
+            .addStringOption(o => o.setName("filtro").setRequired(true).setDescription(i18next.t("commands:reddit.slashBuilder.filtro"))
+                .addChoices(
+                    { name: i18next.t("commands:reddit.slashBuilder.sin_filtro"), value: 'all' },
+                    { name: i18next.t("commands:reddit.slashBuilder.filtro_multimedia"), value: 'media_only' },
+                    { name: i18next.t("commands:reddit.slashBuilder.filtro_texto"), value: 'text_only' }
+                )))
+        .addSubcommand(s => s.setName("lista").setDescription(i18next.t("commands:reddit.slashBuilder.lista")))
+        .addSubcommand(s => s.setName("dejar").setDescription(i18next.t("commands:reddit.slashBuilder.dejar"))
+            .addStringOption(o => o.setName("url_reddit").setRequired(true).setDescription(i18next.t("commands:reddit.slashBuilder.id_canal"))))
+        .addSubcommand(s => s.setName("test").setDescription(i18next.t("commands:reddit.slashBuilder.test"))
+            .addStringOption(o => o.setName("url_reddit").setRequired(true).setDescription(i18next.t("commands:reddit.slashBuilder.id_canal"))));
     return [reddit] as SlashCommandBuilder[];
 }
 
@@ -72,18 +36,10 @@ export async function handleRedditCommand(interaction: ChatInputCommandInteracti
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const guild = interaction.guild;
-    if (!guild) {
-        await interaction.editReply(i18next.t("common:Errores.noGuild"));
-        return;
-    }
+    if (!guild) { await interaction.editReply(i18next.t("common:Errores.noGuild")); return };
 
     const isAllowed = await hasPermission(interaction, interaction.commandName);
-    if (!isAllowed) {
-        await interaction.editReply({
-            content: i18next.t("common:Errores.isAllowed"),
-        });
-        return;
-    }
+    if (!isAllowed) { await interaction.editReply(i18next.t("common:Errores.isAllowed")); return };
 
     try {
         const subcommand = interaction.options.getSubcommand();
@@ -282,21 +238,19 @@ async function TestReddit(interaction: ChatInputCommandInteraction, guild: Guild
         return;
     }
 
-    const { name: resourceName, displayName } = resourceInfo;
+    const { name: resName, displayName: dspName, resourceType: resType } = resourceInfo;
     const feeds = await getRedditFeeds(guild.id);
-    const feed = feeds.find(f => f.subreddit_name.toLowerCase() === resourceName.toLowerCase());
+    const feed = feeds.find(f => f.subreddit_name.toLowerCase() === resName.toLowerCase());
 
     if (!feed) {
         await interaction.editReply({ content: i18next.t("commands:reddit.interacciones.test_subreddit_error") });
         return;
     }
 
-    await interaction.editReply({ content: i18next.t("commands:reddit.interacciones.test_buscando", { a1: displayName }) });
+    await interaction.editReply({ content: i18next.t("commands:reddit.interacciones.test_buscando", { a1: dspName }) });
 
     try {
-        const response = await fetch(feed.subreddit_url, { headers: { 'User-Agent': 'MeltryllisBot/1.0.0' } });
-        if (!response.ok) throw new Error('No se pudo acceder al JSON');
-        const jsonData = (await response.json()) as RedditApiResponse;
+        const jsonData = await redditApi.getPosts(resName, resType, 3);
         const latestPostData = jsonData.data.children[0]?.data;
 
         if (!latestPostData) {
@@ -312,21 +266,16 @@ async function TestReddit(interaction: ChatInputCommandInteraction, guild: Guild
 
         const permalink = latestPostData.permalink;
 
-        let apiDomain = urlStatusManager.getActiveUrl("APIs_FIX_URL");
-        if (process.env.EMBEDEZ_REDDITCHECK === "0" || !apiDomain?.includes("embedez.com")) { apiDomain = null; }
-        const redditDomain = urlStatusManager.getActiveUrl("REDDIT_FIX_URL");
-        const upEmbeddingDomain = apiDomain ? `${apiDomain}?q=https://www.reddit.com` : redditDomain;
+        const formattedUrl = `https://www.reddit.com${permalink}`;
 
-        const formattedUrl = `https://${upEmbeddingDomain}${permalink}`;
-
-        await channel.send(i18next.t("commands:reddit.interacciones.test_ultimoPost", { a1: displayName, a2: latestPostData.title, a3: formattedUrl }));
+        await channel.send(i18next.t("commands:reddit.interacciones.test_ultimoPost", { a1: dspName, a2: latestPostData.title, a3: formattedUrl }));
 
         await interaction.editReply({
             content: i18next.t("commands:reddit.interacciones.test_pass", { a1: canalClickeable })
         });
 
     } catch (err) {
-        error(`Error en prueba de ${displayName}: ${err}`);
+        error(`Error en prueba de ${dspName}: ${err}`);
         await interaction.editReply({ content: i18next.t("commands:reddit.interacciones.test_error") });
     }
 }

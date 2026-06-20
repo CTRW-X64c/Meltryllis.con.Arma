@@ -1,5 +1,26 @@
 // src/sys/RedditApi.ts
-import { error, debug } from '../logging';   
+import { error, debug } from '../logging';
+
+interface RedditApiResponse {
+    data: {
+        children: {
+            data: RedditPost;
+        }[];
+    };
+    reason?: string;
+}
+
+interface RedditPost {
+    title: string;
+    permalink: string;
+    post_hint?: string;
+    is_gallery?: boolean;
+    is_video?: boolean;
+    name: string;
+    pinned?: boolean;
+    stickied?: boolean;
+    over_18?: boolean;
+}
 
 const REDDIT_API_BASE = 'https://oauth.reddit.com';
 const REDDIT_AUTH_URL = 'https://www.reddit.com/api/v1/access_token';
@@ -68,21 +89,21 @@ export class RedditApiClient {
             this.accessToken = null;
             throw new Error("Token inválido o expirado");
         }
-        
+
         return response;
     }
 
-    public async getPosts(resourceName: string, resourceType: 'subreddit' | 'user' = 'subreddit', limit: number = 20): Promise<any> {
+    public async getPosts(resourceName: string, resourceType: 'subreddit' | 'user' = 'subreddit', limit: number = 20): Promise<RedditApiResponse> {
         let endpoint: string;
-        
+
         if (resourceType === 'user') {
             endpoint = `/user/${resourceName}/submitted.json?limit=${limit}`;
         } else {
             endpoint = `/r/${resourceName}/new.json?limit=${limit}`;
         }
-        
+
         const response = await this.fetchAuthenticated(endpoint);
-        return response.json();
+        return response.json() as Promise<RedditApiResponse>;
     }
 }
 

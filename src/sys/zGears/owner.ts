@@ -10,6 +10,7 @@ import { adminChannel } from "./auxiliares";
 import { addStatusBD, addTempStatus, changeTimmer, clerTempStatus, deleteStatusBD, listStatus, setiState } from "./setStatus";
 import { addSite, deleteSite, deletLast, editDomain, embedingList } from "../embedding/domainChecker";
 import lavalinkManager, { addNodeBD, removeNodeBD, listNode } from "../../bgProcess/lavalinkConnect";
+import { chkServices, list, newTimmerService, restartService, restore } from "./_managerServices";
 
 
 /* ================================================================== Listado de comandos ================================================================== */
@@ -19,6 +20,7 @@ const listCom = [
     { name: "Dominios", value: "dominios" },
     { name: "Lavalink", value: "lavalink" },
     { name: "Revisar dominios (embedServices)", value: "checkdomains" },
+    { name: "Cambiar timmers", value: "timmer" },
     { name: "Lista de servidores", value: "list" },
     { name: "Parametros de Servers", value: "rules" },
     { name: "Reiniciar", value: "restart" },
@@ -81,7 +83,7 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
         }); return
     }
 
-    const noTkn = ["restart", "checkdomains", "list", "status", "dominios", "lavalink"];
+    const noTkn = ["restart", "checkdomains", "list", "status", "dominios", "lavalink", "timmer"];
     if (noTkn.includes(subcommand)) {
         await runCommand(interaction, subcommand, serverId, idUsr, data);
         return;
@@ -196,6 +198,8 @@ async function runCommand(integrations: any, subcommand: string, serverId: strin
             await domainManager(integrations, data); break
         case "lavalink":
             await lavalinkTools(integrations, data); break
+        case "timmer":
+            await timmerServices(integrations, data); break
         default:
             await integrations.reply({ content: "Subcomando no reconocido.", flags: MessageFlags.Ephemeral });
     }
@@ -800,4 +804,61 @@ async function lavalinkTools(interaction: ChatInputCommandInteraction, data: str
     } catch { await interaction.editReply("Error al procesar el comando!!") }
 }
 
-/* ================================================================== noting ================================================================== */
+/* ================================================================== Timers Services ================================================================== */
+
+async function timmerServices(interaction: ChatInputCommandInteraction, data: string): Promise<void> {
+    try {
+        const emb = new EmbedBuilder()
+            .setTitle("Timmer Services").setColor(0x00FF00)
+            .setDescription("Esta seccion permite cambiar los tiempo de ejecucuion de los servicios. \n Servicios: youtube, mangadex, reddit \n El tiempo se maneja en minutos, min: 10min; con 0 se desactivan")
+            .addFields(
+                { name: "Cambiar timmer:", value: "data = servicio=tiempo", inline: false },
+                { name: "Reiniciar", value: "data = reset=servicio", inline: false },
+                { name: "Restaurar timmer", value: "data = restore=servicio", inline: false },
+                { name: "Listar Timers", value: "data = list", inline: false }
+            );
+
+        const p1 = data.split("=");
+        const sub = p1[0] || "nodata";
+        const tim = p1[1] || "nodata";
+        const validServices = ["youtube", "mangadex", "reddit"];
+
+        if (sub === "nodata") { await interaction.editReply({ content: "Formato incorrecto", embeds: [emb] }); return; }
+        switch (sub) {
+            case "youtube":
+            case "mangadex":
+            case "reddit": {
+                const timeNum = parseInt(tim, 10);
+                if (!validServices.includes(sub)) { await interaction.editReply({ content: "❌ No existe el servicio seleccionado", embeds: [emb] }); return; }
+                if (tim === "nodata" || isNaN(timeNum)) { await interaction.editReply({ content: "❌ Por favor incluya el tiempo en minutos.", embeds: [emb] }); return; }
+                const newTimmer = await newTimmerService(sub, timeNum, interaction.client);
+                await interaction.editReply(newTimmer); return;
+            }
+
+            case "reset": {
+                if (!validServices.includes(tim)) { await interaction.editReply({ content: "❌ ¡No existe un servicio registrado con ese nombre!", embeds: [emb] }); return; }
+                const timmerRest = await restartService(tim as chkServices, interaction.client);
+                await interaction.editReply(timmerRest); return;
+            }
+
+            case "restore": {
+                if (!validServices.includes(tim)) { await interaction.editReply({ content: "❌ ¡No existe un servicio registrado con ese nombre!", embeds: [emb] }); return; }
+                const timmerRes = await restore(tim as chkServices, interaction.client);
+                await interaction.editReply(timmerRes); return;
+            }
+
+            case "list": {
+                const listTimers = list();
+                const embList = new EmbedBuilder().setTitle("Timmer Services").setColor(0x00FF00)
+                    .setDescription(`Servicios activos: ${listTimers.join("\n")}`);
+                await interaction.editReply({ embeds: [embList] }); return;
+            }
+
+            default: {
+                await interaction.editReply({ embeds: [emb] }); return;
+            }
+        }
+    } catch { await interaction.editReply("Error al procesar el comando!!") }
+}
+
+/* ================================================================== Nada ================================================================== */

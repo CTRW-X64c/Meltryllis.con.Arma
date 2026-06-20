@@ -340,7 +340,7 @@
       "Reduit_cuarentena": "`{{a1}} fue marcado como inapropiado y solo puede ser visualizado desde navegador|app. \n Se a eliminado del feed`",
       "Reduit_pioste": "Nuevo post de {{a1}}. \n**POST:** [{{a2}}]({{a3}})",
       "Reduit_pioste_nsfw": "**[NSFW POST EN CANAL SFW!!]** \nÚltimo post de {{a1}}. \n**POST!!!:** ||[{{a2}}]({{a3}})||",
-      "Reduit_pioste_nsfw_resend": "NUEVO POST NSFW EN CANAL NO NSFW![.]({{a1}})",
+      "Reduit_pioste_nsfw_resend": "**NUEVO POST NSFW EN CANAL SFW!**[.]({{a1}})",
       "Reduit_pioste_resend": "NUEVO POST![.]({{a1}})"
     }
   },

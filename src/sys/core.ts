@@ -11,14 +11,12 @@ import { initI18n } from "./i18n";
 import { validateAllTranslations } from "./i18n/nsKeyCheck";
 import { startWelcomeEvents } from "../bgProcess/welcomeEvents";
 import { registerRolemojiEvents, preloadRolemojiMessages } from "../bgProcess/rolemojiEvents";
-import { startYoutubeService } from "../bgProcess/youtubeCheck";
-import { startRedditChecker } from "../bgProcess/redditCheck";
-import { startMangadexChecker } from "../bgProcess/mangadexChek";
 import { startVoiceChannelService } from "../bgProcess/voicEvent";
 import { startCronpost } from "../bgProcess/exeCron";
 import lavalinkManager, { loadNodes } from "../bgProcess/lavalinkConnect";
 import registerIOevent from "./zGears/IO-Server";
 import { initNoEveryone } from "../bgProcess/noEvery";
+import { startServices } from "./zGears/_managerServices";
 
 
 /*========= Inicializadores =========*/
@@ -47,9 +45,7 @@ async function main(): Promise<void> {
             } else { error("❌ ERROR AL INICIAR EL SISTEMA DE EMBEDDING!!") }
             loadNodes()
             startVoiceChannelService(client);
-            startMangadexChecker(client);
-            startYoutubeService(client); // by nep  
-            startRedditChecker(client);  // by nowa
+            startServices(client)
             await startWelcomeEvents(client);
             startCronpost(client);
             startStatusRotation(client);

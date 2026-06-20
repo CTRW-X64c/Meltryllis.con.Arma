@@ -1,31 +1,10 @@
 // src/client/coreCommands/redditCheck.ts
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, TextChannel } from 'discord.js';
 import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed, removeRedditFeed } from '../sys/DB-Engine/links/Reddit';
-import { info, debug, error } from '../sys/logging';
+import { debug, error } from '../sys/logging';
 import i18next from 'i18next';
 import { redditApi } from '../sys/zGears/RedditApi';
 import urlStatusManager from '../sys/embedding/domainChecker';
-
-export interface RedditApiResponse {
-    data: {
-        children: {
-            data: RedditPost;
-        }[];
-    };
-    reason?: string;
-}
-
-interface RedditPost {
-    title: string;
-    permalink: string;
-    post_hint?: string;
-    is_gallery?: boolean;
-    is_video?: boolean;
-    name: string;
-    pinned?: boolean;
-    stickied?: boolean;
-    over_18?: boolean;
-}
 
 const BATCH_SIZE = 99;
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -152,7 +131,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 }
 
                 // Hyperlink Fix & procesamiento de link
-                const nsfwPost = post.over_18;
+                const nsfwPost = !!post.over_18;
                 const nsfwCh = feed.nsfw_protect;
                 const nsfwCheck = nsfwPost && !nsfwCh;
                 const pLink = post.permalink;
@@ -163,11 +142,10 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 const safeTitle = shrtTitle
                     .replace(/\[/g, '').replace(/\]/g, '').replace(/\\/g, '').replace(/\//g, '').replace(/\|/g, ' ').replace(emojiRgx, '');
 
-                let msg;
+                let msg = i18next.t("commands:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: postLink });
                 if (nsfwCheck) { msg = i18next.t("commands:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: postLink }) }
-                else { msg = i18next.t("commands:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: postLink }) }
 
-                await publisher(msg, ch, pLink, post.name);
+                publisher(msg, ch, pLink, post.name, nsfwCheck);
                 await wait(2_000);
             }
 
@@ -180,55 +158,54 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
 /* ====================================== Publisher ====================================== */
 let failPost = false;
 let failPostQueue = new Map<string, data>();
-interface data { dmsg: string; dch: TextChannel; dlink: string; }
-const publisher = async (msg: string, ch: TextChannel, link: string, idPost?: string) => {
+interface data { dch: TextChannel; dlink: string; dnsfw: boolean; }
+const publisher = async (msg: string, ch: TextChannel, link: string, idPost: string, nsfw: boolean) => {
     try {
-        let eMsg = msg; const URL = `https://www.reddit.com${link}`;
+        const URL = `https://www.reddit.com${link}`;
         const boton = new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(URL));
-        if (!idPost) {
-            if (msg.includes("NSFW")) eMsg = i18next.t("commands:reddit.check.Reduit_pioste_nsfw_resend", { a1: URL });
-            else eMsg = i18next.t("commands:reddit.check.Reduit_pioste_resend", { a1: URL });
-        };
+        const sMsg = await ch.send({ content: msg, components: [boton] });
+        await wait(3_000);
 
-        const sMsg = await ch.send({ content: eMsg, components: [boton] });
-        if (idPost) {
-            await wait(3_000);
-            let freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
-            for (let attempt = 1; attempt <= 2 && freshMsg && freshMsg.embeds.length === 0; attempt++) {
-                await sMsg.edit({ content: "⏳", components: [boton] });
-                await wait(2_000);
+        let freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
+        for (let attempt = 1; attempt <= 2 && freshMsg && freshMsg.embeds.length === 0; attempt++) {
+            await sMsg.edit({ content: "⏳", components: [boton] });
+            await wait(2_000);
 
-                await sMsg.edit({ content: eMsg, components: [boton] });
-                await wait(2_500 + (attempt * 1_000));
-                freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
-            }
+            await sMsg.edit({ content: msg, components: [boton] });
+            await wait(2_500 + (attempt * 1_000));
+            freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
+        }
 
-            if (freshMsg && freshMsg.embeds.length === 0) {
-                failPostQueue.set(idPost, { dmsg: msg, dch: ch, dlink: link }); checkFailQueue();
-                await sMsg.delete().catch(() => null);
-                debug(`[Reddit Publisher]: Mensaje eliminado - no se generaron embeds para: ${URL} `);
-                return;
-            }
+        if (freshMsg && freshMsg.embeds.length === 0) {
+            failPostQueue.set(idPost, { dch: ch, dlink: URL, dnsfw: nsfw }); checkFailQueue();
+            await sMsg.delete().catch(() => null);
+            debug(`[Reddit Publisher]: Mensaje eliminado - no se generaron embeds para: ${URL} `);
+            return;
         }
     } catch (e) { error(`[Reddit Publisher]: Error al publicar: ${e} `) }
 }
 
 // Lista de fallidos
 const checkFailQueue = async () => {
-    if (failPost || failPostQueue.size === 0) return;
-    failPost = true;
-    await wait(8 * 60_000);
-    const list = Array.from(failPostQueue.values());
-    failPostQueue.clear();
+    try {
+        if (failPost || failPostQueue.size === 0) return;
+        failPost = true;
+        await wait(5 * 60_000);
+        const list = Array.from(failPostQueue.values());
+        failPostQueue.clear();
 
-    for (const post of list) {
-        await publisher(post.dmsg, post.dch, post.dlink);
-        await wait(1_000);
-    }
+        for (const post of list) {
+            const boton = new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(post.dlink));
+            let msg = i18next.t("commands:reddit.check.Reduit_pioste_resend", { a1: post.dlink });
+            if (post.dnsfw) msg = i18next.t("commands:reddit.check.Reduit_pioste_nsfw_resend", { a1: post.dlink });
+            await post.dch.send({ content: msg, components: [boton] });
+            await wait(1_000);
+        }
 
-    failPost = false;
-    debug(`[Reddit Publisher]: se volvieron a procesar ${list.length} post fallidos.`)
-    if (failPostQueue.size > 0) checkFailQueue();
+        failPost = false;
+        debug(`[Reddit Publisher]: se volvieron a procesar ${list.length} post fallidos.`)
+        if (failPostQueue.size > 0) checkFailQueue();
+    } catch (e) { error(`[Reddit Publisher]: Error al republicar: ${e} `) }
 }
 
 /* ====================================== Inicio de porceso ====================================== */
@@ -247,29 +224,11 @@ async function checkRedditFeeds(client: Client) {
 
         await Promise.all(feedsToProcess.map(feed => processSingleFeed(client, feed)));
         currentFeedIndex += BATCH_SIZE;
-    } catch (err) { error(`[Reddit Checker]: Error en el ciclo principal del checker: ${err} `) }
+    } catch (e) { error(`[Reddit Checker]: Error en el ciclo principal del checker: ${e} `) }
 }
 
 // Inicializador de timer y espera al inicio. 
-export function startRedditChecker(client: Client) {
-    const MStoMin = 60000;
-    const MIN_TIMMER = 3;
-    const DEFAULT_Timmer = 10;
-    const rawRssTime = process.env.REDDIT_CHECK_TIMMER;
-    const parsedMinutes = rawRssTime ? parseInt(rawRssTime, 10) : NaN;
-    const minutes = !isNaN(parsedMinutes) ? Math.max(parsedMinutes, MIN_TIMMER) : DEFAULT_Timmer;
-    const rssCheckTimmer = minutes * MStoMin;
-    info(`[Reddit Checker] Se revisarán ${BATCH_SIZE} feeds cada ${minutes} minutos.`);
-
-    setTimeout(() => {
-        checkRedditFeeds(client).catch(err => {
-            error(`[Reddit Checker] Error al iniciar, ERROR: ${err} `);
-        });
-    }, 30000);
-
-    setInterval(() => {
-        checkRedditFeeds(client).catch(err => {
-            error(`[Reddit Checker] Error durante check, ERROR: ${err} `);
-        });
-    }, rssCheckTimmer);
+export async function startRedditChecker(client: Client) {
+    await wait(30_000)
+    checkRedditFeeds(client).catch(err => { error(`[Reddit Checker] Error durante check, ERROR: ${err} `) });
 }

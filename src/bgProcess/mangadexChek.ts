@@ -1,12 +1,10 @@
 // src/client/coreCommands/mangadexChek.ts
 import { Client, TextChannel } from 'discord.js';
 import { getAllMangadexFeeds, updateMangadexFeedLastChapter, MangadexFeed } from '../sys/DB-Engine/links/Mangadex';
-import { info, error, debug } from '../sys/logging';
+import { error, debug } from '../sys/logging';
 
 const BATCH_SIZE = 10; // Número de feeds a procesar por ciclo
-
 let currentFeedIndex = 0;
-
 interface RSSItem {
     title: string;
     link: string;
@@ -14,17 +12,14 @@ interface RSSItem {
     pubDate: string;
 }
 
-/**
- * Parseo del XML crudo del RSS de Mangadex
- */
+/* Parseo del XML crudo del RSS de Mangadex */
 function parseMangadexRSS(xml: string): RSSItem[] {
     const items: RSSItem[] = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-    
+
     let match;
     while ((match = itemRegex.exec(xml)) !== null) {
         const itemContent = match[1];
-        
         // Extractores
         const titleMatch = itemContent.match(/<title>(.*?)<\/title>/);
         const linkMatch = itemContent.match(/<link>(.*?)<\/link>/);
@@ -33,10 +28,8 @@ function parseMangadexRSS(xml: string): RSSItem[] {
         // Filtros y limpieza
         if (titleMatch && linkMatch && guidMatch) {
             const cleanTitle = titleMatch[1]
-                .replace('<![CDATA[', '')
-                .replace(']]>', '')
-                .trim();
-            
+                .replace('<![CDATA[', '').replace(']]>', '').trim();
+
             items.push({
                 title: cleanTitle,
                 link: linkMatch[1].trim(),
@@ -44,13 +37,11 @@ function parseMangadexRSS(xml: string): RSSItem[] {
                 pubDate: pubDateMatch ? pubDateMatch[1] : new Date().toISOString()
             });
         }
-    }
-    return items;
+    } return items;
 }
 
 async function processSingleFeed(client: Client, feed: MangadexFeed) {
     if (!feed.channel_id || !feed.RSS_manga) return;
-
     try {
         const response = await fetch(feed.RSS_manga, {
             headers: { 'User-Agent': 'MeltryllisBot/1.2.7' }
@@ -63,13 +54,10 @@ async function processSingleFeed(client: Client, feed: MangadexFeed) {
 
         const xmlText = await response.text();
         const allChapters = parseMangadexRSS(xmlText);
-
         if (allChapters.length === 0) return;
 
         const latestChapter = allChapters[0];
-        if (feed.last_chapter === latestChapter.guid) {
-            return;
-        }
+        if (feed.last_chapter === latestChapter.guid) return;
 
         if (feed.last_chapter === null) {
             await sendMangaUpdate(client, feed, latestChapter);
@@ -78,82 +66,47 @@ async function processSingleFeed(client: Client, feed: MangadexFeed) {
         }
 
         const lastKnownIndex = allChapters.findIndex(item => item.guid === feed.last_chapter);
-
         let newChapters: RSSItem[] = [];
 
-        if (lastKnownIndex === -1) {
-            newChapters = [latestChapter];
-        } else {
-            newChapters = allChapters.slice(0, lastKnownIndex);
-        }
+        if (lastKnownIndex === -1) { newChapters = [latestChapter]; }
+        else { newChapters = allChapters.slice(0, lastKnownIndex); }
 
-        for (const chapter of newChapters.reverse()) {
-            await sendMangaUpdate(client, feed, chapter);
-        }
+        for (const chapter of newChapters.reverse()) { await sendMangaUpdate(client, feed, chapter); }
 
         await updateMangadexFeedLastChapter(feed.id, latestChapter.guid, feed.guild_id);
-
-    } catch (err) {
-        debug(`[Mangadex Check] Error procesando feed ${feed.manga_title}: ${err}`, "MangadexCheck");
-    }
+    } catch (err) { debug(`[Mangadex Check] Error procesando feed ${feed.manga_title}: ${err}`, "MangadexCheck"); }
 }
 
 async function sendMangaUpdate(client: Client, feed: MangadexFeed, chapter: RSSItem) {
     try {
         const channel = await client.channels.fetch(feed.channel_id) as TextChannel;
         if (!channel) return;
-        const MAX_LENGTH = 60; 
+        const MAX_LENGTH = 60;
         const noTiManCha = chapter.title.replace(feed.manga_title, "").trim().replace(/^:/, "").trim();
-        const safeChapterTitle = noTiManCha.length > MAX_LENGTH
-            ? noTiManCha.substring(0, MAX_LENGTH)
-            + "..." : noTiManCha;
-
+        const safeChapterTitle = noTiManCha.length > MAX_LENGTH ? noTiManCha.substring(0, MAX_LENGTH) + "..." : noTiManCha;
         const messageContent = `📚 **${feed.manga_title}**\n📄: ${safeChapterTitle}\n🔗​: ${chapter.link}`;
-        
+
         await channel.send({ content: messageContent });
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-    } catch (err) {
-        debug(`[Mangadex Check] No se pudo enviar mensaje al canal ${feed.channel_id}: ${err}`, "MangadexCheck");
-    }
+    } catch (err) { debug(`[Mangadex Check] No se pudo enviar mensaje al canal ${feed.channel_id}: ${err}`, "MangadexCheck") }
 }
 
 export async function checkMangadexFeeds(client: Client) {
     try {
+        debug("[Mangadex Checker]: Iniciando ciclo de revisión de feeds...");
         const allFeeds = await getAllMangadexFeeds();
         if (allFeeds.length === 0) return;
-
-        if (currentFeedIndex >= allFeeds.length) {
-            currentFeedIndex = 0;
-        }
+        if (currentFeedIndex >= allFeeds.length) currentFeedIndex = 0;
 
         const feedsToProcess = allFeeds.slice(currentFeedIndex, currentFeedIndex + BATCH_SIZE);
         debug(`[Mangadex Check] Revisando ${feedsToProcess.length} mangas...`, "MangadexCheck");
 
         await Promise.all(feedsToProcess.map(feed => processSingleFeed(client, feed)));
-        
         currentFeedIndex += BATCH_SIZE;
-
-    } catch (err) {
-        error(`[Mangadex Check] Error general: ${err}`, "MangadexCheck");
-    }
+    } catch (err) { error(`[Mangadex Check] Error general: ${err}`, "MangadexCheck") }
 }
 
 export function startMangadexChecker(client: Client) {
-    const MStoMin = 60000;
-    const DEFAULT_Timmer = 20;
-    const MIN_TIMMER = 20; // Minimo y Dafeault 20 minutos
-    const rawRssTime = process.env.MANGADEX_CHECK_TIMMER;
-    const parsedMinutes = rawRssTime ? parseInt(rawRssTime, 10) : NaN;
-    const minutes = !isNaN(parsedMinutes) ? Math.max(parsedMinutes, MIN_TIMMER) : DEFAULT_Timmer;
-    const rssCheckTimmer = minutes * MStoMin;  
-        info(`[Mangadex Check] Servicio iniciado. Revisión cada ${minutes} minutos.`, "MangadexCheck");
-
-    setTimeout(() => {
-        checkMangadexFeeds(client).catch(err => error(`Error al iniciar Mangadex: ${err}`));
-    }, 30000);
-
-    setInterval(() => {
-         checkMangadexFeeds(client).catch(err => error(`Error en intervalo Mangadex: ${err}`));
-    }, rssCheckTimmer);
+    checkMangadexFeeds(client).catch(err => error(`Error al iniciar Mangadex: ${err}`))
 }
