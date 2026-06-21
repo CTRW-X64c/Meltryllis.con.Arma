@@ -81,7 +81,7 @@ const apiHandlers: ApiHandler[] = [
 ];
 
 // =========== Procesador principal =========== //
-export async function urlProcess(originalUrl: string, domainSite: string, guildId: string, guildConfigs: Map<string, any>, replacements: Record<string, any>): Promise<{ remp: string, org: string } | null> {
+export async function urlProcess(originalUrl: string, domainSite: string, guildId: string, guildConfigs: Map<string, any>, replacements: Record<string, any>): Promise<string | null> {
     for (const apiHandler of apiHandlers) {
         if (!apiHandler.isAvailable()) continue;
         if (!apiHandler.isDomain(domainSite)) continue;
@@ -91,7 +91,7 @@ export async function urlProcess(originalUrl: string, domainSite: string, guildI
 
         try {
             const apiResult = await apiHandler.process(originalUrl);
-            if (apiResult) return { remp: apiResult, org: originalUrl };
+            if (apiResult) return apiResult;
         } catch (err) {
             debug(`Error crítico en API ${apiHandler.name}: ${(err as Error).message}`, "Events.MessageCreate");
         }
@@ -105,7 +105,7 @@ export async function urlProcess(originalUrl: string, domainSite: string, guildI
             const result = (replaceFunc as any)(originalUrl.replace(/\|/g, ""));
             if (result) {
                 debug(`Se usó el reemplazador local: ${key}`, "Events.MessageCreate");
-                return { remp: result, org: originalUrl };
+                return result;
             }
         }
     } return null;
