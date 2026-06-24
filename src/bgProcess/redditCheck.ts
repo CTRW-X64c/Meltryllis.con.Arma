@@ -146,7 +146,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 if (nsfwCheck) { msg = i18next.t("commands:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: postLink }) }
 
                 publisher(msg, ch, pLink, post.name, nsfwCheck);
-                await wait(2_000);
+                await wait(3_000);
             }
 
             const latestPostId = newPosts[newPosts.length - 1].name;
@@ -164,7 +164,7 @@ const publisher = async (msg: string, ch: TextChannel, link: string, idPost: str
         const URL = `https://www.reddit.com${link}`;
         const boton = new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(URL));
         const sMsg = await ch.send({ content: msg, components: [boton] });
-        await wait(3_000);
+        await wait(4_000);
 
         let freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
         for (let attempt = 1; attempt <= 2 && freshMsg && freshMsg.embeds.length === 0; attempt++) {
@@ -172,7 +172,7 @@ const publisher = async (msg: string, ch: TextChannel, link: string, idPost: str
             await wait(2_000);
 
             await sMsg.edit({ content: msg, components: [boton] });
-            await wait(2_500 + (attempt * 1_000));
+            await wait(4_000 + (attempt * 1_000));
             freshMsg = await ch.messages.fetch(sMsg.id).catch(() => null);
         }
 
