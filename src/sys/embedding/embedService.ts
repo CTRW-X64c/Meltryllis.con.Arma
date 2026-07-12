@@ -41,8 +41,7 @@ export default function startEmbedService(client: Client): void {
                 domainSite = urlObject.hostname.replace('www.', '');
             } catch (err) { debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate"); continue }
 
-            const replacedUrl = await urlProcess(originalUrl, domainSite, guildId!, guildConfigs, replacements);
-
+            const replacedUrl = await urlProcess(originalUrl, domainSite, guildId!, guildConfigs, replacements, message);
             if (replacedUrl) {
                 const hiddenMessage = message.content.split("||").length > 2;
                 let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl });
@@ -53,14 +52,14 @@ export default function startEmbedService(client: Client): void {
         }
 
         if (replacedUrls.length > 0) {
-            embeRemove(message);
+            embeRemove(message)
             post(message, replacedUrls, autorId);
         }
     });
 };
 
 // =========== embdClean =========== //
-const embeRemove = async (msg: Message) => {
+export async function embeRemove(msg: Message) {
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     for (let attempt = 1; attempt <= 4; attempt++) {
         try {
@@ -90,7 +89,7 @@ const embeRemove = async (msg: Message) => {
 };
 
 // =========== post =========== //
-const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
+async function post(msg: Message, replacedUrls: string[], autorId: string) {
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const MAX_MSG = 5;
     const mxAtt = 3;
@@ -131,10 +130,10 @@ const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
                 debug(`Sin embed, forzando regeneración - Intento ${attempt}`, "Events.MessageCreate");
 
                 await sentMsg.edit({ content: i18next.t("common:embedService.try", { a1: `${attempt}/${mxAtt}` }), allowedMentions: { repliedUser: false } });
-                await wait(2_000);
+                await wait(3_000);
 
                 await sentMsg.edit({ content: content, allowedMentions: { repliedUser: false } });
-                await wait(2_500 * attempt);
+                await wait(2_500 + (1_000 * attempt));
                 freshMsg = await msg.channel.messages.fetch(sentMsg.id).catch(() => null);
             }
 
@@ -181,7 +180,7 @@ const post = async (msg: Message, replacedUrls: string[], autorId: string) => {
 };
 
 // =========== emojiDelet =========== //
-const deleteMSG = async (msg: Message, autorId: string) => {
+export async function deleteMSG(msg: Message, autorId: string) {
     if (!msg.channel.isSendable() || !msg.deletable) return;
     try {
         await msg.react('❌');
