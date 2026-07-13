@@ -22,7 +22,7 @@ export class apiPixivCustom implements ApiHandler {
 
         const pixivData = await PixivAPI.getIllustData(illustId);
         if (!pixivData || pixivData.buffers.length === 0) return { fix: null, ok: false };
-        /*
+
         if (pixivData.isNSFW && !textChannel.nsfw) {
             await message.reply({
                 content: `⚠️ Por normas mas estrictas de Discord nuestra API no publicara contenido NSFW en canales SFW!`,
@@ -30,7 +30,7 @@ export class apiPixivCustom implements ApiHandler {
             });
             return { fix: null, ok: false };
         }
-        */
+
         try {
             const embeds: EmbedBuilder[] = [];
             const files: AttachmentBuilder[] = [];
@@ -38,6 +38,8 @@ export class apiPixivCustom implements ApiHandler {
             pixivData.buffers.forEach((buffer, index) => {
                 const fileName = `image${index}.png`;
                 const attachment = new AttachmentBuilder(buffer, { name: fileName });
+                let desc = `🖼️ **Galeria de ${pixivData.buffers.length > 1 ? `${pixivData.buffers.length} imagenes` : 'una imagen!'}**`
+                if (pixivData.buffers.length > 5) desc = `🖼️ **Mostrando ${pixivData.buffers.length} de ${pixivData.sizePag} imagenes!**`
                 files.push(attachment);
                 const embed = new EmbedBuilder()
                     .setURL(pixivData.url)
@@ -45,7 +47,7 @@ export class apiPixivCustom implements ApiHandler {
                 if (index === 0) {
                     embed.setTitle(pixivData.title)
                         .setAuthor({ name: `👤 ${pixivData.author}` })
-                        .setDescription(`🖼️ **Galeria de ${pixivData.sizePag > 1 ? pixivData.sizePag + ' imagenes' : 'una imagen'}**`)
+                        .setDescription(desc)
                         .setColor('#0096fa')
                         .setFooter({
                             text: `Pixiv • by Meltryllis Api`,
@@ -74,7 +76,7 @@ export class apiPixivCustom implements ApiHandler {
 }
 
 // ================================= Pixiv Process ================================= //
-export interface PixivPostData {
+interface PixivPostData {
     title: string;
     author: string;
     url: string;
@@ -116,11 +118,13 @@ export class PixivAPI {
         try {
             const infoRes = await fetch(`https://www.pixiv.net/ajax/illust/${illustId}`, { headers: this.headers });
             const infoData = await infoRes.json() as PixivInfoResponse;
+            const maxPics = 5;
 
             if (infoData.error || !infoData.body) {
                 console.log(`[PixivAPI] Post borrado o inaccesible. ID: ${illustId}`);
                 return null;
             }
+
             const isNsfwContent = infoData.body.xRestrict > 0;
             const pagesRes = await fetch(`https://www.pixiv.net/ajax/illust/${illustId}/pages`, { headers: this.headers });
             const pagesData = await pagesRes.json() as PixivPagesResponse;
@@ -129,8 +133,7 @@ export class PixivAPI {
                 return null;
             }
 
-            const maxImages = Math.min(pagesData.body.length, 4);
-            const imageBuffers: Buffer[] = [];
+            const maxImages = Math.min(pagesData.body.length, maxPics);
             const fetchPromises = [];
 
             for (let i = 0; i < maxImages; i++) {
@@ -142,9 +145,7 @@ export class PixivAPI {
                 );
             }
 
-            const buffers = await Promise.all(fetchPromises);
-            imageBuffers.push(...buffers);
-
+            const imageBuffers = await Promise.all(fetchPromises);
             return {
                 title: infoData.body.title || 'Pixiv Art',
                 author: infoData.body.userName || 'Autor Desconocido',
