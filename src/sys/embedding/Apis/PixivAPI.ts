@@ -2,6 +2,7 @@
 import { Message, AttachmentBuilder, TextChannel, EmbedBuilder } from "discord.js";
 import { deleteMSG, embeRemove } from "../embedService";
 import { ApiHandler } from "../embedingSwitch"
+import { debug } from "../../logging";
 
 // ================================= APi: Pixiv Meltrys ================================= //
 export class apiPixivCustom implements ApiHandler {
@@ -9,7 +10,17 @@ export class apiPixivCustom implements ApiHandler {
 
     isAvailable(): boolean { return true; }
     isDomain(domain: string): boolean { return domain.includes("pixiv.net") || domain.includes("pximg.net"); }
-    async guildChk(): Promise<boolean> { return true; }
+    async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
+        if (!domain) return false;
+        const aDom = "Meltrys.Pixiv";
+        const albe = guildConfigs.get(aDom)
+        if (albe && albe.enabled === false) {
+            debug(`El uso de Meltrys Pixiv está deshabilitado en este gremio: ${guildId}`, "ApiReplacement");
+            return false;
+        }
+        return true;
+    }
+
     async process(url: string, message?: Message): Promise<{ fix: string | null, ok: boolean }> {
         if (!message) return { fix: null, ok: false };
         if (!message.channel || !message.channel.isTextBased()) return { fix: null, ok: false };

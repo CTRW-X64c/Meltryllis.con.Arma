@@ -10,7 +10,7 @@ let autoRunChecks: NodeJS.Timeout | null = null;
 let wait: NodeJS.Timeout | null = null;
 
 // ======== Api ======== //
-export const ApiList = () => {
+const ApiList = () => {
     embedezSFW = embedingList["API_SFW"]
         ? embedingList["API_SFW"].split('|').map(x => x.trim())
         : [];
@@ -19,6 +19,11 @@ export const ApiList = () => {
         : [];
     info(`Embedez Api ready con ${embedezSFW.length} SFW y ${embedezNSFW.length} NSFW sitios!!`, "embedingService");
 }
+
+// ======== local Api ======== //
+export const meltrillisApi: string[] = [
+    "Meltrys.Pixiv",
+];
 
 // ======== core ======== //
 export const updateList = (s: string, d?: string) => {
