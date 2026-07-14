@@ -58,7 +58,7 @@ export default function startEmbedService(client: Client): void {
     });
 };
 
-// =========== embdClean =========== //
+// ================================= embdClean ================================= //
 export async function embeRemove(msg: Message) {
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     for (let attempt = 1; attempt <= 4; attempt++) {
@@ -88,7 +88,7 @@ export async function embeRemove(msg: Message) {
     }
 };
 
-// =========== post =========== //
+// ================================= post ================================= //
 async function post(msg: Message, replacedUrls: string[], autorId: string) {
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const MAX_MSG = 5;
@@ -128,12 +128,13 @@ async function post(msg: Message, replacedUrls: string[], autorId: string) {
         try {
             for (let attempt = 1; attempt <= mxAtt && freshMsg && freshMsg.embeds.length === 0; attempt++) {
                 debug(`Sin embed, forzando regeneración - Intento ${attempt}`, "Events.MessageCreate");
+                const t = 3_000 + (1_000 * attempt)
 
                 await sentMsg.edit({ content: i18next.t("common:embedService.try", { a1: `${attempt}/${mxAtt}` }), allowedMentions: { repliedUser: false } });
-                await wait(3_000);
+                await wait(t);
 
                 await sentMsg.edit({ content: content, allowedMentions: { repliedUser: false } });
-                await wait(2_500 + (1_000 * attempt));
+                await wait(t);
                 freshMsg = await msg.channel.messages.fetch(sentMsg.id).catch(() => null);
             }
 
@@ -179,7 +180,7 @@ async function post(msg: Message, replacedUrls: string[], autorId: string) {
     }
 };
 
-// =========== emojiDelet =========== //
+// ================================= emojiDelet ================================= //
 export async function deleteMSG(msg: Message, autorId: string) {
     if (!msg.channel.isSendable() || !msg.deletable) return;
     try {

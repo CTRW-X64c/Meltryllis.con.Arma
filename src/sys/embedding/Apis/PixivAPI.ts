@@ -6,6 +6,7 @@ import { ApiHandler } from "../embedingSwitch"
 // ================================= APi: Pixiv Meltrys ================================= //
 export class apiPixivCustom implements ApiHandler {
     name = "PixivMeltrys";
+
     isAvailable(): boolean { return true; }
     isDomain(domain: string): boolean { return domain.includes("pixiv.net") || domain.includes("pximg.net"); }
     async guildChk(): Promise<boolean> { return true; }

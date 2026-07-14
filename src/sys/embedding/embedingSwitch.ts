@@ -2,7 +2,8 @@
 import { Message } from "discord.js";
 import { debug } from "../logging";
 import { apiEmbedez } from "./Apis/embedez"
-import { apiPixivCustom } from "./Apis/PixivAPI"
+import { apiPixivCustom } from "./Apis/pixivAPI"
+import { fakeApiFB } from "./Apis/fbFakeApi";
 
 export interface ApiHandler {
     name: string;
@@ -16,6 +17,7 @@ export interface ApiHandler {
 const apiHandlers: ApiHandler[] = [
     new apiEmbedez(),
     new apiPixivCustom(),
+    new fakeApiFB(),
 ];
 
 // =========== Procesador principal =========== //
