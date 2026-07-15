@@ -15,7 +15,7 @@ export class fakeApiFB implements ApiHandler {
             debug(`El uso de Facebook fix está deshabilitado en este gremio: ${guildId}`, "ApiReplacement");
             return false;
         }
-        fbChk.custom_url === null ? this.customDomain = null : this.customDomain = fbChk.custom_url;
+        this.customDomain = fbChk.custom_url ?? null;
         return true;
     }
     async process(url: string): Promise<{ fix: string | null, ok: boolean }> {
