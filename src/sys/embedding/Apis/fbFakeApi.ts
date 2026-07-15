@@ -11,11 +11,13 @@ export class fakeApiFB implements ApiHandler {
     async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
         const fbChk = guildConfigs.get("Facebook");
-        if (fbChk && fbChk.enabled === false) {
-            debug(`El uso de Facebook fix está deshabilitado en este gremio: ${guildId}`, "ApiReplacement");
-            return false;
+        if (fbChk) {
+            if (fbChk.enabled === false) {
+                debug(`El uso de Facebook fix está deshabilitado en este gremio: ${guildId}`, "ApiReplacement");
+                return false;
+            }
+            this.customDomain = fbChk.custom_url ?? null;
         }
-        this.customDomain = fbChk.custom_url ?? null;
         return true;
     }
     async process(url: string): Promise<{ fix: string | null, ok: boolean }> {
