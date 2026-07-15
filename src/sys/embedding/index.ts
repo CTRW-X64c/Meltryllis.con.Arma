@@ -9,20 +9,18 @@ export default function buildReplacements(guildConfig: Map<string, { custom_url:
   const replacers = new Map<string, { replaceURLs: (content: string, base?: string) => string | null }>();
 
   for (const meta of replacementMetaList) {
-    const config = guildConfig.get(meta.name) || { enabled: true, custom_url: null };
+    const config = guildConfig.get(meta.name) ?? { enabled: true, custom_url: null };
     if (!config.enabled) continue;
 
     if (meta.dependsOn) {
-      const depConfig = guildConfig.get(meta.dependsOn) || { enabled: true, custom_url: null };
+      const depConfig = guildConfig.get(meta.dependsOn) ?? { enabled: true, custom_url: null };
       if (!depConfig.enabled) continue;
 
-      const depUrl = depConfig.custom_url || urlStatusManager.getActiveUrl(meta.dbKey);
-
+      const depUrl = depConfig.custom_url ?? urlStatusManager.getActiveUrl(meta.dbKey);
       if (!depUrl) continue;
     }
 
-    const url = config.custom_url || urlStatusManager.getActiveUrl(meta.dbKey);
-
+    const url = config.custom_url ?? urlStatusManager.getActiveUrl(meta.dbKey);
     if (meta.takesUrl && !url) continue;
 
     const instance = meta.takesUrl ? new meta.Class(url as string) : new meta.Class();
@@ -30,7 +28,6 @@ export default function buildReplacements(guildConfig: Map<string, { custom_url:
   }
 
   const replacements: { [key: string]: (messageContent: string) => string | null } = {};
-
   for (const meta of replacementMetaList) {
     const instance = replacers.get(meta.name);
     if (!instance) continue;
@@ -39,13 +36,12 @@ export default function buildReplacements(guildConfig: Map<string, { custom_url:
       replacements[key] = (messageContent: string) => {
         if (meta.dependsOn) {
           const depConfig = guildConfig.get(meta.dependsOn);
-          const depUrl = depConfig?.custom_url || urlStatusManager.getActiveUrl(meta.dbKey);
+          const depUrl = depConfig?.custom_url ?? urlStatusManager.getActiveUrl(meta.dbKey);
           return instance.replaceURLs(messageContent, depUrl || undefined);
         }
         return instance.replaceURLs(messageContent);
       };
     }
   }
-
   return replacements;
 }

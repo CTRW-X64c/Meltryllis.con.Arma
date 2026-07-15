@@ -1,6 +1,6 @@
 // src/sys/DB-Engine/links/Embed.ts
 import getPool from "../database";
-import {debug, error} from "../../logging.js";
+import { debug, error } from "../../logging.js";
 
 interface GuildReplacementConfig {
   custom_url: string | null;
@@ -17,13 +17,13 @@ export async function getGuildReplacementConfig(guildId: string): Promise<Map<st
   }
 
   debug(`[BD.Embed] Cache MISS para guild: ${guildId}, consultando BD`, "Database");
-  
+
   try {
     const pool = await getPool();
-    const [rows] = await pool.query("SELECT replacement_type, custom_url, enabled, user_id FROM guild_replacements WHERE guild_id = ?", 
+    const [rows] = await pool.query("SELECT replacement_type, custom_url, enabled, user_id FROM guild_replacements WHERE guild_id = ?",
       [guildId]
     );
-    
+
     const configMap = new Map<string, GuildReplacementConfig>();
 
     for (const row of rows as any[]) {
@@ -32,7 +32,7 @@ export async function getGuildReplacementConfig(guildId: string): Promise<Map<st
 
     guildReplacementCache.set(guildId, configMap);
     debug(`[BD.Embed] Caché actualizada para guild: ${guildId}`, "Database");
-    
+
     return configMap;
   } catch (err) {
     error(`[BD.Embed] Error al cargar config: ${err}`, "Database");
@@ -43,7 +43,6 @@ export async function getGuildReplacementConfig(guildId: string): Promise<Map<st
 export async function setGuildReplacementConfig(guildId: string, replacementType: string, config: GuildReplacementConfig): Promise<void> {
   try {
     const pool = await getPool();
-    
     await pool.query(`INSERT INTO guild_replacements (guild_id, replacement_type, custom_url, enabled, user_id) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE custom_url = ?, enabled = ?, user_id = ?`,
       [guildId, replacementType, config.custom_url, config.enabled, config.user_id, config.custom_url, config.enabled, config.user_id
       ]
@@ -53,7 +52,7 @@ export async function setGuildReplacementConfig(guildId: string, replacementType
       const guildMap = guildReplacementCache.get(guildId)!;
       guildMap.set(replacementType, { custom_url: config.custom_url, enabled: config.enabled, user_id: config.user_id });
       debug(`[BD.Embed] Caché actualizada en caliente para guild: ${guildId}, Tipo: ${replacementType}`, "Database");
-    } 
+    }
   } catch (err) {
     error(`[BD.Embed] Error al guardar config: ${err}`, "Database");
     throw err;

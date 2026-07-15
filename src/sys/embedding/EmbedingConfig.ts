@@ -46,14 +46,14 @@ export const replacementMetaList: ReplacementMeta[] = [
     Class: DeviantArt,
     regexKeys: ["(\\/\\/|\\.)?deviantart\\.com/"],
     takesUrl: true,
-  },
+  },/*
   {
     name: "FacebookVideo",
     dbKey: "facebookVideo",
     Class: Facebook,
     regexKeys: ["(\\/\\/|\\.)?(facebook|fb)\\.com\\/(share\\/)?(r\\/|v\\/|reel\\/|watch\\?v=|\\d+\\/videos\\/)"],
     takesUrl: true,
-  },
+  },*/
   {
     name: "Facebook",
     dbKey: "facebook",

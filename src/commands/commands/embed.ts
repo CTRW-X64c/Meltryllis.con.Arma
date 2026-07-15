@@ -106,7 +106,7 @@ export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promis
                     let hostname = parsedUrl.hostname.startsWith("www.") ? parsedUrl.hostname.substring(4) : parsedUrl.hostname;
                     customUrl = hostname; enabled = true; userId = i.user.id;
                 } catch (e) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_url_custom") }); return; }
-                respuesta = i18next.t("commands:embed.interacciones.custom_description", { a1: `<@${i.user.id}>`, a2: site })
+                respuesta = i18next.t("commands:embed.interacciones.custom_description", { a1: `<@${i.user.id}>`, a2: site, a3: customUrl })
                 break;
 
             default:
