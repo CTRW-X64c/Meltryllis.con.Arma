@@ -24,6 +24,7 @@ import { handleLimitsModal } from "./commandModales/modalLimits";
 import { handleLimitsButton } from "./commandButtons/NewLimits";
 import { handleMypermissionsCommand, registerMypermissionsCommands } from "./commands/chkperm";
 import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess/noEvery";
+import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "./commands/kancolle";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -47,7 +48,8 @@ export async function sysUpRegister(client: Client) {
     ...(await registerButtonLinkCommand()),
     ...(await registerCronpostCommand()),
     ...(await registerMypermissionsCommands()),
-    ...(await registernoEveryoneCommand())
+    ...(await registernoEveryoneCommand()),
+    ...(await registerKantaiCollectionCommand())
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -109,6 +111,8 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handleMypermissionsCommand(interaction); break;
     case 'noeveryone':
       await handleNoEveryoneCommand(interaction); break;
+    case 'kancolle':
+      await handleKantaiCollectionCommand(interaction); break;
     default:
       fail(interaction); break;
   }

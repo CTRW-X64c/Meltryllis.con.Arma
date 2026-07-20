@@ -284,6 +284,19 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  //Tabla kancolle
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kc_conf (
+      guild_id VARCHAR(50) NOT NULL,
+      role VARCHAR(50),
+      channel VARCHAR(50) NOT NULL,
+      pvp BOOLEAN DEFAULT TRUE,
+      quest BOOLEAN DEFAULT TRUE,
+      oem BOOLEAN DEFAULT TRUE,
+      UNIQUE KEY unique_guild_kancolle (guild_id)
+    )
+  `);
+
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;
   info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");

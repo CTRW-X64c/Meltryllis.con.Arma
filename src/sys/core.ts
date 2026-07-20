@@ -17,7 +17,7 @@ import lavalinkManager, { loadNodes } from "../bgProcess/lavalinkConnect";
 import registerIOevent from "./zGears/IO-Server";
 import { initNoEveryone } from "../bgProcess/noEvery";
 import { startServices } from "./zGears/_managerServices";
-
+import { initKC } from "../bgProcess/KanCron";
 
 /*========= Inicializadores =========*/
 
@@ -50,6 +50,7 @@ async function main(): Promise<void> {
             startCronpost(client);
             startStatusRotation(client);
             initNoEveryone(client);
+            initKC(client)
         } else {
             error("❌ La BD no arranco, bye bye~");
             process.exit(1);

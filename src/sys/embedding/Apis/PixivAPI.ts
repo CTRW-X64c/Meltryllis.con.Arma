@@ -34,12 +34,16 @@ export class apiPixivCustom implements ApiHandler {
 
         const pixivData = await PixivAPI.getIllustData(illustId);
         if (!pixivData || pixivData.buffers.length === 0) return { fix: null, ok: false };
+        const delet = 15 * 1_000
 
+        if (pixivData.fPic === 2) {
+            const delF = await message.reply({ content: `⚠️ Nuestra api no soporta animaciones! \nUsando metodo externo...`, allowedMentions: { repliedUser: false } });
+            setTimeout(async () => { await delF.delete() }, delet);
+            return { fix: null, ok: false };
+        }
         if (pixivData.isNSFW && !textChannel.nsfw) {
-            await message.reply({
-                content: `⚠️ Por normas mas estrictas de Discord nuestra API no publicara contenido NSFW en canales SFW!`,
-                allowedMentions: { repliedUser: true }
-            });
+            const delN = await message.reply({ content: `⚠️ Por normas de Discord nuestra API no publica contenido NSFW en canales no NSFW!! \nUsando metodo externo...`, allowedMentions: { repliedUser: false } });
+            setTimeout(async () => { await delN.delete() }, delet);
             return { fix: null, ok: false };
         }
 
@@ -95,6 +99,7 @@ interface PixivPostData {
     buffers: Buffer[];
     sizePag: number;
     isNSFW: boolean;
+    fPic: number;
 }
 
 interface PixivInfoResponse {
@@ -103,6 +108,7 @@ interface PixivInfoResponse {
         title: string;
         userName: string;
         xRestrict: number;
+        illustType: number;
     };
 }
 
@@ -138,6 +144,7 @@ export class PixivAPI {
             }
 
             const isNsfwContent = infoData.body.xRestrict > 0;
+            const typePic = infoData.body.illustType
             const pagesRes = await fetch(`https://www.pixiv.net/ajax/illust/${illustId}/pages`, { headers: this.headers });
             const pagesData = await pagesRes.json() as PixivPagesResponse;
             if (pagesData.error || !pagesData.body || pagesData.body.length === 0) {
@@ -164,7 +171,8 @@ export class PixivAPI {
                 url: `https://www.pixiv.net/en/artworks/${illustId}`,
                 buffers: imageBuffers,
                 sizePag: pagesData.body.length,
-                isNSFW: isNsfwContent
+                isNSFW: isNsfwContent,
+                fPic: typePic
             };
 
         } catch (error) {
