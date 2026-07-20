@@ -51,7 +51,7 @@ const aQuest = () => {
     const numDay = tokyoDate.getDate(); // 1 - 31
     const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
     // === msg === //
-    let aviso = "Reinicio de Misiones: \n- DIARIAS!!"
+    let aviso = "\n- DIARIAS!!"
     if (dayOfWeek === 1) aviso += "\n- SEMANALES!!"
     if (numDay === 1) aviso += "\n- MENSUALES!!"
     if ((month === 2 /*Marzo*/ || month === 5 /*Junio */ || month === 8 /* Septiembre */ || month === 11 /* Diciembre */) && numDay === 1) aviso += "\n- TRIMESTRALES (Quarterly)!"
@@ -66,32 +66,32 @@ async function notifyKC(client: Client, type: notifyType) {
             if (type === 'oem' && !cfg.oem) continue;
 
             try {
-                let title = "", desc = "", uTitle = "", uDesc = "", pic = "https://i.imgur.com/sInDmjs.jpeg", color = 0xFFA500, wTime: number;
+                let title = "", desc = "", uTitle = "", uDesc = "", pic = "https://i.imgur.com/sInDmjs.jpeg", color = 0xFFA500, rTime: number;
                 switch (type) {
                     case 'pvp':
+                        rTime = 20;
                         title = "⚓ ¡Aviso de PvP!";
-                        desc = "El reinicio de Ejercicios (PvP) ocurrirá en **20 minutos**.";
+                        desc = `Los Ejercicios (PvP) se reiniciaran en **${rTime} minutos**.`;
                         pic = "https://i.imgur.com/rhaHOhq.png";
                         uTitle = "⚔️ ¡PvP Reiniciado!";
-                        uDesc = "Los PvPs se han restablecido!!";
-                        wTime = 20 * minuts;
+                        uDesc = "✅ Los PvPs se han reiniciado!";
                         break;
                     case 'quest':
-                        const text = aQuest()
+                        const tx = aQuest();
+                        rTime = 20;
                         title = "📝 Aviso sobre las Quest!";
-                        desc = `${text} \n\n **Reset en 20 minutos!!** `;
+                        desc = `Reinicio de Misiones: ${tx} \n\n **Reset en ${rTime} minutos!!** `;
                         pic = "https://i.imgur.com/pJZdK4i.jpeg";
                         uTitle = "✅ ¡Las Quest se han reiniciado!";
-                        uDesc = text;
-                        wTime = 20 * minuts;
+                        uDesc = `Se han reiniciado las misones: ${tx}`;
                         break;
                     case `oem`:
+                        rTime = 30;
                         title = "📦 ¡Aviso de Extra operaciones!"
-                        desc = "Las EO se reiniciaran en **30 minutos**."
+                        desc = `Las EO se reiniciaran en ${rTime} minutos.`
                         pic = "https://i.imgur.com/72A2KNE.png";
-                        uTitle = "🎉 ¡EO Reiniciada!"
+                        uTitle = "🎉 Las EO se han reiniciado!"
                         uDesc = "Las EO se han reiniciado, ve apor tus medallas del mes!"
-                        wTime = 30 * minuts
                         break;
                 }
 
@@ -100,6 +100,7 @@ async function notifyKC(client: Client, type: notifyType) {
                 const channel = await guild.channels.fetch(cfg.channel).catch(() => null);
                 if (!channel || !channel.isTextBased()) continue;
                 const txtCh = channel as TextChannel;
+                const delTimmer = rTime * minuts;
 
                 const emb = new EmbedBuilder()
                     .setTitle(title)
@@ -119,7 +120,7 @@ async function notifyKC(client: Client, type: notifyType) {
                     .setColor(color)
                     .setTimestamp();
 
-                folloNotify(txtCh, omsg, uEmb, `${guildId}-${type}`, wTime, chkRol);
+                folloNotify(txtCh, omsg, uEmb, `${guildId}-${type}`, delTimmer, chkRol);
             } catch (err) { error(`Error al notificar: ${guildId} ${err}`); }
         }
     }
@@ -151,7 +152,7 @@ async function cronKC(client: Client) {
     const cronOpt = { timezone: TZ };
     cron.schedule('40 2,14 * * *', async () => { await notifyKC(client, 'pvp'); }, cronOpt); // PvP (03:00 JST y 15:00 JST) 
     cron.schedule('40 4 * * *', async () => { await notifyKC(client, 'quest'); }, cronOpt); // Daily (05:00 JST todos los días)
-    cron.schedule('30 23 1 * *', async () => { await notifyKC(client, 'oem'); }, cronOpt); // OEM (00:00 JTS Dia primero del mes) 
+    cron.schedule('30 23 1 * *', async () => { await notifyKC(client, 'oem'); }, cronOpt); // OEM (00:00 JTS Dia primero del mes)
 }
 
 export async function initKC(C: Client) {
