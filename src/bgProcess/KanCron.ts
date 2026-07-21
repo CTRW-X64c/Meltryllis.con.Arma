@@ -1,63 +1,34 @@
 import * as cron from 'node-cron';
-import getPool from '../sys/DB-Engine/database';
 import { Client, EmbedBuilder, Message, Role, TextChannel } from 'discord.js';
-import { debug, error, info } from '../sys/logging';
+import { error, info } from '../sys/logging';
+import { startKC, data, /*kcheMaint, updateKCmant, maint*/ } from '../sys/DB-Engine/links/KancolleBD';
 
 type notifyType = 'pvp' | 'quest' | `oem`;
-export interface Kancolle {
-    guild: string;
-    role: string | null;
-    channel: string;
-    pvp: boolean;
-    quest: boolean;
-    oem: boolean;
-}
-
-const data = new Map<string, Kancolle[]>();
-const minuts = 60 * 1_000;
+let kcTimmers = new Map<string, NodeJS.Timeout>();
 const TZ = 'Asia/Tokyo';
+const minuts = 60 * 1_000;
 
-async function startKC(): Promise<boolean> {
-    try {
-        const pool = await getPool();
-        const [rows]: any = await pool.query("SELECT * FROM kc_conf");
+// ========================================================= Init ========================================================= //
+export async function initKC(C: Client) {
+    setTimeout(async () => {
+        const kcStart = await startKC();
+        if (kcStart) {
+            cronKC(C);
+            //kcheMaint()
+            info(`Se iniciaron los modulos de Kancolle`)
+        } else { error(`No se pudieron cargar los modulos de Kancolle`) }
 
-        data.clear();
-        for (const dbRow of rows) {
-            if (!data.has(dbRow.guild_id)) data.set(dbRow.guild_id, []);
-            data.get(dbRow.guild_id)!.push({
-                guild: dbRow.guild_id,
-                role: dbRow.role,
-                channel: dbRow.channel,
-                pvp: dbRow.pvp,
-                quest: dbRow.quest,
-                oem: dbRow.oem
-            });
-        }
-        const count = data.size;
-        if (count > 0) info(`Kancolle configuraciones cargadas: ${count}`);
-        return true;
-    } catch (e) {
-        error(`Error al procesar configuración de Kancolle: ${e}`);
-        return false;
-    }
+    }, 1 * minuts)
 }
 
-// ==== time conversor === //
-const aQuest = () => {
-    const now = new Date();
-    const tokyoDate = new Date(now.toLocaleString('en-US', { timeZone: TZ }));
-    const dayOfWeek = tokyoDate.getDay(); // 1 = lunes
-    const numDay = tokyoDate.getDate(); // 1 - 31
-    const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
-    // === msg === //
-    let aviso = "\n- DIARIAS!!"
-    if (dayOfWeek === 1) aviso += "\n- SEMANALES!!"
-    if (numDay === 1) aviso += "\n- MENSUALES!!"
-    if ((month === 2 /*Marzo*/ || month === 5 /*Junio */ || month === 8 /* Septiembre */ || month === 11 /* Diciembre */) && numDay === 1) aviso += "\n- TRIMESTRALES (Quarterly)!"
-    return aviso;
+async function cronKC(client: Client) {
+    const cronOpt = { timezone: TZ };
+    cron.schedule('40 2,14 * * *', async () => { await notifyKC(client, 'pvp'); }, cronOpt); // PvP (03:00 JST y 15:00 JST) 
+    cron.schedule('40 4 * * *', async () => { await notifyKC(client, 'quest'); }, cronOpt); // Daily (05:00 JST todos los días)
+    cron.schedule('30 23 1 * *', async () => { await notifyKC(client, 'oem'); }, cronOpt); // OEM (00:00 JTS Dia primero del mes)
 }
 
+// ========================================================= Main ========================================================= //
 async function notifyKC(client: Client, type: notifyType) {
     for (const [guildId, configs] of data.entries()) {
         for (const cfg of configs) {
@@ -66,21 +37,37 @@ async function notifyKC(client: Client, type: notifyType) {
             if (type === 'oem' && !cfg.oem) continue;
 
             try {
-                let title = "", desc = "", uTitle = "", uDesc = "", pic = "https://i.imgur.com/sInDmjs.jpeg", color = 0xFFA500, rTime: number;
+                let title = "", desc = "", uTitle = "", uDesc = "", pic = "https://i.imgur.com/sInDmjs.jpeg", color = 0xFFA500, rTime: number, fields: { name: string; value: string; inline?: boolean }[] = [];
+                const guild = await client.guilds.fetch(guildId).catch(() => null);
+                if (!guild) continue;
+                const channel = await guild.channels.fetch(cfg.channel).catch(() => null);
+                if (!channel || !channel.isTextBased()) continue;
+                const txtCh = channel as TextChannel;
+                const chkRol = cfg.role ? await guild.roles.fetch(cfg.role).catch(() => null) : null;
+                const tx = aQuest();
+                const rst = jpTime();
+
                 switch (type) {
                     case 'pvp':
                         rTime = 20;
                         title = "⚓ ¡Aviso de PvP!";
                         desc = `Los Ejercicios (PvP) se reiniciaran en **${rTime} minutos**.`;
+                        fields = [
+                            { name: `Misiones Reseteadas:`, value: `${tx}` },
+                            { name: `Proximos resets:`, value: `**PVP**: ${rst.pvp}\n **Diarias**: ${rst.dQuest}\n **Semanales**: ${rst.wQuest}\n **Extra Operaciones**: ${rst.oem}` },
+                        ];
                         pic = "https://i.imgur.com/rhaHOhq.png";
                         uTitle = "⚔️ ¡PvP Reiniciado!";
                         uDesc = "✅ Los PvPs se han reiniciado!";
                         break;
                     case 'quest':
-                        const tx = aQuest();
                         rTime = 20;
                         title = "📝 Aviso sobre las Quest!";
-                        desc = `Reinicio de Misiones: ${tx} \n\n **Reset en ${rTime} minutos!!** `;
+                        desc = `**Reinicio de misiones en ${rTime} minutos!!**`;
+                        fields = [
+                            { name: `Misiones Reseteadas:`, value: `${tx}` },
+                            { name: `Proximos resets:`, value: `**PVP**: ${rst.pvp}\n **Diarias**: ${rst.dQuest}\n **Semanales**: ${rst.wQuest}\n **Extra Operaciones**: ${rst.oem}` },
+                        ];
                         pic = "https://i.imgur.com/pJZdK4i.jpeg";
                         uTitle = "✅ ¡Las Quest se han reiniciado!";
                         uDesc = `Se han reiniciado las misones: ${tx}`;
@@ -89,44 +76,29 @@ async function notifyKC(client: Client, type: notifyType) {
                         rTime = 30;
                         title = "📦 ¡Aviso de Extra operaciones!"
                         desc = `Las EO se reiniciaran en ${rTime} minutos.`
+                        fields = [
+                            { name: `Misiones Reseteadas:`, value: `${tx}` },
+                            { name: `Proximos resets:`, value: `**PVP**: ${rst.pvp}\n **Diarias**: ${rst.dQuest}\n **Semanales**: ${rst.wQuest}\n **Extra Operaciones**: ${rst.oem}` },
+                        ];
                         pic = "https://i.imgur.com/72A2KNE.png";
                         uTitle = "🎉 Las EO se han reiniciado!"
                         uDesc = "Las EO se han reiniciado, ve apor tus medallas del mes!"
                         break;
                 }
 
-                const guild = await client.guilds.fetch(guildId).catch(() => null);
-                if (!guild) continue;
-                const channel = await guild.channels.fetch(cfg.channel).catch(() => null);
-                if (!channel || !channel.isTextBased()) continue;
-                const txtCh = channel as TextChannel;
-                const delTimmer = rTime * minuts;
-
-                const emb = new EmbedBuilder()
-                    .setTitle(title)
-                    .setDescription(desc)
-                    .setColor(color)
-                    .setImage(pic)
-                    .setTimestamp();
-
-                const chkRol = cfg.role ? await guild.roles.fetch(cfg.role).catch(() => null) : null;
+                const emb = new EmbedBuilder().setTitle(title).setColor(color).setImage(pic).setDescription(desc).addFields(fields);
                 let omsg: Message;
-                if (chkRol) omsg = await txtCh.send({ content: `AVISO: ${chkRol}!`, embeds: [emb] });
-                else omsg = await txtCh.send({ embeds: [emb] });
+                chkRol ? omsg = await txtCh.send({ content: `AVISO: ${chkRol}!`, embeds: [emb] }) : omsg = await txtCh.send({ embeds: [emb] });
 
-                const uEmb = new EmbedBuilder()
-                    .setTitle(uTitle)
-                    .setDescription(uDesc)
-                    .setColor(color)
-                    .setTimestamp();
+                const uEmb = new EmbedBuilder().setTitle(uTitle).setDescription(uDesc).setColor(color);
 
+                const delTimmer = rTime * minuts;
                 folloNotify(txtCh, omsg, uEmb, `${guildId}-${type}`, delTimmer, chkRol);
             } catch (err) { error(`Error al notificar: ${guildId} ${err}`); }
         }
     }
 }
 
-let kcTimmers = new Map<string, NodeJS.Timeout>();
 function folloNotify(ch: TextChannel, oldMsg: Message, emb: EmbedBuilder, timerId: string, delay: number, role: Role | null) {
     if (kcTimmers.has(timerId)) clearTimeout(kcTimmers.get(timerId)!);
     const mainTimer = setTimeout(async () => {
@@ -146,53 +118,101 @@ function folloNotify(ch: TextChannel, oldMsg: Message, emb: EmbedBuilder, timerI
     }, delay);
     kcTimmers.set(timerId, mainTimer);
 }
+// ========================================================= fetchMaint ========================================================= //
 
-// ========================================================= Init ========================================================= //
-async function cronKC(client: Client) {
-    const cronOpt = { timezone: TZ };
-    cron.schedule('40 2,14 * * *', async () => { await notifyKC(client, 'pvp'); }, cronOpt); // PvP (03:00 JST y 15:00 JST) 
-    cron.schedule('40 4 * * *', async () => { await notifyKC(client, 'quest'); }, cronOpt); // Daily (05:00 JST todos los días)
-    cron.schedule('30 23 1 * *', async () => { await notifyKC(client, 'oem'); }, cronOpt); // OEM (00:00 JTS Dia primero del mes)
-}
 
-export async function initKC(C: Client) {
-    const kcStart = await startKC();
-    if (kcStart) {
-        cronKC(C);
-        info("Kancolle notify iniciado correctamente!")
+// ========================================================= lefTimes ========================================================= //
+export function jpTime() {
+    const now = new Date();
+    const tokyoDate = new Date(now.toLocaleString('en-US', { timeZone: TZ }));
+    const nowTime = tokyoDate.getTime();
+
+    // PvPs
+    const pvp3hrs = new Date(tokyoDate);
+    pvp3hrs.setHours(3, 0, 0, 0);
+    const pvp15hrs = new Date(tokyoDate);
+    pvp15hrs.setHours(15, 0, 0, 0);
+    let pvpCount: number;
+    if (nowTime >= pvp15hrs.getTime()) {
+        const nextPvp3hrs = new Date(pvp3hrs);
+        nextPvp3hrs.setDate(nextPvp3hrs.getDate() + 1);
+        pvpCount = nextPvp3hrs.getTime() - nowTime;
+    } else if (nowTime >= pvp3hrs.getTime()) { pvpCount = pvp15hrs.getTime() - nowTime; }
+    else { pvpCount = pvp3hrs.getTime() - nowTime; }
+
+    // DailyQuest
+    const dQuest = new Date(tokyoDate);
+    dQuest.setHours(5, 0, 0, 0);
+    let dQuestCount: number;
+    if (nowTime >= dQuest.getTime()) {
+        const nextQuest = new Date(dQuest);
+        nextQuest.setDate(nextQuest.getDate() + 1);
+        dQuestCount = nextQuest.getTime() - nowTime;
     }
-}
+    else { dQuestCount = dQuest.getTime() - nowTime; }
 
-// ========================================================= Melt <=> BD ========================================================= //
-export async function addBD(guildId: string, kcData: Kancolle) {
-    try {
-        const pool = await getPool();
-        await pool.query(
-            `INSERT INTO kc_conf (guild_id, role, channel, pvp, quest, oem) VALUES (?, ?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE role = VALUES(role), channel = VALUES(channel), pvp = VALUES(pvp), quest = VALUES(quest), oem = VALUES(oem)`,
-            [guildId, kcData.role, kcData.channel, kcData.pvp, kcData.quest, kcData.oem]
-        );
+    // OEM
+    const oem = new Date(tokyoDate);
+    oem.setDate(1);
+    oem.setHours(0, 0, 0, 0);
 
-        data.set(guildId, [kcData]);
-        debug(`Kancolle Config GUARDADA/ACTUALIZADA: Guild ${guildId}`);
-    } catch (err) {
-        error(`Error guardando Kancolle Config: ${err}`);
+    let OEMCount: number;
+    if (nowTime >= oem.getTime()) {
+        const nextMonthly = new Date(oem);
+        nextMonthly.setMonth(nextMonthly.getMonth() + 1);
+        OEMCount = nextMonthly.getTime() - nowTime;
+    } else { OEMCount = oem.getTime() - nowTime; }
+
+    // WeeklyQuest
+    const wQuest = new Date(tokyoDate);
+    const targetDay = 1;
+    const currentDay = wQuest.getDay();
+    let daysUntilTarget = targetDay - currentDay;
+    if (daysUntilTarget < 0) daysUntilTarget += 7;
+    if (daysUntilTarget === 0) {
+        const todayTarget = new Date(tokyoDate);
+        todayTarget.setHours(5, 0, 0, 0);
+        if (nowTime >= todayTarget.getTime()) { daysUntilTarget = 7; }
     }
+    wQuest.setDate(wQuest.getDate() + daysUntilTarget);
+    wQuest.setHours(0, 0, 0, 0);
+    let wQuestCount: number;
+    if (nowTime >= wQuest.getTime()) {
+        const nextWeekly = new Date(wQuest);
+        nextWeekly.setDate(nextWeekly.getDate() + 7);
+        wQuestCount = nextWeekly.getTime() - nowTime;
+    } else { wQuestCount = wQuest.getTime() - nowTime; }
+
+    return { pvp: turnDate(pvpCount), dQuest: turnDate(dQuestCount), wQuest: turnDate(wQuestCount), oem: turnDate(OEMCount) };
 }
 
-export async function delBD(guildId: string) {
-    try {
-        const pool = await getPool();
-        await pool.query(`DELETE FROM kc_conf WHERE guild_id = ?`, [guildId]);
-        data.delete(guildId);
+// ========================================================= Euxiliares ========================================================= //
+function turnDate(data: number) {
+    const d = Math.floor(data / 86400000);
+    const h = Math.floor((data % 86400000) / 3600000);
+    const m = Math.floor((data % 3600000) / 60000);
+    const s = Math.floor((data % 60000) / 1000);
+    const t = [];
 
-        debug(`Kancolle Config ELIMINADA para Guild: ${guildId}`);
-    } catch (err) {
-        error(`Error eliminando Kancolle Config: ${err}`);
-    }
+    if (d >= 1) t.push(d === 1 ? "un día" : `${d} días`);
+    if (h >= 1) t.push(h === 1 ? "una hora" : `${h} horas`);
+    if (m >= 1) t.push(m === 1 ? "un minuto" : `${m} minutos`);
+    if (s > 0 && d === 0 && h === 0) t.push(s === 1 ? "un segundo" : `${s} segundos`);
+
+    return t.join(', ') || '0 segundos';
 }
 
-export async function getKCConfig(guild: string): Promise<Kancolle[]> {
-    if (data.has(guild)) return data.get(guild)!;
-    return [];
+// === misiones === //
+function aQuest() {
+    const now = new Date();
+    const tokyoDate = new Date(now.toLocaleString('en-US', { timeZone: TZ }));
+    const dayOfWeek = tokyoDate.getDay(); // 1 = lunes
+    const numDay = tokyoDate.getDate(); // 1 - 31
+    const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
+    // === msg === //
+    let aviso = "\n- DIARIAS!!"
+    if (dayOfWeek === 1) aviso += "\n- SEMANALES!!"
+    if (numDay === 1) aviso += "\n- MENSUALES!!"
+    if (numDay === 1 && (month === 2 /*Marzo*/ || month === 5 /*Junio */ || month === 8 /* Septiembre */ || month === 11 /* Diciembre */)) aviso += "\n- TRIMESTRALES (Quarterly)!"
+    return aviso;
 }

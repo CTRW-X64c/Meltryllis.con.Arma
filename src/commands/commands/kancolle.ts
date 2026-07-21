@@ -1,5 +1,5 @@
 import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, Guild, MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { addBD, delBD, getKCConfig, Kancolle } from '../../bgProcess/KanCron';
+import { addBD, delBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/KancolleBD';
 import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { error } from '../../sys/logging';
@@ -9,7 +9,7 @@ export async function registerKantaiCollectionCommand() {
         .setName('kancolle')
         .setDescription('Kantai Collection')
         .addSubcommand(s => s.setName('activar').setDescription('Add notification')
-            .addChannelOption(o => o.setName('channel').setDescription('Channel to notify in').setRequired(true).addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement))
+            .addChannelOption(o => o.setName('channel').setDescription('Channel to notify in').setRequired(false).addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement))
             .addRoleOption(o => o.setName('role').setDescription('Role to notify').setRequired(false))
             .addBooleanOption(o => o.setName('pvp').setDescription('Notify about PVP resets').setRequired(false))
             .addBooleanOption(o => o.setName('quest').setDescription('Notify about daily resets').setRequired(false))
@@ -110,7 +110,10 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
         const cnf = cnfList[0];
         const emb = new EmbedBuilder()
             .setTitle("Kancolle - Configuracion")
-            .setDescription(`Canal: <#${cnf.channel}>\nRole: ${cnf.role ? `<@&${cnf.role}>` : "Ninguno!"} \n\n PVP: ${cnf.pvp ? "✅" : "❌"} \n Quests: ${cnf.quest ? "✅" : "❌"} \n OEM: ${cnf.oem ? "✅" : "❌"}`)
+            .addFields(
+                { name: "Configuracion basica:", value: `Canal: <#${cnf.channel}>\nRol a notificar: ${cnf.role ? `<@&${cnf.role}>` : "Ninguno!"}` },
+                { name: "Notificaciones Activas", value: `PVP: ${cnf.pvp ? "✅" : "❌"} \n Quests: ${cnf.quest ? "✅" : "❌"} \n OEM: ${cnf.oem ? "✅" : "❌"}` }
+            )
             .setColor(0x00FF00);
 
         await interacciones.editReply({ embeds: [emb] });

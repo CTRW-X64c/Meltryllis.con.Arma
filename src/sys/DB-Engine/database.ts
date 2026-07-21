@@ -297,6 +297,15 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  //Tabla KCMantenimiento
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kc_maint(
+      lastMaintStart DATETIME NOT NULL,
+      maintNotified BOOLEAN DEFAULT FALSE,
+      lastNotificationTime DATETIME
+    )
+  `);
+
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;
   info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");

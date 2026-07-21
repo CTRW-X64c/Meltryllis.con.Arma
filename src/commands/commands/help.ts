@@ -21,6 +21,7 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
     { name: "/cronpost", value: "16" },
     { name: "/embed", value: "02" },
     { name: "/jointovoice", value: "03" },
+    { name: "/kancolle", value: "19" },
     { name: "/mangadex", value: "04" },
     { name: "/noeveryone", value: "18" },
     { name: "/permisos", value: "06" },
@@ -377,6 +378,18 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         ],
         srvPerm: "viewCh|readMsg|msgManager|moderateMembers",
         roles: { data: i18next.t("help:noeveryone.roles"), id: "moderateMembers" }
+      }); break;
+      /* ======================== kancolle ======================== */
+      /*case "19": await embedMaker(interaction, {
+        command: "kancolle",
+        title: i18next.t("help:kancolle.title"),
+        description: i18next.t("help:kancolle.description"),
+        footer: i18next.t("help:kancolle.footer"),
+        fields: [
+          { name: i18next.t("help:kancolle.name_1"), value: i18next.t("help:kancolle.value_1") },
+        ],
+        srvPerm: "viewCh|readMsg|msgManager",
+        roles: { data: i18next.t("help:kancolle.roles"), id: "moderateMembers" }
       }); break;
       /* ======================== default ======================== */
       default:
