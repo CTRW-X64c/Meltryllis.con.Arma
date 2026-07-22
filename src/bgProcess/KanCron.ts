@@ -4,8 +4,10 @@ import { error, info } from '../sys/logging';
 import { startKC, data, /*kcheMaint, updateKCmant, maint*/ } from '../sys/DB-Engine/links/KancolleBD';
 
 type notifyType = 'pvp' | 'quest' | `oem`;
+type timSlap = 'daily' | 'weekly' | 'monthly';
+interface timeData { type: timSlap; hours: number | number[]; minutes?: number; targetDay?: number; }
 let kcTimmers = new Map<string, NodeJS.Timeout>();
-const TZ = 'Asia/Tokyo';
+const TZjp = 'Asia/Tokyo';
 const minuts = 60 * 1_000;
 
 // ========================================================= Init ========================================================= //
@@ -22,7 +24,7 @@ export async function initKC(C: Client) {
 }
 
 async function cronKC(client: Client) {
-    const cronOpt = { timezone: TZ };
+    const cronOpt = { timezone: TZjp };
     cron.schedule('40 2,14 * * *', async () => { await notifyKC(client, 'pvp'); }, cronOpt); // PvP (03:00 JST y 15:00 JST) 
     cron.schedule('40 4 * * *', async () => { await notifyKC(client, 'quest'); }, cronOpt); // Daily (05:00 JST todos los días)
     cron.schedule('30 23 1 * *', async () => { await notifyKC(client, 'oem'); }, cronOpt); // OEM (00:00 JTS Dia primero del mes)
@@ -45,17 +47,15 @@ async function notifyKC(client: Client, type: notifyType) {
                 const txtCh = channel as TextChannel;
                 const chkRol = cfg.role ? await guild.roles.fetch(cfg.role).catch(() => null) : null;
                 const tx = aQuest();
-                const rst = jpTime();
+                const rst = leftTime();
+                const vlueTxt = `**PVP:** ${rst.pvp}\n**EO:** ${rst.oem}\n>Misiones:\n**Diarias:** ${rst.dQuest}\n**Semanales:** ${rst.wQuest}\n**Mensuales:**${rst.mQuest}\n>Rank:\n**Cutoff Diario:** ${rst.dPtCutof}\n**Cutoff Mesual:** ${rst.mPtCutof}`
 
                 switch (type) {
                     case 'pvp':
                         rTime = 20;
                         title = "⚓ ¡Aviso de PvP!";
                         desc = `Los Ejercicios (PvP) se reiniciaran en **${rTime} minutos**.`;
-                        fields = [
-                            { name: `Misiones Reseteadas:`, value: `${tx}` },
-                            { name: `Proximos resets:`, value: `**PVP**: ${rst.pvp}\n **Diarias**: ${rst.dQuest}\n **Semanales**: ${rst.wQuest}\n **Extra Operaciones**: ${rst.oem}` },
-                        ];
+                        fields = [{ name: `Proximos resets:`, value: vlueTxt },];
                         pic = "https://i.imgur.com/rhaHOhq.png";
                         uTitle = "⚔️ ¡PvP Reiniciado!";
                         uDesc = "✅ Los PvPs se han reiniciado!";
@@ -66,7 +66,7 @@ async function notifyKC(client: Client, type: notifyType) {
                         desc = `**Reinicio de misiones en ${rTime} minutos!!**`;
                         fields = [
                             { name: `Misiones Reseteadas:`, value: `${tx}` },
-                            { name: `Proximos resets:`, value: `**PVP**: ${rst.pvp}\n **Diarias**: ${rst.dQuest}\n **Semanales**: ${rst.wQuest}\n **Extra Operaciones**: ${rst.oem}` },
+                            { name: `Proximos resets:`, value: vlueTxt },
                         ];
                         pic = "https://i.imgur.com/pJZdK4i.jpeg";
                         uTitle = "✅ ¡Las Quest se han reiniciado!";
@@ -76,10 +76,7 @@ async function notifyKC(client: Client, type: notifyType) {
                         rTime = 30;
                         title = "📦 ¡Aviso de Extra operaciones!"
                         desc = `Las EO se reiniciaran en ${rTime} minutos.`
-                        fields = [
-                            { name: `Misiones Reseteadas:`, value: `${tx}` },
-                            { name: `Proximos resets:`, value: `**PVP**: ${rst.pvp}\n **Diarias**: ${rst.dQuest}\n **Semanales**: ${rst.wQuest}\n **Extra Operaciones**: ${rst.oem}` },
-                        ];
+                        fields = [{ name: `Proximos resets:`, value: vlueTxt },];
                         pic = "https://i.imgur.com/72A2KNE.png";
                         uTitle = "🎉 Las EO se han reiniciado!"
                         uDesc = "Las EO se han reiniciado, ve apor tus medallas del mes!"
@@ -122,70 +119,29 @@ function folloNotify(ch: TextChannel, oldMsg: Message, emb: EmbedBuilder, timerI
 
 
 // ========================================================= lefTimes ========================================================= //
-export function jpTime() {
-    const now = new Date();
-    const tokyoDate = new Date(now.toLocaleString('en-US', { timeZone: TZ }));
-    const nowTime = tokyoDate.getTime();
+export function leftTime() {
+    // ultimo dia del mes
+    const now = new Date(); const jpDate = new Date(now.toLocaleString('en-US', { timeZone: TZjp }));
+    const lastday = new Date(jpDate.getFullYear(), jpDate.getMonth() + 1, 0).getDate();
+    // Reglas mes: 1-31; Semana: domingo = 0 - sabado = 6, def= 1 lunes (1); Minutos: 0-59 def 0
+    const pvpCount = leftTimeConv({ type: 'daily', hours: [3, 15] });
+    const dQuestCount = leftTimeConv({ type: 'daily', hours: 5 });
+    const wQuestCount = leftTimeConv({ type: 'weekly', targetDay: 1, hours: 5 });
+    const mQuestCount = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5 });
+    const oemCount = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0 });
+    const dPtCutof = leftTimeConv({ type: 'daily', hours: [2, 14] });
+    const mPtCutof = leftTimeConv({ type: 'monthly', targetDay: lastday, hours: 22 })
 
-    // PvPs
-    const pvp3hrs = new Date(tokyoDate);
-    pvp3hrs.setHours(3, 0, 0, 0);
-    const pvp15hrs = new Date(tokyoDate);
-    pvp15hrs.setHours(15, 0, 0, 0);
-    let pvpCount: number;
-    if (nowTime >= pvp15hrs.getTime()) {
-        const nextPvp3hrs = new Date(pvp3hrs);
-        nextPvp3hrs.setDate(nextPvp3hrs.getDate() + 1);
-        pvpCount = nextPvp3hrs.getTime() - nowTime;
-    } else if (nowTime >= pvp3hrs.getTime()) { pvpCount = pvp15hrs.getTime() - nowTime; }
-    else { pvpCount = pvp3hrs.getTime() - nowTime; }
-
-    // DailyQuest
-    const dQuest = new Date(tokyoDate);
-    dQuest.setHours(5, 0, 0, 0);
-    let dQuestCount: number;
-    if (nowTime >= dQuest.getTime()) {
-        const nextQuest = new Date(dQuest);
-        nextQuest.setDate(nextQuest.getDate() + 1);
-        dQuestCount = nextQuest.getTime() - nowTime;
-    }
-    else { dQuestCount = dQuest.getTime() - nowTime; }
-
-    // OEM
-    const oem = new Date(tokyoDate);
-    oem.setDate(1);
-    oem.setHours(0, 0, 0, 0);
-
-    let OEMCount: number;
-    if (nowTime >= oem.getTime()) {
-        const nextMonthly = new Date(oem);
-        nextMonthly.setMonth(nextMonthly.getMonth() + 1);
-        OEMCount = nextMonthly.getTime() - nowTime;
-    } else { OEMCount = oem.getTime() - nowTime; }
-
-    // WeeklyQuest
-    const wQuest = new Date(tokyoDate);
-    const targetDay = 1;
-    const currentDay = wQuest.getDay();
-    let daysUntilTarget = targetDay - currentDay;
-    if (daysUntilTarget < 0) daysUntilTarget += 7;
-    if (daysUntilTarget === 0) {
-        const todayTarget = new Date(tokyoDate);
-        todayTarget.setHours(5, 0, 0, 0);
-        if (nowTime >= todayTarget.getTime()) { daysUntilTarget = 7; }
-    }
-    wQuest.setDate(wQuest.getDate() + daysUntilTarget);
-    wQuest.setHours(0, 0, 0, 0);
-    let wQuestCount: number;
-    if (nowTime >= wQuest.getTime()) {
-        const nextWeekly = new Date(wQuest);
-        nextWeekly.setDate(nextWeekly.getDate() + 7);
-        wQuestCount = nextWeekly.getTime() - nowTime;
-    } else { wQuestCount = wQuest.getTime() - nowTime; }
-
-    return { pvp: turnDate(pvpCount), dQuest: turnDate(dQuestCount), wQuest: turnDate(wQuestCount), oem: turnDate(OEMCount) };
+    return {
+        pvp: turnDate(pvpCount),
+        dQuest: turnDate(dQuestCount),
+        wQuest: turnDate(wQuestCount),
+        mQuest: turnDate(mQuestCount),
+        oem: turnDate(oemCount),
+        dPtCutof: turnDate(dPtCutof),
+        mPtCutof: turnDate(mPtCutof),
+    };
 }
-
 // ========================================================= Euxiliares ========================================================= //
 function turnDate(data: number) {
     const d = Math.floor(data / 86400000);
@@ -205,7 +161,7 @@ function turnDate(data: number) {
 // === misiones === //
 function aQuest() {
     const now = new Date();
-    const tokyoDate = new Date(now.toLocaleString('en-US', { timeZone: TZ }));
+    const tokyoDate = new Date(now.toLocaleString('en-US', { timeZone: TZjp }));
     const dayOfWeek = tokyoDate.getDay(); // 1 = lunes
     const numDay = tokyoDate.getDate(); // 1 - 31
     const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
@@ -215,4 +171,55 @@ function aQuest() {
     if (numDay === 1) aviso += "\n- MENSUALES!!"
     if (numDay === 1 && (month === 2 /*Marzo*/ || month === 5 /*Junio */ || month === 8 /* Septiembre */ || month === 11 /* Diciembre */)) aviso += "\n- TRIMESTRALES (Quarterly)!"
     return aviso;
+}
+
+// === leftTimeAux === //
+function leftTimeConv(opts: timeData): number {
+    const now = new Date();
+    const tokyoDate = new Date(now.toLocaleString('en-US', { timeZone: TZjp }));
+    const nowTime = tokyoDate.getTime();
+
+    let target = new Date(tokyoDate);
+    target.setMinutes(opts.minutes || 0, 0, 0);  /* hora target */
+    if (opts.type === 'daily') { /* Soporte para multi horas del dia*/
+        const hours = Array.isArray(opts.hours) ? opts.hours : [opts.hours];
+        hours.sort((a, b) => a - b); // Ordenar de menor a mayor
+
+        let found = false;
+        for (const h of hours) {
+            target.setHours(h);
+            if (target.getTime() > nowTime) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) { // Si ya paso el dia/hora pasamos al siguiente dia
+            target.setHours(hours[0]);
+            target.setDate(target.getDate() + 1);
+        }
+
+    } else if (opts.type === 'monthly') {
+        target.setDate(opts.targetDay || 1);
+        target.setHours(opts.hours as number);
+
+        if (target.getTime() <= nowTime) { /*Si ya fue lo cambiamos a la sigueinte mes */
+            target.setMonth(target.getMonth() + 1);
+        }
+
+    } else if (opts.type === 'weekly') {
+        const tDay = opts.targetDay || 1; // Por defecto Lunes (1)
+        target.setHours(opts.hours as number);
+
+        let daysUntilTarget = tDay - target.getDay();
+        if (daysUntilTarget < 0) daysUntilTarget += 7;
+
+        if (daysUntilTarget === 0 && target.getTime() <= nowTime) { /*Si ya fue lo cambiamos a la sigueinte semana */
+            daysUntilTarget = 7;
+        }
+
+        target.setDate(target.getDate() + daysUntilTarget);
+    }
+    const out = target.getTime() - nowTime;
+    return out;
 }
