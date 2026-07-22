@@ -10,10 +10,11 @@ export class VoiceChannelService {
     private readonly GRACE_PERIOD = 5000; // <= tiempo de gracia
     private deletionTimers: Map<string, NodeJS.Timeout> = new Map(); // Gestor de los tiempos de gracia
     private readonly MAX_CHANNELS_PER_USER = 2 // Limite de canales por usuario
-
+    private me;
 
     constructor(client: Client) {
         this.client = client;
+        this.me = this.client.user?.id;
         this.initializeFromDatabase();
     }
 
@@ -143,7 +144,7 @@ export class VoiceChannelService {
         const channel = await state.guild.channels.fetch(channelId) as VoiceChannel;
         if (!channel) return;
 
-        if (channel.members.filter(m => !m.user.bot).size === 0) {
+        if (channel.members.filter(m => !m.user.bot || m.id === this.me).size === 0) {
             this.scheduleChannelDeletion(channel);
         }
     }
@@ -156,7 +157,7 @@ export class VoiceChannelService {
             const isOldTemp = await isTempVoiceChannel(oldChannelId);
             if (isOldTemp) {
                 const oldChannel = await oldState.guild.channels.fetch(oldChannelId) as VoiceChannel;
-                if (oldChannel && oldChannel.members.filter(m => !m.user.bot).size === 0) {
+                if (oldChannel && oldChannel.members.filter(m => !m.user.bot || m.id === this.me).size === 0) {
                     this.scheduleChannelDeletion(oldChannel);
                 } else {
                     this.cancelDeletionTimer(oldChannelId);
@@ -180,7 +181,7 @@ export class VoiceChannelService {
             try {
                 // Verificar nuevamente si el canal está vacío
                 const currentChannel = await channel.guild.channels.fetch(channelId) as VoiceChannel;
-                if (currentChannel && currentChannel.members.filter(m => !m.user.bot).size === 0) {
+                if (currentChannel && currentChannel.members.filter(m => !m.user.bot || m.id === this.me).size === 0) {
                     await this.deleteTempChannel(currentChannel);
                 } else {
                     debug(`Canal ${channel.name} ya no está vacío, cancelando eliminación`);
@@ -265,18 +266,12 @@ export class VoiceChannelService {
                     if (!guild) continue;
 
                     const channel = await guild.channels.fetch(tempChannel.channelId).catch(() => null) ?? null;
-                    if (!channel || (channel.isVoiceBased() && (channel as VoiceChannel).members.filter(m => !m.user.bot).size === 0)) {
+                    if (!channel || (channel.isVoiceBased() && (channel as VoiceChannel).members.filter(m => !m.user.bot || m.id === this.me).size === 0)) {
                         const voiceChannel = channel as VoiceChannel;
                         if (voiceChannel) {
                             this.cancelDeletionTimer(voiceChannel.id);
                             await this.deleteTempChannel(voiceChannel);
                         }
-                    }
-
-                    if (channel === null) {
-                        debug(`Canal ${tempChannel.channelId} no encontrado en el servidor, eliminando de la BD`);
-                        await removeTempVoiceChannel(tempChannel.channelId);
-                        this.activeTempChannels.delete(tempChannel.channelId);
                     }
                 } catch (err) {
                     debug(`Error verificando canal ${tempChannel.channelId}: ${err}`);
