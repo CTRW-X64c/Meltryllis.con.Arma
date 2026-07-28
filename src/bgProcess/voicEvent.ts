@@ -264,14 +264,18 @@ export class VoiceChannelService {
                 try {
                     const guild = this.client.guilds.cache.get(tempChannel.guildId);
                     if (!guild) continue;
-
                     const channel = await guild.channels.fetch(tempChannel.channelId).catch(() => null) ?? null;
-                    if (!channel || (channel.isVoiceBased() && (channel as VoiceChannel).members.filter(m => !m.user.bot || m.id === this.me).size === 0)) {
+                    if (channel && channel.isVoiceBased()) {
                         const voiceChannel = channel as VoiceChannel;
-                        if (voiceChannel) {
+                        if (voiceChannel && (voiceChannel.members.filter(m => !m.user.bot || m.id === this.me).size === 0)) {
                             this.cancelDeletionTimer(voiceChannel.id);
                             await this.deleteTempChannel(voiceChannel);
                         }
+                    }
+
+                    if (channel === null || undefined) {
+                        await removeTempVoiceChannel(tempChannel.channelId);
+                        info(`Canal "${tempChannel.channelId}" eliminado de la bd, el canal ya no existe o es inaccesible!!`);
                     }
                 } catch (err) {
                     debug(`Error verificando canal ${tempChannel.channelId}: ${err}`);

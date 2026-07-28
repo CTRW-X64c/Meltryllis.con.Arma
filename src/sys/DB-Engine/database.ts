@@ -293,6 +293,7 @@ async function poolManager(): Promise<void> {
       pvp BOOLEAN DEFAULT TRUE,
       quest BOOLEAN DEFAULT TRUE,
       oem BOOLEAN DEFAULT TRUE,
+      mnt BOOLEAN DEFAULT TRUE,
       UNIQUE KEY unique_guild_kancolle (guild_id)
     )
   `);
@@ -300,9 +301,11 @@ async function poolManager(): Promise<void> {
   //Tabla KCMantenimiento
   await pool.query(`
     CREATE TABLE IF NOT EXISTS kc_maint(
+      id INT PRIMARY KEY DEFAULT 1,
       lastMaintStart DATETIME NOT NULL,
       maintNotified BOOLEAN DEFAULT FALSE,
-      lastNotificationTime DATETIME
+      lastNotificationTime DATETIME,
+      MaintEnd DATETIME
     )
   `);
 

@@ -10,110 +10,86 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
         .setName("post")
         .setDescription(i18next.t("commands:post.slashBuilder.description"))
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("msg")
-                .setDescription(i18next.t("commands:post.slashBuilder.msg_description"))
-                .addChannelOption(option =>
-                    option
-                        .setName("canal")
-                        .setDescription(i18next.t("commands:post.slashBuilder.canal_description"))
-                        .setRequired(true)
-                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
-                )
-                .addBooleanOption(option =>
-                    option
-                        .setName("borrar")
-                        .setDescription(i18next.t("commands:post.slashBuilder.borrar_msg_description"))
-                        .setRequired(false)
-                )
+        .addSubcommand(s => s
+            .setName("msg")
+            .setDescription(i18next.t("commands:post.slashBuilder.msg_description"))
+            .addChannelOption(o =>
+                o.setName("canal").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.canal_description"))
+                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+            )
+            .addBooleanOption(o =>
+                o.setName("borrar").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.borrar_msg_description"))
+            )
         )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("copy")
-                .setDescription(i18next.t("commands:post.slashBuilder.copy_description"))
-                .addStringOption(option =>
-                    option
-                        .setName("mensaje_id")
-                        .setDescription(i18next.t("commands:post.slashBuilder.mensaje_description"))
-                        .setRequired(true)
-                )
-                .addChannelOption(option =>
-                    option
-                        .setName("canal_destino")
-                        .setDescription(i18next.t("commands:post.slashBuilder.canal_description"))
-                        .setRequired(true)
-                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
-                )
-                .addChannelOption(option =>
-                    option
-                        .setName("canal_origen")
-                        .setDescription(i18next.t("commands:post.slashBuilder.canal_origen_description"))
-                        .setRequired(false)
-                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
-                )
-                .addBooleanOption(option =>
-                    option
-                        .setName("borrar")
-                        .setDescription(i18next.t("commands:post.slashBuilder.borrar_copy_description"))
-                        .setRequired(false)
-                )
+        .addSubcommand(s => s
+            .setName("copy")
+            .setDescription(i18next.t("commands:post.slashBuilder.copy_description"))
+            .addStringOption(o =>
+                o.setName("mensaje_id").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.mensaje_description"))
+            )
+            .addChannelOption(o =>
+                o.setName("canal_destino").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.canal_description"))
+                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+            )
+            .addChannelOption(o =>
+                o.setName("canal_origen").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.canal_origen_description"))
+                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+            )
+            .addBooleanOption(o =>
+                o.setName("borrar").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.borrar_copy_description"))
+            )
         )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("edit")
-                .setDescription(i18next.t("commands:post.slashBuilder.edit_description"))
-                .addStringOption(option =>
-                    option
-                        .setName("mensaje_id")
-                        .setDescription(i18next.t("commands:post.slashBuilder.mensaje_edit_description"))
-                        .setRequired(true)
-                )
-                .addChannelOption(option =>
-                    option
-                        .setName("canal_mensaje")
-                        .setDescription(i18next.t("commands:post.slashBuilder.nuevo_mensaje_description"))
-                        .setRequired(true)
-                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
-                )
-                .addBooleanOption(option =>
-                    option
-                        .setName("borrar")
-                        .setDescription(i18next.t("commands:post.slashBuilder.borrar_edit_description"))
-                        .setRequired(false)
-                )
+        .addSubcommand(s => s
+            .setName("edit")
+            .setDescription(i18next.t("commands:post.slashBuilder.edit_description"))
+            .addStringOption(o =>
+                o.setName("mensaje_id").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.mensaje_edit_description"))
+            )
+            .addChannelOption(o =>
+                o.setName("canal_mensaje").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.nuevo_mensaje_description"))
+                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+            )
+            .addBooleanOption(o =>
+                o.setName("edit_from_msg").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.edit_from_msg_description"))
+            )
+            .addChannelOption(o =>
+                o.setName("canal_origen").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.edit_from_msg_channel_description"))
+                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+            )
+            .addStringOption(o =>
+                o.setName("msg_origen").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.edit_from_msg_message_description"))
+            )
+            .addBooleanOption(o =>
+                o.setName("borrar").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.borrar_edit_description"))
+            )
         )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("reply")
-                .setDescription(i18next.t("commands:post.slashBuilder.reply_description"))
-                .addStringOption(option =>
-                    option
-                        .setName("mensaje_id")
-                        .setDescription(i18next.t("commands:post.slashBuilder.mensaje_reply_description"))
-                        .setRequired(true)
-                )
-                .addChannelOption(option =>
-                    option
-                        .setName("canal_mensaje")
-                        .setDescription(i18next.t("commands:post.slashBuilder.canal_mensaje_reply_description"))
-                        .setRequired(true)
-                        .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
-                )
-                .addBooleanOption(option =>
-                    option
-                        .setName("notify")
-                        .setDescription(i18next.t("commands:post.slashBuilder.canal_notify_description"))
-                        .setRequired(false)
-                )
-                .addBooleanOption(option =>
-                    option
-                        .setName("borrar")
-                        .setDescription(i18next.t("commands:post.slashBuilder.borrar_reply_description"))
-                        .setRequired(false)
-                )
+        .addSubcommand(s => s
+            .setName("reply")
+            .setDescription(i18next.t("commands:post.slashBuilder.reply_description"))
+            .addStringOption(o =>
+                o.setName("mensaje_id").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.mensaje_reply_description"))
+            )
+            .addChannelOption(o =>
+                o.setRequired(true).setName("canal_mensaje").setDescription(i18next.t("commands:post.slashBuilder.canal_mensaje_reply_description"))
+                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+            )
+            .addBooleanOption(o =>
+                o.setName("notify").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.canal_notify_description"))
+            )
+            .addBooleanOption(o =>
+                o.setName("borrar").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.borrar_reply_description"))
+            )
+        )
+        .addSubcommand(s => s
+            .setName("embed")
+            .setDescription(i18next.t("commands:post.slashBuilder.embed_description"))
+            .addChannelOption(o => o.setName("canal").setDescription(i18next.t("commands:post.slashBuilder.embed_channel_description")).setRequired(true)
+                .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+            )
+            .addBooleanOption(o =>
+                o.setName("borrar").setDescription("Borrar el mensaje con el JSON después de publicar").setRequired(false)
+            )
         );
-
     return [postCommand] as SlashCommandBuilder[];
 }
 
@@ -146,6 +122,9 @@ export async function handlePostCommand(interaction: ChatInputCommandInteraction
             break;
         case "reply":
             await PostReply(interaction);
+            break;
+        case "embed":
+            await PostEmbed(interaction);
             break;
         default:
             await interaction.reply({
@@ -384,12 +363,14 @@ async function PostCopy(interaction: ChatInputCommandInteraction): Promise<void>
 async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const deleteMode = shouldDelete(interaction, true); // Default: true para edit
-
     try {
         const messageId = interaction.options.getString("mensaje_id", true);
         const channelOption = interaction.options.getChannel("canal_mensaje");
-        const targetChannel = (channelOption as TextChannel) || (interaction.channel as TextChannel);
+        const copyMode = interaction.options.getBoolean("edit_from_msg")
+        const sourceCh = interaction.options.getChannel("canal_origen");
+        const msg2Copy = interaction.options.getString("msg_origen")
 
+        const targetChannel = (channelOption as TextChannel) || (interaction.channel as TextChannel);
         if (!targetChannel?.isTextBased()) {
             await interaction.editReply({
                 content: i18next.t("common:Errores.noChannel")
@@ -421,77 +402,120 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
             return;
         }
 
-        await interaction.editReply({
-            content: i18next.t("commands:post.interacciones.edit_modo_interactivo")
-        });
-
-        const filter = (m: Message) => m.author.id === interaction.user.id;
-        const collector = (interaction.channel as TextChannel)?.createMessageCollector({
-            filter,
-            time: 180_000,
-            max: 1
-        });
-
-        if (!collector) {
-            await interaction.followUp({
-                content: i18next.t("commands:post.interacciones.error_capturador"),
-                flags: MessageFlags.Ephemeral
-            });
-            return;
-        }
-
-        collector.on('collect', async (newMessage: Message) => {
-            const cleanContent = newMessage.content ? newMessage.content.trim().toLowerCase() : "";
-            if (cleanContent === '-cancelar' || cleanContent === '-cancel') {
-                await interaction.followUp({ content: i18next.t("commands:post.interacciones.stop"), flags: MessageFlags.Ephemeral });
-                collector.stop("cancelled");
+        if (copyMode === true) {
+            const chorigen = (sourceCh as TextChannel) || (interaction.channel as TextChannel);
+            if (!chorigen || !chorigen.isTextBased()) {
+                await interaction.editReply({ content: i18next.t("commands:post.interacciones.error_canal_msg_origen_no_encontrado") });
                 return;
             }
 
+            if (!msg2Copy) {
+                await interaction.editReply({ content: i18next.t("commands:post.interacciones.error_mensaje_origen_no_encontrado") });
+                return;
+            }
+
+            let msgToCopy: Message;
             try {
+                msgToCopy = await chorigen.messages.fetch(msg2Copy);
+            } catch (e) {
+                await interaction.editReply({ content: i18next.t("commands:post.interacciones.error_mensaje_no_encontrado") });
+                return;
+            }
 
-                const newFiles = newMessage.attachments.map(a => ({ attachment: a.url, name: a.name }));
-                const editPayload: any = {
-                    content: newMessage.content || undefined
-                };
+            const { embeds, content, components } = msgToCopy;
+            const attachments = msgToCopy.attachments.map(a => ({ attachment: a.url, name: a.name }));
 
-                if (newFiles.length > 0) {
-                    editPayload.files = newFiles;
-                    editPayload.attachments = [];
-                }
+            const editPayload: any = {
+                content: content || null,
+                embeds: embeds,
+                components: components
+            };
 
-                await messageToEdit.edit(editPayload);
+            if (attachments.length > 0) {
+                editPayload.files = attachments;
+                editPayload.attachments = [];
+            } else {
+                editPayload.attachments = [];
+            }
 
+            await messageToEdit.edit(editPayload);
+
+            await interaction.editReply({ content: i18next.t("commands:post.interacciones.edit_success") });
+
+        } else {
+
+            await interaction.editReply({
+                content: i18next.t("commands:post.interacciones.edit_modo_interactivo")
+            });
+
+            const filter = (m: Message) => m.author.id === interaction.user.id;
+            const collector = (interaction.channel as TextChannel)?.createMessageCollector({
+                filter,
+                time: 180_000,
+                max: 1
+            });
+
+            if (!collector) {
                 await interaction.followUp({
-                    content: i18next.t("commands:post.interacciones.edit_success"),
+                    content: i18next.t("commands:post.interacciones.error_capturador"),
                     flags: MessageFlags.Ephemeral
                 });
+                return;
+            }
 
-                debug(`Mensaje ${messageId} editado por ${interaction.user.tag} en ${targetChannel.name}`, "PostCommand");
-
-                if (deleteMode && AUTO_DELETE_CONFIG.userMessages) {
-                    await autoDeleteMessage(newMessage);
+            collector.on('collect', async (newMessage: Message) => {
+                const cleanContent = newMessage.content ? newMessage.content.trim().toLowerCase() : "";
+                if (cleanContent === '-cancelar' || cleanContent === '-cancel') {
+                    await interaction.followUp({ content: i18next.t("commands:post.interacciones.stop"), flags: MessageFlags.Ephemeral });
+                    collector.stop("cancelled");
+                    return;
                 }
 
-                collector.stop("success");
+                try {
 
-            } catch (editErr) {
-                error(`Error al editar mensaje: ${editErr}`, "PostCommand");
-                await interaction.followUp({
-                    content: i18next.t("commands:post.interacciones.edit_error"),
-                    flags: MessageFlags.Ephemeral
-                });
-            }
-        });
+                    const newFiles = newMessage.attachments.map(a => ({ attachment: a.url, name: a.name }));
+                    const editPayload: any = {
+                        content: newMessage.content || undefined
+                    };
 
-        collector.on('end', (_: any, reason: string) => {
-            if (reason === 'time') {
-                interaction.followUp({
-                    content: i18next.t("commands:post.interacciones.edit_timeout"),
-                    flags: MessageFlags.Ephemeral
-                }).catch(() => { });
-            }
-        });
+                    if (newFiles.length > 0) {
+                        editPayload.files = newFiles;
+                        editPayload.attachments = [];
+                    }
+
+                    await messageToEdit.edit(editPayload);
+
+                    await interaction.followUp({
+                        content: i18next.t("commands:post.interacciones.edit_success"),
+                        flags: MessageFlags.Ephemeral
+                    });
+
+                    debug(`Mensaje ${messageId} editado por ${interaction.user.tag} en ${targetChannel.name}`, "PostCommand");
+
+                    if (deleteMode && AUTO_DELETE_CONFIG.userMessages) {
+                        await autoDeleteMessage(newMessage);
+                    }
+
+                    collector.stop("success");
+
+                } catch (editErr) {
+                    error(`Error al editar mensaje: ${editErr}`, "PostCommand");
+                    await interaction.followUp({
+                        content: i18next.t("commands:post.interacciones.edit_error"),
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+            });
+
+            collector.on('end', (_: any, reason: string) => {
+                if (reason === 'time') {
+                    interaction.followUp({
+                        content: i18next.t("commands:post.interacciones.edit_timeout"),
+                        flags: MessageFlags.Ephemeral
+                    }).catch(() => { });
+                }
+            });
+        }
 
     } catch (err) {
         error(`Error en comando edit: ${err}`, "PostCommand");
@@ -623,5 +647,143 @@ async function PostReply(interaction: ChatInputCommandInteraction): Promise<void
         await interaction.editReply({
             content: i18next.t("commands:post.interacciones.reply_error_general")
         });
+    }
+}
+
+/////////////////// EmbedPOST ///////////////////
+
+async function PostEmbed(interaction: ChatInputCommandInteraction): Promise<void> {
+    const targetChannel = interaction.options.getChannel("canal") as TextChannel;
+    const deleteMode = shouldDelete(interaction, true);
+
+    if (!targetChannel || !targetChannel?.isTextBased()) {
+        await interaction.reply({ content: i18next.t("common:Errores.noChannel"), flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const me = targetChannel.permissionsFor(interaction.guild!.members.me!);
+    const perChTo = testPermisos(me, "viewCh|sendMsg|addlink|addfiles");
+    if (perChTo.some(p => p.includes("❌"))) {
+        await interaction.reply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${targetChannel.id}>`, a2: perChTo[0] }), flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    await interaction.reply({
+        content:
+            i18next.t("commands:post.interacciones.help_emb_1") +
+            i18next.t("commands:post.interacciones.help_emb_2") +
+            i18next.t("commands:post.interacciones.help_emb_3") +
+            i18next.t("commands:post.interacciones.help_emb_4", { a1: targetChannel.toString() }) +
+            i18next.t("commands:post.interacciones.help_emb_5") +
+            i18next.t("commands:post.interacciones.help_emb_6"),
+        flags: MessageFlags.Ephemeral
+    });
+
+    try {
+        const chget = interaction.channel;
+        if (!chget || !chget.isTextBased()) {
+            await interaction.reply({ content: i18next.t("common:Errores.noChannel"), flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        const bseTxtCH = chget as TextChannel
+        const filter = (m: Message) =>
+            m.author.id === interaction.user.id &&
+            (m.attachments.size > 0 || m.content?.trim().toLowerCase() === '-cancelar');
+
+        const collector = bseTxtCH.createMessageCollector({
+            filter,
+            time: 180_000,
+            max: 1
+        });
+
+        collector.on('collect', async (message: Message) => {
+            if (message.content?.trim().toLowerCase() === '-cancelar') {
+                await interaction.followUp({ content: i18next.t("commands:post.interacciones.stop"), flags: MessageFlags.Ephemeral });
+                collector.stop("cancelled");
+                return;
+            }
+
+            try {
+                const attachment = message.attachments.first();
+                if (!attachment) {
+                    await interaction.followUp({ content: i18next.t("commands:post.interacciones.no_file_found"), flags: MessageFlags.Ephemeral });
+                    return;
+                }
+
+                if (!attachment.name?.endsWith('.json')) {
+                    await interaction.followUp({
+                        content: i18next.t("commands:post.interacciones.not_a_valid_json"), flags: MessageFlags.Ephemeral
+                    });
+                    return;
+                }
+
+                const response = await fetch(attachment.url);
+                const jsonText = await response.text();
+                const data = JSON.parse(jsonText);
+                if (!data.embeds || !Array.isArray(data.embeds) || data.embeds.length === 0) {
+                    await interaction.followUp({
+                        content: i18next.t("commands:post.interacciones.no_valid_embed_in_json"), flags: MessageFlags.Ephemeral
+                    });
+                    return;
+                }
+
+                const embeds = data.embeds.map((embedData: any) => ({
+                    title: embedData.title || undefined,
+                    description: embedData.description || undefined,
+                    color: embedData.color || undefined,
+                    author: embedData.author ? {
+                        name: embedData.author.name,
+                        icon_url: embedData.author.icon_url,
+                        url: embedData.author.url
+                    } : undefined,
+                    fields: embedData.fields?.map((field: any) => ({
+                        name: field.name,
+                        value: field.value,
+                        inline: field.inline || false
+                    })) || [],
+                    thumbnail: embedData.thumbnail ? { url: embedData.thumbnail.url } : undefined,
+                    image: embedData.image ? { url: embedData.image.url } : undefined,
+                    footer: embedData.footer ? {
+                        text: embedData.footer.text,
+                        icon_url: embedData.footer.icon_url
+                    } : undefined,
+                    timestamp: embedData.timestamp || undefined,
+                    url: embedData.url || undefined
+                }));
+
+                await targetChannel.send({ content: data.content || undefined, embeds: embeds });
+
+                await interaction.followUp({ content: i18next.t("commands:post.interacciones.reply_embed_success", { a1: embeds.length, a2: targetChannel.toString() }), flags: MessageFlags.Ephemeral });
+                debug(`Embed desde archivo JSON por ${interaction.user.tag} en #${targetChannel.name}`, "PostCommand");
+
+                if (deleteMode && AUTO_DELETE_CONFIG.userMessages) { await autoDeleteMessage(message); }
+                collector.stop("success");
+
+            } catch (error) {
+                console.error("Error procesando archivo JSON:", error);
+                await interaction.followUp({
+                    content: `❌ **Error al procesar el archivo:**\n\`${error instanceof Error ? error.message : 'Formato inválido'}\``,
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+        });
+
+        collector.on('end', (_: any, reason: string) => {
+            if (reason === 'time') {
+                interaction.followUp({
+                    content: i18next.t("commands:post.interacciones.reply_timeout_emb"),
+                    flags: MessageFlags.Ephemeral
+                }).catch(() => { });
+            }
+        });
+
+    } catch (err) {
+        error(`Error en comando embed: ${err}`, "PostCommand");
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({
+                content: "Ocurrió un error al procesar el comando.", flags: MessageFlags.Ephemeral
+            });
+        }
     }
 }

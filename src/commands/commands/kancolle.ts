@@ -3,20 +3,24 @@ import { addBD, delBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/K
 import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { error } from '../../sys/logging';
+import { testPermisos } from '../../sys/zGears/auxiliares';
+import { leftTime, turnDate } from '../../bgProcess/KanCron'
+import { maint } from '../../sys/DB-Engine/links/KancolleBD'
 
 export async function registerKantaiCollectionCommand() {
     const kancolle = new SlashCommandBuilder()
         .setName('kancolle')
         .setDescription('Kantai Collection')
-        .addSubcommand(s => s.setName('activar').setDescription('Add notification')
-            .addChannelOption(o => o.setName('channel').setDescription('Channel to notify in').setRequired(false).addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement))
-            .addRoleOption(o => o.setName('role').setDescription('Role to notify').setRequired(false))
-            .addBooleanOption(o => o.setName('pvp').setDescription('Notify about PVP resets').setRequired(false))
-            .addBooleanOption(o => o.setName('quest').setDescription('Notify about daily resets').setRequired(false))
-            .addBooleanOption(o => o.setName('oem').setDescription('Notify about OEM resets').setRequired(false))
-            /*.addBooleanOption(o => o.setName('mante').setDescription('Notify about mante resets').setRequired(false))*/)
-        .addSubcommand(s => s.setName('desactivar').setDescription('Desactiva las Notificaciones'))
-        .addSubcommand(s => s.setName(`status`).setDescription('Muestra configuracion'))
+        .addSubcommand(s => s.setName('resets').setDescription(i18next.t("commands:kancolle.slashBuilder.resets")))
+        .addSubcommand(s => s.setName('activar').setDescription(i18next.t("commands:kancolle.slashBuilder.activar"))
+            .addChannelOption(o => o.setName('channel').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_canal")).setRequired(false).addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement))
+            .addRoleOption(o => o.setName('role').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_role")).setRequired(false))
+            .addBooleanOption(o => o.setName('pvp').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_pvp")).setRequired(false))
+            .addBooleanOption(o => o.setName('quest').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_quest")).setRequired(false))
+            .addBooleanOption(o => o.setName('oem').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_oem")).setRequired(false))
+            .addBooleanOption(o => o.setName('mantenimiento').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_mantenimiento")).setRequired(false)))
+        .addSubcommand(s => s.setName('desactivar').setDescription(i18next.t("commands:kancolle.slashBuilder.desactivar")))
+        .addSubcommand(s => s.setName('status').setDescription(i18next.t("commands:kancolle.slashBuilder.status")))
     return [kancolle] as SlashCommandBuilder[];
 }
 
@@ -29,13 +33,19 @@ export async function handleKantaiCollectionCommand(interaction: ChatInputComman
             return;
         }
 
+        const command = interaction.options.getSubcommand();
+        if (command === "resets") {
+            await resrts(interaction);
+            return;
+        }
+
         const isAllowed = await hasPermission(interaction, interaction.commandName);
         if (!isAllowed) {
             await interaction.editReply({ content: i18next.t("common:Errores.isAllowed"), });
             return;
         }
 
-        switch (interaction.options.getSubcommand()) {
+        switch (command) {
             case 'activar':
                 await enable(interaction, guild);
                 break;
@@ -57,28 +67,36 @@ async function enable(interaction: ChatInputCommandInteraction, guild: Guild) {
         const role = interaction.options.getRole("role");
         const channel = interaction.options.getChannel("channel");
         const pvp = interaction.options.getBoolean("pvp");
-        const q = interaction.options.getBoolean("quest");
+        const qst = interaction.options.getBoolean("quest");
         const oem = interaction.options.getBoolean("oem");
-        //const mante = interaction.options.getBoolean("mante");
+        const mante = interaction.options.getBoolean("mantenimiento");
 
-        const oldcnf = await getKCConfig(guild.id) as any as Kancolle;
+        const cnf = (await getKCConfig(guild.id))[0];
         const cnfKC = {
             guild: guild.id,
-            role: role?.id ?? oldcnf?.role ?? null,
-            channel: channel ? channel.id : oldcnf?.channel,
-            pvp: pvp ?? oldcnf?.pvp ?? true,
-            quest: q ?? oldcnf?.quest ?? true,
-            oem: oem ?? oldcnf?.oem ?? true,
-            //mante: mante ?? oldcnf?.mante ?? true
+            role: role?.id ?? cnf?.role ?? null,
+            channel: channel?.id ?? cnf?.channel,
+            pvp: pvp ?? cnf?.pvp ?? true,
+            quest: qst ?? cnf?.quest ?? true,
+            oem: oem ?? cnf?.oem ?? true,
+            mnt: mante ?? cnf?.mnt ?? true
         };
 
-        if (!cnfKC.channel) {
-            await interaction.editReply("❌ Debes especificar un canal");
+        const chTest = guild.channels.cache.get(cnfKC.channel);
+        if (!chTest || !chTest.isTextBased()) {
+            await interaction.editReply(i18next.t("commands:kancolle.interacciones.error_ch_noValido"));
+            return;
+        }
+
+        const me = chTest.permissionsFor(guild.members.me!)
+        const perChTo = testPermisos(me, "viewCh|sendMsg|msgManager|mentions");
+        if (perChTo.some(p => p.includes("❌"))) {
+            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${cnfKC.channel}>`, a2: perChTo[0] }) });
             return;
         }
 
         await addBD(guild.id, cnfKC);
-        await interaction.editReply("✅ Configuracion aplicada");
+        await interaction.editReply(i18next.t("commands:kancolle.interacciones.activar_success"));
     } catch (err) {
         error(`Error ejecutando comando Kancolle: ${err}`);
         await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.command_error") });
@@ -89,11 +107,11 @@ async function disable(interacciones: ChatInputCommandInteraction, guild: Guild)
     try {
         const cnf = await getKCConfig(guild.id);
         if (!cnf) {
-            await interacciones.editReply("❌ No hay configuracion");
+            await interacciones.editReply(i18next.t("commands:kancolle.interacciones.error_no_config"));
             return;
         }
         await delBD(guild.id);
-        interacciones.editReply("✅ Configuracion eliminada");
+        interacciones.editReply(i18next.t("commands:kancolle.interacciones.activar_success"));
     } catch (err) {
         error(`Error ejecutando comando Kancolle: ${err}`);
         await interacciones.editReply({ content: i18next.t("commands:mangadex.interacciones.command_error") });
@@ -104,15 +122,15 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
     try {
         const cnfList = await getKCConfig(guild.id) as Kancolle[];
         if (!cnfList || cnfList.length === 0) {
-            await interacciones.editReply("❌ No hay configuracion");
+            await interacciones.editReply(i18next.t("commands:kancolle.interacciones.error_no_config"));
             return;
         }
         const cnf = cnfList[0];
         const emb = new EmbedBuilder()
-            .setTitle("Kancolle - Configuracion")
+            .setTitle(i18next.t("commands:kancolle.interacciones.status_embed_title"))
             .addFields(
-                { name: "Configuracion basica:", value: `Canal: <#${cnf.channel}>\nRol a notificar: ${cnf.role ? `<@&${cnf.role}>` : "Ninguno!"}` },
-                { name: "Notificaciones Activas", value: `PVP: ${cnf.pvp ? "✅" : "❌"} \n Quests: ${cnf.quest ? "✅" : "❌"} \n OEM: ${cnf.oem ? "✅" : "❌"}` }
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_basic"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_basic_value", { a1: `<#${cnf.channel}>`, a2: cnf.role ? `<@&${cnf.role}>` : "Ninguno!" }) },
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp ? "✅" : "❌", a2: cnf.quest ? "✅" : "❌", a3: cnf.oem ? "✅" : "❌", a4: cnf.mnt ? "✅" : "❌" }) }
             )
             .setColor(0x00FF00);
 
@@ -122,3 +140,43 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
         await interacciones.editReply({ content: i18next.t("commands:mangadex.interacciones.command_error") });
     }
 }
+
+async function resrts(interacciones: ChatInputCommandInteraction) {
+    const ltim = leftTime(), TZjp = 'Asia/Tokyo', TZutc = 'UTC', TZmx = 'America/Mexico_City';
+    const now = new Date();
+    const nowTime = now.getTime()
+    const jstDate = now.toLocaleString("es-MX", { timeZone: TZjp, hour12: false, timeStyle: 'short', dateStyle: 'short' });
+    const mxDate = now.toLocaleString("es-MX", { timeZone: TZmx, hour12: false, timeStyle: 'short', dateStyle: 'short' });
+    const utcDate = now.toLocaleString("es-MX", { timeZone: TZutc, hour12: false, timeStyle: 'short', dateStyle: 'short' });
+    const strMantStar = maint.lastMaintStart ?? null;
+    const strMantEnd = maint.MaintEnd ?? null;
+    let lasMante = "TBA", Finalizado = "TBA", statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart"), statusEnd = "TBA";
+    if (strMantStar) {
+        const dateInit = new Date(strMantStar);
+        lasMante = dateInit.toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'short' });
+        const diffStart = dateInit.getTime() - nowTime;
+        if (diffStart > 0) statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart_C", { a1: turnDate(diffStart) });
+
+        if (strMantEnd) {
+            const datEnd = new Date(strMantEnd);
+            const datEndTime = datEnd.getTime();
+            Finalizado = datEnd.toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'short' });
+            const diffEnd = datEndTime - nowTime;
+            if (diffEnd > 0) statusEnd = i18next.t("commands:kancolle.interacciones.resrts_let_statusEnd", { a1: turnDate(diffEnd) });
+            if (datEndTime > nowTime && diffEnd > 0) statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart_A");
+        }
+    }
+
+    const emb = new EmbedBuilder()
+        .setDescription(i18next.t("commands:kancolle.interacciones.resrts_let_description", { a1: jstDate, a2: mxDate, a3: utcDate }))
+        .addFields(
+            { name: i18next.t("commands:kancolle.interacciones.emb_name_pvp"), value: i18next.t("commands:kancolle.interacciones.emb_value_pvp", { a1: ltim.pvp, a2: ltim.pvp3h, a3: ltim.pvp15h }) },
+            { name: i18next.t("commands:kancolle.interacciones.emb_name_quest"), value: i18next.t("commands:kancolle.interacciones.emb_value_quest", { a1: ltim.dQuest, a2: ltim.wQuest, a3: ltim.mQuest, a4: ltim.qQuest }) },
+            { name: i18next.t("commands:kancolle.interacciones.emb_name_rank"), value: i18next.t("commands:kancolle.interacciones.emb_value_rank", { a1: ltim.dPtCutof, a2: ltim.mPtCutof }) },
+            { name: i18next.t("commands:kancolle.interacciones.emb_name_oem"), value: i18next.t("commands:kancolle.interacciones.emb_value_oem", { a1: ltim.oem, a2: ltim.mExp }) },
+            { name: i18next.t("commands:kancolle.interacciones.emb_name_mante"), value: i18next.t("commands:kancolle.interacciones.emb_value_mante", { a1: lasMante, a2: statusStart, a3: Finalizado, a4: statusEnd }) }
+        )
+        .setColor(0x00FF00)
+        .setFooter({ text: `Kancolle Resets`, iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" });
+    await interacciones.editReply({ embeds: [emb] });
+}   

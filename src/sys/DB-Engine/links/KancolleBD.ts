@@ -1,64 +1,47 @@
 import getPool from '../database';
 import { debug, error, info } from '../../logging';
 
-export const maint = new Map<string, KCmant>();
-export const data = new Map<string, Kancolle[]>();
-
-export interface Kancolle {
-    guild: string;
-    role: string | null;
-    channel: string;
-    pvp: boolean;
-    quest: boolean;
-    oem: boolean;
-}
-export interface KCmant {
-    lastMaintStart: Date | null,
-    maintNotified: boolean,
-    lastNotificationTime: Date | null
-}
-
 // ========================================================= kChe Loader ========================================================= //
+// ==== regularKche ==== //
+export const data = new Map<string, Kancolle[]>();
+export interface Kancolle { guild: string; role: string | null; channel: string; pvp: boolean; quest: boolean; oem: boolean; mnt: boolean; }
 export async function startKC(): Promise<boolean> {
     try {
         const pool = await getPool();
         const [rows]: any = await pool.query("SELECT * FROM kc_conf");
 
         data.clear();
-        for (const dbRow of rows) {
-            if (!data.has(dbRow.guild_id)) data.set(dbRow.guild_id, []);
-            data.get(dbRow.guild_id)!.push({
-                guild: dbRow.guild_id,
-                role: dbRow.role,
-                channel: dbRow.channel,
-                pvp: dbRow.pvp,
-                quest: dbRow.quest,
-                oem: dbRow.oem
+        for (const db of rows) {
+            if (!data.has(db.guild_id)) data.set(db.guild_id, []);
+            data.get(db.guild_id)!.push({
+                guild: db.guild_id, role: db.role, channel: db.channel, pvp: db.pvp, quest: db.quest, oem: db.oem, mnt: db.mnt
             });
         }
         const count = data.size;
-        if (count > 0) info(`Kancolle configuraciones cargadas: ${count}`, "database");
+        if (count > 0) info(`Kancolle configuraciones cargadas: ${count}`, "KancolleBD");
         if (data.size > 0) return true;
         else return false;
     } catch (e) {
-        error(`Error al procesar configuración de Kancolle: ${e}`, "database");
+        error(`Error al procesar configuración de Kancolle: ${e}`, "KancolleBD");
         return false;
     }
 }
 
-export async function kcheMaint() {
-    const pool = await getPool();
-    const [rows]: any = await pool.query("SELECT * FROM kc_maint");
-    maint.clear()
-    if (rows && rows.length > 0) {
-        rows.forEach((r: any) => {
-            maint.set('kcMaint', { lastMaintStart: r.last_maint_start, maintNotified: r.maint_notified, lastNotificationTime: r.last_notification_time })
-        });
-        debug(`Kancolle maintenance kche cargada`, "database");
-    } else {
-        maint.set('kcMaint', { lastMaintStart: null, maintNotified: false, lastNotificationTime: null, })
-        debug(`Kancolle maintenance usando default kche`)
-    }
+// ==== mantKche ==== //
+export let maint: KCmant = { lastMaintStart: null, maintNotified: false, lastNotificationTime: null, MaintEnd: null };
+export interface KCmant { lastMaintStart: Date | null, maintNotified: boolean, lastNotificationTime: Date | null, MaintEnd: Date | null, }
+export async function kcheMaint(): Promise<boolean> {
+    try {
+        const pool = await getPool();
+        const [rows]: any = await pool.query("SELECT * FROM kc_maint");
+        if (rows && rows.length > 0) {
+            rows.forEach((r: any) => {
+                maint = { lastMaintStart: r.last_maint_start, maintNotified: r.maint_notified, lastNotificationTime: r.last_notification_time, MaintEnd: r.MaintEnd }
+            });
+            debug(`Kancolle maintenance kche cargada`, "KancolleBD");
+            return true;
+        } else { debug(`Kancolle maintenance usando default kche`, "KancolleBD"); return false; }
+    } catch (e) { error(`Fallo la carga de la maintenance kche: ${e}`, "KancolleBD"); return false; }
 }
 
 // ========================================================= Melt <=> BD ========================================================= //
@@ -66,15 +49,14 @@ export async function addBD(guildId: string, kcData: Kancolle) {
     try {
         const pool = await getPool();
         await pool.query(
-            `INSERT INTO kc_conf (guild_id, role, channel, pvp, quest, oem) VALUES (?, ?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE role = VALUES(role), channel = VALUES(channel), pvp = VALUES(pvp), quest = VALUES(quest), oem = VALUES(oem)`,
-            [guildId, kcData.role, kcData.channel, kcData.pvp, kcData.quest, kcData.oem]
+            `INSERT INTO kc_conf (guild_id, role, channel, pvp, quest, oem, mnt) VALUES (?, ?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE role = VALUES(role), channel = VALUES(channel), pvp = VALUES(pvp), quest = VALUES(quest), oem = VALUES(oem), mnt = VALUES(mnt)`,
+            [guildId, kcData.role, kcData.channel, kcData.pvp, kcData.quest, kcData.oem, kcData.mnt]
         );
-
         data.set(guildId, [kcData]);
-        debug(`Kancolle Config GUARDADA/ACTUALIZADA: Guild ${guildId}`);
+        debug(`Kancolle Config GUARDADA/ACTUALIZADA: Guild ${guildId}`, "KancolleBD");
     } catch (err) {
-        error(`Error guardando Kancolle Config: ${err}`);
+        error(`Error guardando Kancolle Config: ${err}`, "KancolleBD");
     }
 }
 
@@ -83,10 +65,9 @@ export async function delBD(guildId: string) {
         const pool = await getPool();
         await pool.query(`DELETE FROM kc_conf WHERE guild_id = ?`, [guildId]);
         data.delete(guildId);
-
-        debug(`Kancolle Config ELIMINADA para Guild: ${guildId}`);
+        debug(`Kancolle Config ELIMINADA para Guild: ${guildId}`, "KancolleBD");
     } catch (err) {
-        error(`Error eliminando Kancolle Config: ${err}`);
+        error(`Error eliminando Kancolle Config: ${err}`, "KancolleBD");
     }
 }
 
@@ -96,13 +77,16 @@ export async function getKCConfig(guild: string): Promise<Kancolle[]> {
 }
 
 // ========================================================= Cheker BD ========================================================= //
-
 export async function updateKCmant(upD: KCmant) {
     try {
         const pool = await getPool();
-        await pool.query(`INSERT INTO kc_mant (lastMaintStart, maintNotified, lastNotificationTime) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE lastMaintStart = VALUES(lastMaintStart), maintNotified = VALUES(maintNotified), lastNotificationTime = VALUES(lastNotificationTime)`, [upD.lastMaintStart, upD.maintNotified, upD.lastNotificationTime]);
-        maint.set('kcMaint', { lastMaintStart: upD.lastMaintStart, maintNotified: upD.maintNotified, lastNotificationTime: upD.lastNotificationTime });
-        debug(`Se actualizo la info del mantenimiento Kancolle`, "KancolleBD");
-    } catch (e) { error(`Error al añadir nueva info de mantenimiento Kancolle: ${e}`, "KancolleBD") }
-}
+        await pool.query(`INSERT INTO kc_maint (id, lastMaintStart, maintNotified, lastNotificationTime, MaintEnd) VALUES (1, ?, ?, ?, ?) 
+            ON DUPLICATE KEY UPDATE lastMaintStart = VALUES(lastMaintStart), maintNotified = VALUES(maintNotified), lastNotificationTime = VALUES(lastNotificationTime), MaintEnd = VALUES(MaintEnd)`,
+            [upD.lastMaintStart, upD.maintNotified, upD.lastNotificationTime, upD.MaintEnd]);
 
+        maint = { lastMaintStart: upD.lastMaintStart, maintNotified: upD.maintNotified, lastNotificationTime: upD.lastNotificationTime, MaintEnd: upD.MaintEnd };
+        debug(`Se actualizo la info del mantenimiento Kancolle`, "KancolleBD");
+    } catch (e) {
+        error(`Error al añadir nueva info de mantenimiento Kancolle: ${e}`, "KancolleBD");
+    }
+}

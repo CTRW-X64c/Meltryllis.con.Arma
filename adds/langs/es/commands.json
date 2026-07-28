@@ -146,7 +146,12 @@
       "mensaje_reply_description": "ID del mensaje a responder",
       "canal_mensaje_reply_description": "Canal donde esta el mensaje a responder",
       "canal_notify_description": "Noticar a usuario el reply, default: true",
-      "borrar_reply_description": "Borrar mensaje respondido. default: false"
+      "borrar_reply_description": "Borrar mensaje respondido. default: false",
+      "edit_from_msg_description": "Editar mensaje desde un mensaje existente!! ",
+      "edit_from_msg_channel_description": "Selecciona el canal donde esta el mensaje a copiar!",
+      "edit_from_msg_message_description": "Añade el id del mensaje a copiar!! ",
+      "embed_description": "Permite publicar mensajes embed desde un json. (generado con embedbuilder)",
+      "embed_channel_description": "Canal donde publicar el embed"
     },
     "interacciones": {
       "canal_error": "❌ Debes seleccionar un canal de texto válido.",
@@ -173,7 +178,20 @@
       "reply_error": "❌ Error al enviar la respuesta",
       "reply_timeout": "⌛ Tiempo agotado para la respuesta!!",
       "reply_error_general": "❌ Error general al enviar la respuesta",
-      "not_found": "Error en ejecucion de comandos"
+      "not_found": "Error en ejecucion de comandos",
+      "error_canal_msg_origen_no_encontrado": "❌ No se encontro el canal de origen del mensaje a editar!",
+      "error_mensaje_origen_no_encontrado": "❌ No se encontro el mensaje a copiar!",
+      "no_file_found": "❌ No se encontró ningún archivo adjunto.",
+      "not_a_valid_json": "❌ El archivo debe ser de tipo `.json`",
+      "no_valid_embed_in_json": "❌ El json no contiene un formato embed valido!!",
+      "reply_embed_success": "`✅ **{{a1}} embed(s) publicado(s) en {{a2}}!**`",
+      "reply_timeout_emb": "⏰ **Tiempo agotado.**!!",
+      "help_emb_4": "📌 El embed se publicará en {{a1}} \n",
+      "help_emb_1": "📁 **Sube el archivo JSON con el embed**\n",
+      "help_emb_2": "ℹ️ Usa el generador: https://glitchii.github.io/embedbuilder/\n",
+      "help_emb_3": "📥 Descarga el JSON o copia el contenido en un archivo .json\n",
+      "help_emb_5": "👤 Para mensionar un Rol: <@&ID_ROL>, Usuer: <@ID_USER> o Canal: <#ID_CHANNEL>. \n",
+      "help_emb_6": "⏱️ Tienes 3 minutos. Escribe \\`-cancelar\\` para abortar.\n"
     }
   },
   "rolemoji": {
@@ -592,6 +610,76 @@
       "no_Perms": "❌ No tengo permisos suficientes para ejecutar este comando: \n {{a1}}",
       "embMaker_top": "Roles que puedo sancionar:",
       "embMaker_top_none": "Desactivado!!"
+    }
+  },
+  "kancolle": {
+    "slashBuilder": {
+      "resets": "Muestra el listado de los resets!!",
+      "activar": "Establece la configuracion para las notificaciones!!",
+      "activar_canal": "Canal donde mandar los avisos",
+      "activar_role": "Rol a mencionar en las notificaciones!",
+      "activar_pvp": "Notificar PvP",
+      "activar_quest": "Notificar Quests",
+      "activar_oem": "Notificar Extra Operaciones",
+      "activar_mantenimiento": "Notificar mantenimientos",
+      "desactivar": "Desactiavar el envio de avisos",
+      "status": "Muestra la configuracion actual"
+    },
+    "interacciones": {
+      "error_ch_noValido": "❌ Debes especificar un canal valido!",
+      "activar_success": "✅ Configuracion aplicada!",
+      "error_no_config": "❌ Sin configuracion!!",
+      "status_embed_title": "Kancolle - Configuracion",
+      "status_embed_field_active": "Configuracion de Avisos:",
+      "status_embed_field_basic": "Configuracion base:",
+      "status_embed_field_basic_value": "Canal: {{a1}} \nRol a notificar: {{a2}}",
+      "status_embed_field_active_value": "PvP (Ejercicios): {{a1}} \n Quests: {{a2}} \n Extra Operaciones: {{a3}} \n Mantenimiento: {{a4}}",
+      "resrts_let_statusStart": "Finalizado!",
+      "resrts_let_statusStart_A": "En curso!!",
+      "resrts_let_statusEnd": "Finaliza en {{a1}}",
+      "resrts_let_statusStart_C": "Inicia en {{a1}}",
+      "resrts_let_description": "# ⏰ Proximos Resets \n  **JST**: {{a1}} hrs \n  **UTC**: {{a3}} hrs \n  **MX**: {{a2}} hrs  \n\n 🗓️ Todos los horarios estan en JST (Hora Japon)",
+      "emb_name_pvp": "**Reset de PvP (Ejercicios):**",
+      "emb_name_quest": "**Reset de Quests:**",
+      "emb_name_rank": "**Resets Ranking:**",
+      "emb_name_oem": "**Otros Resets:**",
+      "emb_name_mante": "**Mantenimiento:**",
+      "emb_value_pvp": "*Proximo PvP: {{a1}}* \n\n *PvP 03:00hrs: {{a2}}* \n *PvP 15:00hrs: {{a3}}*\n> Todos los dias 03:00hrs y 15:00hrs.\n",
+      "emb_value_quest": "*Diarias: {{a1}}* \n > Todos los dias \n *Semanales: {{a2}}* \n> Todos los lunes\n *Mensuales: {{a3}}* \n> Los dias primero del mes \n *Quaterly: {{a4}}* \n> Los meses Mar, Jun, Sep y Dic",
+      "emb_value_rank": "*Cutoff Diario: {{a1}}* \n> Todos los dias 02:00hrs \n*Cutoff Mensual: {{a2}}* \n> Ultimo dia del mes a las 22:00hrs.",
+      "emb_value_oem": "*Extra Operaciones: {{a1}}* \n> Primero del mes, 00:00hrs. \n*Expediciones Mensuales: {{a2}}* \n > Los dias 15 del mes, 12:00hrs.",
+      "emb_value_mante": "**Inicio de mantenimiento:** \n {{a1}}\n*Status: {{a2}}*\n\n **Finalización de mantenimiento:** \n {{a3}} \n*Status: {{a4}}*"
+    },
+    "bgProsses": {
+      "siwtchNotify_vText": "**PVP:** {{a1}}\n**EO:** {{a2}}\n**Exp. Mensuales:** {{a3}}\n>Misiones:\n**Diarias:** {{a4}}\n**Semanales:** {{a5}}\n**Mensuales:** {{a6}}\n**Quaterly:** {{a7}}\n>Rank:\n**Cutoff Diario:** {{a8}}\n**Cutoff Mesual:** {{a9}}",
+      "siwtchNotify_pvp_title": "⚓ ¡Aviso de PvP!",
+      "siwtchNotify_pvp_desc": "Los Ejercicios (PvP) se reiniciaran en **{{a1}} minutos**.",
+      "siwtchNotify_pvp_field_A": "Proximos resets:",
+      "siwtchNotify_pvp_uTitle": "⚔️ ¡PvP Reiniciado!",
+      "siwtchNotify_pvp_uDesc": "✅ Los PvPs se han reiniciado!",
+      "siwtchNotify_quest_title": "📝 Aviso sobre las Quest!",
+      "siwtchNotify_quest_desc": "**Reinicio de misiones en {{a1}} minutos!!**",
+      "siwtchNotify_quest_field_A": "Categorias de misiones que se reiniciaran:",
+      "siwtchNotify_quest_field_B": "Proximos resets:",
+      "siwtchNotify_quest_uTitle": "✅ ¡Las Quest se han reiniciado!",
+      "siwtchNotify_quest_uDesc": "Categorias de misiones reiniciadas!: {{a1}}",
+      "siwtchNotify_oem_title": "📦 ¡Aviso de Extra Operaciones!",
+      "siwtchNotify_oem_desc": "Las EO se reiniciaran en {{a1}} minutos.",
+      "siwtchNotify_oem_field_A": "Proximos resets:",
+      "siwtchNotify_oem_uTitle": "🎉 Las EO se han reiniciado!",
+      "siwtchNotify_oem_uDesc": "Las EO se han reiniciado, ve apor tus medallas del mes!",
+      "siwtchNotify_1h_title": "🔧 Aviso de mantenimiento!!",
+      "siwtchNotify_1h_desc": "El mantenimiento comenzara en una hora!!",
+      "siwtchNotify_1h_uTitle": "🔧 Aviso de mantenimiento!!",
+      "siwtchNotify_1h_uDesc": "El mantenimiento comenzara en 30 minutos!!",
+      "siwtchNotify_15m_title": "🔧 Aviso de mantenimiento!!",
+      "siwtchNotify_15m_desc": "El mantenimiento comenzara en 15 minutos!!",
+      "siwtchNotify_15m_uTitle": "🔧 Aviso de mantenimiento!!",
+      "siwtchNotify_15m_uDesc": "MANTENIMIENTO HA COMENZADO!!",
+      "siwtchNotify_end_title": "🔧 Aviso de mantenimiento!!",
+      "siwtchNotify_end_desc": "EL MANTENIMIENTO HA TERMINADO!!",
+      "siwtchNotify_end_uTitle": "🔧 Aviso de mantenimiento!!",
+      "siwtchNotify_end_uDesc": "RECORDATOTIO EL MANTENIMIENTO YA FINALIZO!!"
     }
   }
 }
