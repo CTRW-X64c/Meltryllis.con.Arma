@@ -1,4 +1,4 @@
-import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, Guild, MessageFlags, SlashCommandBuilder } from 'discord.js';
+import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, Guild, MessageFlags, SlashCommandBuilder, TextChannel } from 'discord.js';
 import { addBD, delBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/KancolleBD';
 import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
@@ -6,18 +6,21 @@ import { error } from '../../sys/logging';
 import { testPermisos } from '../../sys/zGears/auxiliares';
 import { leftTime, turnDate } from '../../bgProcess/KanCron'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
+import { JSTtoUTC, getNowJST } from '../../bgProcess/KanSend'
 
 export async function registerKantaiCollectionCommand() {
     const kancolle = new SlashCommandBuilder()
         .setName('kancolle')
         .setDescription('Kantai Collection')
-        .addSubcommand(s => s.setName('resets').setDescription(i18next.t("commands:kancolle.slashBuilder.resets")))
+        .addSubcommand(s => s.setName('resets').setDescription(i18next.t("commands:kancolle.slashBuilder.resets"))
+            .addBooleanOption(o => o.setName('all').setDescription(i18next.t("commands:kancolle.slashBuilder.post_4_all")).setRequired(false)))
         .addSubcommand(s => s.setName('activar').setDescription(i18next.t("commands:kancolle.slashBuilder.activar"))
             .addChannelOption(o => o.setName('channel').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_canal")).setRequired(false).addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement))
             .addRoleOption(o => o.setName('role').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_role")).setRequired(false))
             .addBooleanOption(o => o.setName('pvp').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_pvp")).setRequired(false))
             .addBooleanOption(o => o.setName('quest').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_quest")).setRequired(false))
             .addBooleanOption(o => o.setName('oem').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_oem")).setRequired(false))
+            .addBooleanOption(o => o.setName('month_expedicion').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_expedition")).setRequired(false))
             .addBooleanOption(o => o.setName('mantenimiento').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_mantenimiento")).setRequired(false)))
         .addSubcommand(s => s.setName('desactivar').setDescription(i18next.t("commands:kancolle.slashBuilder.desactivar")))
         .addSubcommand(s => s.setName('status').setDescription(i18next.t("commands:kancolle.slashBuilder.status")))
@@ -70,6 +73,7 @@ async function enable(interaction: ChatInputCommandInteraction, guild: Guild) {
         const qst = interaction.options.getBoolean("quest");
         const oem = interaction.options.getBoolean("oem");
         const mante = interaction.options.getBoolean("mantenimiento");
+        const mExped = interaction.options.getBoolean("month_expedicion")
 
         const cnf = (await getKCConfig(guild.id))[0];
         const cnfKC = {
@@ -79,7 +83,8 @@ async function enable(interaction: ChatInputCommandInteraction, guild: Guild) {
             pvp: pvp ?? cnf?.pvp ?? true,
             quest: qst ?? cnf?.quest ?? true,
             oem: oem ?? cnf?.oem ?? true,
-            mnt: mante ?? cnf?.mnt ?? true
+            mnt: mante ?? cnf?.mnt ?? true,
+            mExp: mExped ?? cnf?.mExp ?? true,
         };
 
         const chTest = guild.channels.cache.get(cnfKC.channel);
@@ -130,7 +135,7 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
             .setTitle(i18next.t("commands:kancolle.interacciones.status_embed_title"))
             .addFields(
                 { name: i18next.t("commands:kancolle.interacciones.status_embed_field_basic"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_basic_value", { a1: `<#${cnf.channel}>`, a2: cnf.role ? `<@&${cnf.role}>` : "Ninguno!" }) },
-                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp ? "✅" : "❌", a2: cnf.quest ? "✅" : "❌", a3: cnf.oem ? "✅" : "❌", a4: cnf.mnt ? "✅" : "❌" }) }
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp ? "✅" : "❌", a2: cnf.quest ? "✅" : "❌", a3: cnf.oem ? "✅" : "❌", a4: cnf.mnt ? "✅" : "❌", a5: cnf.mExp ? "✅" : "❌" }) }
             )
             .setColor(0x00FF00);
 
@@ -142,28 +147,48 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
 }
 
 async function resrts(interacciones: ChatInputCommandInteraction) {
+    const everyone = interacciones.options.getBoolean("all") ?? false;
     const ltim = leftTime(), TZjp = 'Asia/Tokyo', TZutc = 'UTC', TZmx = 'America/Mexico_City';
+    const nowTime = getNowJST();
+
     const now = new Date();
-    const nowTime = now.getTime()
     const jstDate = now.toLocaleString("es-MX", { timeZone: TZjp, hour12: false, timeStyle: 'short', dateStyle: 'short' });
     const mxDate = now.toLocaleString("es-MX", { timeZone: TZmx, hour12: false, timeStyle: 'short', dateStyle: 'short' });
     const utcDate = now.toLocaleString("es-MX", { timeZone: TZutc, hour12: false, timeStyle: 'short', dateStyle: 'short' });
-    const strMantStar = maint.lastMaintStart ?? null;
-    const strMantEnd = maint.MaintEnd ?? null;
-    let lasMante = "TBA", Finalizado = "TBA", statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart"), statusEnd = "TBA";
-    if (strMantStar) {
-        const dateInit = new Date(strMantStar);
-        lasMante = dateInit.toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'short' });
-        const diffStart = dateInit.getTime() - nowTime;
-        if (diffStart > 0) statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart_C", { a1: turnDate(diffStart) });
 
-        if (strMantEnd) {
-            const datEnd = new Date(strMantEnd);
-            const datEndTime = datEnd.getTime();
-            Finalizado = datEnd.toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'short' });
+    const dateInit = JSTtoUTC(maint.lastMaintStart ?? null);
+    const dateEnd = JSTtoUTC(maint.MaintEnd ?? null);
+
+    let lasMante = "TBA", Finalizado = "TBA";
+    let statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart");
+    let statusEnd = "TBA";
+
+    if (dateInit) {
+        const datStartTime = dateInit.getTime();
+        lasMante = dateInit.toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' });
+        const diffStart = datStartTime - nowTime;
+
+        if (dateEnd) {
+            const datEndTime = dateEnd.getTime();
+            Finalizado = dateEnd.toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' });
             const diffEnd = datEndTime - nowTime;
-            if (diffEnd > 0) statusEnd = i18next.t("commands:kancolle.interacciones.resrts_let_statusEnd", { a1: turnDate(diffEnd) });
-            if (datEndTime > nowTime && diffEnd > 0) statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart_A");
+
+            if (diffStart > 0) {
+                statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart_C", { a1: turnDate(diffStart) });
+                statusEnd = i18next.t("commands:kancolle.interacciones.resrts_let_statusEnd", { a1: turnDate(diffEnd) });
+            } else if (diffEnd > 0) {
+                statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart_A");
+                statusEnd = i18next.t("commands:kancolle.interacciones.resrts_let_statusEnd", { a1: turnDate(diffEnd) });
+            } else {
+                statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart");
+                statusEnd = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart");
+            }
+        } else {
+            if (diffStart > 0) {
+                statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart_C", { a1: turnDate(diffStart) });
+            } else {
+                statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart_A");
+            }
         }
     }
 
@@ -178,5 +203,17 @@ async function resrts(interacciones: ChatInputCommandInteraction) {
         )
         .setColor(0x00FF00)
         .setFooter({ text: `Kancolle Resets`, iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" });
-    await interacciones.editReply({ embeds: [emb] });
-}   
+    if (!everyone) {
+        await interacciones.editReply({ embeds: [emb] });
+    } else {
+        try {
+            const ch = interacciones.channel
+            if (ch && ch.isTextBased()) {
+                const txtch = ch as TextChannel
+                await interacciones.editReply({ content: "✅ " })
+                const tempMsg = await txtch.send({ embeds: [emb] });
+                setTimeout(() => { if (tempMsg.deletable) tempMsg.delete().catch(() => { }) }, 30_000);
+            } else await interacciones.editReply({ content: i18next.t("commands:kancolle.interacciones.resrts_let_send_fail"), embeds: [emb] });
+        } catch (e) { await interacciones.editReply({ content: i18next.t("commands:kancolle.interacciones.resrts_let_send_fail"), embeds: [emb] }) }
+    }
+}

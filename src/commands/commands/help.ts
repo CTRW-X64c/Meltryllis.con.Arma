@@ -380,16 +380,26 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         roles: { data: i18next.t("help:noeveryone.roles"), id: "moderateMembers" }
       }); break;
       /* ======================== kancolle ======================== */
-      /*case "19": await embedMaker(interaction, {
+      case "19": await embedMaker(interaction, {
         command: "kancolle",
         title: i18next.t("help:kancolle.title"),
         description: i18next.t("help:kancolle.description"),
         footer: i18next.t("help:kancolle.footer"),
         fields: [
           { name: i18next.t("help:kancolle.name_1"), value: i18next.t("help:kancolle.value_1") },
+          { name: i18next.t("help:kancolle.name_2"), value: i18next.t("help:kancolle.value_2") }
         ],
         srvPerm: "viewCh|readMsg|msgManager",
-        roles: { data: i18next.t("help:kancolle.roles"), id: "moderateMembers" }
+        URLs: {
+          data0: {
+            link: "https://en.kancollewiki.net/Kancolle_Wiki",
+            text: i18next.t("help:kancolle.boton_0")
+          },
+          data1: {
+            link: "https://en.kancollewiki.net/Template:Maintenance/Times",
+            text: i18next.t("help:kancolle.boton_1")
+          }
+        }
       }); break;
       /* ======================== default ======================== */
       default:

@@ -252,5 +252,16 @@
   "rolemaker": {
     "sin_roles_con_permisos": "❌ Con permisos pero sin roles que gestionar!!",
     "sin_roles_con_permisos_a": "❌ Sin permisos para esa funcion!!"
+  },
+  "kancolle": {
+    "title": "comando /kancolle",
+    "description": "Notificaciones de Mantenimientos, PvPs, Quests e informacion sobre los resets. ",
+    "footer": "Notificacione!!",
+    "name_1": "Los comandos de Kancolle :",
+    "value_1": "Acticar: \n Permite escoger qué notificaciones recibir. \n Desactivar: Borra por completo las configuraciones. \n Status:  Muestra la configuracion actual.",
+    "name_2": "Comando resets!! ",
+    "value_2": "El subcomando reset es el único de uso libre; muestra los próximos reset y fecha de mantenimiento. \n Se puede usar con el modificador \"all\" para que sea visible para todos; se borra automáticamente después de 30 s.",
+    "boton_0": "Kancolle Wiki",
+    "boton_1": "KcW: Mantenimiento"
   }
 }

@@ -23,6 +23,7 @@ const ApiList = () => {
 // ======== local Api ======== //
 export const meltrillisApi: string[] = [
     "Meltrys.Pixiv",
+    "Meltrys.xTwitter"
 ];
 
 // ======== core ======== //

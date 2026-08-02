@@ -3,7 +3,8 @@ import { Message } from "discord.js";
 import { debug } from "../logging";
 import { apiEmbedez } from "./Apis/embedez"
 import { apiPixivCustom } from "./Apis/pixivAPI"
-import { fakeApiFB } from "./Apis/fbFakeApi";
+import { fakeApiFB } from "./Apis/fbFakeApi"
+//import { xTwitterCustom } from "./Apis/Alttwitter"
 
 export interface ApiHandler {
     name: string;
@@ -18,6 +19,7 @@ const apiHandlers: ApiHandler[] = [
     new apiEmbedez(),
     new apiPixivCustom(),
     new fakeApiFB(),
+    //new xTwitterCustom()
 ];
 
 // =========== Procesador principal =========== //

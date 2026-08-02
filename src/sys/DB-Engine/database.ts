@@ -294,6 +294,7 @@ async function poolManager(): Promise<void> {
       quest BOOLEAN DEFAULT TRUE,
       oem BOOLEAN DEFAULT TRUE,
       mnt BOOLEAN DEFAULT TRUE,
+      mExp BOOLEAN DEFAULT TRUE,
       UNIQUE KEY unique_guild_kancolle (guild_id)
     )
   `);
