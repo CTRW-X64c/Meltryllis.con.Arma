@@ -4,7 +4,16 @@ import { debug, error, info } from '../../logging';
 // ========================================================= kChe Loader ========================================================= //
 // ==== regularKche ==== //
 export const data = new Map<string, Kancolle[]>();
-export interface Kancolle { guild: string; role: string | null; channel: string; pvp: boolean; quest: boolean; oem: boolean; mnt: boolean; mExp: boolean; }
+export interface Kancolle {
+    guild: string; role: string | null;
+    channel: string;
+    pvp: { av: boolean; ntf: boolean };
+    quest: { av: boolean; ntf: boolean };
+    oem: { av: boolean; ntf: boolean };
+    mnt: { av: boolean; ntf: boolean };
+    mExp: { av: boolean; ntf: boolean };
+}
+
 export async function startKC(): Promise<boolean> {
     try {
         const pool = await getPool();
@@ -14,13 +23,12 @@ export async function startKC(): Promise<boolean> {
         for (const db of rows) {
             if (!data.has(db.guild_id)) data.set(db.guild_id, []);
             data.get(db.guild_id)!.push({
-                guild: db.guild_id, role: db.role, channel: db.channel, pvp: db.pvp, quest: db.quest, oem: db.oem, mnt: db.mnt, mExp: db.mExp
+                guild: db.guild_id, role: db.role, channel: db.channel, pvp: JSON.parse(db.pvp), quest: JSON.parse(db.quest), oem: JSON.parse(db.oem), mnt: JSON.parse(db.mnt), mExp: JSON.parse(db.mExp)
             });
         }
         const count = data.size;
         if (count > 0) info(`Kancolle configuraciones cargadas: ${count}`, "KancolleBD");
-        if (data.size > 0) return true;
-        else return false;
+        return true;
     } catch (e) {
         error(`Error al procesar configuración de Kancolle: ${e}`, "KancolleBD");
         return false;
@@ -38,11 +46,8 @@ export async function kcheMaint() {
             const r = rows[0];
             maint = { lastMaintStart: r.lastMaintStart || r.last_maint_start || null, maintNotified: r.maintNotified ?? r.maint_notified ?? false, lastNotificationTime: r.lastNotificationTime || r.last_notification_time || null, MaintEnd: r.MaintEnd || r.MaintEnd || null };
             debug(`Kancolle maintenance kche cargada`, "KancolleBD");
-            return true
-        } else {
-            debug(`Kancolle maintenance usando default kche`, "KancolleBD");
-            return false
-        }
+        } else debug(`Kancolle maintenance usando default kche`, "KancolleBD");
+        return true
     } catch (e) {
         error(`Fallo la carga de la maintenance kche: ${e}`, "KancolleBD");
         return false
@@ -56,7 +61,7 @@ export async function addBD(guildId: string, kcData: Kancolle) {
         await pool.query(
             `INSERT INTO kc_conf (guild_id, role, channel, pvp, quest, oem, mnt, mExp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE role = VALUES(role), channel = VALUES(channel), pvp = VALUES(pvp), quest = VALUES(quest), oem = VALUES(oem), mnt = VALUES(mnt), mExp = VALUES(mExp)`,
-            [guildId, kcData.role, kcData.channel, kcData.pvp, kcData.quest, kcData.oem, kcData.mnt, kcData.mExp]
+            [guildId, kcData.role, kcData.channel, JSON.stringify(kcData.pvp), JSON.stringify(kcData.quest), JSON.stringify(kcData.oem), JSON.stringify(kcData.mnt), JSON.stringify(kcData.mExp)]
         );
         data.set(guildId, [kcData]);
         debug(`Kancolle Config GUARDADA/ACTUALIZADA: Guild ${guildId}`, "KancolleBD");

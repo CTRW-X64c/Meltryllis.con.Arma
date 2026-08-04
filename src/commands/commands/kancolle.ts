@@ -4,9 +4,8 @@ import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { error } from '../../sys/logging';
 import { testPermisos } from '../../sys/zGears/auxiliares';
-import { leftTime, turnDate } from '../../bgProcess/KanCron'
+import { leftTime, turnDate, JSTtoUTC, getNowJST } from '../../bgProcess/KanCron'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
-import { JSTtoUTC, getNowJST } from '../../bgProcess/KanSend'
 
 export async function registerKantaiCollectionCommand() {
     const kancolle = new SlashCommandBuilder()
@@ -17,11 +16,16 @@ export async function registerKantaiCollectionCommand() {
         .addSubcommand(s => s.setName('activar').setDescription(i18next.t("commands:kancolle.slashBuilder.activar"))
             .addChannelOption(o => o.setName('channel').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_canal")).setRequired(false).addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement))
             .addRoleOption(o => o.setName('role').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_role")).setRequired(false))
-            .addBooleanOption(o => o.setName('pvp').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_pvp")).setRequired(false))
-            .addBooleanOption(o => o.setName('quest').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_quest")).setRequired(false))
-            .addBooleanOption(o => o.setName('oem').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_oem")).setRequired(false))
-            .addBooleanOption(o => o.setName('month_expedicion').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_expedition")).setRequired(false))
-            .addBooleanOption(o => o.setName('mantenimiento').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_mantenimiento")).setRequired(false)))
+            .addBooleanOption(o => o.setName('aviso_pvp').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_pvp_av")).setRequired(false))
+            .addBooleanOption(o => o.setName('ntf_pvp').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_pvp")).setRequired(false))
+            .addBooleanOption(o => o.setName('aviso_quest').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_quest_av")).setRequired(false))
+            .addBooleanOption(o => o.setName('ntf_quest').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_quest")).setRequired(false))
+            .addBooleanOption(o => o.setName('aviso_oem').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_oem_av")).setRequired(false))
+            .addBooleanOption(o => o.setName('ntf_oem').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_oem")).setRequired(false))
+            .addBooleanOption(o => o.setName('aviso_expediciones').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_expedition_av")).setRequired(false))
+            .addBooleanOption(o => o.setName('ntf_expediciones').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_expedition")).setRequired(false))
+            .addBooleanOption(o => o.setName('aviso_mante').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_mantenimiento_av")).setRequired(false))
+            .addBooleanOption(o => o.setName('ntf_mante').setDescription(i18next.t("commands:kancolle.slashBuilder.activar_mantenimiento")).setRequired(false)))
         .addSubcommand(s => s.setName('desactivar').setDescription(i18next.t("commands:kancolle.slashBuilder.desactivar")))
         .addSubcommand(s => s.setName('status').setDescription(i18next.t("commands:kancolle.slashBuilder.status")))
     return [kancolle] as SlashCommandBuilder[];
@@ -69,22 +73,22 @@ async function enable(interaction: ChatInputCommandInteraction, guild: Guild) {
     try {
         const role = interaction.options.getRole("role");
         const channel = interaction.options.getChannel("channel");
-        const pvp = interaction.options.getBoolean("pvp");
-        const qst = interaction.options.getBoolean("quest");
-        const oem = interaction.options.getBoolean("oem");
-        const mante = interaction.options.getBoolean("mantenimiento");
-        const mExped = interaction.options.getBoolean("month_expedicion")
+        const avpvp = interaction.options.getBoolean("aviso_pvp"), ntfpvp = interaction.options.getBoolean("ntf_pvp");
+        const avqst = interaction.options.getBoolean("aviso_quest"), ntfqst = interaction.options.getBoolean("ntf_quest");
+        const avoem = interaction.options.getBoolean("aviso_oem"), ntfpem = interaction.options.getBoolean("ntf_oem");
+        const avmante = interaction.options.getBoolean("aviso_mante"), ntfmante = interaction.options.getBoolean("ntf_mante");
+        const avmExped = interaction.options.getBoolean("aviso_expediciones"), ntfmExped = interaction.options.getBoolean("ntf_expediciones");
 
         const cnf = (await getKCConfig(guild.id))[0];
         const cnfKC = {
             guild: guild.id,
             role: role?.id ?? cnf?.role ?? null,
             channel: channel?.id ?? cnf?.channel,
-            pvp: pvp ?? cnf?.pvp ?? true,
-            quest: qst ?? cnf?.quest ?? true,
-            oem: oem ?? cnf?.oem ?? true,
-            mnt: mante ?? cnf?.mnt ?? true,
-            mExp: mExped ?? cnf?.mExp ?? true,
+            pvp: { av: avpvp ?? cnf?.pvp?.av ?? true, ntf: ntfpvp ?? cnf?.pvp?.ntf ?? false },
+            quest: { av: avqst ?? cnf?.quest?.av ?? true, ntf: ntfqst ?? cnf?.quest?.ntf ?? false },
+            oem: { av: avoem ?? cnf?.oem?.av ?? true, ntf: ntfpem ?? cnf?.oem?.ntf ?? false },
+            mnt: { av: avmante ?? cnf?.mnt?.av ?? true, ntf: ntfmante ?? cnf?.mnt?.ntf ?? true },
+            mExp: { av: avmExped ?? cnf?.mExp?.av ?? true, ntf: ntfmExped ?? cnf?.mExp?.ntf ?? false },
         };
 
         const chTest = guild.channels.cache.get(cnfKC.channel);
@@ -135,7 +139,8 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
             .setTitle(i18next.t("commands:kancolle.interacciones.status_embed_title"))
             .addFields(
                 { name: i18next.t("commands:kancolle.interacciones.status_embed_field_basic"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_basic_value", { a1: `<#${cnf.channel}>`, a2: cnf.role ? `<@&${cnf.role}>` : "Ninguno!" }) },
-                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp ? "✅" : "❌", a2: cnf.quest ? "✅" : "❌", a3: cnf.oem ? "✅" : "❌", a4: cnf.mnt ? "✅" : "❌", a5: cnf.mExp ? "✅" : "❌" }) }
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.av ? "✅" : "❌", a2: cnf.quest.av ? "✅" : "❌", a3: cnf.oem.av ? "✅" : "❌", a4: cnf.mnt.av ? "✅" : "❌", a5: cnf.mExp.av ? "✅" : "❌" }) },
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active_ntf"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.ntf ? "✅" : "❌", a2: cnf.quest.ntf ? "✅" : "❌", a3: cnf.oem.ntf ? "✅" : "❌", a4: cnf.mnt.ntf ? "✅" : "❌", a5: cnf.mExp.ntf ? "✅" : "❌" }) }
             )
             .setColor(0x00FF00);
 

@@ -625,7 +625,12 @@
       "desactivar": "Desactiavar el envio de avisos",
       "status": "Muestra la configuracion actual",
       "post_4_all": "Postea para todos!!",
-      "activar_expedition": "Notificar expediciones mensuales"
+      "activar_expedition": "Notificar expediciones mensuales",
+      "activar_pvp_av": "Mandar aviso de PvP!",
+      "activar_quest_av": "Mandar notificacion de quest!!",
+      "activar_oem_av": "Mandar aviso de Extra operaciones!",
+      "activar_expedition_av": "Mandar aviso de expediciones mensuales!!",
+      "activar_mantenimiento_av": "Mandar aviso de mantenimiento!!"
     },
     "interacciones": {
       "error_ch_noValido": "❌ Debes especificar un canal valido!",
@@ -651,7 +656,9 @@
       "emb_value_rank": "*Cutoff Diario: {{a1}}* \n> Todos los dias 02:00hrs \n*Cutoff Mensual: {{a2}}* \n> Ultimo dia del mes a las 22:00hrs.",
       "emb_value_oem": "*Extra Operaciones: {{a1}}* \n> Primero del mes, 00:00hrs. \n*Expediciones Mensuales: {{a2}}* \n > Los dias 15 del mes, 12:00hrs.",
       "emb_value_mante": "**Inicio de mantenimiento:** \n{{a1}} hrs \n*Status: {{a2}}*\n\n **Finalización de mantenimiento:** \n {{a3}} hrs \n*Status: {{a4}}*",
-      "resrts_let_send_fail": "NO SE PUDO ENVIAR EL MENSAJE AL CANAL LOCAL!!"
+      "resrts_let_send_fail": "NO SE PUDO ENVIAR EL MENSAJE AL CANAL LOCAL!!",
+      "status_embed_field_active_ntf": "Configuracion de Notificaciones:",
+      "error_nada_activado": "Debes activar almenos un tipo de aviso!!"
     },
     "bgProsses": {
       "siwtchNotify_vText": "**PVP:** {{a1}}\n**EO:** {{a2}}\n**Exp. Mensuales:** {{a3}}\n> Misiones:\n**Diarias:** {{a4}}\n**Semanales:** {{a5}}\n**Mensuales:** {{a6}}\n**Quaterly:** {{a7}}\n> Rank:\n**Cutoff Diario:** {{a8}}\n**Cutoff Mesual:** {{a9}}",
@@ -664,7 +671,7 @@
       "siwtchNotify_quest_uTitle": "✅ ¡Las Quest se han reiniciado!",
       "siwtchNotify_quest_uDesc": "Categorias de misiones reiniciadas!: {{a1}}",
       "siwtchNotify_oem_title": "📦 ¡Aviso de Extra Operaciones!",
-      "siwtchNotify_oem_desc": "**Las EO se reiniciaran en 30 minutos!!**",
+      "siwtchNotify_oem_desc": "**Las EO se reiniciaran en 60 minutos!!**",
       "siwtchNotify_oem_uTitle": "🎉 Las EO se han reiniciado!",
       "siwtchNotify_oem_uDesc": "Las EO se han reiniciado, ve apor tus medallas del mes!",
       "siwtchNotify_1h_uTitle": "🔧 Aviso de mantenimiento!!",
@@ -680,9 +687,17 @@
       "siwtchNotify_mntsStart_30": "El mantenimiento comenzara en 30 minutos!!",
       "siwtchNotify_mExp_title": "🛢️ Aviso de Expediciones mensuales!! ",
       "siwtchNotify_mExp_uTitle": "🛢️ Las expediciones mensuales se han reiniciado!!",
-      "siwtchNotify_mExp_desc": "**Las expediciones mensuales se van a reiniciar en 30 minutos!**",
+      "siwtchNotify_mExp_desc": "**Las expediciones mensuales se van a reiniciar en 60 minutos!**",
       "siwtchNotify_mExp_desc_15": "**Las expediciones mensuales se van a reiniciar en 15minutos!**",
-      "siwtchNotify_mExp_uDesc": "**Las expediciones mensuales se han reiniciado!!**"
+      "siwtchNotify_mExp_uDesc": "**Las expediciones mensuales se han reiniciado!!**",
+      "siwtchNotify_oem_desc_30m": "**Las EO se reiniciaran en 30 minutos!!**",
+      "siwtchNotify_mExp_desc_30m": "**Las expediciones mensuales se van a reiniciar en 30 minutos!**",
+      "siwtchNotify_cutoff_title": "📊 Aviso de Ranking!!",
+      "siwtchNotify_cutoff_desc": "Cutoff Rank!!",
+      "siwtchNotify_cutoff_desc_m": "Cierre mensual del Rank!!",
+      "siwtchNotify_mntStart_des": "Se ha anunciado un nuevo mantenimiento \n ***Fechas en JST / UTC +9***",
+      "siwtchNotify_newMante_A": "> INICIO: \n",
+      "siwtchNotify_newMante_B": "> TERMINO: \n"
     }
   }
 }

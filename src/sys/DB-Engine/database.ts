@@ -290,11 +290,11 @@ async function poolManager(): Promise<void> {
       guild_id VARCHAR(50) NOT NULL,
       role VARCHAR(50),
       channel VARCHAR(50) NOT NULL,
-      pvp BOOLEAN DEFAULT TRUE,
-      quest BOOLEAN DEFAULT TRUE,
-      oem BOOLEAN DEFAULT TRUE,
-      mnt BOOLEAN DEFAULT TRUE,
-      mExp BOOLEAN DEFAULT TRUE,
+      pvp TEXT,
+      quest TEXT,
+      oem TEXT,
+      mnt TEXT,
+      mExp TEXT,
       UNIQUE KEY unique_guild_kancolle (guild_id)
     )
   `);
