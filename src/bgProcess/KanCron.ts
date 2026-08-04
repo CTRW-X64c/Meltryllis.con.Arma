@@ -15,12 +15,12 @@ export async function initKC(clnt: Client) {
     if (x) {
         cronKC(clnt)
         setInterval(() => cronKC(clnt), 120 * minuts)
-        inf += "> Avisos!!";
+        inf += " > Avisos < ";
     }
     if (y) {
         mantChk(clnt)
         setInterval(() => mantChk(clnt), 20 * minuts)
-        inf += "> Mantenimientos";
+        inf += " > Mantenimientos < ";
     }
     info(inf)
 }
@@ -83,11 +83,11 @@ async function notifyKC(client: Client, type: notifyType) {
             try {
                 const guild = await client.guilds.fetch(guildId).catch(() => null);
                 if (!guild) continue;
-                let chkRol: Role | null = null;
-                if (cfg.role && checkRol && checkRol(cfg)) chkRol = await guild.roles.fetch(cfg.role).catch(() => null)
                 const channel = await guild.channels.fetch(cfg.channel).catch(() => null);
                 if (!channel || !channel.isTextBased()) continue;
                 const txtCh = channel as TextChannel;
+                let chkRol: Role | null = null;
+                if (cfg.role && checkRol && checkRol(cfg)) chkRol = await guild.roles.fetch(cfg.role).catch(() => null)
                 sendMSG({ ch: txtCh, rol: chkRol, type: type })
             } catch (err) { error(`Error al notificar: ${guildId} ${err}`); }
         }
@@ -204,9 +204,7 @@ const sendAutoDelete = async (dta: msgData) => {
                 msg.delete().catch(err => error(`Error al borrar msg: ${err}`, "KanCron"));
             }, 10 * minuts);
         }
-    } catch (e) {
-        error(`Error enviando notificación: ${e}`, "KanCron");
-    }
+    } catch (e) { error(`Error enviando notificación: ${e}`, "KanCron"); }
 }
 
 // === mainMsgNotify === //
