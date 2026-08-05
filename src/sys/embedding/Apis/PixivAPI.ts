@@ -54,8 +54,8 @@ export class apiPixivCustom implements ApiHandler {
             pixivData.buffers.forEach((buffer, index) => {
                 const fileName = `image${index}.png`;
                 const attachment = new AttachmentBuilder(buffer, { name: fileName });
-                let desc = `🖼️ **Galeria de ${pixivData.buffers.length > 1 ? `${pixivData.buffers.length} imagenes` : 'una imagen!'}**`
-                if (pixivData.buffers.length > 5) desc = `🖼️ **Mostrando ${pixivData.buffers.length} de ${pixivData.sizePag} imagenes!**`
+                let desc = `🖼️ **Galeria de ${pixivData.sizePag === 1 ? 'una imagen!' : `${pixivData.buffers.length} imagenes`}**`
+                if (pixivData.sizePag > 5) desc = `🖼️ **Mostrando 5 de ${pixivData.sizePag} imagenes!**`
                 files.push(attachment);
                 const embed = new EmbedBuilder()
                     .setURL(pixivData.url)

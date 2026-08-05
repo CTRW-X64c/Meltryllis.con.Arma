@@ -14,7 +14,7 @@ import TikTok from "./webs/TikTok";
 import Tumblr from "./webs/Tumblr";
 import Twitch from "./webs/Twitch";
 import Twitter from "./webs/Twitter";
-import YouTube from "./webs/YouTube";
+//import YouTube from "./webs/YouTube";
 
 interface ReplacementMeta {
   name: string;
@@ -141,11 +141,11 @@ export const replacementMetaList: ReplacementMeta[] = [
     regexKeys: ["(\\/\\/|\\.)(x|twitter)\\.com"],
     takesUrl: true,
   },
-  {
+  /*{
     name: "Youtube",
     dbKey: "youtube",
     Class: YouTube,
     regexKeys: ["(m|www)\\.youtube\\.com/shorts/"],
     takesUrl: true,
-  },
+  },*/
 ];

@@ -675,7 +675,7 @@
       "siwtchNotify_oem_uTitle": "🎉 Las EO se han reiniciado!",
       "siwtchNotify_oem_uDesc": "Las EO se han reiniciado, ve apor tus medallas del mes!",
       "siwtchNotify_1h_uTitle": "🔧 Aviso de mantenimiento!!",
-      "siwtchNotify_1h_uDesc": "EL MANTENIMIENTO A COMENZADO!!",
+      "siwtchNotify_1h_uDesc": "EL MANTENIMIENTO A COMENZADO!!  \n Termino: {{a1}} \n ***Recuerda no actualizar (F5) el juego!!***",
       "siwtchNotify_nextReset": "**Proximos resets:**",
       "siwtchNotify_mntsStart": "El mantenimiento comenzara en una hora!! \n Hora de termino: {{a1}}!",
       "siwtchNotify_endMant": "EL MANTENIMIENTO A TERMINADO!!",
@@ -697,7 +697,10 @@
       "siwtchNotify_cutoff_desc_m": "Cierre mensual del Rank!!",
       "siwtchNotify_mntStart_des": "Se ha anunciado un nuevo mantenimiento \n ***Fechas en JST / UTC +9***",
       "siwtchNotify_newMante_A": "> INICIO: \n",
-      "siwtchNotify_newMante_B": "> TERMINO: \n"
+      "siwtchNotify_newMante_B": "> TERMINO: \n",
+      "siwtchNotify_nextReset_A_F": "Proximos resets:",
+      "siwtchNotify_drank_title": "🧮 Aviso Rank!!",
+      "siwtchNotify_drank_desc": "Cierre de puntos del rank!"
     }
   }
 }

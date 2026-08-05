@@ -2,108 +2,140 @@
 import { Client, EmbedBuilder, Role, TextChannel } from 'discord.js';
 import { debug, error, info } from '../sys/logging';
 import { startKC, data, maint, updateKCmant, kcheMaint } from '../sys/DB-Engine/links/KancolleBD';
-import { configs } from "../sys/zGears/kc_aux";
+import { rawPreset } from "../sys/zGears/kc_aux";
 
 let kcTimmers = new Map<string, NodeJS.Timeout>();
 const minuts = 60 * 1_000;
 const idStart = `maintStart`, idEnd = `mntEnd`;
 
 // ========================================================= Init ========================================================= //
-export async function initKC(clnt: Client) {
+export async function initKC(cli: Client) {
     let inf = "[Kancolle] Se inicio el servicio:";
     const x = await startKC(), y = await kcheMaint();
     if (x) {
-        cronKC(clnt)
-        setInterval(() => cronKC(clnt), 120 * minuts)
+        timmerAv(cli)
+        setInterval(() => timmerAv(cli), 120 * minuts)
         inf += " > Avisos < ";
     }
     if (y) {
-        mantChk(clnt)
-        setInterval(() => mantChk(clnt), 20 * minuts)
+        mantChk(cli)
+        setInterval(() => mantChk(cli), 20 * minuts)
         inf += " > Mantenimientos < ";
-    }
-    info(inf)
+    } info(inf)
 }
 
-export type notifyType = 'pvp' | 'quest' | `oem` | `mExp` | `newMante` | `maintStart` | 'mntEnd';
+export type notifyType = 'pvp' | 'quest' | 'oem' | 'mExp' | 'newMante' | 'maintStart' | 'mntEnd';
 let notifyTimers = new Map<notifyType, NodeJS.Timeout>();
-async function cronKC(clnt: Client) {
-    // =========================== pvp =========================== //
+async function timmerAv(cli: Client) {
+    /* ===== pvp ===== */
     const pvpStr = () => {
         if (notifyTimers.has('pvp')) notifyTimers.delete('pvp');
         const pvp = leftTimeConv({ type: 'daily', hours: [2, 14], minutes: 30 });
-        const timer = setTimeout(() => { notifyTimers.delete('pvp'); notifyKC(clnt, 'pvp'); }, pvp);
-        debug(`[KanCron]: pvpStr establecido para ${pvp} fecha ${turnDate(pvp)}`)
+        const timer = setTimeout(() => { notifyTimers.delete('pvp'); notifyKC(cli, 'pvp'); }, pvp);
+        debug(`[KanCron]: pvpStr establecido en ${pvp / minuts} min`)
         notifyTimers.set('pvp', timer);
     }; if (!notifyTimers.has('pvp')) pvpStr();
-    // =========================== quest =========================== //
+    /* ===== quest ===== */
     const questStr = () => {
         if (notifyTimers.has('quest')) notifyTimers.delete('quest');
         const quest = leftTimeConv({ type: 'daily', hours: 4, minutes: 30 });
-        const timer = setTimeout(() => { notifyTimers.delete('quest'); notifyKC(clnt, 'quest'); }, quest);
-        debug(`[KanCron]: questStr establecido para ${quest} fecha ${turnDate(quest)}`)
+        const timer = setTimeout(() => { notifyTimers.delete('quest'); notifyKC(cli, 'quest'); }, quest);
+        debug(`[KanCron]: questStr establecido en ${quest / minuts} min`)
         notifyTimers.set('quest', timer);
     }; if (!notifyTimers.has('quest')) questStr();
-    // =========================== extra operaciones =========================== //
+    /* ===== extra operaciones ===== */
     const oemStr = () => {
         const oem = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0, minutes: 0 });
         if (oem > (24 * 60 * minuts)) return;
         if (notifyTimers.has('oem')) notifyTimers.delete('oem');
         const delay = Math.max(0, oem - (60 * minuts));
-        const timer = setTimeout(() => { notifyTimers.delete('oem'); notifyKC(clnt, 'oem'); }, delay);
-        debug(`[KanCron]: oemStr establecido para ${delay} fecha ${turnDate(delay)}`)
+        const timer = setTimeout(() => { notifyTimers.delete('oem'); notifyKC(cli, 'oem'); }, delay);
+        debug(`[KanCron]: oemStr establecido en ${delay / minuts} min`)
         notifyTimers.set('oem', timer);
     }; if (!notifyTimers.has('oem')) oemStr();
-    // =========================== expediciones mensuales =========================== //
+    /* ===== expediciones mensuales ===== */
     const mExpStr = () => {
         if (notifyTimers.has('mExp')) notifyTimers.delete('mExp');
         const mExp = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12, minutes: 0 });
         if (mExp > (24 * 60 * minuts)) return;
         const delay = Math.max(0, mExp - (60 * minuts));
-        const timer = setTimeout(() => { notifyTimers.delete('mExp'); notifyKC(clnt, 'mExp'); }, delay);
-        debug(`[KanCron]: mExpStr establecido para ${delay} fecha ${turnDate(delay)}`)
+        const timer = setTimeout(() => { notifyTimers.delete('mExp'); notifyKC(cli, 'mExp'); }, delay);
+        debug(`[KanCron]: mExpStr establecido en ${delay / minuts} min`)
         notifyTimers.set('mExp', timer);
     }; if (!notifyTimers.has('mExp')) mExpStr();
 }
 
 // ========================================================= Main ========================================================= //
+interface msgBuild { ch: TextChannel, rol: Role | null, type: notifyType }
+interface msgSend { ch: TextChannel, title: string, fields: any[], desc: string, pic: string | undefined, roleContent: string | undefined, color: number, url: string | undefined }
 const chkType = new Map<notifyType, (cfg: any) => boolean>([
     ['pvp', cfg => cfg.pvp.av], ['quest', cfg => cfg.quest.av], ['oem', cfg => cfg.oem.av], ['mExp', cfg => cfg.mExp.av],
     ['newMante', cfg => cfg.mnt.av], ['maintStart', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av]]);
 
-const chkRoleT = new Map<notifyType, (cfg: any) => boolean>([
+const chkRole = new Map<notifyType, (cfg: any) => boolean>([
     ['pvp', cfg => cfg.pvp.ntf], ['quest', cfg => cfg.quest.ntf], ['oem', cfg => cfg.oem.ntf], ['mExp', cfg => cfg.mExp.ntf],
     ['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
-
-async function notifyKC(client: Client, type: notifyType) {
+/* === Core === */
+async function notifyKC(cli: Client, type: notifyType) {
     for (const [guildId, configs] of data.entries()) {
         for (const cfg of configs) {
-            const check = chkType.get(type), checkRol = chkRoleT.get(type)
+            const check = chkType.get(type), checkRol = chkRole.get(type)
             if (!check || !check(cfg)) continue;
             try {
-                const guild = await client.guilds.fetch(guildId).catch(() => null);
+                const guild = await cli.guilds.fetch(guildId).catch(() => null);
                 if (!guild) continue;
                 const channel = await guild.channels.fetch(cfg.channel).catch(() => null);
                 if (!channel || !channel.isTextBased()) continue;
                 const txtCh = channel as TextChannel;
                 let chkRol: Role | null = null;
                 if (cfg.role && checkRol && checkRol(cfg)) chkRol = await guild.roles.fetch(cfg.role).catch(() => null)
-                sendMSG({ ch: txtCh, rol: chkRol, type: type })
+                msgMgr({ ch: txtCh, rol: chkRol, type: type })
             } catch (err) { error(`Error al notificar: ${guildId} ${err}`); }
         }
+    }
+}
+/* === msgManager === */
+async function msgMgr(dat: msgBuild) {
+    const prst = rawPreset(dat.type);
+    if (!prst) return;
+
+    const msgSnd = async (dta: msgSend) => {
+        try {
+            const emb = new EmbedBuilder().setColor(dta.color).setTitle(dta.title).setDescription(dta.desc);
+            if (dta.pic) emb.setImage(dta.pic); if (dta.url) emb.setURL(dta.url); if (dta.fields && dta.fields.length > 0) emb.addFields(dta.fields);
+            const msg = await dta.ch.send({ content: dta.roleContent, embeds: [emb] });
+            if (msg.deletable) { setTimeout(() => { msg.delete().catch(err => error(`Error al borrar msg: ${err}`, "KanCron")) }, 10 * minuts); }
+        } catch (e) { error(`Error enviando notificación: ${e}`, "KanCron"); }
+    }
+
+    const rMnt = dat.rol ? `AVISO: ${dat.rol}!` : undefined;
+    await msgSnd({ ch: dat.ch, title: prst.title.A, fields: prst.field, desc: prst.desc.ini, pic: prst.urlPic.A, roleContent: rMnt, color: 0xFFA500, url: prst.url });
+    if (prst.ntfy.ntf_30 && prst.mTimmer > (30 * minuts)) {
+        setTimeout(async () => {
+            await msgSnd({ ch: dat.ch, title: prst.title.A, fields: [], desc: prst.desc.l30, pic: prst.urlPic.A, roleContent: undefined, color: 0xFFA500, url: prst.url });
+        }, prst.mTimmer - (30 * minuts));
+    }
+    if (prst.ntfy.ntf_15 && prst.mTimmer > (15 * minuts)) {
+        setTimeout(async () => {
+            await msgSnd({ ch: dat.ch, title: prst.title.A, fields: [], desc: prst.desc.l15, pic: prst.urlPic.A, roleContent: undefined, color: 0xFFA500, url: prst.url });
+        }, prst.mTimmer - (15 * minuts));
+    }
+    if (prst.ntfy.ntf_end && prst.mTimmer > 0) {
+        setTimeout(async () => {
+            await msgSnd({ ch: dat.ch, title: prst.title.B, fields: [], desc: prst.desc.fn, pic: prst.urlPic.B, roleContent: rMnt, color: 0x00AA00, url: prst.url });
+        }, prst.mTimmer);
     }
 }
 
 // ========================================================= fetchMaint ========================================================= //
 export let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null };
-interface ntfMant { MaintDate: Date | null; endMantDate: Date | null; url: string | null; }
-interface dataGit { MaintInfoLink: string; MaintStart: string; MaintEnd?: string; }
-async function mantChk(C: Client) {
+interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null; };
+interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
+async function mantChk(cli: Client) {
     const gitData = "https://raw.githubusercontent.com/ElectronicObserverEN/Data/refs/heads/master/update.json";
     let chkData;
-    try {
-        chkData = await fetch(gitData);
-    } catch (e) { error(`❌ Error de red al obtener JSON: ${e}`, "KancolleBD"); return }
+    try { chkData = await fetch(gitData); }
+    catch (e) { error(`❌ Error de red al obtener JSON: ${e}`, "KancolleBD"); return }
 
     if (!chkData.ok) { error(`❌ Error HTTP: ${chkData.status}`, "KancolleBD"); return }
 
@@ -112,7 +144,6 @@ async function mantChk(C: Client) {
     const newMaintEndStr = processData.MaintEnd ?? null;
 
     if (!newMaintStartStr) return;
-
     //startManteTimes
     const newMaintDate = new Date(newMaintStartStr);
     const lastMantTime = maint?.lastMaintStart ? maint.lastMaintStart.getTime() : null;
@@ -144,15 +175,15 @@ async function mantChk(C: Client) {
         }
         debug(`🔧 Anunciando nuevo mantenimiento a los servidores: ${newMaintStartStr}`, "KancolleBD");
         ntfMantData = { MaintDate: newMaintDate, endMantDate: endMantDate, url: processData.MaintInfoLink };
-        notifyKC(C, "newMante")
+        notifyKC(cli, "newMante")
         maint.maintNotified = true;
         await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: new Date(), MaintEnd: endMantDate });
     }
-    if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd)) startMant(C);
+    if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd)) startMant(cli);
 }
 
 // ===== notifyMaint ===== //
-async function startMant(C: Client) {
+async function startMant(cli: Client) {
     try {
         if (!maint.lastMaintStart) return;
         const now = getNowJST(), INItime = JSTtoUTC(maint.lastMaintStart);
@@ -164,7 +195,7 @@ async function startMant(C: Client) {
         if (leftStart > 0 && leftStart < (12 * HORA)) {
             if (leftStart > HORA && !kcTimmers.has(idStart)) {
                 const timer1h = setTimeout(() => {
-                    notifyKC(C, idStart);
+                    notifyKC(cli, idStart);
                     kcTimmers.delete(idStart);
                 }, leftStart - HORA);
                 kcTimmers.set(idStart, timer1h);
@@ -178,7 +209,7 @@ async function startMant(C: Client) {
                 const leftEnd = maintEndMs - now;
                 if (leftEnd > 0 && leftEnd < (12 * HORA)) {
                     const endoMeinto = setTimeout(() => {
-                        notifyKC(C, idEnd);
+                        notifyKC(cli, idEnd);
                         kcTimmers.delete(idEnd);
                     }, leftEnd);
                     kcTimmers.set(idEnd, endoMeinto);
@@ -188,78 +219,9 @@ async function startMant(C: Client) {
     } catch (e) { error(`Error al programar temporizadores de mantenimiento: ${e}`, "KancolleBD"); }
 }
 
-// ========================================================= msg Builder ========================================================= //
-interface Params { ch: TextChannel, rol: Role | null, type: notifyType }
-interface msgData { ch: TextChannel, title: string, fields: any[], desc: string, pic: string | undefined, roleContent: string | undefined, color: number, url: string | undefined }
-// === sndManager === //
-const sendAutoDelete = async (dta: msgData) => {
-    const emb = new EmbedBuilder().setColor(dta.color).setTitle(dta.title).setDescription(dta.desc)
-    if (dta.pic) emb.setImage(dta.pic);
-    if (dta.url) emb.setURL(dta.url);
-    if (dta.fields && dta.fields.length > 0) emb.addFields(dta.fields);
-    try {
-        const msg = await dta.ch.send({ content: dta.roleContent, embeds: [emb] });
-        if (msg.deletable) {
-            setTimeout(() => {
-                msg.delete().catch(err => error(`Error al borrar msg: ${err}`, "KanCron"));
-            }, 10 * minuts);
-        }
-    } catch (e) { error(`Error enviando notificación: ${e}`, "KanCron"); }
-}
-
-// === mainMsgNotify === //
-async function sendMSG(dat: Params) {
-    const preset = configs(dat.type);
-    if (!preset) return;
-
-    const roleMention = dat.rol ? `AVISO: ${dat.rol}!` : undefined;
-    await sendAutoDelete({ ch: dat.ch, title: preset.title.A, fields: preset.field, desc: preset.desc.ini, pic: preset.urlPic.A, roleContent: roleMention, color: 0xFFA500, url: preset.url });
-
-    if (preset.ntfy.ntf_30 && preset.mTimmer > (30 * minuts)) {
-        setTimeout(async () => {
-            await sendAutoDelete({ ch: dat.ch, title: preset.title.A, fields: [], desc: preset.desc.l30, pic: preset.urlPic.A, roleContent: undefined, color: 0xFFA500, url: preset.url });
-        }, preset.mTimmer - (30 * minuts));
-    }
-
-    if (preset.ntfy.ntf_15 && preset.mTimmer > (15 * minuts)) {
-        setTimeout(async () => {
-            await sendAutoDelete({ ch: dat.ch, title: preset.title.A, fields: [], desc: preset.desc.l15, pic: preset.urlPic.A, roleContent: undefined, color: 0xFFA500, url: preset.url });
-        }, preset.mTimmer - (15 * minuts));
-    }
-
-    if (preset.ntfy.ntf_end && preset.mTimmer > 0) {
-        setTimeout(async () => {
-            await sendAutoDelete({ ch: dat.ch, title: preset.title.B, fields: [], desc: preset.desc.fn, pic: preset.urlPic.B, roleContent: roleMention, color: 0x00AA00, url: preset.url });
-        }, preset.mTimmer);
-    }
-}
-
 // ========================================================= Euxiliares ========================================================= //
 type timSlap = 'daily' | 'weekly' | 'monthly' | 'quarterly';
 interface timeData { type: timSlap; hours: number | number[]; minutes?: number; targetDay?: number; targetMonths?: number[]; }
-// === lefTime === //
-export function leftTime() {
-    // Reglas mes: 1-31, 100 = ultimo dia del mes; Semana: domingo = 0 - sabado = 6, def= 1 lunes (1); Minutos: 0-59 def 0
-    const pvpCount = leftTimeConv({ type: 'daily', hours: [3, 15] });
-    const pvp3hrs = leftTimeConv({ type: 'daily', hours: 3 });
-    const pvp15hrs = leftTimeConv({ type: 'daily', hours: 15 });
-    const dQuestCount = leftTimeConv({ type: 'daily', hours: 5 });
-    const wQuestCount = leftTimeConv({ type: 'weekly', targetDay: 1, hours: 5 });
-    const mQuestCount = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5 });
-    const qQuestCount = leftTimeConv({ type: 'quarterly', targetDay: 1, hours: 5 })
-    const oemCount = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0 });
-    const dPtCutof = leftTimeConv({ type: 'daily', hours: [2, 14] });
-    const mPtCutof = leftTimeConv({ type: 'monthly', targetDay: 100, hours: 22 });
-    const exped = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12 });
-
-    return {
-        pvp: turnDate(pvpCount), pvp3h: turnDate(pvp3hrs), pvp15h: turnDate(pvp15hrs), oem: turnDate(oemCount),
-        dQuest: turnDate(dQuestCount), wQuest: turnDate(wQuestCount), mQuest: turnDate(mQuestCount), qQuest: turnDate(qQuestCount),
-        dPtCutof: turnDate(dPtCutof), mPtCutof: turnDate(mPtCutof),
-        mExp: turnDate(exped)
-    };
-}
-
 export function leftTimeConv(opts: timeData): number {
     const nowTime = getNowJST();
     const tokyoDate = new Date(nowTime)
@@ -336,21 +298,6 @@ export function leftTimeConv(opts: timeData): number {
     return target.getTime() - nowTime;
 }
 
-// === misiones === //
-export function aQuest() {
-    const now = getNowJST();
-    const tokyoDate = new Date(now);
-    const dayOfWeek = tokyoDate.getDay(); // 1 = lunes
-    const numDay = tokyoDate.getDate(); // 1 - 31
-    const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
-    // === msg === //
-    let aviso = "\n- DIARIAS!!"
-    if (dayOfWeek === 1) aviso += "\n- SEMANALES!!"
-    if (numDay === 1) aviso += "\n- MENSUALES!!"
-    if (numDay === 1 && [2, 5, 8, 11].includes(month)) aviso += "\n- TRIMESTRALES (Quarterly)!" //Marzo, Junio, Septiembre, Diciembre
-    return aviso;
-}
-
 // == TZcore == //
 export function JSTtoUTC(dateInput: string | Date | null | undefined): Date | null {
     if (!dateInput) return null;
@@ -374,17 +321,3 @@ export function getNowJST(): number {
     return now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + (9 * 60 * 60 * 1000);
 }
 
-// === timeDateConvert === //
-export function turnDate(data: number) {
-    const d = Math.floor(data / 86400000);
-    const h = Math.floor((data % 86400000) / 3600000);
-    const m = Math.floor((data % 3600000) / 60000);
-    const s = Math.floor((data % 60000) / 1000);
-    const t = [];
-
-    if (d >= 1) t.push(d === 1 ? "un día" : `${d} días`);
-    if (h >= 1) t.push(h === 1 ? "una hora" : `${h} horas`);
-    if (m >= 1) t.push(m === 1 ? "un minuto" : `${m} minutos`);
-    if (s > 0 && d === 0 && h === 0) t.push(s === 1 ? "un segundo" : `${s} segundos`);
-    return t.join(', ') || '0 segundos';
-}

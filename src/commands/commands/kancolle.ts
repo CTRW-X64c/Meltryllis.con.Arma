@@ -4,7 +4,8 @@ import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { error } from '../../sys/logging';
 import { testPermisos } from '../../sys/zGears/auxiliares';
-import { leftTime, turnDate, JSTtoUTC, getNowJST } from '../../bgProcess/KanCron'
+import { JSTtoUTC, getNowJST } from '../../bgProcess/KanCron'
+import { allLefts, turnDate } from '../../sys/zGears/kc_aux'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
 
 export async function registerKantaiCollectionCommand() {
@@ -153,7 +154,7 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
 
 async function resrts(interacciones: ChatInputCommandInteraction) {
     const everyone = interacciones.options.getBoolean("all") ?? false;
-    const ltim = leftTime(), TZjp = 'Asia/Tokyo', TZutc = 'UTC', TZmx = 'America/Mexico_City';
+    const ltim = allLefts(), TZjp = 'Asia/Tokyo', TZutc = 'UTC', TZmx = 'America/Mexico_City';
     const nowTime = getNowJST();
 
     const now = new Date();
