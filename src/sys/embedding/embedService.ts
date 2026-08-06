@@ -41,7 +41,7 @@ export default function startEmbedService(client: Client): void {
                 domainSite = urlObject.hostname.replace('www.', '');
             } catch (err) { debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate"); continue }
 
-            const replacedUrl = await urlProcess(originalUrl, domainSite, guildId!, guildConfigs, replacements, message);
+            const replacedUrl = await urlProcess({ oURL: originalUrl, domain: domainSite, guild: guildId!, gConf: guildConfigs, remp: replacements, msg: message });
             if (replacedUrl) {
                 const hiddenMessage = message.content.split("||").length > 2;
                 let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl });
