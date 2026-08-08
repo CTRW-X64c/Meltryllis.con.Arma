@@ -202,7 +202,7 @@ async function resrts(interacciones: ChatInputCommandInteraction) {
         { name: i18next.t("commands:kancolle.interacciones.emb_name_mante"), value: i18next.t("commands:kancolle.interacciones.emb_value_mante", { a1: statusStart, a2: statusEnd }) }
     ]
 
-    if (statusStart !== "Finalizado!") {
+    if (statusStart !== i18next.t("commands:kancolle.interacciones.resrts_let_statusStart")) {
         fields.push({
             name: "Fechas:", value:
                 "> ***🇯🇵 JST*** | ***GMT+9***" + "\n" + `📅 INICIO: \`${tm.jpStart}\` \n📅 TERMINO: \`${tm.jpEnd}\`` + "\n" +
