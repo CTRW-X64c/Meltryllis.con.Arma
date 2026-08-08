@@ -5,7 +5,7 @@ import { hasPermission } from '../../sys/zGears/mPermission';
 import { error } from '../../sys/logging';
 import { testPermisos } from '../../sys/zGears/auxiliares';
 import { JSTtoUTC, getNowJST } from '../../bgProcess/KanCron'
-import { allLefts, turnDate } from '../../sys/zGears/kc_aux'
+import { allLefts, mantDates, turnDate } from '../../sys/zGears/kc_aux'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
 
 export async function registerKantaiCollectionCommand() {
@@ -165,18 +165,14 @@ async function resrts(interacciones: ChatInputCommandInteraction) {
     const dateInit = JSTtoUTC(maint.lastMaintStart ?? null);
     const dateEnd = JSTtoUTC(maint.MaintEnd ?? null);
 
-    let lasMante = "TBA", Finalizado = "TBA";
-    let statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart");
-    let statusEnd = "TBA";
-
+    let statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart"), statusEnd = "TBA";
+    const tm = mantDates(maint.lastMaintStart!, maint.MaintEnd)
     if (dateInit) {
         const datStartTime = dateInit.getTime();
-        lasMante = dateInit.toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' });
         const diffStart = datStartTime - nowTime;
 
         if (dateEnd) {
             const datEndTime = dateEnd.getTime();
-            Finalizado = dateEnd.toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' });
             const diffEnd = datEndTime - nowTime;
 
             if (diffStart > 0) {
@@ -198,15 +194,26 @@ async function resrts(interacciones: ChatInputCommandInteraction) {
         }
     }
 
+    const fields: { name: string, value: string }[] = [
+        { name: i18next.t("commands:kancolle.interacciones.emb_name_pvp"), value: i18next.t("commands:kancolle.interacciones.emb_value_pvp", { a1: ltim.pvp, a2: ltim.pvp3h, a3: ltim.pvp15h }) },
+        { name: i18next.t("commands:kancolle.interacciones.emb_name_quest"), value: i18next.t("commands:kancolle.interacciones.emb_value_quest", { a1: ltim.dQuest, a2: ltim.wQuest, a3: ltim.mQuest, a4: ltim.qQuest }) },
+        { name: i18next.t("commands:kancolle.interacciones.emb_name_rank"), value: i18next.t("commands:kancolle.interacciones.emb_value_rank", { a1: ltim.dPtCutof, a2: ltim.mPtCutof }) },
+        { name: i18next.t("commands:kancolle.interacciones.emb_name_oem"), value: i18next.t("commands:kancolle.interacciones.emb_value_oem", { a1: ltim.oem, a2: ltim.mExp }) },
+        { name: i18next.t("commands:kancolle.interacciones.emb_name_mante"), value: i18next.t("commands:kancolle.interacciones.emb_value_mante", { a1: statusStart, a2: statusEnd }) }
+    ]
+
+    if (statusStart !== "Finalizado!") {
+        fields.push({
+            name: "Fechas:", value:
+                "> ***🇯🇵 JST*** | ***GMT+9***" + "\n" + `📅 INICIO: \`${tm.jpStart}\` \n📅 TERMINO: \`${tm.jpEnd}\`` + "\n" +
+                "> ***🌐 UTC***" + "\n" + `📅 INICIO: \`${tm.utcStart}\` \n📅 TERMINO: \`${tm.utcEnd}\`` + "\n" +
+                "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***" + "\n" + `📅 INICIO: \`${tm.mxStart}\` \n📅 TERMINO: \`${tm.mxEnd}\``
+        })
+    }
+
     const emb = new EmbedBuilder()
         .setDescription(i18next.t("commands:kancolle.interacciones.resrts_let_description", { a1: jstDate, a2: mxDate, a3: utcDate }))
-        .addFields(
-            { name: i18next.t("commands:kancolle.interacciones.emb_name_pvp"), value: i18next.t("commands:kancolle.interacciones.emb_value_pvp", { a1: ltim.pvp, a2: ltim.pvp3h, a3: ltim.pvp15h }) },
-            { name: i18next.t("commands:kancolle.interacciones.emb_name_quest"), value: i18next.t("commands:kancolle.interacciones.emb_value_quest", { a1: ltim.dQuest, a2: ltim.wQuest, a3: ltim.mQuest, a4: ltim.qQuest }) },
-            { name: i18next.t("commands:kancolle.interacciones.emb_name_rank"), value: i18next.t("commands:kancolle.interacciones.emb_value_rank", { a1: ltim.dPtCutof, a2: ltim.mPtCutof }) },
-            { name: i18next.t("commands:kancolle.interacciones.emb_name_oem"), value: i18next.t("commands:kancolle.interacciones.emb_value_oem", { a1: ltim.oem, a2: ltim.mExp }) },
-            { name: i18next.t("commands:kancolle.interacciones.emb_name_mante"), value: i18next.t("commands:kancolle.interacciones.emb_value_mante", { a1: lasMante, a2: statusStart, a3: Finalizado, a4: statusEnd }) }
-        )
+        .addFields(fields)
         .setColor(0x00FF00)
         .setFooter({ text: `Kancolle Resets`, iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" });
     if (!everyone) {

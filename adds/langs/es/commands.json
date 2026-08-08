@@ -655,7 +655,7 @@
       "emb_value_quest": "*Diarias: {{a1}}* \n > Todos los dias \n *Semanales: {{a2}}* \n> Todos los lunes\n *Mensuales: {{a3}}* \n> Los dias primero del mes \n *Quaterly: {{a4}}* \n> Los meses Mar, Jun, Sep y Dic",
       "emb_value_rank": "*Cutoff Diario: {{a1}}* \n> Todos los dias 02:00hrs \n*Cutoff Mensual: {{a2}}* \n> Ultimo dia del mes a las 22:00hrs.",
       "emb_value_oem": "*Extra Operaciones: {{a1}}* \n> Primero del mes, 00:00hrs. \n*Expediciones Mensuales: {{a2}}* \n > Los dias 15 del mes, 12:00hrs.",
-      "emb_value_mante": "**Inicio de mantenimiento:** \n{{a1}} hrs \n*Status: {{a2}}*\n\n **Finalización de mantenimiento:** \n {{a3}} hrs \n*Status: {{a4}}*",
+      "emb_value_mante": "**⏰ Inicia:** {{a1}}\n **⏰ Termina:** {{a2}} \n",
       "resrts_let_send_fail": "NO SE PUDO ENVIAR EL MENSAJE AL CANAL LOCAL!!",
       "status_embed_field_active_ntf": "Configuracion de Notificaciones:",
       "error_nada_activado": "Debes activar almenos un tipo de aviso!!"
@@ -695,9 +695,9 @@
       "siwtchNotify_cutoff_title": "📊 Aviso de Ranking!!",
       "siwtchNotify_cutoff_desc": "Cutoff Rank!!",
       "siwtchNotify_cutoff_desc_m": "Cierre mensual del Rank!!",
-      "siwtchNotify_mntStart_des": "Se ha anunciado un nuevo mantenimiento \n ***Fechas en JST / UTC +9***",
-      "siwtchNotify_newMante_A": "> INICIO: \n",
-      "siwtchNotify_newMante_B": "> TERMINO: \n",
+      "siwtchNotify_mntStart_des": "Se ha anunciado un nuevo mantenimiento! \n Revisa las fechas!!",
+      "siwtchNotify_newMante_A": "INICIO: ",
+      "siwtchNotify_newMante_B": "TERMINO:",
       "siwtchNotify_nextReset_A_F": "Proximos resets:",
       "siwtchNotify_drank_title": "🧮 Aviso Rank!!",
       "siwtchNotify_drank_desc": "Cierre de puntos del rank!"

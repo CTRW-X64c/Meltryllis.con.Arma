@@ -104,7 +104,7 @@ async function msgMgr(dat: msgBuild) {
             const emb = new EmbedBuilder().setColor(dta.color).setTitle(dta.title).setDescription(dta.desc);
             if (dta.pic) emb.setImage(dta.pic); if (dta.url) emb.setURL(dta.url); if (dta.fields && dta.fields.length > 0) emb.addFields(dta.fields);
             const msg = await dta.ch.send({ content: dta.roleContent, embeds: [emb] });
-            if (msg.deletable) { setTimeout(() => { msg.delete().catch(err => error(`Error al borrar msg: ${err}`, "KanCron")) }, 10 * minuts); }
+            if (dat.type !== "newMante" && msg.deletable) { setTimeout(() => { msg.delete().catch(err => error(`Error al borrar msg: ${err}`, "KanCron")) }, 10 * minuts); }
         } catch (e) { error(`Error enviando notificación: ${e}`, "KanCron"); }
     }
 

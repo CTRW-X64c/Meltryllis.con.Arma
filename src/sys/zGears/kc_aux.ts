@@ -82,19 +82,20 @@ export function rawPreset(type: notifyType): presetsKC | null {
         // Mantenimiento 
         case "newMante":
             if (!ntfMantData.MaintDate) return null;
-            const tokyoDate = getNowJST(), INItime = JSTtoUTC(ntfMantData.MaintDate), ENDtime = JSTtoUTC(ntfMantData.endMantDate);
-            const left2start = INItime ? turnDate(INItime.getTime() - tokyoDate) : "TBA"
+            const tokyoDate = getNowJST(), INItime = JSTtoUTC(ntfMantData.MaintDate), ENDtime = JSTtoUTC(ntfMantData.endMantDate);;
+            const left2start = INItime ? turnDate(INItime.getTime() - tokyoDate) : "TBA";
             const lef2end = ENDtime ? turnDate(ENDtime.getTime() - tokyoDate) : "TBA";
-            const endIniStr = ntfMantData.MaintDate.toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' });
-            const endDateStr = ntfMantData.endMantDate ? ntfMantData.endMantDate.toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) : "TBA";
+            const tim = mantDates(ntfMantData.MaintDate, ntfMantData.endMantDate)
             return {
                 title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: "TBA" },
                 desc: {
                     ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntStart_des"), l30: "TBA", l15: "TBA", fn: "TBA"
                 },
                 field: [
-                    { name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_newMante_A"), value: `📅 \`${endIniStr} hrs\` \n⏰ \`${left2start}\`` },
-                    { name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_newMante_B"), value: `📅 \`${endDateStr} hrs\` \n⏰ \`${lef2end}\`` },
+                    { name: '> ***Tiempo restante:***', value: `⏰ INICIO: \`${left2start}\` \n⏰ TERMINO:  \`${lef2end}\`` },
+                    { name: "> ***🇯🇵 JST*** | ***GMT+9***", value: `📅 INICIO: \`${tim.jpStart}\` \n📅 TERMINO: \`${tim.jpEnd}\`` },
+                    { name: "> ***🌐 UTC***", value: `📅 INICIO: \`${tim.utcStart}\` \n📅 TERMINO: \`${tim.utcEnd} \`` },
+                    { name: "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***", value: `📅 INICO: \`${tim.mxStart}\` \n📅 TERMINO: \`${tim.mxEnd}\`` },
                 ],
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
@@ -184,4 +185,21 @@ export function turnDate(data: number) {
     if (m >= 1) t.push(m === 1 ? "un minuto" : `${m} minutos`);
     if (s > 0 && d === 0 && h === 0) t.push(s === 1 ? "un segundo" : `${s} segundos`);
     return t.join(', ') || '0 segundos';
+}
+
+export function mantDates(start: Date, end: Date | null) {
+    let jpStart = "TBA", jpEnd = "TBA", utcStart = "TBA", utcEnd = "TBA", mxStart = "TBA", mxEnd = "TBA";
+    // Start Date
+    const UCTMant = start.getTime() - (9 * 60 * 60 * 1000), MXmant = UCTMant - (6 * 60 * 60 * 1000);
+    jpStart = new Date(start).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+    utcStart = new Date(UCTMant).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+    mxStart = new Date(MXmant).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+    // End Date
+    if (end) {
+        const UTCendMant = end.getTime() - (9 * 60 * 60 * 1000), MXmantEnd = UTCendMant - (6 * 60 * 60 * 1000);
+        jpEnd = new Date(end).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+        utcEnd = new Date(UTCendMant).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+        mxEnd = new Date(MXmantEnd).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+    }
+    return { jpStart, jpEnd, utcStart, utcEnd, mxStart, mxEnd }
 }
