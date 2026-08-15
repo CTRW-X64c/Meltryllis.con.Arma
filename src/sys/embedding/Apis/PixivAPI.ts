@@ -9,7 +9,7 @@ export class apiPixivCustom implements ApiHandler {
     name = "PixivMeltrys";
 
     isAvailable(): boolean { return true; }
-    isDomain(domain: string): boolean { return domain.includes("pixiv.net") || domain.includes("pximg.net"); }
+    isDomain(domain: string): boolean { console.log(domain); return /(^|:\/\/|\.)pixiv\.net/.test(domain); }
     async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
         const aDom = "Meltrys.Pixiv";
@@ -72,12 +72,7 @@ export class apiPixivCustom implements ApiHandler {
                 }
                 embeds.push(embed);
             });
-            const msgApi = await message.reply({
-                embeds: embeds,
-                files: files,
-                allowedMentions: { repliedUser: false }
-            });
-
+            const msgApi = await message.reply({ embeds: embeds, files: files, allowedMentions: { repliedUser: false } });
             if (!msgApi) { return { fix: null, ok: false }; }
             else {
                 deleteMSG(msgApi, message.author.id);

@@ -9,9 +9,7 @@ export class xTwitterCustom implements ApiHandler {
     name = "xTwitterMeltrys";
 
     isAvailable(): boolean { return true; }
-
-    isDomain(domain: string): boolean { return domain.includes("x.com") || domain.includes("twitter.com") }
-
+    isDomain(domain: string): boolean { return /(^|:\/\/|\.)(x|twitter)\.com/.test(domain); }
     async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
         const aDom = "Meltrys.xTwitter", albe = guildConfigs.get(aDom);
@@ -47,14 +45,16 @@ export class xTwitterCustom implements ApiHandler {
                 files.push(new AttachmentBuilder(buffer, { name: fileName }));
 
                 const embed = new EmbedBuilder()
-                    .setAuthor({ name: `👤 ${xData.namePost} (@${xData.userPost})`, url: xData.urlPost })
+                    .setAuthor({ name: `👤 ${xData.showName} (@${xData.userName})`, url: xData.urlPost })
                     .setURL(xData.urlPost)
-                    .setImage(`attachment://${fileName}`);
-
+                    .setImage(`attachment://${fileName}`)
+                    .setThumbnail(xData.avatarPic)
+                if (xData.tweetDesc.length > 0) embed.setDescription(xData.tweetDesc)
                 if (index === 0) {
                     embed.setColor('#1DA1F2')
                         .addFields(
                             { name: '👥 Seguidores', value: xData.followers, inline: true },
+                            { name: '👥 Siguiendo', value: xData.following, inline: true },
                             { name: '❤️ Likes', value: xData.likes, inline: true }
                         )
                         .setFooter({
@@ -85,16 +85,16 @@ export class xTwitterCustom implements ApiHandler {
     }
 }
 
-
 // ================================= xTwitter Process ================================= //
 interface twitterData {
     urlPost: string,
-    userPost: string,
-    namePost: string,
+    showName: string,
+    userName: string,
     followers: string,
     following: string,
     likes: string,
     tweetDesc: string,
+    avatarPic: string,
     videoLinks: string[],
     bufferPics: Buffer[]
 }
@@ -108,6 +108,7 @@ interface ApiFxResponse {
         followers: number;
         following: number;
         description: string;
+        avatar_url?: string;
     };
     status?: {
         url: string;
@@ -129,14 +130,12 @@ class xTwitter {
 
     public static async getIllustData(idX: string): Promise<twitterData | null> {
         try {
-            const infoRes = await fetch(`https://api.fxtwitter.com/2/status/${idX}`, { headers: this.headers });
-            const infoData = await infoRes.json() as ApiFxResponse;
-            if (!infoData || infoData.code !== 200) {
-                return null;
-            }
+            const call = await fetch(`https://api.fxtwitter.com/2/status/${idX}`, { headers: this.headers });
+            const Data = await call.json() as ApiFxResponse;
+            if (!Data || Data.code !== 200) return null;
 
-            const picURLs = infoData.status?.media?.photos?.map(p => p.url) || [];
-            const videoURLs = infoData.status?.media?.videos?.map(v => v.url) || [];
+            const picURLs = Data.status?.media?.photos?.map(p => p.url) || [];
+            const videoURLs = Data.status?.media?.videos?.map(v => v.url) || [];
 
             const fetchPromises = picURLs.map(async url => { /* Descargar de imagenes a large */
                 const downUrl = url.replace(/([?&])name=orig/, '$1name=large')
@@ -146,19 +145,20 @@ class xTwitter {
                 return Buffer.from(buffer);
             });
 
-            const videoLinks = videoURLs.map(url => `[Video](${url})`);
-            if (videoLinks.length > 0) return null; // temp Patch
+            //const videoLinks = videoURLs.map(url => `[Video](${url})`);
+            if (videoURLs.length > 0) return null; // temp Patch
             const imageBuffers = await Promise.all(fetchPromises);
 
             return {
-                urlPost: infoData.status?.url || "https://x.com",
-                userPost: infoData.author?.screen_name || "Usuario desconocido",
-                namePost: infoData.author?.name || "Usuario desconocido",
-                followers: infoData.author?.followers?.toString() || "0",
-                following: infoData.author?.following?.toString() || "0",
-                likes: infoData.status?.likes?.toString() || "0",
-                tweetDesc: infoData.status?.text || "Sin descripcion",
-                videoLinks: videoLinks,
+                urlPost: Data.status?.url || "https://x.com",
+                showName: Data.author?.screen_name || "Usuario desconocido",
+                userName: Data.author?.name || "Usuario desconocido",
+                followers: Data.author?.followers?.toString() || "0",
+                following: Data.author?.following?.toString() || "0",
+                likes: Data.status?.likes?.toString() || "0",
+                tweetDesc: Data.status?.text || "...",
+                avatarPic: Data.author?.avatar_url || "https://i.pinimg.com/1200x/c8/d3/d4/c8d3d4d12a8ea35b58e35de9ec820a22.jpg",
+                videoLinks: [],
                 bufferPics: imageBuffers
             };
 

@@ -7,7 +7,7 @@ export class fakeApiFB implements ApiHandler {
 
     cDom: string | null = null;
     isAvailable(): boolean { return true; }
-    isDomain(domain: string): boolean { return domain.includes("facebook.com"); }
+    isDomain(domain: string): boolean { return /(^|:\/\/|\.)(facebook|fb)\.com/.test(domain); }
     async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
         const dta = guildConfigs.get("Facebook");
@@ -20,6 +20,7 @@ export class fakeApiFB implements ApiHandler {
         }
         return true;
     }
+
     async process(url: string): Promise<{ fix: string | null, ok: boolean }> {
         try {
             if (!url.includes("/share/")) { return { fix: null, ok: false }; }
