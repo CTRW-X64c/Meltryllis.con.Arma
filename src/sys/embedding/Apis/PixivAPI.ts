@@ -9,7 +9,7 @@ export class apiPixivCustom implements ApiHandler {
     name = "PixivMeltrys";
 
     isAvailable(): boolean { return true; }
-    isDomain(domain: string): boolean { console.log(domain); return /(^|:\/\/|\.)pixiv\.net/.test(domain); }
+    isDomain(domain: string): boolean { return /(^|:\/\/|\.)pixiv\.net/.test(domain); }
     async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
         const aDom = "Meltrys.Pixiv";
