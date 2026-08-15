@@ -10,14 +10,11 @@ export class xTwitterCustom implements ApiHandler {
 
     isAvailable(): boolean { return true; }
 
-    isDomain(domain: string): boolean {
-        return domain.includes("x.com") || domain.includes("twitter.com");
-    }
+    isDomain(domain: string): boolean { return domain.includes("x.com") || domain.includes("twitter.com") }
 
     async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
-        const aDom = "Meltrys.xTwitter";
-        const albe = guildConfigs.get(aDom);
+        const aDom = "Meltrys.xTwitter", albe = guildConfigs.get(aDom);
         if (!albe || (albe && albe.enabled === false)) {
             debug(`El uso de Meltrys xTwitter no está habilitado en este gremio: ${guildId}`, "ApiReplacement");
             return false;
@@ -29,14 +26,14 @@ export class xTwitterCustom implements ApiHandler {
         if (!message) return { fix: null, ok: false };
         if (!message.channel || !message.channel.isTextBased()) return { fix: null, ok: false };
 
-        const textChannel = message.channel as TextChannel;
+        const tx = message.channel as TextChannel;
+        await tx.sendTyping();
+
         const match = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
         if (!match) return { fix: null, ok: false };
+        const xId = match[1];
 
-        const tweetId = match[1];
-        await textChannel.sendTyping();
-
-        const xData = await xTwitter.getIllustData(tweetId);
+        const xData = await xTwitter.getIllustData(xId);
         if (!xData) return { fix: null, ok: false };
 
         if (xData.bufferPics.length === 0 || xData.videoLinks.length > 0) return { fix: null, ok: false };
@@ -135,16 +132,14 @@ class xTwitter {
             const infoRes = await fetch(`https://api.fxtwitter.com/2/status/${idX}`, { headers: this.headers });
             const infoData = await infoRes.json() as ApiFxResponse;
             if (!infoData || infoData.code !== 200) {
-                console.log(`[xTweet] Post borrado o inaccesible. ID: ${idX}`);
                 return null;
             }
 
             const picURLs = infoData.status?.media?.photos?.map(p => p.url) || [];
             const videoURLs = infoData.status?.media?.videos?.map(v => v.url) || [];
 
-            const fetchPromises = picURLs.map(async url => { /* Descargar de imagenes en medium */
-                const downUrl = url.replace(/([?&])name=orig/, '$1name=medium')
-                console.log(downUrl)
+            const fetchPromises = picURLs.map(async url => { /* Descargar de imagenes a large */
+                const downUrl = url.replace(/([?&])name=orig/, '$1name=large')
                 const res = await fetch(downUrl, { headers: this.headers });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const buffer = await res.arrayBuffer();
@@ -152,6 +147,7 @@ class xTwitter {
             });
 
             const videoLinks = videoURLs.map(url => `[Video](${url})`);
+            if (videoLinks.length > 0) return null; // temp Patch
             const imageBuffers = await Promise.all(fetchPromises);
 
             return {

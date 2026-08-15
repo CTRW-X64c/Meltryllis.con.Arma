@@ -4,8 +4,7 @@ import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { error } from '../../sys/logging';
 import { testPermisos } from '../../sys/zGears/auxiliares';
-import { JSTtoUTC, getNowJST } from '../../bgProcess/KanCron'
-import { allLefts, mantDates, turnDate } from '../../sys/zGears/kc_aux'
+import { allLefts, mantDates, turnDate, JSTtoUTC, getNowJST } from '../../sys/zGears/kc_aux'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
 
 export async function registerKantaiCollectionCommand() {
@@ -166,7 +165,7 @@ async function resrts(interacciones: ChatInputCommandInteraction) {
     const dateEnd = JSTtoUTC(maint.MaintEnd ?? null);
 
     let statusStart = i18next.t("commands:kancolle.interacciones.resrts_let_statusStart"), statusEnd = "TBA";
-    const tm = mantDates(maint.lastMaintStart!, maint.MaintEnd)
+    const tm = mantDates(dateInit, dateEnd)
     if (dateInit) {
         const datStartTime = dateInit.getTime();
         const diffStart = datStartTime - nowTime;
@@ -205,9 +204,9 @@ async function resrts(interacciones: ChatInputCommandInteraction) {
     if (statusStart !== i18next.t("commands:kancolle.interacciones.resrts_let_statusStart")) {
         fields.push({
             name: "Fechas:", value:
-                "> ***🇯🇵 JST*** | ***GMT+9***" + "\n" + `📅 INICIO: \`${tm.jpStart}\` \n📅 TERMINO: \`${tm.jpEnd}\`` + "\n" +
-                "> ***🌐 UTC***" + "\n" + `📅 INICIO: \`${tm.utcStart}\` \n📅 TERMINO: \`${tm.utcEnd}\`` + "\n" +
-                "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***" + "\n" + `📅 INICIO: \`${tm.mxStart}\` \n📅 TERMINO: \`${tm.mxEnd}\``
+                "> ***🇯🇵 JST*** | ***GMT+9***" + "\n" + `📅 INICIO: \`${tm.sJP}\` \n📅 TERMINO: \`${tm.eJP}\`` + "\n" +
+                "> ***🌐 UTC***" + "\n" + `📅 INICIO: \`${tm.sUTC}\` \n📅 TERMINO: \`${tm.eUTC}\`` + "\n" +
+                "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***" + "\n" + `📅 INICIO: \`${tm.sMX}\` \n📅 TERMINO: \`${tm.eMX}\``
         })
     }
 

@@ -4,7 +4,7 @@ import { debug } from "../logging";
 import { apiEmbedez } from "./Apis/embedez"
 import { apiPixivCustom } from "./Apis/pixivAPI"
 import { fakeApiFB } from "./Apis/fbFakeApi"
-//import { xTwitterCustom } from "./Apis/Alttwitter"
+import { xTwitterCustom } from "./Apis/Alttwitter"
 
 export interface ApiHandler {
     name: string;
@@ -19,7 +19,7 @@ const apiHandlers: ApiHandler[] = [
     new apiEmbedez(),
     new apiPixivCustom(),
     new fakeApiFB(),
-    //new xTwitterCustom()
+    new xTwitterCustom()
 ];
 
 // =========== Procesador principal =========== //

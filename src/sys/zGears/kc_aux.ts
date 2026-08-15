@@ -1,6 +1,7 @@
 import i18next from "i18next";
-import { leftTimeConv, notifyType, JSTtoUTC, getNowJST, ntfMantData } from "../../bgProcess/KanCron";
+import { notifyType, ntfMantData } from "../../bgProcess/KanCron";
 import { maint } from "../DB-Engine/links/KancolleBD";
+import { error } from "../logging";
 
 // =========================================================== msgBuilder =========================================================== //
 interface presetsKC {
@@ -93,9 +94,9 @@ export function rawPreset(type: notifyType): presetsKC | null {
                 },
                 field: [
                     { name: '> ***Tiempo restante:***', value: `⏰ INICIO: \`${left2start}\` \n⏰ TERMINO:  \`${lef2end}\`` },
-                    { name: "> ***🇯🇵 JST*** | ***GMT+9***", value: `📅 INICIO: \`${tim.jpStart}\` \n📅 TERMINO: \`${tim.jpEnd}\`` },
-                    { name: "> ***🌐 UTC***", value: `📅 INICIO: \`${tim.utcStart}\` \n📅 TERMINO: \`${tim.utcEnd} \`` },
-                    { name: "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***", value: `📅 INICO: \`${tim.mxStart}\` \n📅 TERMINO: \`${tim.mxEnd}\`` },
+                    { name: "> ***🇯🇵 JST*** | ***GMT+9***", value: `📅 INICIO: \`${tim.sJP}\` \n📅 TERMINO: \`${tim.eJP}\`` },
+                    { name: "> ***🌐 UTC***", value: `📅 INICIO: \`${tim.sUTC}\` \n📅 TERMINO: \`${tim.eUTC} \`` },
+                    { name: "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***", value: `📅 INICO: \`${tim.sMX}\` \n📅 TERMINO: \`${tim.eMX}\`` },
                 ],
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
@@ -135,7 +136,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
     }
 };
 
-// ================================= Aux ================================= //
+// ========================================================= Euxiliares ========================================================= //
 export function allLefts() {
     // Reglas mes: 1-31, 100 = ultimo dia del mes; Semana: domingo = 0 - sabado = 6, def= 1 lunes (1); Minutos: 0-59 def 0
     const p0 = leftTimeConv({ type: 'daily', hours: [3, 15] });
@@ -187,19 +188,133 @@ export function turnDate(data: number) {
     return t.join(', ') || '0 segundos';
 }
 
-export function mantDates(start: Date, end: Date | null) {
-    let jpStart = "TBA", jpEnd = "TBA", utcStart = "TBA", utcEnd = "TBA", mxStart = "TBA", mxEnd = "TBA";
-    // Start Date
-    const UCTMant = start.getTime() - (9 * 60 * 60 * 1000), MXmant = UCTMant - (6 * 60 * 60 * 1000);
-    jpStart = new Date(start).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
-    utcStart = new Date(UCTMant).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
-    mxStart = new Date(MXmant).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
-    // End Date
-    if (end) {
-        const UTCendMant = end.getTime() - (9 * 60 * 60 * 1000), MXmantEnd = UTCendMant - (6 * 60 * 60 * 1000);
-        jpEnd = new Date(end).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
-        utcEnd = new Date(UTCendMant).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
-        mxEnd = new Date(MXmantEnd).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+// === multiTz === //
+export function mantDates(start: Date | null, end: Date | null) {
+    let sJP = "TBA", eJP = "TBA", sUTC = "TBA", eUTC = "TBA", sMX = "TBA", eMX = "TBA";
+    const aUTC = 9 * 60 * 60 * 1000, aMX = 15 * 60 * 60 * 1000;
+    if (start) { // Start Date
+        const sDate = start.getTime(), UCTMant = sDate - aUTC, MXmant = sDate - aMX;
+        sJP = new Date(start).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+        sUTC = new Date(UCTMant).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+        sMX = new Date(MXmant).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
     }
-    return { jpStart, jpEnd, utcStart, utcEnd, mxStart, mxEnd }
+    if (end) { // End Date
+        const eDate = end.getTime(), UTCendMant = eDate - aUTC, MXmantEnd = eDate - aMX;
+        eJP = new Date(end).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+        eUTC = new Date(UTCendMant).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+        eMX = new Date(MXmantEnd).toLocaleString("es-MX", { hour12: false, timeStyle: 'short', dateStyle: 'medium' }) + " hrs";
+    }
+    return { sJP, eJP, sUTC, eUTC, sMX, eMX }
 }
+
+// === getLeftTime === //
+type timSlap = 'daily' | 'weekly' | 'monthly' | 'quarterly';
+interface timeData { type: timSlap; hours: number | number[]; minutes?: number; targetDay?: number; targetMonths?: number[]; }
+export function leftTimeConv(opts: timeData): number {
+    const nowTime = getNowJST();
+    const tokyoDate = new Date(nowTime)
+    const getLastDay = new Date(tokyoDate.getFullYear(), tokyoDate.getMonth() + 1, 0).getDate();
+    const isLastDay = (opts.targetDay === 100) ? getLastDay : (opts.targetDay || 1);
+
+    let target = new Date(tokyoDate);
+    target.setMinutes(opts.minutes || 0, 0, 0); /* hora target */
+    if (opts.type === 'daily') { /* Soporte para multi horas del dia*/
+        const hours = Array.isArray(opts.hours) ? opts.hours : [opts.hours];
+        hours.sort((a, b) => a - b);
+
+        let found = false;
+        for (const h of hours) {
+            target.setHours(h);
+            if (target.getTime() > nowTime) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) { // Si ya paso el dia/hora pasamos al siguiente dia
+            target.setHours(hours[0]);
+            target.setDate(target.getDate() + 1);
+        }
+
+    } else if (opts.type === 'monthly') {
+        target.setDate(isLastDay);
+        target.setHours(opts.hours as number);
+
+        if (target.getTime() <= nowTime) { /*Si ya fue lo cambiamos a la sigueinte mes */
+            target.setMonth(target.getMonth() + 1);
+        }
+
+    } else if (opts.type === 'weekly') {
+        const tDay = opts.targetDay || 1; // Por defecto Lunes (1)
+        target.setHours(opts.hours as number);
+
+        let daysUntilTarget = tDay - target.getDay();
+        if (daysUntilTarget < 0) daysUntilTarget += 7;
+
+        if (daysUntilTarget === 0 && target.getTime() <= nowTime) { /*Si ya fue lo cambiamos a la sigueinte semana */
+            daysUntilTarget = 7;
+        }
+
+        target.setDate(target.getDate() + daysUntilTarget);
+
+    } else if (opts.type === 'quarterly') {
+        const months = opts.targetMonths || [2, 5, 8, 11]; //KC default
+        months.sort((a, b) => a - b);
+
+        const currentYear = tokyoDate.getFullYear();
+        let targetFound = false;
+        for (const m of months) {
+            target.setDate(1); // Anti desbordamientos
+            target.setFullYear(currentYear);
+            target.setMonth(m);
+            target.setDate(isLastDay);
+            target.setHours(opts.hours as number);
+
+            if (target.getTime() > nowTime) {
+                targetFound = true;
+                break;
+            }
+        }
+
+        if (!targetFound) { /* ya no esta en el año*/
+            target.setDate(1);
+            target.setFullYear(currentYear + 1);
+            target.setMonth(months[0]);
+            target.setDate(isLastDay);
+            target.setHours(opts.hours as number);
+        }
+    }
+    return target.getTime() - nowTime;
+}
+
+// === TZcore === //
+export function JSTtoUTC(dateInput: string | Date | null | undefined): Date | null {
+    if (!dateInput) return null;
+    if (dateInput instanceof Date) return new Date(dateInput.getTime());
+    const match = dateInput.match(/^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+    if (match) {
+        const [_, year, month, day, hours, minutes, seconds] = match.map(Number);
+        return new Date(Date.UTC(year, month - 1, day, hours - 9, minutes, seconds));
+    }
+
+    try {
+        const parsed = new Date(dateInput);
+        return isNaN(parsed.getTime()) ? null : parsed;
+    } catch {
+        return null;
+    }
+}
+
+export function getNowJST(): number {
+    const now = new Date();
+    return now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + (9 * 60 * 60 * 1000);
+}
+
+// === fetchData === //
+export async function fetchData(url: string) {
+    let chkData;
+    try { chkData = await fetch(url); }
+    catch (e) { error(`❌ Error de red al obtener DATA: ${e}`); return null }
+    if (!chkData.ok) return null;
+    return chkData
+}
+
