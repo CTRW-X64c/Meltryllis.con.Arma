@@ -1,4 +1,4 @@
-import { ApiHandler } from "../embedingSwitch";
+import { ApiHandler, pResult } from "../embedingSwitch";
 import urlStatusManager from "../domainChecker";
 import { error, debug } from "../../logging";
 
@@ -21,11 +21,11 @@ export class fakeApiFB implements ApiHandler {
         return true;
     }
 
-    async process(url: string): Promise<{ fix: string | null, ok: boolean }> {
+    async process(url: string): Promise<pResult> {
         try {
-            if (!url.includes("/share/")) { return { fix: null, ok: false }; }
+            if (!url.includes("/share/")) { return { ok: false }; }
             let fbDom = this.cDom || urlStatusManager.getActiveUrl("facebook");
-            if (!fbDom) return { fix: null, ok: false };
+            if (!fbDom) return { ok: false };
             fbDom = fbDom.replace(/^https?:\/\//, '');
             const response = await fetch(url, {
                 method: 'GET',
@@ -44,7 +44,7 @@ export class fakeApiFB implements ApiHandler {
             }
 
             const parsedUrl = new URL(nURL);
-            if (parsedUrl.pathname.includes('/share/')) return { fix: null, ok: false };
+            if (parsedUrl.pathname.includes('/share/')) return { ok: false };
 
             let fURL = `${parsedUrl.pathname}`;
             const usefulParams = new URLSearchParams();
@@ -56,10 +56,10 @@ export class fakeApiFB implements ApiHandler {
             if (queryString) fURL += `?${queryString}`;
 
             const outURL = `https://${fbDom}${fURL}`;
-            return { fix: outURL, ok: true };
+            return { ok: true, fix: outURL };
         } catch (err) {
             error(`[${this.name}] Error procesando link: ${err}`);
-            return { fix: null, ok: false };
+            return { ok: false };
         }
     }
 }

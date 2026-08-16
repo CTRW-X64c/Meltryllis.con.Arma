@@ -5,7 +5,7 @@ import { getConfigMap } from "../DB-Engine/links/ReplyBots";
 import buildReplacements from "./index";
 import { debug, error } from "../logging";
 import i18next from "i18next";
-import { urlProcess } from "./embedingSwitch";
+import { contPack, urlProcess } from "./embedingSwitch";
 
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
 export default function startEmbedService(client: Client): void {
@@ -30,7 +30,9 @@ export default function startEmbedService(client: Client): void {
 
         const guildConfigs = guildId ? await getGuildReplacementConfig(guildId) : new Map();
         const replacements = buildReplacements(guildConfigs);
-        const replacedUrls: string[] = [];
+
+        const iFix: string[] = [];
+        const iPack: contPack[] = []
 
         for (const match of urls) {
             let domainSite: string | null = null;
@@ -41,52 +43,39 @@ export default function startEmbedService(client: Client): void {
                 domainSite = urlObject.hostname.replace('www.', '');
             } catch (err) { debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate"); continue }
 
-            const replacedUrl = await urlProcess({ oURL: originalUrl, domain: domainSite, guild: guildId!, gConf: guildConfigs, remp: replacements, msg: message });
-            if (replacedUrl) {
-                const hiddenMessage = message.content.split("||").length > 2;
-                let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: replacedUrl });
-                if (hiddenMessage) {
-                    messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: replacedUrl });
-                } replacedUrls.push(messageContent);
+            const apiResult = await urlProcess({ oURL: originalUrl, domain: domainSite, guild: guildId!, gConf: guildConfigs, remp: replacements, msg: message });
+            if (apiResult.ok) {
+                if (apiResult.fix) {
+                    const hiddenMessage = message.content.split("||").length > 2;
+                    let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: apiResult.fix });
+                    if (hiddenMessage) messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: apiResult.fix });
+                    iFix.push(messageContent);
+                }
+                if (apiResult.pack) iPack.push(...apiResult.pack);
             }
         }
 
-        if (replacedUrls.length > 0) {
-            embeRemove(message)
-            post(message, replacedUrls, autorId);
-        }
+        if (iFix.length > 0) { post(message, iFix, autorId); embeRemove(message) };
+        if (iPack.length > 0) { sPost(message, iPack, autorId); embeRemove(message) };
     });
 };
 
-// ================================= embdClean ================================= //
-export async function embeRemove(msg: Message) {
-    const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-    for (let attempt = 1; attempt <= 4; attempt++) {
+// ================================= sPost ================================= //
+async function sPost(msg: Message, dta: contPack[], autorId: string) {
+    const data = dta.map(r => Object.values(r)[0]);
+    for (const post of data) {
         try {
-            await wait(attempt * 1_500);
-            const freshMsg = await msg.channel.messages.fetch(msg.id);
-            if (freshMsg.flags.has('SuppressEmbeds')) {
-                return;
-            }
-            await freshMsg.suppressEmbeds(true);
-            debug(`Intento ${attempt} para borrar el embed de ${msg.id}, Guild: ${msg.guild?.name}`, "Events.MessageCreate");
-
+            const sntMsg = await msg.reply({ content: post.content, embeds: post.embeds, files: post.files, allowedMentions: { repliedUser: false } })
+            if (sntMsg) deleteMSG(sntMsg, autorId);
         } catch (err) {
-            const errMsg: string = (err as Error).message;
-            if (errMsg.includes("Unknown Message")) {
-                debug(`Al guien borro el embed antes - Server: ${msg.guild?.name}`, "Events.MessageCreate");
-                return;
-            }
-            if (errMsg.includes("Missing Permissions")) {
-                debug(`No tengo permisos para borrar mensajes en el canal: ${msg.channel.id} -Server: ${msg.guild?.name}`, "Events.MessageCreate");
-                return;
-            }
-            if (attempt === 4) {
-                debug(`No se puedo borrar el embed del mensaje original, , Guild: ${msg.guild?.name}, Error: ${errMsg}`, "Events.MessageCreate");
+            const errMsg = (err as Error).message;
+            if (!errMsg.includes("Missing Access") && !errMsg.includes("Missing Permissions")) {
+                error(`Error en sPost grupo: ${errMsg}, Guild: ${msg.guild?.name}`, "EmbedService");
+                break;
             }
         }
     }
-};
+}
 
 // ================================= post ================================= //
 async function post(msg: Message, replacedUrls: string[], autorId: string) {
@@ -177,6 +166,36 @@ async function post(msg: Message, replacedUrls: string[], autorId: string) {
             break;
         }
         await wait(1000);
+    }
+}
+
+// ================================= embdClean ================================= //
+export async function embeRemove(msg: Message) {
+    const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    for (let attempt = 1; attempt <= 4; attempt++) {
+        try {
+            await wait(attempt * 1_500);
+            const freshMsg = await msg.channel.messages.fetch(msg.id);
+            if (freshMsg.flags.has('SuppressEmbeds')) {
+                return;
+            }
+            await freshMsg.suppressEmbeds(true);
+            debug(`Intento ${attempt} para borrar el embed de ${msg.id}, Guild: ${msg.guild?.name}`, "Events.MessageCreate");
+
+        } catch (err) {
+            const errMsg: string = (err as Error).message;
+            if (errMsg.includes("Unknown Message")) {
+                debug(`Al guien borro el embed antes - Server: ${msg.guild?.name}`, "Events.MessageCreate");
+                return;
+            }
+            if (errMsg.includes("Missing Permissions")) {
+                debug(`No tengo permisos para borrar mensajes en el canal: ${msg.channel.id} -Server: ${msg.guild?.name}`, "Events.MessageCreate");
+                return;
+            }
+            if (attempt === 4) {
+                debug(`No se puedo borrar el embed del mensaje original, , Guild: ${msg.guild?.name}, Error: ${errMsg}`, "Events.MessageCreate");
+            }
+        }
     }
 };
 

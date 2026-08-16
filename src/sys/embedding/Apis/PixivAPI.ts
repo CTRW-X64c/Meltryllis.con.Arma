@@ -1,8 +1,7 @@
 // src/sys/embedding/Apis/PixivAPI.ts
 import { Message, AttachmentBuilder, TextChannel, EmbedBuilder } from "discord.js";
-import { deleteMSG, embeRemove } from "../embedService";
-import { ApiHandler } from "../embedingSwitch"
-import { debug } from "../../logging";
+import { ApiHandler, pResult } from "../embedingSwitch"
+import { debug, error } from "../../logging";
 
 // ================================= APi: Pixiv Meltrys ================================= //
 export class apiPixivCustom implements ApiHandler {
@@ -21,30 +20,27 @@ export class apiPixivCustom implements ApiHandler {
         return true;
     }
 
-    async process(url: string, message?: Message): Promise<{ fix: string | null, ok: boolean }> {
-        if (!message) return { fix: null, ok: false };
-        if (!message.channel || !message.channel.isTextBased()) return { fix: null, ok: false };
+    async process(url: string, message?: Message): Promise<pResult> {
+        if (!message) return { ok: false };
+        if (!message.channel || !message.channel.isTextBased()) return { ok: false };
 
         const textChannel = message.channel as TextChannel;
         const match = url.match(/pixiv\.net\/(?:en\/)?artworks\/(\d+)/i);
-        if (!match) return { fix: null, ok: false };
+        if (!match) return { ok: false };
 
         const illustId = match[1];
         await textChannel.sendTyping();
 
         const pixivData = await PixivAPI.getIllustData(illustId);
-        if (!pixivData || pixivData.buffers.length === 0) return { fix: null, ok: false };
+        if (!pixivData || pixivData.buffers.length === 0) return { ok: false };
         const delet = 15 * 1_000
 
-        if (pixivData.fPic === 2) {
-            const delF = await message.reply({ content: `⚠️ Nuestra api no soporta animaciones! \nUsando metodo externo...`, allowedMentions: { repliedUser: false } });
-            setTimeout(async () => { await delF.delete() }, delet);
-            return { fix: null, ok: false };
-        }
+        if (pixivData.fPic === 2) return { ok: false };
+
         if (pixivData.isNSFW && !textChannel.nsfw) {
             const delN = await message.reply({ content: `⚠️ Por normas de Discord nuestra API no publica contenido NSFW en canales no NSFW!! \nUsando metodo externo...`, allowedMentions: { repliedUser: false } });
             setTimeout(async () => { await delN.delete() }, delet);
-            return { fix: null, ok: false };
+            return { ok: false };
         }
 
         try {
@@ -52,7 +48,7 @@ export class apiPixivCustom implements ApiHandler {
             const files: AttachmentBuilder[] = [];
 
             pixivData.buffers.forEach((buffer, index) => {
-                const fileName = `image${index}.png`;
+                const fileName = `PXimg_${illustId}_${index}.png`;
                 const attachment = new AttachmentBuilder(buffer, { name: fileName });
                 let desc = `🖼️ **Galeria de ${pixivData.sizePag === 1 ? 'una imagen!' : `${pixivData.buffers.length} imagenes`}**`
                 if (pixivData.sizePag > 5) desc = `🖼️ **Mostrando 5 de ${pixivData.sizePag} imagenes!**`
@@ -72,16 +68,10 @@ export class apiPixivCustom implements ApiHandler {
                 }
                 embeds.push(embed);
             });
-            const msgApi = await message.reply({ embeds: embeds, files: files, allowedMentions: { repliedUser: false } });
-            if (!msgApi) { return { fix: null, ok: false }; }
-            else {
-                deleteMSG(msgApi, message.author.id);
-                embeRemove(message)
-                return { fix: null, ok: true };
-            }
-        } catch (error) {
-            console.error(`[apiPixivCustom] Error al enviar embeds:`, error);
-            return { fix: null, ok: false };
+            return { ok: true, pack: [{ [illustId]: { embeds: embeds, files: files } }] };
+        } catch (e) {
+            error(`[apiPixivCustom] Error al enviar embeds: ${e}`);
+            return { ok: false };
         }
     }
 }
@@ -134,7 +124,7 @@ export class PixivAPI {
             const maxPics = 5;
 
             if (infoData.error || !infoData.body) {
-                console.log(`[PixivAPI] Post borrado o inaccesible. ID: ${illustId}`);
+                debug(`[PixivAPI] Post borrado o inaccesible. ID: ${illustId}`);
                 return null;
             }
 
@@ -143,7 +133,7 @@ export class PixivAPI {
             const pagesRes = await fetch(`https://www.pixiv.net/ajax/illust/${illustId}/pages`, { headers: this.headers });
             const pagesData = await pagesRes.json() as PixivPagesResponse;
             if (pagesData.error || !pagesData.body || pagesData.body.length === 0) {
-                console.log(`[PixivAPI] Error al obtener páginas para ID: ${illustId}`);
+                debug(`[PixivAPI] Error al obtener páginas para ID: ${illustId}`);
                 return null;
             }
 
@@ -169,9 +159,8 @@ export class PixivAPI {
                 isNSFW: isNsfwContent,
                 fPic: typePic
             };
-
-        } catch (error) {
-            console.error(`[PixivAPI] Error interno al obtener ilustracion ${illustId}:`, error);
+        } catch (e) {
+            error(`[PixivAPI] Error interno al obtener ilustracion ${illustId}: ${e}`);
             return null;
         }
     }
