@@ -189,9 +189,9 @@ class xTwitter {
     }
 
     private static async downMedias(vid?: ApiFxVido[], pic?: string[]): Promise<{ links: string[]; imagenes: Buffer[]; gifs: Buffer[]; videos: Buffer[]; } | null> {
-        let downData = { links: [] as string[], imagenes: [] as Buffer[], gifs: [] as Buffer[], videos: [] as Buffer[] }
         if (!vid && !pic) return null
 
+        let downData = { links: [] as string[], imagenes: [] as Buffer[], gifs: [] as Buffer[], videos: [] as Buffer[] }
         const downMedia = async (downUrl: string) => {
             const limiteBytes = 9_961_472; // ~9.5 MB
             const controller = new AbortController();
