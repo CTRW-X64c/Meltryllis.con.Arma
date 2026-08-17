@@ -149,8 +149,8 @@ class xTwitter {
             if (!Data || Data.code !== 200) return null;
             let imageBuffers: Buffer[] = [], videoBuffers: Buffer[] = [], gifBuffers: Buffer[] = [], rawLinks: string[] = [], wVideo = false;
 
-            const picURLs = Data.status?.media?.photos?.map(p => p.url) || undefined;
-            const videoURLs = Data.status?.media?.videos?.map(v => v) || undefined;
+            const picURLs = Data.status?.media?.photos?.map(p => p.url);
+            const videoURLs = Data.status?.media?.videos?.map(v => v);
 
             if (videoURLs && videoURLs.length > 0) wVideo = true;
 
