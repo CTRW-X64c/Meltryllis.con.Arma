@@ -230,11 +230,11 @@ class xTwitter {
                         });
                         const numBit = (mp4Formats.length - 2), x = (numBit <= 0) ? 1 : numBit;
                         downUrl = sorted[x].url;
-
-                        const downVideo = await downMedia(downUrl)
-                        if (!downVideo) { downData.links.push(`[.](${v.url})`) }
-                        else { downData.videos.push(downVideo) }
                     }
+
+                    const downVideo = await downMedia(downUrl)
+                    if (!downVideo) { downData.links.push(`[.](${v.url})`) }
+                    else { downData.videos.push(downVideo) }
                 }
 
                 if (v.type === 'gif') {
@@ -261,7 +261,6 @@ class xTwitter {
                 else { downData.imagenes.push(downPic); }
             }
         }
-
         return downData;
     }
 
