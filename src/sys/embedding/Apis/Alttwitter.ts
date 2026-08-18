@@ -217,11 +217,11 @@ class xTwitter {
         }
 
         if (vid) {
-            for (const v of vid) {
-                let downUrl = v.url;
+            for (const inf of vid) {
+                let downUrl = inf.url;
 
-                if (v.type !== "gif" && v.formats && v.formats.length > 0) {
-                    const mp4Formats = v.formats.filter(fm => fm.container && fm.container.toLowerCase() === "mp4");
+                if (inf.type !== "gif" && inf.formats && inf.formats.length > 0) {
+                    const mp4Formats = inf.formats.filter(fm => fm.container && fm.container.toLowerCase() === "mp4");
                     if (mp4Formats.length > 2) {
                         const sorted = mp4Formats.sort((a, b) => {
                             const bitA = a.bitrate || a.bit_rate || 0;
@@ -233,31 +233,31 @@ class xTwitter {
                     }
 
                     const downVideo = await downMedia(downUrl)
-                    if (!downVideo) { downData.links.push(`[.](${v.url})`) }
+                    if (!downVideo) { downData.links.push(`[.](${inf.url})`) }
                     else { downData.videos.push(downVideo) }
                 }
 
-                if (v.type === 'gif') {
-                    const trg = v.url.match(/(?:video\.twimg\.com)\/tweet_video\/(\w+)/i);
-                    const match = trg ? trg[1] : undefined;
+                if (inf.type === 'gif') {
+                    const trg = inf.url.match(/(?:video\.twimg\.com)\/tweet_video\/(\w+)/i);
+                    const match = trg ? trg[1] : null;
                     if (match) {
-                        let chk;
+                        let chk: Response | null = null;
                         try { chk = await fetch(`https://gif.fxtwitter.com/tweet_video/${match}.webp`, { headers: { method: 'HEAD' } }); }
-                        catch (e) { error(`ERROR EN FETCH REVISAR POR BLOQUEO DE HEAD!!: ${e}`); chk = null; }
-                        downUrl = (chk && chk.ok) ? chk.url : v.url;
+                        catch (e) { error(`ERROR EN FETCH REVISAR POR BLOQUEO DE HEAD!!: ${e}`); }
+                        downUrl = (chk && chk.ok) ? chk.url : inf.url;
                     }
                     const downGif = await downMedia(downUrl)
-                    if (!downGif) { downData.links.push(`[.](${downGif})`); }
+                    if (!downGif) { downData.links.push(`[.](${downUrl})`); }
                     else { downData.gifs.push(downGif); }
                 }
             }
         }
 
         if (pic) {
-            for (const p of pic) {
-                const downUrl = p.replace(/([?&])name=orig/, '$1name=large')
+            for (const url of pic) {
+                const downUrl = url.replace(/([?&])name=orig/, '$1name=large')
                 const downPic = await downMedia(downUrl)
-                if (!downPic) { downData.links.push(`[.](${p})`); }
+                if (!downPic) { downData.links.push(`[.](${url})`); }
                 else { downData.imagenes.push(downPic); }
             }
         }
