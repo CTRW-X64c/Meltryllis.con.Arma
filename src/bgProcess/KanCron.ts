@@ -3,6 +3,7 @@ import { Client, EmbedBuilder, Role, TextChannel } from 'discord.js';
 import { debug, error, info } from '../sys/logging';
 import { startKC, data, maint, updateKCmant, kcheMaint } from '../sys/DB-Engine/links/KancolleBD';
 import { leftTimeConv, JSTtoUTC, getNowJST, rawPreset, fetchData } from "../sys/zGears/kc_aux";
+import { translate } from '@vitalets/google-translate-api';
 
 let CLIENTE: Client | null = null;
 const minuts = 60 * 1_000;
@@ -171,18 +172,17 @@ async function msgMgr(dat: msgBuild) {
 }
 
 // ========================================================= fetchMaint ========================================================= //
-export let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null };
-interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null; };
 interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
+interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: string[] | null };
+export let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
 async function mantChk() {
     const fData = await fetchData("https://raw.githubusercontent.com/ElectronicObserverEN/Data/refs/heads/master/update.json")
     if (!fData) return;
 
     const processData = await fData.json() as dataGit;
     const newMaintStartStr = processData.MaintStart ?? null;
-    const newMaintEndStr = processData.MaintEnd ?? null;
-
     if (!newMaintStartStr) return;
+    const newMaintEndStr = processData.MaintEnd ?? null;
     //startManteTimes
     const newMaintDate = new Date(newMaintStartStr);
     const lastMantTime = maint?.lastMaintStart ? maint.lastMaintStart.getTime() : null;
@@ -212,8 +212,10 @@ async function mantChk() {
             await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: null, MaintEnd: endMantDate });
             return;
         }
+
+        const datTwet = await tweetKC.geTwiitter(processData.MaintInfoLink)
         debug(`🔧 Anunciando nuevo mantenimiento a los servidores: ${newMaintStartStr}`, "KancolleBD");
-        ntfMantData = { MaintDate: newMaintDate, endMantDate: endMantDate, url: processData.MaintInfoLink };
+        ntfMantData = { MaintDate: newMaintDate, endMantDate: endMantDate, url: processData.MaintInfoLink, tweetInfo: datTwet };
         notifyKC("newMante")
         maint.maintNotified = true;
         await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: new Date(), MaintEnd: endMantDate });
@@ -221,3 +223,45 @@ async function mantChk() {
     if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd)) startMant();
 }
 
+class tweetKC {
+    private static get headers() { return { method: 'GET' }; }
+
+    public static async geTwiitter(tweet: string): Promise<string[] | null> {
+        try {
+            const match = tweet.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
+            if (!match) return null;
+            const xId = match[1];
+
+            const call = await fetch(`https://api.fxtwitter.com/2/status/${xId}`, { headers: this.headers });
+            if (!call.ok) return null;
+
+            interface xTweet { code: number; status: { text?: string; }; }
+            const Data = await call.json() as xTweet;
+            if (!Data || Data.code !== 200) return null;
+            if (!Data.status?.text) return null;
+
+            const tlList = ["es", "en"]
+            const traslates: string[] = []
+            traslates.push(Data.status.text)
+
+            for (const lang of tlList) {
+                const out = await this.googleTranslate(Data.status.text, lang)
+                if (out) traslates.push(out)
+                else traslates.push("Traduccion no disponible")
+            }
+
+            return traslates
+
+        } catch (e) {
+            error(`Error obteniendo tweet: ${e}`, "KanCron");
+            return null
+        }
+    }
+
+    private static async googleTranslate(text: string, lang: string): Promise<string | null> {
+        try {
+            const { text: out } = await translate(text, { to: lang });
+            return out;
+        } catch { return null; }
+    }
+}
