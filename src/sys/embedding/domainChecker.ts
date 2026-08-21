@@ -1,5 +1,5 @@
 import { warn, info, error, debug } from "../logging";
-import { replacementMetaList } from "./embedingConfig";
+import { rMetaList } from "./embedingConfig";
 import getPool from "../DB-Engine/database";
 
 export let embedingList: { [key: string]: string } = {};
@@ -116,7 +116,7 @@ class UrlStatusManager {
 
     private async runChecks() {
         const targets = [
-            ...replacementMetaList.map(map => ({ name: map.name, dbKey: map.dbKey })),
+            ...rMetaList.map(map => ({ name: map.name, dbKey: map.dbKey })),
             { name: "Api", dbKey: "Api" }
         ];
 

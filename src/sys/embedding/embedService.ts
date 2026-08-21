@@ -2,7 +2,7 @@
 import { Client, Events, Message } from "discord.js";
 import { getGuildReplacementConfig } from "../DB-Engine/links/Embed";
 import { getConfigMap } from "../DB-Engine/links/ReplyBots";
-import buildReplacements from "./index";
+import localEmb from "./index";
 import { debug, error } from "../logging";
 import i18next from "i18next";
 import { contPack, urlProcess } from "./embedingSwitch";
@@ -14,26 +14,20 @@ export default function startEmbedService(client: Client): void {
         if (message.content.startsWith("$$")) return;
         if (message.content.includes("https://embedez.com")) return;
 
+        const gld = message.guild?.id;
+        if (!gld) return
+
         const urls = [...message.content.matchAll(urlRegex)];
         if (urls.length === 0) return;
 
-        const guildId = message.guild?.id;
-        const channelId = message.channel.id;
-        const isBot = message.author.bot;
-        const autorId = message.author.id;
+        const chConfig = (await getConfigMap()).get(gld)?.get(message.channel.id);
+        if (chConfig?.enabled === false) return;
+        if (message.author.bot && chConfig?.replyBots !== true) return;
 
-        if (guildId) {
-            const channelConfig = (await getConfigMap()).get(guildId)?.get(channelId);
-            if (channelConfig?.enabled === false) return;
-            if (isBot && channelConfig?.replyBots !== true) return;
-        }
+        const gConfigs = await getGuildReplacementConfig(gld)
+        const rmpLocal = localEmb.getParam(gConfigs);
 
-        const guildConfigs = guildId ? await getGuildReplacementConfig(guildId) : new Map();
-        const replacements = buildReplacements(guildConfigs);
-
-        const iFix: string[] = [];
-        const iPack: contPack[] = []
-
+        const iFix: string[] = [], iPack: contPack[] = [];
         for (const match of urls) {
             let domainSite: string | null = null;
             const originalUrl = match[1];
@@ -43,7 +37,7 @@ export default function startEmbedService(client: Client): void {
                 domainSite = urlObject.hostname.replace('www.', '');
             } catch (err) { debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate"); continue }
 
-            const apiResult = await urlProcess({ oURL: originalUrl, domain: domainSite, guild: guildId!, gConf: guildConfigs, remp: replacements, msg: message });
+            const apiResult = await urlProcess({ oURL: originalUrl, domain: domainSite, guild: gld, gConf: gConfigs, remp: rmpLocal, msg: message });
             if (apiResult.ok) {
                 if (apiResult.fix) {
                     const hiddenMessage = message.content.split("||").length > 2;
@@ -55,8 +49,8 @@ export default function startEmbedService(client: Client): void {
             }
         }
 
-        if (iFix.length > 0) { post(message, iFix, autorId); embeRemove(message) };
-        if (iPack.length > 0) { sPost(message, iPack, autorId); embeRemove(message) };
+        if (iFix.length > 0) { post(message, iFix, message.author.id); embeRemove(message) };
+        if (iPack.length > 0) { sPost(message, iPack, message.author.id); embeRemove(message) };
     });
 };
 

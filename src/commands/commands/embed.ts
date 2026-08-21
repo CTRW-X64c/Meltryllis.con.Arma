@@ -2,14 +2,14 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, AutocompleteInteraction } from "discord.js";
 import i18next from "i18next";
 import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
-import { replacementMetaList } from "../../sys/embedding/embedingConfig";
+import { rMetaList } from "../../sys/embedding/embedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
 import { embedezSFW, embedezNSFW, meltrillisApi } from "../../sys/embedding/domainChecker";
 
 // --- Cambio para autocompletar 
 export async function embedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const L = replacementMetaList.map((meta) => ({ name: "Remplacer: " + meta.name, value: meta.name }));
+    const L = rMetaList.map((meta) => ({ name: "Remplacer: " + meta.name, value: meta.name }));
     const eS = embedezSFW.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
     const eN = embedezNSFW.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
     const mel = meltrillisApi.map((domain) => ({ name: "Meltryllis.Api: " + domain, value: domain }));

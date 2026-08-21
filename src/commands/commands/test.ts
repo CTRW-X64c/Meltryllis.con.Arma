@@ -4,7 +4,7 @@ import i18next from "i18next";
 import { error, debug } from "../../sys/logging";
 import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
 import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
-import { replacementMetaList } from "../../sys/embedding/embedingConfig";
+import { rMetaList } from "../../sys/embedding/embedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { checkAllDomains, buildDomainStatusEmbed } from "../../sys/zGears/neTools";
 import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
@@ -267,7 +267,7 @@ async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBu
   };
   /* Lista Locales */
   const localLines: string[] = [];
-  replacementMetaList.forEach(meta => {
+  rMetaList.forEach(meta => {
     const config = replacementConfig.get(meta.name);
     let status: string;
     if (config === undefined) {

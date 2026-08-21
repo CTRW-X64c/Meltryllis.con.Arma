@@ -44,11 +44,10 @@ export class xTwitterCustom implements ApiHandler {
             if (xData.hasVideo) { // Formato plano
                 let outText: string | undefined = undefined
                 outText = `> ### 👤 ${xData.userName} (@${xData.showName})`
-                if (xData.tweetTl && xData.tweetTl.length > 0) outText += xData.tweetTl
-                if (xData.tweetDesc && xData.tweetDesc.length > 0) outText += `\n${xData.tweetDesc}`
-                outText += `\n> ${statTxt}`
-                outText += `${xData.rawUrl.join(" ")}`;
-                outText += `\n> ***X | Twitter • by Meltryllis Api***`;
+                outText += `\n> ${statTxt}` + `\n> ***X | Twitter • by Meltryllis Api***`;
+                if (xData.rawUrl.length > 0) outText += xData.rawUrl.join(" ");
+                if (xData.tweetTl && xData.tweetTl.oTxT.length > 0) outText += `\n### 📄 Traducido al ${xData.tweetTl.oLng}:\n` + xData.tweetTl.oTxT
+                if (xData.tweetDesc && xData.tweetDesc.length > 0) outText += (xData.tweetTl ? `\n### 📃 Texto original:\n` : "\n") + xData.tweetDesc
                 // addItems
                 packTxt = outText;
                 xData.bufferVideo.forEach((buffer, index) => {
@@ -65,20 +64,28 @@ export class xTwitterCustom implements ApiHandler {
                 });
             }
             if (!xData.hasVideo) { // Formato embed
+                const fields: { name: string, value: string, inline?: boolean }[] = [];
                 xData.bufferPics.forEach((buffer, index) => {
                     const fileName = `Ximg_${xId}_${index}.jpg`;
                     const embed = new EmbedBuilder()
                         .setURL(xData.urlPost)
                         .setImage(`attachment://${fileName}`);
-                    let desct: string | undefined = undefined;
+                    let desct = statTxt;
+                    if (xData.rawUrl.length > 0) { desct += xData.rawUrl.join(" ") }
                     if (index === 0) {
-                        if (xData.tweetTl && xData.tweetTl.length > 0) desct = xData.tweetTl;
-                        if (xData.tweetDesc && xData.tweetDesc.length > 0) desct ? desct += xData.tweetDesc : desct = xData.tweetDesc;
-                        desct ? desct += `\n\n${statTxt}` : desct = statTxt;
                         embed.setAuthor({ name: `${xData.userName} (@${xData.showName})`, url: xData.urlPost, iconURL: xData.avatarPic })
                             .setColor('#1DA1F2')
                             .setDescription(desct)
                             .setFooter({ text: `X | Twitter • by Meltryllis Api`, iconURL: 'https://abs.twimg.com/favicons/twitter.ico' });
+                        if (xData.tweetTl && xData.tweetDesc) {
+                            fields.push(
+                                { name: `📄 Traducido al ${xData.tweetTl.oLng}:`, value: xData.tweetTl.oTxT, inline: false },
+                                { name: "📃 Texto original:", value: xData.tweetDesc, inline: false },
+                            )
+                        } else if (!xData.tweetTl && xData.tweetDesc) {
+                            fields.push({ name: "Tweet:", value: xData.tweetDesc, inline: false });
+                        }
+                        if (fields.length > 0) { embed.addFields(fields) }
                     }
                     // addItems
                     files.push(new AttachmentBuilder(buffer, { name: fileName }));
@@ -95,21 +102,10 @@ export class xTwitterCustom implements ApiHandler {
 
 // ================================= xTwitter Process ================================= //
 interface twitterData {
-    urlPost: string,
-    showName: string,
-    userName: string,
-    likes: string,
-    tweetDesc?: string,
-    tweetTl?: string,
-    avatarPic: string,
-    resp: string,
-    reTwi: string,
-    views: string,
-    hasVideo: boolean,
-    rawUrl: string[],
-    bufferPics: Buffer[],
-    bufferVideo: Buffer[],
-    bufferGifs: Buffer[]
+    urlPost: string, showName: string, userName: string,
+    likes: string, resp: string, reTwi: string, views: string, avatarPic: string,
+    hasVideo: boolean, tweetDesc?: string, tweetTl?: { oTxT: string, oLng: string },
+    rawUrl: string[], bufferPics: Buffer[], bufferVideo: Buffer[], bufferGifs: Buffer[]
 }
 
 interface ApiFxVido {
@@ -182,7 +178,7 @@ class xTwitter {
                 resp: this.numShort(Data.status?.replies),
                 views: this.numShort(Data.status?.views),
                 tweetDesc: fixDes.Org,
-                tweetTl: fixDes.Tl,
+                tweetTl: fixDes.Tl ? { oTxT: fixDes.Tl.oTxt, oLng: fixDes.Tl.oLng } : undefined,
                 avatarPic: Data.author?.avatar_url || 'https://abs.twimg.com/favicons/twitter.ico',
                 hasVideo: wVideo,
                 rawUrl: rawLinks,
@@ -275,15 +271,19 @@ class xTwitter {
         if (pic) {
             for (const url of pic) {
                 const downUrl = url.replace(/([?&])name=orig/, '$1name=large')
-                const downPic = await downMedia(downUrl)
-                if (!downPic) { downData.links.push(`[.](${url})`); }
-                else { downData.imagenes.push(downPic); }
+                const liks = [url, downUrl]
+                let foDown = false
+                for (const dliks of liks) {
+                    const downPic = await downMedia(dliks)
+                    if (downPic) { downData.imagenes.push(downPic); foDown = true; break; }
+                }
+                if (!foDown) { downData.links.push(`[.](${url})`); }
             }
         }
         return downData;
     }
 
-    private static async genDes(dta: tlInt): Promise<{ Org?: string, Tl?: string }> {
+    private static async genDes(dta: tlInt): Promise<{ Org?: string, Tl?: { oTxt: string, oLng: string } }> {
         if (dta.txt === undefined) return {};
 
         const urlRegex = /(?:\()?\[?(https?:\/\/[^\s\)]+)\)?/g;
@@ -326,8 +326,8 @@ class xTwitter {
             if (links.length > 0) { outTl = outTl.replace(/__L(\d+)__/g, (_, index) => dta.noLinks ? `\`${links[parseInt(index)]}\`` : links[parseInt(index)]); }
             if (users.length > 0) { outTl = outTl.replace(/__U(\d+)__/g, (_, index) => users[parseInt(index)]); }
 
-            outTl = (`\n## 📄 Traducido al ${nLang}:\n` + outTl + (cut ? '...' : "") + `\n## 📃 Texto original:\n`);
-            return { Org: txtOut, Tl: outTl };
+            outTl = (outTl + (cut ? '...' : ""));
+            return { Org: txtOut, Tl: { oTxt: outTl, oLng: nLang } };
         }
     }
 
