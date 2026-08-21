@@ -5,6 +5,7 @@ import { debug, error } from "../../logging";
 import { translate } from '@vitalets/google-translate-api';
 
 // ================================= APi: xTwitter Meltrys ================================= //
+
 export class xTwitterCustom implements ApiHandler {
     name = "xTwitterMeltrys";
 
@@ -42,12 +43,19 @@ export class xTwitterCustom implements ApiHandler {
             let files: AttachmentBuilder[] = [], embeds: EmbedBuilder[] = [], packTxt: string | undefined = undefined;
             const statTxt = `❤️: **${xData.likes}** | 🔁: **${xData.reTwi}** | 💬: **${xData.resp}** | 👀: **${xData.views}**`
             if (xData.hasVideo) { // Formato plano
-                let outText: string | undefined = undefined
+                let outText: string | undefined = undefined, tweDes: string | undefined = undefined, tweTl: string | undefined = undefined
+                const urlRegex = /(?:\()?\[?(https?:\/\/[^\s\)]+)\)?/g;
+                if (xData.tweetDesc) {
+                    tweDes = xData.tweetDesc.replace(urlRegex, '`$&`');
+                    if (!xData.tweetTl && xData.tweetDesc.length > 1100) tweDes = (xData.tweetDesc.slice(0, 1010).replace(urlRegex, '`$&`') + "...");
+                    if (xData.tweetTl && xData.tweetTl.oTxT.length > 350) tweDes = xData.tweetDesc.slice(0, 350).replace(urlRegex, '`$&`') + "...";
+                }
+                if (xData.tweetTl) tweTl = xData.tweetTl.oTxT.length > 1050 ? (xData.tweetTl.oTxT.slice(0, 1010).replace(urlRegex, '`$&`') + "...") : xData.tweetTl.oTxT.replace(urlRegex, '`$&`');
                 outText = `> ### 👤 ${xData.userName} (@${xData.showName})`
                 outText += `\n> ${statTxt}` + `\n> ***X | Twitter • by Meltryllis Api***`;
                 if (xData.rawUrl.length > 0) outText += xData.rawUrl.join(" ");
-                if (xData.tweetTl && xData.tweetTl.oTxT.length > 0) outText += `\n### 📄 Traducido al ${xData.tweetTl.oLng}:\n` + xData.tweetTl.oTxT
-                if (xData.tweetDesc && xData.tweetDesc.length > 0) outText += (xData.tweetTl ? `\n### 📃 Texto original:\n` : "\n") + xData.tweetDesc
+                if (xData.tweetTl && xData.tweetTl.oTxT.length > 0) outText += `\n### 📄 Traducido al ${xData.tweetTl.oLng}:\n` + tweTl;
+                if (xData.tweetDesc && xData.tweetDesc.length > 0) outText += (xData.tweetTl ? `\n### 📃 Texto original:\n` : "\n") + tweDes;
                 // addItems
                 packTxt = outText;
                 xData.bufferVideo.forEach((buffer, index) => {
@@ -79,11 +87,11 @@ export class xTwitterCustom implements ApiHandler {
                             .setFooter({ text: `X | Twitter • by Meltryllis Api`, iconURL: 'https://abs.twimg.com/favicons/twitter.ico' });
                         if (xData.tweetTl && xData.tweetDesc) {
                             fields.push(
-                                { name: `📄 Traducido al ${xData.tweetTl.oLng}:`, value: xData.tweetTl.oTxT, inline: false },
-                                { name: "📃 Texto original:", value: xData.tweetDesc, inline: false },
+                                { name: `📄 Traducido al ${xData.tweetTl.oLng}:`, value: (xData.tweetTl.oTxT.length > 1010 ? xData.tweetTl.oTxT.slice(0, 1010) + "..." : xData.tweetTl.oTxT), inline: false },
+                                { name: "📃 Texto original:", value: (xData.tweetDesc.length > 1010 ? xData.tweetDesc.slice(0, 1010) + "..." : xData.tweetDesc), inline: false },
                             )
                         } else if (!xData.tweetTl && xData.tweetDesc) {
-                            fields.push({ name: "Tweet:", value: xData.tweetDesc, inline: false });
+                            fields.push({ name: "Tweet:", value: (xData.tweetDesc.length > 1020 ? xData.tweetDesc.slice(0, 1010) + "..." : xData.tweetDesc), inline: false });
                         }
                         if (fields.length > 0) { embed.addFields(fields) }
                     }
@@ -134,21 +142,22 @@ interface ApiFxResponse {
             photos?: Array<{ url: string; }>;
             videos?: ApiFxVido[];
         };
+        translation?: {
+            text?: string
+        }
     };
 }
 
-interface tlInt { noLinks: boolean, txt?: string, lang?: string }
+interface tlInt { txt?: string, lang?: string }
 
 class xTwitter {
-    private static get headers() {
-        return {
-            method: 'GET'
-        };
-    }
+
+    private static get headers() { return { method: 'GET' }; }
 
     public static async getTweetData(idX: string, tlLang?: string): Promise<twitterData | null> {
         try {
-            const call = await fetch(`https://api.fxtwitter.com/2/status/${idX}`, { headers: this.headers });
+            let callURl = tlLang ? `https://api.fxtwitter.com/2/status/${idX}?lang=${tlLang}` : `https://api.fxtwitter.com/2/status/${idX}`;
+            const call = await fetch(callURl, { headers: this.headers });
             const Data = await call.json() as ApiFxResponse;
             if (!Data || Data.code !== 200) return null;
             let imageBuffers: Buffer[] = [], videoBuffers: Buffer[] = [], gifBuffers: Buffer[] = [], rawLinks: string[] = [], wVideo = false;
@@ -158,8 +167,21 @@ class xTwitter {
 
             if (videoURLs && videoURLs.length > 0) wVideo = true;
 
-            const fixDes = await this.genDes({ noLinks: wVideo, txt: Data.status?.text, lang: tlLang });
-            if (tlLang && (Data.status?.text && Data.status.text.length > 0) && !fixDes.Tl) return null;
+            let txtOut: string | undefined = undefined, txtTlOut: string | undefined = undefined;
+            let TlData: { oTxT: string, oLng: string } | undefined = undefined;
+            if (Data.status && Data.status.text) {
+                txtOut = Data.status.text.length > 1050 ? Data.status.text.slice(0, 1050) : Data.status.text
+                if (tlLang) {
+                    const TlText = Data.status.translation?.text;
+                    if (TlText) txtTlOut = TlText;
+                    else {
+                        const apiTLgoogle = await this.getTra({ txt: txtOut, lang: tlLang });
+                        if (apiTLgoogle) txtTlOut = apiTLgoogle
+                    }
+                    if (!txtTlOut) return null;
+                    else { TlData = { oTxT: txtTlOut, oLng: this.wereLang(tlLang) } }
+                }
+            }
 
             const gets = await this.downMedias(videoURLs, picURLs);
             if (gets) {
@@ -177,8 +199,8 @@ class xTwitter {
                 reTwi: this.numShort(Data.status?.reposts),
                 resp: this.numShort(Data.status?.replies),
                 views: this.numShort(Data.status?.views),
-                tweetDesc: fixDes.Org,
-                tweetTl: fixDes.Tl ? { oTxT: fixDes.Tl.oTxt, oLng: fixDes.Tl.oLng } : undefined,
+                tweetDesc: txtOut,
+                tweetTl: TlData, //fixDes.Tl ? { oTxT: tlReq, oLng: fixDes.Tl.oLng } : undefined, //fixDes.Tl.oTxt
                 avatarPic: Data.author?.avatar_url || 'https://abs.twimg.com/favicons/twitter.ico',
                 hasVideo: wVideo,
                 rawUrl: rawLinks,
@@ -195,9 +217,9 @@ class xTwitter {
 
     private static numShort(total?: number): string {
         if (total === undefined) return "?";
-        if (total >= 1_000) return `${(total / 1_000).toFixed(1)}K`;
-        if (total >= 1_000_000) return `${(total / 1_000_000).toFixed(1)}M`;
         if (total >= 1_000_000_000) return `${(total / 1_000_000_000).toFixed(1)}B`;
+        if (total >= 1_000_000) return `${(total / 1_000_000).toFixed(1)}M`;
+        if (total >= 1_000) return `${(total / 1_000).toFixed(1)}K`;
         return total.toString();
     }
 
@@ -283,77 +305,57 @@ class xTwitter {
         return downData;
     }
 
-    private static async genDes(dta: tlInt): Promise<{ Org?: string, Tl?: { oTxt: string, oLng: string } }> {
-        if (dta.txt === undefined) return {};
+    private static async getTra(dta: tlInt): Promise<string | undefined> {
+        if (dta.txt === undefined) return undefined
 
-        const urlRegex = /(?:\()?\[?(https?:\/\/[^\s\)]+)\)?/g;
-        let txtOut = dta.txt, tooLong = false;
-        if (txtOut.length > 800) { txtOut = txtOut.slice(0, 800); tooLong = true }
+        let txt4Tl: string, cut = false, outTl: string | undefined = undefined;
+        const hashtags: string[] = [], links: string[] = [], users: string[] = [];
+        txt4Tl = dta.txt.replace(/(?:\()?\[?(https?:\/\/[^\s\)]+)\)?/g, y => { const idx = links.push(y) - 1; return `__L${idx}__`; }); // save urls
+        txt4Tl = txt4Tl.replace(/#[^\s]*/gm, x => { const idx = hashtags.push(x) - 1; return `__H${idx}__`; }); // save hashtags
+        txt4Tl = txt4Tl.replace(/@[^\s]*/gm, x => { const idx = users.push(x) - 1; return `__U${idx}__`; }); //save users
+        if (txt4Tl.length > 1000) { txt4Tl = txt4Tl.slice(0, 1000); cut = true; }
 
-        if (!dta.lang) {
-            if (dta.noLinks) {
-                txtOut = txtOut.replace(urlRegex, '`$&`');
-                txtOut = tooLong ? txtOut + '\n...' : txtOut;
-                return { Org: txtOut };
-            } else {
-                txtOut = tooLong ? txtOut + '\n...' : txtOut;
-                return { Org: txtOut };
-            }
+        const googleTranslate = async () => {
+            try {
+                const { text: out } = await translate(txt4Tl, { to: dta.lang });
+                return out;
+            } catch (err) { return undefined; }
         }
 
-        else {
-            let txt4Tl: string, cut = false, outTl: string | undefined = undefined;
-            if (txtOut.length > 700) return { Org: txtOut, Tl: outTl };
-            const hashtags: string[] = [], links: string[] = [], users: string[] = [];
+        const fromApi = await googleTranslate();
+        if (!fromApi) return undefined;
+        else outTl = fromApi;
 
-            txt4Tl = txtOut.replace(urlRegex, y => { const idx = links.push(y) - 1; return `__L${idx}__`; }); // save urls
-            txt4Tl = txt4Tl.replace(/#[^\s]*/gm, x => { const idx = hashtags.push(x) - 1; return `__H${idx}__`; }); // save hashtags
-            txt4Tl = txt4Tl.replace(/@[^\s]*/gm, x => { const idx = users.push(x) - 1; return `__U${idx}__`; }); //save users
-            //txt4Tl = txt4Tl.replace(/\r\n/g, '\n').replace(/\n{2,}/g, '\n').trim(); // quita doble saltos
-            //txt4Tl = txt4Tl.replace(/\s{2,}/g, ' ').trim(); // removedor de doble espacios
+        if (hashtags.length > 0) { outTl = outTl.replace(/__H(\d+)__/g, (_, index) => hashtags[parseInt(index)]); }
+        if (links.length > 0) { outTl = outTl.replace(/__L(\d+)__/g, (_, index) => links[parseInt(index)]); }
+        if (users.length > 0) { outTl = outTl.replace(/__U(\d+)__/g, (_, index) => users[parseInt(index)]); }
 
-            const langName: Record<string, string> = { "en": "Inglés", "es": "Español", "pt": "Portugués", "it": "Italiano" };
-            const nLang = langName[dta.lang];
-
-            if (txt4Tl.length > 600) { txt4Tl = txt4Tl.slice(0, 600); cut = true; }
-
-            const fromApi = await this.googleTranslate(txt4Tl, dta.lang)
-            if (!fromApi) return { Org: txtOut, Tl: outTl };
-            else outTl = fromApi;
-
-            if (dta.noLinks) txtOut = txtOut.replace(urlRegex, '`$&`');
-            if (hashtags.length > 0) { outTl = outTl.replace(/__H(\d+)__/g, (_, index) => hashtags[parseInt(index)]); }
-            if (links.length > 0) { outTl = outTl.replace(/__L(\d+)__/g, (_, index) => dta.noLinks ? `\`${links[parseInt(index)]}\`` : links[parseInt(index)]); }
-            if (users.length > 0) { outTl = outTl.replace(/__U(\d+)__/g, (_, index) => users[parseInt(index)]); }
-
-            outTl = (outTl + (cut ? '...' : ""));
-            return { Org: txtOut, Tl: { oTxt: outTl, oLng: nLang } };
-        }
+        outTl = (outTl + (cut ? '...' : ""));
+        return outTl;
     }
 
-    private static async googleTranslate(text: string, lang: string) {
-        try {
-            const { text: out } = await translate(text, { to: lang });
-            return out;
-        } catch (err) { return undefined; }
+    private static wereLang(lang: string) {
+        const langName: Record<string, string> = { "en": "Inglés", "es": "Español", "pt": "Portugués", "it": "Italiano" };
+        const nLang = langName[lang];
+        if (!nLang) return lang;
+        return nLang;
     }
-
-    /*
-    private static async libreTraslate(txt: string, lng: string): Promise<{ ApiTL?: string; ApiClave?: string; }> {
-        interface out { translatedText?: string, detectedLanguage?: { language?: string } }
-        const get = await fetch(`http://${IpTL}/translate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ q: txt, source: "auto", target: lng, format: "text" })
-        });
-        if (!get.ok) return {};
-        const data = await get.json() as out;
-        if (!data.translatedText) return {};
-        return { ApiTL: data.translatedText, ApiClave: data.detectedLanguage?.language };
-    }
-    */
 }
 
 
-
-
+//txt4Tl = txt4Tl.replace(/\r\n/g, '\n').replace(/\n{2,}/g, '\n').trim(); // quita doble saltos
+//txt4Tl = txt4Tl.replace(/\s{2,}/g, ' ').trim(); // removedor de doble espacios
+/*
+private static async libreTraslate(txt: string, lng: string): Promise<{ ApiTL?: string; ApiClave?: string; }> {
+    interface out { translatedText?: string, detectedLanguage?: { language?: string } }
+    const get = await fetch(`http://${IpTL}/translate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ q: txt, source: "auto", target: lng, format: "text" })
+    });
+    if (!get.ok) return {};
+    const data = await get.json() as out;
+    if (!data.translatedText) return {};
+    return { ApiTL: data.translatedText, ApiClave: data.detectedLanguage?.language };
+}
+*/

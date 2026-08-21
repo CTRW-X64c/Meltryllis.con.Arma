@@ -235,23 +235,33 @@ class tweetKC {
             const call = await fetch(`https://api.fxtwitter.com/2/status/${xId}`, { headers: this.headers });
             if (!call.ok) return null;
 
-            interface xTweet { code: number; status: { text?: string; }; }
+            interface xTweet { code: number; status: { text?: string; translation?: { text?: string } } }
             const Data = await call.json() as xTweet;
-            if (!Data || Data.code !== 200) return null;
-            if (!Data.status?.text) return null;
+            const orgTxT = Data.status?.text
+            if (!Data || Data.code !== 200 || !orgTxT) return null;
 
             const tlList = ["es", "en"]
             const traslates: string[] = []
-            traslates.push(Data.status.text)
+            traslates.push(orgTxT)
 
             for (const lang of tlList) {
-                const out = await this.googleTranslate(Data.status.text, lang)
-                if (out) traslates.push(out)
-                else traslates.push("Traduccion no disponible")
+                try {
+                    let out = "Traduccion no disponible"
+                    const natTL = await fetch(`https://api.fxtwitter.com/2/status/${xId}?lang=${lang}`, this.headers)
+                    if (natTL.ok) {
+                        const dat = await natTL.json() as xTweet
+                        if (dat.code === 200 && dat.status.translation && dat.status.translation.text) out = dat.status.translation.text;
+                    }
+                    else {
+                        const callGoogle = await this.googleTranslate(orgTxT, lang)
+                        if (callGoogle) out = callGoogle;
+                    }
+                    traslates.push(out)
+                    await new Promise(X => setTimeout(X, 2_000)) // una pausa de hidratacion "emoji de wea guiñando"
+                } catch (e) { error(`Error obteniendo tweet: ${e}`, "KanCron"); }
             }
 
             return traslates
-
         } catch (e) {
             error(`Error obteniendo tweet: ${e}`, "KanCron");
             return null

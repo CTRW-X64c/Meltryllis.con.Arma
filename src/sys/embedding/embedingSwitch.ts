@@ -1,7 +1,7 @@
 import { Message, EmbedBuilder, AttachmentBuilder } from "discord.js"
 import { debug } from "../logging"
 import { apiEmbedez } from "./Apis/embedez"
-import { apiPixivCustom } from "./Apis/pixivAPI"
+import { apiPixivCustom } from "./Apis/PixivAPI"
 import { fakeApiFB } from "./Apis/fbFakeApi"
 import { xTwitterCustom } from "./Apis/Alttwitter"
 
