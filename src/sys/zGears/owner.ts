@@ -1,5 +1,5 @@
 // src/Events-Commands/commands/owner.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, ModalSubmitInteraction, EmbedBuilder, PresenceStatusData } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, ModalSubmitInteraction, EmbedBuilder, PresenceStatusData, LabelBuilder } from "discord.js";
 import { debug, error, warn, } from "../logging";
 import { Buffer } from 'node:buffer';
 import { checkAllDomains, buildDomainStatusEmbed } from "./neTools";
@@ -34,27 +34,10 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
         .setName("owner")
         .setDefaultMemberPermissions(0)
         .setDescription("Comandos de uso exclusivo del Hoster")
-        .addStringOption(op =>
-            op.setName("funcion")
-                .setDescription("Herramienta de administración")
-                .setRequired(true)
-                .addChoices(listCom)
-        )
-        .addStringOption(op =>
-            op.setName("server_id")
-                .setDescription("ID del servidor a abandonar")
-                .setRequired(false)
-        )
-        .addStringOption(op =>
-            op.setName("id_usr")
-                .setDescription("ID del mensaje a responder")
-                .setRequired(false)
-        )
-        .addStringOption(op =>
-            op.setName("data")
-                .setDescription("Información adicional para el comando")
-                .setRequired(false)
-        )
+        .addStringOption(op => op.setName("funcion").setDescription("Herramienta de administración").setRequired(true).addChoices(listCom))
+        .addStringOption(op => op.setName("server_id").setDescription("ID del servidor a abandonar").setRequired(false))
+        .addStringOption(op => op.setName("id_usr").setDescription("ID del mensaje a responder").setRequired(false))
+        .addStringOption(op => op.setName("data").setDescription("Información adicional para el comando").setRequired(false))
     return [leaveServerCommand] as SlashCommandBuilder[];
 }
 
@@ -112,17 +95,18 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
     const authModal = new ModalBuilder()
         .setCustomId(`token_verify_${idCommands}`)
         .setTitle("🔐 Verificación de Seguridad")
-        .addComponents(
-            new ActionRowBuilder<TextInputBuilder>().addComponents(
-                new TextInputBuilder()
-                    .setCustomId("token_input")
-                    .setLabel("Revisa la consola e ingresa el token:")
-                    .setStyle(TextInputStyle.Short)
-                    .setPlaceholder("Ej: 1A2B3C4D5E6F")
-                    .setRequired(true)
-                    .setMinLength(1)
-                    .setMaxLength(16)
-            )
+        .addLabelComponents(
+            new LabelBuilder()
+                .setLabel("Revisa la consola e ingresa el token:") // El Label ahora pertenece al LabelBuilder
+                .setTextInputComponent(
+                    new TextInputBuilder()
+                        .setCustomId("token_input")
+                        .setStyle(TextInputStyle.Short)
+                        .setPlaceholder("Ej: 1A2B3C4D5E6F")
+                        .setRequired(true)
+                        .setMinLength(1)
+                        .setMaxLength(16)
+                )
         );
     await interaction.showModal(authModal);
 }
@@ -522,13 +506,14 @@ export async function sendLimitsDashboard(interaction: ChatInputCommandInteracti
         if (!interaction.deferred) await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     }
 
+    if (idGuild === "nosrv") { interaction.editReply({ content: "❌ No se proporcionó el ID del servidor a limitar." }); return }
     const guild = await interaction.client.guilds.fetch(idGuild).catch(() => null);
     const limits = await getGuildLimits(idGuild);
     const embed = new EmbedBuilder()
         .setTitle(`🛠️ Panel de Límites | Servidor: ${guild?.name || idGuild}`)
         .setColor('Blue')
         .addFields(
-            { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}` },
+            { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}\n> **Twitter:** ${limits.tweetMax}` },
             { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${limits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${limits.noWaitNode ? '✅' : '❌'}` }
         );
 
@@ -807,6 +792,7 @@ async function lavalinkTools(interaction: ChatInputCommandInteraction, data: str
 /* ================================================================== Timers Services ================================================================== */
 
 async function timmerServices(interaction: ChatInputCommandInteraction, data: string): Promise<void> {
+    if (!interaction.deferred) { await interaction.deferReply({ flags: MessageFlags.Ephemeral }); }
     try {
         const emb = new EmbedBuilder()
             .setTitle("Timmer Services").setColor(0x00FF00)
@@ -821,13 +807,11 @@ async function timmerServices(interaction: ChatInputCommandInteraction, data: st
         const p1 = data.split("=");
         const sub = p1[0] || "nodata";
         const tim = p1[1] || "nodata";
-        const validServices = ["youtube", "mangadex", "reddit"];
+        const validServices = ["youtube", "mangadex", "reddit", "twitter"];
 
         if (sub === "nodata") { await interaction.editReply({ content: "Formato incorrecto", embeds: [emb] }); return; }
         switch (sub) {
-            case "youtube":
-            case "mangadex":
-            case "reddit": {
+            case "youtube": case "mangadex": case "reddit": case "twitter": {
                 const timeNum = parseInt(tim, 10);
                 if (!validServices.includes(sub)) { await interaction.editReply({ content: "❌ No existe el servicio seleccionado", embeds: [emb] }); return; }
                 if (tim === "nodata" || isNaN(timeNum)) { await interaction.editReply({ content: "❌ Por favor incluya el tiempo en minutos.", embeds: [emb] }); return; }
@@ -850,7 +834,7 @@ async function timmerServices(interaction: ChatInputCommandInteraction, data: st
             case "list": {
                 const listTimers = list();
                 const embList = new EmbedBuilder().setTitle("Timmer Services").setColor(0x00FF00)
-                    .setDescription(`Servicios activos: ${listTimers.join("\n")}`);
+                    .setDescription(`Servicios activos:` + `\n${listTimers.join("\n")}`);
                 await interaction.editReply({ embeds: [embList] }); return;
             }
 

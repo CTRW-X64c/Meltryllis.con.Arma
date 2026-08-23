@@ -236,7 +236,8 @@ async function poolManager(): Promise<void> {
       no_wait_node BOOLEAN DEFAULT FALSE,
       dex_max INT DEFAULT 10,
       red_max INT DEFAULT 10,
-      yt_max INT DEFAULT 10
+      yt_max INT DEFAULT 10,
+      tweet_max INT DEFAULT 5
     )
   `);
 
@@ -310,6 +311,22 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  //Tabla FollowTwetter
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS followTweetX(
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      guild_id VARCHAR(50) NOT NULL,
+      canal VARCHAR(50) NOT NULL,
+      xUser VARCHAR(50) NOT NULL,
+      lastPost VARCHAR(255),
+      lang VARCHAR(255),
+      customDomain VARCHAR(255),
+      addBy VARCHAR(50) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY unique_guild_twitter (guild_id, xUser)
+    )
+  `);
+
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;
   info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");
@@ -374,7 +391,7 @@ export async function closeBD(): Promise<boolean> {
 }
 
 // Otros
-type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config';
+type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config' | 'followTweetX';
 export async function countItems(guildId: string, table: FeedTables): Promise<number> {
   try {
     const pool = await getPool();

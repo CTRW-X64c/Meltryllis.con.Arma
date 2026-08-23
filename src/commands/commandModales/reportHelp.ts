@@ -1,5 +1,5 @@
 // src/Events-Commands/commandModales/reportHelp.ts
-import { ActionRowBuilder, ButtonInteraction, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, TextChannel, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, TextChannel, TextInputBuilder, TextInputStyle, LabelBuilder } from "discord.js";
 import i18next from "i18next";
 import { adminChannel, checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
 
@@ -9,15 +9,12 @@ export async function Report(interaction: ChatInputCommandInteraction): Promise<
   const isAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.Administrator) || interaction.guild?.ownerId === interaction.user.id;
   const idGuild = interaction.guildId;
   const idCooldown = "repCommand"
-  if (!idGuild) {
-    await interaction.reply({ content: (i18next.t("botones:reportHelp.modal_no_guild")), flags: MessageFlags.Ephemeral }); return;
-  } else if (!isAdmin) {
-    await interaction.reply({ content: i18next.t("botones:reportHelp.no_admin"), flags: MessageFlags.Ephemeral }); return;
-  }
+  if (!idGuild) { await interaction.reply({ content: (i18next.t("botones:reportHelp.modal_no_guild")) }); return; }
+  else if (!isAdmin) { await interaction.reply({ content: i18next.t("botones:reportHelp.no_admin") }); return; }
 
   const cooldown = checkCooldown(idGuild, idCooldown);
   if (cooldown.onCooldown) {
-    await interaction.reply({ content: i18next.t("botones:reportHelp.onCooldown", { a1: cooldown.timeLeft }), flags: MessageFlags.Ephemeral }); return;
+    await interaction.reply({ content: i18next.t("botones:reportHelp.onCooldown", { a1: cooldown.timeLeft }) }); return;
   }
   startCooldown(idGuild, idCooldown);
 
@@ -26,14 +23,16 @@ export async function Report(interaction: ChatInputCommandInteraction): Promise<
     .setTitle(i18next.t("botones:reportHelp.modal_title"));
   const reportIn = new TextInputBuilder()
     .setCustomId('report_content')
-    .setLabel(i18next.t("botones:reportHelp.modal_label"))
     .setPlaceholder(i18next.t("botones:reportHelp.modal_pholder"))
     .setStyle(TextInputStyle.Paragraph)
     .setMinLength(10)
     .setMaxLength(500)
     .setRequired(true);
-  const eMod = new ActionRowBuilder<TextInputBuilder>().addComponents(reportIn);
-  modal.addComponents(eMod);
+  const eMod = new LabelBuilder()
+    .setLabel(i18next.t("botones:reportHelp.modal_label"))
+    .setTextInputComponent(reportIn);
+  modal.addLabelComponents(eMod);
+
   await interaction.showModal(modal);
 }
 
@@ -85,12 +84,14 @@ export async function handleReportResponseButton(interaction: ButtonInteraction)
 
     const repIn = new TextInputBuilder()
       .setCustomId(`reportcont`)
-      .setLabel("Escribe tu respuesta:")
+
       .setStyle(TextInputStyle.Paragraph)
       .setRequired(true);
 
-    const rMod = new ActionRowBuilder<TextInputBuilder>().addComponents(repIn);
-    reportModal.addComponents(rMod);
+    const rMod = new LabelBuilder()
+      .setLabel("Escribe tu respuesta:")
+      .setTextInputComponent(repIn)
+    reportModal.addLabelComponents(rMod);
 
     await interaction.showModal(reportModal);
   }

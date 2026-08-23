@@ -70,6 +70,7 @@ interface hField { name: string; value: string; inline?: boolean }
 interface hRole { data: string, id?: string }
 interface hLinks { data0: { link: string, text: string }; data1?: { link: string, text: string }; data2?: { link: string, text: string }; data3?: { link: string, text: string }; data4?: { link: string, text: string } };
 async function embedMaker(interaction: ChatInputCommandInteraction, data: hData): Promise<void> {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const rngColor = (): string => { const color = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase(); return `0x${color.padStart(6, '0')}` };
   const { command, title, description, color, imageUrl, fields = [], footer, srvPerm, chPerm, roles, URLs } = data;
   const Meltryllis = interaction.guild?.members.me;
@@ -132,9 +133,8 @@ async function embedMaker(interaction: ChatInputCommandInteraction, data: hData)
 // ============================================= Handler principal ============================================= //
 
 export async function handleHelpCommand(interaction: ChatInputCommandInteraction): Promise<void> {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const guild = interaction.guild;
-  if (!guild) { await interaction.editReply({ content: i18next.t(i18next.t("common:Errores.noGuild")) }); return; }
+  if (!guild) await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral });
   try {
     const opHelp = interaction.options.getString("command") || "00";
     switch (opHelp) {
@@ -403,7 +403,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
       }); break;
       /* ======================== default ======================== */
       default:
-        await interaction.editReply({ content: i18next.t("help:comBuild.default_switch_error") });
+        await interaction.reply({ content: i18next.t("help:comBuild.default_switch_error") });
         break;
     }
   } catch (e) {

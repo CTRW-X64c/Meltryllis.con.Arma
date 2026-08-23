@@ -1,4 +1,4 @@
-import { ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from "discord.js";
+import { ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder } from "discord.js";
 import { getGuildLimits, setGuildLimits, resetGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { sendLimitsDashboard } from "../../sys/zGears/owner";
 
@@ -9,39 +9,51 @@ export async function handleLimitsButton(interaction: ButtonInteraction) {
     // 1. Si presionó el botón de abrir formulario
     if (customId.startsWith("lim_edit_")) {
         const limits = await getGuildLimits(targetGuildId);
-
         const modal = new ModalBuilder()
             .setCustomId(`modal_lim_${targetGuildId}`)
             .setTitle('Editar Límites Numéricos');
+        //cronjobs
         const inCronjobs = new TextInputBuilder()
             .setCustomId('input_cronLimited')
-            .setLabel('Límite de publicaciones de /cronjobs')
             .setStyle(TextInputStyle.Short)
             .setValue(limits.cronLimited.toString());
+        const row1 = new LabelBuilder()
+            .setLabel('Límite de publicaciones de /cronjobs')
+            .setTextInputComponent(inCronjobs)
+        //mangadex
         const inMangadex = new TextInputBuilder()
             .setCustomId('input_dexMax')
-            .setLabel('Límite de mangas de /mangadex')
             .setStyle(TextInputStyle.Short)
             .setValue(limits.dexMax.toString());
+        const row2 = new LabelBuilder()
+            .setLabel('Límite de mangas de /mangadex')
+            .setTextInputComponent(inMangadex)
+        //reddit
         const inReddit = new TextInputBuilder()
             .setCustomId('input_redMax')
-            .setLabel('Límite de follows de /reddit')
             .setStyle(TextInputStyle.Short)
             .setValue(limits.redMax.toString());
+        const row3 = new LabelBuilder()
+            .setLabel('Límite de follows de /reddit')
+            .setTextInputComponent(inReddit)
+        //youtube
         const inYoutube = new TextInputBuilder()
             .setCustomId('input_ytMax')
-            .setLabel('Límite de Follow de /youTube')
             .setStyle(TextInputStyle.Short)
             .setValue(limits.ytMax.toString());
+        const row4 = new LabelBuilder()
+            .setLabel('Límite de Follow de /youTube')
+            .setTextInputComponent(inYoutube)
+        //twetter
+        const inTweet = new TextInputBuilder()
+            .setCustomId('input_tweetMax')
+            .setStyle(TextInputStyle.Short)
+            .setValue(limits.tweetMax.toString());
+        const row5 = new LabelBuilder()
+            .setLabel('Límite de Follow de /tweet')
+            .setTextInputComponent(inTweet)
 
-
-        const row1 = new ActionRowBuilder<TextInputBuilder>().addComponents(inCronjobs);
-        const row2 = new ActionRowBuilder<TextInputBuilder>().addComponents(inMangadex);
-        const row3 = new ActionRowBuilder<TextInputBuilder>().addComponents(inReddit);
-        const row4 = new ActionRowBuilder<TextInputBuilder>().addComponents(inYoutube);
-
-
-        modal.addComponents(row1, row2, row3, row4);
+        modal.addLabelComponents(row1, row2, row3, row4, row5);
         await interaction.showModal(modal);
         return;
     }

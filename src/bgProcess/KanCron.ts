@@ -235,7 +235,7 @@ class tweetKC {
             const call = await fetch(`https://api.fxtwitter.com/2/status/${xId}`, { headers: this.headers });
             if (!call.ok) return null;
 
-            interface xTweet { code: number; status: { text?: string; translation?: { text?: string } } }
+            interface xTweet { code: number, status?: { text?: string } }
             const Data = await call.json() as xTweet;
             const orgTxT = Data.status?.text
             if (!Data || Data.code !== 200 || !orgTxT) return null;
@@ -246,16 +246,9 @@ class tweetKC {
 
             for (const lang of tlList) {
                 try {
-                    let out = "Traduccion no disponible"
-                    const natTL = await fetch(`https://api.fxtwitter.com/2/status/${xId}?lang=${lang}`, this.headers)
-                    if (natTL.ok) {
-                        const dat = await natTL.json() as xTweet
-                        if (dat.code === 200 && dat.status.translation && dat.status.translation.text) out = dat.status.translation.text;
-                    }
-                    else {
-                        const callGoogle = await this.googleTranslate(orgTxT, lang)
-                        if (callGoogle) out = callGoogle;
-                    }
+                    let out = lang === "es" ? "Traduccion no disponible" : "Translation not available";
+                    const callGoogle = await this.googleTranslate(orgTxT, lang)
+                    if (callGoogle) out = callGoogle;
                     traslates.push(out)
                     await new Promise(X => setTimeout(X, 2_000)) // una pausa de hidratacion "emoji de wea guiñando"
                 } catch (e) { error(`Error obteniendo tweet: ${e}`, "KanCron"); }

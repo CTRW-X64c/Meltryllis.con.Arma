@@ -25,6 +25,7 @@ import { handleLimitsButton } from "./commandButtons/NewLimits";
 import { handleMypermissionsCommand, registerMypermissionsCommands } from "./commands/chkperm";
 import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess/noEvery";
 import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "./commands/kancolle";
+import { handleFollowXCommand, registerFollowXCommand } from "./commands/followX";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -49,7 +50,8 @@ export async function sysUpRegister(client: Client) {
     ...(await registerCronpostCommand()),
     ...(await registerMypermissionsCommands()),
     ...(await registernoEveryoneCommand()),
-    ...(await registerKantaiCollectionCommand())
+    ...(await registerKantaiCollectionCommand()),
+    ...(await registerFollowXCommand())
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -113,6 +115,8 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handleNoEveryoneCommand(interaction); break;
     case 'kancolle':
       await handleKantaiCollectionCommand(interaction); break;
+    case 'follow_twitter':
+      await handleFollowXCommand(interaction); break;
     default:
       fail(interaction); break;
   }

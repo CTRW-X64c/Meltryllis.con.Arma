@@ -5,24 +5,28 @@ import getPool from "../DB-Engine/database";
 import { startYoutubeService } from "../../bgProcess/youtubeCheck";
 import { startMangadexChecker } from "../../bgProcess/mangadexChek";
 import { startRedditChecker } from "../../bgProcess/redditCheck";
+import { initFolloX } from "../../bgProcess/followTweet";
 
-export type chkServices = "youtube" | "mangadex" | "reddit";
+export type chkServices = "youtube" | "mangadex" | "reddit" | "twitter";
 let serviceYoutube: NodeJS.Timeout | null = null;
 let serviceMangadex: NodeJS.Timeout | null = null;
 let serviceReddit: NodeJS.Timeout | null = null;
+let serviceTwitter: NodeJS.Timeout | null = null;
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const bdTimmers = new Map<string, number>();
 const minutos = 60 * 1_000;
 const envKeys: Record<chkServices, string | undefined> = {
     youtube: process.env.YOUTUBE_CHECK_TIMMER,
     mangadex: process.env.MANGADEX_CHECK_TIMMER,
-    reddit: process.env.REDDIT_CHECK_TIMMER
+    reddit: process.env.REDDIT_CHECK_TIMMER,
+    twitter: process.env.TWITTER_CHECK_TIMMER,
 };
 
 const cleanService = (serv: string) => {
     if (serv === "youtube" && serviceYoutube) { clearInterval(serviceYoutube); serviceYoutube = null; }
     if (serv === "mangadex" && serviceMangadex) { clearInterval(serviceMangadex); serviceMangadex = null; }
     if (serv === "reddit" && serviceReddit) { clearInterval(serviceReddit); serviceReddit = null; }
+    if (serv === "twitter" && serviceTwitter) { clearInterval(serviceTwitter); serviceTwitter = null; }
 }
 
 const runService = (serv: chkServices, time: number, client: Client) => {
@@ -45,6 +49,11 @@ const runService = (serv: chkServices, time: number, client: Client) => {
             serviceReddit = setInterval(() => startRedditChecker(client), t);
             info(`[Reddit Checker]: Timer establecido en ${time} minutos.`);
             break;
+        case "twitter":
+            initFolloX(client);
+            serviceTwitter = setInterval(() => initFolloX(client), t);
+            info(`[Twitter Checker]: Timer establecido en ${time} minutos.`);
+            break;
     }
 }
 
@@ -55,7 +64,7 @@ export async function startServices(client: Client) {
         const [timmerBD]: any = await pool.query("SELECT service, timmer FROM timmersServices");
         for (const fila of (timmerBD as any[])) { bdTimmers.set(fila.service, fila.timmer); }
 
-        const servicios: chkServices[] = ["youtube", "mangadex", "reddit"];
+        const servicios: chkServices[] = ["youtube", "mangadex", "reddit", "twitter"];
         for (const serv of servicios) {
             const envVal = envKeys[serv];
             const envTimmer = envVal ? parseInt(envVal, 10) : NaN;
@@ -72,7 +81,7 @@ export async function startServices(client: Client) {
 
 export async function newTimmerService(serv: string, time: number, client: Client): Promise<string> {
     try {
-        const validServices: string[] = ["youtube", "mangadex", "reddit"];
+        const validServices: string[] = ["youtube", "mangadex", "reddit", "twitter"];
         if (!validServices.includes(serv)) { return "❌ ¡No existe un servicio registrado con ese nombre!"; }
         if (time < 10 && time !== 0) { return "⚠️ El timer mínimo configurado debe ser igual o mayor a 10 minutos."; }
         cleanService(serv);
