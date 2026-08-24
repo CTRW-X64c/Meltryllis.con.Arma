@@ -322,8 +322,9 @@ async function poolManager(): Promise<void> {
       lang VARCHAR(255),
       customDomain VARCHAR(255),
       addBy VARCHAR(50) NOT NULL,
+      onlyMedia BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE KEY unique_guild_twitter (guild_id, xUser)
+      UNIQUE INDEX idx_unique_follow_xUser (guild_id, xUser)
     )
   `);
 

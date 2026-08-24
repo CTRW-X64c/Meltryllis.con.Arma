@@ -1,44 +1,60 @@
-import { Client, TextChannel } from "discord.js"
+import { Client, Guild, TextChannel } from "discord.js"
 import { deleteFollowTweet, getAllFollowTweet, updateFollowTweet } from "../sys/DB-Engine/links/followTweet"
 import { debug, error } from "../sys/logging";
 import urlStatusManager from "../sys/embedding/domainChecker";
 import { getGuildReplacementConfig } from "../sys/DB-Engine/links/Embed";
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-export async function initFolloX(C: Client) {
+export async function initFolloX(C: Client): Promise<void> {
     await wait(30_000);
     tweEngine(C)
 }
 
 // ===================== Engine ===================== //
-export async function tweEngine(cli: Client) {
+export async function tweEngine(cli: Client): Promise<void> {
     try {
-        let kacheCh: { [key: string]: { chT: TextChannel | null } } = {}, chToSend: TextChannel | null;
-        let kacheDom: { [key: string]: { dom: string | null } } = {}, dominio: string | null;
-        const dta = await getAllFollowTweet()
+        let kacheCh: { [key: string]: { chT: TextChannel | null } } = {};
+        let kacheDom: { [key: string]: { dom: string | null } } = {};
+
+        const depurBD = async (guildy: string, idBDpos: number, idDelKach: string) => {
+            kacheCh[idDelKach] = { chT: null };
+            try {
+                await deleteFollowTweet({ gremio: guildy, id: idBDpos });
+                debug(`Borrando de la BD el X/Twitter con ID: ${idBDpos} del server: ${guildy}`, "BG.TwitterFollow");
+            } catch (e) { error(`Algo fallo en la BD ${e}`, "BG.TwitterFollow"); }
+        };
+
+        const dta = await getAllFollowTweet();
         if (!dta) return;
+
         for (const X of dta) {
-            const { id, guild_id, canal, xUser, lastPost, Domain, lang } = X
-            const idKch = `${guild_id}-${canal}`
+            const { id, guild_id, canal, xUser, lastPost, Domain, lang, onlyMedia } = X;
+            const idKch = `${guild_id}-${canal}`;
+
+            let chToSend: TextChannel | null = null, dominio: string | null;
             if (idKch in kacheCh) { chToSend = kacheCh[idKch].chT; }
             else {
-                const guild = await cli.guilds.fetch(guild_id)
-                if (!guild) { kacheCh[idKch] = { chT: null }; continue }
-                const channel = await guild.channels.fetch(canal) as TextChannel
-                if (!channel) {
-                    kacheCh[idKch] = { chT: null };
-                    await deleteFollowTweet(guild_id, id);
-                    debug(`No se encontro el canal: ${canal} del server: ${guild_id}`, "BG.TwitterFollow")
+                let guild: Guild;
+                try { guild = await cli.guilds.fetch(guild_id) }
+                catch (e: any) {
+                    if (e.code === 10004 || e.code === 50001) { await depurBD(guild_id, id, idKch) };
                     continue;
                 }
+
+                let channel: TextChannel | null = null;
+                try { channel = await guild.channels.fetch(canal) as TextChannel }
+                catch (e: any) {
+                    if (e.code === 404 || e.code === 10003 || e.code === 50001) { await depurBD(guild_id, id, idKch) }
+                    else { debug(`Error al comrobar el ${canal} en ${guild_id}: ${e.message}`, "BG.TwitterFollow") };
+                    continue;
+                }
+
+                if (!channel) { await depurBD(guild_id, id, idKch); continue }
+
                 kacheCh[idKch] = { chT: channel }; chToSend = channel;
             }
 
-            if (!chToSend) {
-                await deleteFollowTweet(guild_id, id);
-                debug(`No se encontro el canal: ${canal} del server: ${guild_id}, Borrado ${xUser}`, "BG.TwitterFollow");
-                continue;
-            }
+            if (!chToSend) { await depurBD(guild_id, id, idKch); continue }
 
             if (guild_id in kacheDom) { dominio = kacheDom[guild_id].dom; }
             else {
@@ -50,7 +66,7 @@ export async function tweEngine(cli: Client) {
             }
 
             await wait(200);
-            const newPost = await getting({ gremio: guild_id, userX: xUser, lPost: lastPost, tl: lang, cDom: dominio });
+            const newPost = await getting({ gremio: guild_id, userX: xUser, typeUserX: onlyMedia, lPost: lastPost, tl: lang, cDom: dominio });
             msgSend({ Api: newPost, channel: chToSend, guild: guild_id, xUser: xUser }).catch(e => error(e, "BG.TwitterFollow"));
         }
     } catch (e) { error(`Fallo el checkTwitterFollow ${e}`, "BG.TwitterFollow") }
@@ -58,11 +74,11 @@ export async function tweEngine(cli: Client) {
 
 // === msgSender === //
 interface msgSendIn { Api: { lisTweets: string[], lastPosID: string } | null, channel: TextChannel, guild: string, xUser: string }
-async function msgSend(out: msgSendIn) {
+async function msgSend(out: msgSendIn): Promise<void> {
     try {
         if (out.Api && out.Api.lisTweets.length > 0) {
             for (let i = out.Api.lisTweets.length - 1; i >= 0; i--) {
-                await wait(500);
+                await wait(1_500);
                 await out.channel.send(out.Api.lisTweets[i]);
             }
             await updateFollowTweet(out.guild, out.channel.id, out.xUser, out.Api.lastPosID);
@@ -72,10 +88,11 @@ async function msgSend(out: msgSendIn) {
 }
 
 // === apiSolver === //
-interface todoInt { gremio: string, userX: string, lPost: string | null, tl: string | null, cDom: string | null }
-async function getting(dta: todoInt) {
+interface todoInt { gremio: string, userX: string, typeUserX: boolean, lPost: string | null, tl: string | null, cDom: string | null }
+async function getting(dta: todoInt): Promise<{ lisTweets: string[]; lastPosID: string; } | null> {
     try {
-        const response = await fetch(`https://api.fxtwitter.com/2/profile/${dta.userX}/statuses?count=10`);
+        let typePostGet = dta.typeUserX ? "media" : "statuses";
+        const response = await fetch(`https://api.fxtwitter.com/2/profile/${dta.userX}/${typePostGet}?count=15`, { method: 'GET' });
         if (!response.ok) return null;
 
         interface tweetData { code?: number, results?: { id?: string, url?: string }[] };
