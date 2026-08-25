@@ -1,4 +1,4 @@
-import { error } from "../../logging";
+import { debug, error } from "../../logging";
 import getPool from "../database";
 
 interface FollowTweetX {
@@ -50,7 +50,7 @@ export async function deleteFollowTweetByGuild(guild: string): Promise<boolean> 
 }
 
 /// ============================ BD4Comands ============================ ///
-export async function addFollowTweet(dta: FollowTweetX): Promise<boolean> {
+export async function addFollowTweet(dta: Omit<FollowTweetX, 'id' | 'created_at'>): Promise<boolean> {
     try {
         const pool = await getPool();
         await pool.query(`
@@ -65,29 +65,42 @@ export async function addFollowTweet(dta: FollowTweetX): Promise<boolean> {
     }
 }
 
-export async function followTweetonGuild(gremio: string): Promise<FollowTweetX[] | null> {
+export async function checFollowUser(gremio: string, user: string): Promise<FollowTweetX[] | null> {
+    try {
+        const pool = await getPool();
+        const [rows] = await pool.query("SELECT id, guild_id, canal, xUser, lastPost, lang, customDomain, addBy, onlyMedia, created_at FROM followTweetX WHERE guild_id = ? AND xUser = ?",
+            [gremio, user]);
+        return rows as FollowTweetX[];
+    } catch (e) {
+        error(`Falló la recuperación de datos de followTweet en guild: ${e} `);
+        return null;
+    }
+}
+
+export async function followTweetonGuild(gremio: string): Promise<FollowTweetX[] | undefined> {
+    debug(`Cache MISS para guild: ${gremio} `, "Database");
     try {
         const pool = await getPool();
         const [rows] = await pool.query("SELECT id, guild_id, canal, xUser, lastPost, lang, customDomain, addBy, onlyMedia, created_at FROM followTweetX WHERE guild_id = ?",
             [gremio]);
         return rows as FollowTweetX[];
     } catch (e) {
-        error(`Falló la recuperación de datos de followTweet en guild: ${e}`);
-        return null;
+        error(`Falló la recuperación de datos de followTweet en guild: ${e} `);
+        return undefined;
     }
 }
 
 interface deleteFollowInt { gremio: string, id?: number, xUser?: string }
 export async function deleteFollowTweet(dta: deleteFollowInt): Promise<boolean> {
-    const { gremio, id, xUser } = dta;
     try {
+        const { gremio, id, xUser } = dta;
         if (!id && !xUser) return false;
         const pool = await getPool();
-        if (id) await pool.query(`DELETE FROM followTweetX WHERE guild_id = ? AND id = ?`, [gremio, id]);
-        else await pool.query(`DELETE FROM followTweetX WHERE guild_id = ? AND xUser = ?`, [gremio, xUser]);
+        if (id) await pool.query(`DELETE FROM followTweetX WHERE guild_id = ? AND id = ? `, [gremio, id]);
+        else await pool.query(`DELETE FROM followTweetX WHERE guild_id = ? AND xUser = ? `, [gremio, xUser]);
         return true;
     } catch (e) {
-        error(`Falló la eliminación de datos de followTweet (ID): ${e}`);
+        error(`Falló la eliminación de datos de followTweet(ID): ${e} `);
         return false;
     }
 }

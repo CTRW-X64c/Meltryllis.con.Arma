@@ -20,6 +20,7 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
     { name: "/cleanup", value: "01" },
     { name: "/cronpost", value: "16" },
     { name: "/embed", value: "02" },
+    { name: "/follow_twitter", value: "20" },
     { name: "/jointovoice", value: "03" },
     { name: "/kancolle", value: "19" },
     { name: "/mangadex", value: "04" },
@@ -33,6 +34,7 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
     { name: "/welcome", value: "11" },
     { name: "/work", value: "12" },
     { name: "/youtube", value: "13" },
+
   ];
 
   const focusedValue = interaction.options.getFocused();
@@ -400,6 +402,21 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
             text: i18next.t("help:kancolle.boton_1")
           }
         }
+      }); break;
+
+      /* ======================== followx ======================== */
+      case "20": await embedMaker(interaction, {
+        command: "followx",
+        title: i18next.t("help:followx.title"),
+        description: i18next.t("help:followx.description"),
+        footer: i18next.t("help:followx.footer"),
+        fields: [
+          { name: i18next.t("help:followx.name_1"), value: i18next.t("help:followx.value_1") },
+          { name: i18next.t("help:followx.name_2"), value: i18next.t("help:followx.value_2") },
+          { name: i18next.t("help:followx.name_3"), value: i18next.t("help:followx.value_3") }
+        ],
+        srvPerm: "viewCh|readMsg|sendMsg",
+        chPerm: "viewCh|readMsg|sendMsg",
       }); break;
       /* ======================== default ======================== */
       default:

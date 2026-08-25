@@ -263,5 +263,16 @@
     "value_2": "El subcomando reset es el único de uso libre; muestra los próximos reset y fecha de mantenimiento. \n Se puede usar con el modificador \"all\" para que sea visible para todos; se borra automáticamente después de 30 s.",
     "boton_0": "Kancolle Wiki",
     "boton_1": "KcW: Mantenimiento"
+  },
+  "followx": {
+    "title": "comando /follow_twitter",
+    "description": "Seguimiento de cuentas de Twitter/X, postea cada 10min las nuevas actualizaciones!! \n\n *Nuestro primer comando que se configurar por Formulario!!*",
+    "footer": "Twitter | X",
+    "name_1": "## /follow_twitter seguir ",
+    "value_1": "Añade / Modifica al usuario a seguir! \n Opciones: \n\n**Solo multimedia:** Solo post multimedia / Todo tipos depost \n\n**Traduccion:** Auto añade la clave al link para que se tradusca. \n*en caso de dominio custom este debe soportar traduccion*  \n\n**Dominio custom:** \n Puedes usar un dominio alternativo al default del bot o inlcuso al personalizado en /embed. \n*Prioriza usar el sitio custom de /embed Remplacer: Twitter | X*",
+    "name_2": "## /follow_twitter lista",
+    "value_2": "Lista todos los usuarios que sigues y sus configuraciones!!",
+    "name_3": "## /follow_twitter dejar",
+    "value_3": "Elimina el seguimiento, Se puede usar el ID del subcomando lista o el Usuario. *prioriza el ID en caso de poner ambos asi que puedes borrar otro usuario por accidente!!*"
   }
 }

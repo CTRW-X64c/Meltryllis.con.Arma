@@ -25,7 +25,7 @@ import { handleLimitsButton } from "./commandButtons/NewLimits";
 import { handleMypermissionsCommand, registerMypermissionsCommands } from "./commands/chkperm";
 import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess/noEvery";
 import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "./commands/kancolle";
-import { handleFollowXCommand, registerFollowXCommand } from "./commands/followX";
+import { handleFollowXCommand, registerFollowXCommand, followXModalMake } from "./commands/followX";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -145,6 +145,8 @@ export async function sysUpModals(interaction: ModalSubmitInteraction) {
   switch (true) {
     case interaction.customId === "helpRepo":
       await helpRepo(interaction); break;
+    case interaction.customId === "modal_follow_x":
+      await followXModalMake(interaction); break;
     case interaction.customId.startsWith("respondReport_"):
       await respondReportModal(interaction); break;
     case interaction.customId.startsWith("modal_lim_"):

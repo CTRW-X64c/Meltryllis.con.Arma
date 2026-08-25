@@ -1,5 +1,5 @@
 // sc/sys/auxiliares.ts
-import { Client, Guild, GuildMember, PermissionFlagsBits } from "discord.js";
+import { Client, Guild, GuildMember, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { error } from "../logging";
 import i18next from "i18next";
 
@@ -177,7 +177,7 @@ const listBits = (lis?: string): { id: string, name: string, bit: bigint }[] => 
     return [...mngrBits, ...commonBits];
 }
 
-export function testPermisos(chkPerm: any, idComamnd: string): string[] {
+export function testPermisos(chkPerm: Readonly<PermissionsBitField>, idComamnd: string): string[] {
     let bits: { id: string, name: string, bit: bigint }[] = [];
     switch (idComamnd) {
         case "meltrys":
