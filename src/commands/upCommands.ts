@@ -14,7 +14,7 @@ import { registerRedditCommand, handleRedditCommand } from "./commands/reddit";
 import { registerPostCommand, handlePostCommand } from "./commands/post";
 import { registerCleanUpCommand, handleCleanUpCommand } from "./commands/cleanup";
 import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "./commands/jointovoice";
-import { registerMangadexCommand, handleMangadexCommand } from "./commands/mangadex";
+import { registerMangadexCommand, handleMangadexCommand, seguirMangaPost } from "./commands/mangadex";
 import { registerPermissionsCommand, handlePermissionsCommand, permisosAutocomplete } from "./commands/permission";
 import { registerMusicCommands, handleMusicInteraction } from "./commands/music";
 import { registerRoleButtonCommand, handleRoleButtonCommand, roleButton } from "./commandButtons/roleButton";
@@ -25,7 +25,7 @@ import { handleLimitsButton } from "./commandButtons/NewLimits";
 import { handleMypermissionsCommand, registerMypermissionsCommands } from "./commands/chkperm";
 import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess/noEvery";
 import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "./commands/kancolle";
-import { handleFollowXCommand, registerFollowXCommand, followXModalMake } from "./commands/followX";
+import { handleFollowXCommand, registerFollowXCommand, followXModalMake, removeFollowDo } from "./commands/followX";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -143,10 +143,14 @@ export async function sysUpAutoComplete(interaction: AutocompleteInteraction) {
 
 export async function sysUpModals(interaction: ModalSubmitInteraction) {
   switch (true) {
+    case interaction.customId === "modal_mangadex_follow":
+      await seguirMangaPost(interaction); break;
     case interaction.customId === "helpRepo":
       await helpRepo(interaction); break;
     case interaction.customId === "modal_follow_x":
       await followXModalMake(interaction); break;
+    case interaction.customId === "modal_remove_x":
+      await removeFollowDo(interaction); break;
     case interaction.customId.startsWith("respondReport_"):
       await respondReportModal(interaction); break;
     case interaction.customId.startsWith("modal_lim_"):

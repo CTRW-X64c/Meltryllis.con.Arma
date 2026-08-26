@@ -11,7 +11,7 @@ export interface MangadexFeed {
   mangaUrl: string;
   language: string;
   manga_title: string;
-  last_chapter: string | null; 
+  last_chapter: string | null;
   created_at: Date;
 }
 
@@ -28,7 +28,7 @@ export async function getMangadexFeeds(guildId: string): Promise<MangadexFeed[]>
     return [...mangadexFeedCache.get(guildId)!];
   }
   debug(`[BD.Mangadex] Cache MISS para guild: ${guildId}, consultando BD`, "Database");
-  
+
   try {
     const pool = await getPool();
     const [rows] = await pool.query(
@@ -50,7 +50,7 @@ export async function getMangadexFeeds(guildId: string): Promise<MangadexFeed[]>
 
     mangadexFeedCache.set(guildId, feeds);
     debug(`[BD.Mangadex] Caché actualizada para guild: ${guildId} (${feeds.length} feeds)`, "Database");
-    
+
     return feeds;
 
   } catch (err) {
@@ -59,16 +59,16 @@ export async function getMangadexFeeds(guildId: string): Promise<MangadexFeed[]>
   }
 }
 
-export async function AddMangadexFeed(feed: Omit<MangadexFeed, 'id' | 'created_at'>): Promise<number> {
+export async function AddMangadexFeed(feed: Omit<MangadexFeed, 'id' | 'created_at' | `last_chapter`>): Promise<number> {
   try {
     const pool = await getPool();
     const [result] = await pool.query(
-      `INSERT INTO mangadex_feeds (guild_id, channel_id, RSS_manga, mangaUrl, language, manga_title, last_chapter) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE RSS_manga = VALUES(RSS_manga), language = VALUES(language)`,
-      [feed.guild_id, feed.channel_id, feed.RSS_manga, feed.mangaUrl, feed.language, feed.manga_title, feed.last_chapter]
+      `INSERT INTO mangadex_feeds (guild_id, channel_id, RSS_manga, mangaUrl, language, manga_title) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE RSS_manga = VALUES(RSS_manga), language = VALUES(language)`,
+      [feed.guild_id, feed.channel_id, feed.RSS_manga, feed.mangaUrl, feed.language, feed.manga_title]
     );
 
     const header = result as ResultSetHeader;
-    
+
     invalidateGuildCache(feed.guild_id);
 
     debug(`[BD.Mangadex] Feed agregado (ID: ${header.insertId}) para guild: ${feed.guild_id}`, "Database");
@@ -88,7 +88,7 @@ export async function updateMangadexFeedLastChapter(id: number, lastChapter: str
     );
 
     invalidateGuildCache(guildId);
-    
+
     debug(`[BD.Mangadex] Último capítulo actualizado para feed ${id} en guild: ${guildId}`, "Database");
   } catch (err) {
     error(`[BD.Mangadex] Error al actualizar feed: ${err}`, "Database");
@@ -106,11 +106,11 @@ export async function removeMangadexFeed(guildId: string, feedId: string): Promi
 
     const header = result as ResultSetHeader;
     if (header.affectedRows > 0) {
-        invalidateGuildCache(guildId);
-        debug(`[BD.Mangadex] Feed ID ${feedId} eliminado en guild ${guildId}`, "Database");
-        return true;
+      invalidateGuildCache(guildId);
+      debug(`[BD.Mangadex] Feed ID ${feedId} eliminado en guild ${guildId}`, "Database");
+      return true;
     }
-    
+
     debug(`[BD.Mangadex] No se encontró feed ID ${feedId} en guild ${guildId} para eliminar`, "Database");
     return false;
   } catch (err) {
@@ -127,17 +127,17 @@ export async function getAllMangadexFeeds(): Promise<MangadexFeed[]> {
     );
 
     const feeds = (rows as any[]).map(row => ({
-        id: row.id,
-        guild_id: row.guild_id,
-        channel_id: row.channel_id,
-        RSS_manga: row.RSS_manga,
-        mangaUrl: row.mangaUrl,
-        language: row.language,
-        manga_title: row.manga_title,
-        last_chapter: row.last_chapter,
-        created_at: new Date(row.created_at)
+      id: row.id,
+      guild_id: row.guild_id,
+      channel_id: row.channel_id,
+      RSS_manga: row.RSS_manga,
+      mangaUrl: row.mangaUrl,
+      language: row.language,
+      manga_title: row.manga_title,
+      last_chapter: row.last_chapter,
+      created_at: new Date(row.created_at)
     }));
-    
+
     debug(`[BD.Mangadex] Obtenidos ${feeds.length} feeds totales de la BD`, "Database");
     return feeds;
   } catch (err) {

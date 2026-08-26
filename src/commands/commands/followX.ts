@@ -14,10 +14,7 @@ export async function registerFollowXCommand(): Promise<SlashCommandBuilder[]> {
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addSubcommand(s => s.setName("seguir").setDescription("Seguir usuario"))
         .addSubcommand(s => s.setName("lista").setDescription("Ver lista de usuarios seguidos"))
-        .addSubcommand(s => s.setName("dejar").setDescription("Dejar de seguir usuario")
-            .addIntegerOption(o => o.setName("id").setDescription("ID del usuario a dejar de seguir").setRequired(false))
-            .addStringOption(o => o.setName("usuario").setDescription("Usuario de X | Twitter a dejar de seguir").setRequired(false))
-        )
+        .addSubcommand(s => s.setName("dejar").setDescription("Dejar de seguir usuario"))
     return [followX] as SlashCommandBuilder[];
 }
 
@@ -44,7 +41,7 @@ export async function handleFollowXCommand(inter: ChatInputCommandInteraction) {
             case "lista":
                 await listFollow(inter, guild); break;
             case "dejar":
-                removeFollow(inter, guild); break;
+                removeFollowModal(inter); break;
             default:
                 inter.editReply({ content: i18next.t("common:Errores.switchGeneral") })
         }
@@ -54,7 +51,7 @@ export async function handleFollowXCommand(inter: ChatInputCommandInteraction) {
 }
 
 // =================================================== addFollowX ===================================================
-export async function followXModal(i: ChatInputCommandInteraction) {
+async function followXModal(i: ChatInputCommandInteraction) {
     const modal = new ModalBuilder().setCustomId('modal_follow_x').setTitle('Configurar Follow de X/Twitter');
     // User X|Twitter
     const userOp1 = new TextInputBuilder().setCustomId('usuario').setStyle(TextInputStyle.Short).setRequired(true).setPlaceholder("ej: @x | x.com/x | x");
@@ -164,7 +161,7 @@ export async function followXModalMake(i: ModalSubmitInteraction) {
     } catch (e: any) { error(`Ocurrio un error al procesar la solicitud!! ${e}`); await i.editReply("Ocurrio un error al procesar la solicitud!!") }
 }
 
-
+// ======================= listFollow ======================= //
 async function listFollow(i: ChatInputCommandInteraction, guild: Guild) {
     await i.deferReply({ flags: MessageFlags.Ephemeral });
     try {
@@ -208,16 +205,30 @@ async function listFollow(i: ChatInputCommandInteraction, guild: Guild) {
     } catch { await i.editReply("Algo Fallo al listar los usuarios!!") }
 }
 
-async function removeFollow(i: ChatInputCommandInteraction, guild: Guild) {
+// ======================= removeFollow ======================= //
+async function removeFollowModal(i: ChatInputCommandInteraction) {
+    const modal = new ModalBuilder().setCustomId('modal_remove_x').setTitle('Remover Follow de X/Twitter');
+    // ID
+    const idOp1 = new TextInputBuilder().setCustomId('id').setStyle(TextInputStyle.Short).setRequired(false).setPlaceholder("ID en /follow_twitter lista");
+    const idIn = new LabelBuilder().setLabel('ID del follow a eliminar').setTextInputComponent(idOp1);
+    // User X|Twitter
+    const userOp1 = new TextInputBuilder().setCustomId('usuario').setStyle(TextInputStyle.Short).setRequired(false).setPlaceholder("ej: @x | x.com/x | x");
+    const userIn = new LabelBuilder().setLabel('Usuario de X/Twitter').setTextInputComponent(userOp1);
+    // Out
+    modal.addLabelComponents(idIn, userIn)
+    await i.showModal(modal);
+}
+
+export async function removeFollowDo(i: ModalSubmitInteraction) {
     await i.deferReply({ flags: MessageFlags.Ephemeral });
     try {
-        const id = i.options.getInteger("id") || undefined;
-        const user = i.options.getString("usuario") || undefined;
+        const id = i.fields.getTextInputValue("id").trim() || undefined;
+        const user = i.fields.getTextInputValue("usuario") || undefined;
         if (!id && !user) { i.editReply("Debes proporcionar un ID o un Usuario para eliminar el follow!"); return; }
-
         let validUser: string | undefined = undefined, doNumber: number | undefined = undefined;
         if (id) {
-            doNumber = !isNaN(id) ? id : undefined;
+            const strNum = parseInt(id, 10);
+            doNumber = !isNaN(strNum) ? strNum : undefined;
             if (!doNumber) { i.editReply("El ID debe ser un numero!"); return; }
         }
         else {
@@ -226,7 +237,7 @@ async function removeFollow(i: ChatInputCommandInteraction, guild: Guild) {
             if (!validUser) { i.editReply(`El usuario ${user} no es valido!`); return; }
         }
 
-        const eraser = await deleteFollowTweet({ gremio: guild.id, id: doNumber, xUser: validUser })
+        const eraser = await deleteFollowTweet({ gremio: i.guild!.id, id: doNumber, xUser: validUser })
         if (eraser) i.editReply(`Se elimino el follow con el ${doNumber ? `ID: ${id}` : `Usuario: @${validUser}`}`)
         else i.editReply(`No sepudo borrar el follow con el ${doNumber ? `ID: ${id}` : `Usuario: @${validUser}`}`)
     } catch { i.editReply(`Algo salio mal al intentar borrar el follow!!`) }
@@ -235,7 +246,7 @@ async function removeFollow(i: ChatInputCommandInteraction, guild: Guild) {
 // =============================== Aux =============================== // 
 
 async function userCheck(userX: string): Promise<string | undefined> {
-    let chekUserX = userX;
+    let chekUserX = userX.trim();
     if (chekUserX.startsWith("http") || chekUserX.startsWith("@")) {
         const chkXusrTw = chekUserX.match(/(?:twitter\.com|x\.com|@)\/?([a-zA-Z0-9_]{1,15})/)?.[1];
         if (chkXusrTw) chekUserX = chkXusrTw;
