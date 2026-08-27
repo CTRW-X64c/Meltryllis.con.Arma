@@ -5,7 +5,7 @@ import { error, debug } from "../../sys/logging";
 import { redditApi } from "../../sys/zGears/RedditApi";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { masterPerm } from "../../sys/zGears/auxiliares";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { countItems } from "../../sys/DB-Engine/database";
 
@@ -81,12 +81,8 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guild: Guil
         return;
     }
 
-    const me = discordChannel.permissionsFor(guild.members.me!);
-    const perChTo = testPermisos(me, "viewCh|sendMsg|addlink");
-    if (perChTo.some(p => p.includes("❌"))) {
-        await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo[0] }) });
-        return;
-    }
+    const testPerm = masterPerm(discordChannel, "viewCh|sendMsg|addlink")
+    if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 
     const checkIfNSFW = (channel: any): boolean => {
         if (!channel) return false;

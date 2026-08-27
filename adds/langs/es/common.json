@@ -13,7 +13,8 @@
     "noChannel": "⛔⛔ Este comando solo funciona en canales de texto del servidor ⛔⛔",
     "switchGeneral": "¡Error al procesar el comando!",
     "noGuild": "⛔⛔ Este comando solo funciona en servidores!! ⛔⛔",
-    "missing_permissions": "❌ Me faltan permisos en el canal de destino {{a1}}: {{a2}}",
+    "missing_permissions": "❌ No tengo los permisos requeridos para hacer esto 🥺​\n Permisos faltantes para el Canal: **{{a1}}:** \n{{a2}}",
+    "missing_permissions_server": "❌ No tengo los permisos requeridos para hacer esto 🥺​ Necesito los sigueintes permisos: \n{{a1}}",
     "missing_permissions_origen": "❌ Me faltan permisos en el canal de origen {{a1}}: \n {{a2}}",
     "servLimit": "⛔ Se alcanzó el límite de este comando. {{a1}}/{{a2}} ⛔",
     "nochannelFind": "❌ No pude encontrar el canal seleccionado!!"

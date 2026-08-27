@@ -7,7 +7,7 @@ import { error, info, debug } from "../../sys/logging";
 import i18next from "i18next";
 import { getVoiceConfig, setVoiceConfig, getAllTempVoiceChannels, getGuildTempChannelCount, removeVoiceConfig } from "../../sys/DB-Engine/links/JointoVoice";
 import { hasPermission } from "../../sys/zGears/mPermission";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { masterPerm } from "../../sys/zGears/auxiliares";
 
 
 export async function registerJoinToCreateCommand(): Promise<SlashCommandBuilder[]> {
@@ -72,7 +72,6 @@ export async function handleJoinToCreateCommand(interaction: ChatInputCommandInt
 
 async function setMasterChannel(interaction: ChatInputCommandInteraction, guild: Guild): Promise<void> {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
     try {
         const channel = interaction.options.getChannel("channel") as VoiceChannel;
         if (!channel) {
@@ -80,20 +79,9 @@ async function setMasterChannel(interaction: ChatInputCommandInteraction, guild:
             return;
         }
 
-        const me = channel.permissionsFor(guild.members.me!);
-        const perChTo = testPermisos(me, "viewCh|chManager|voiceMove|voiceConnect");
-        if (perChTo.some(p => p.includes("❌"))) {
-            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${channel.id}>`, a2: perChTo[0] }) });
-            return;
-        }
+        const testPerm = masterPerm(channel, "viewCh|chManager|voiceMove|voiceConnect")
+        if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${channel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 
-        const botPermissions = channel.permissionsFor(interaction.client.user!);
-        if (!botPermissions?.has(['ViewChannel', 'Connect', 'ManageChannels'])) {
-            await interaction.editReply({
-                content: i18next.t("commands:joinCreate.interacciones.error_bot_permissions")
-            });
-            return;
-        }
         await setVoiceConfig(guild.id, channel.id, true);
 
         await interaction.editReply({

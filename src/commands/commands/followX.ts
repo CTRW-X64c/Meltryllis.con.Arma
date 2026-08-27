@@ -1,11 +1,11 @@
-import { ChannelSelectMenuBuilder, ChatInputCommandInteraction, EmbedBuilder, Guild, GuildBasedChannel, LabelBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ChannelSelectMenuBuilder, ChatInputCommandInteraction, EmbedBuilder, Guild, LabelBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import i18next from "i18next";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
 import { addFollowTweet, checFollowUser, deleteFollowTweet, followTweetonGuild } from "../../sys/DB-Engine/links/followTweet";
 import { countItems } from "../../sys/DB-Engine/database";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { masterPerm } from "../../sys/zGears/auxiliares";
 
 export async function registerFollowXCommand(): Promise<SlashCommandBuilder[]> {
     const followX = new SlashCommandBuilder()
@@ -101,8 +101,8 @@ export async function followXModalMake(i: ModalSubmitInteraction) {
         const oldyData = await checFollowUser(guild.id, isValiUser);
         if (!oldyData || oldyData.length === 0) {
             if (!inCh) { await i.editReply({ content: "Necesitas asignar un canal para primera configuracion de este usuario X | Twitter" }); return; }
-            const validCh = channlChk(inCh, guild)
-            if (!validCh.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: validCh.erro[0] }) }); return; }
+            const testPerm = masterPerm(inCh, "viewCh|sendMsg|addlink")
+            if (!testPerm.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
             // valid cupos
             const conty = await countItems(guild.id, 'followTweetX');
             const limit = await getGuildLimits(guild.id);
@@ -135,8 +135,8 @@ export async function followXModalMake(i: ModalSubmitInteraction) {
             }
 
             if (inCh) {
-                const validCh = channlChk(inCh, guild)
-                if (!validCh.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: validCh.erro[0] }) }); return; }
+                const validCh = masterPerm(inCh, "viewCh|sendMsg|addlink")
+                if (!validCh.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: validCh.msg.join('\n') }) }); return; }
                 channelo = inCh.id;
             }
 
@@ -268,13 +268,6 @@ function chekLang(lang: string | null) {
     lang ? tlChk = lang.toLowerCase().trim() : tlChk = null;
     if (tlChk && !['es', 'en', 'pt', 'ja', 'ko'].includes(tlChk)) return null;
     return tlChk
-}
-
-function channlChk(ch: GuildBasedChannel, guild: Guild) {
-    const me = ch.permissionsFor(guild.members.me!);
-    const perChTo = testPermisos(me, "viewCh|sendMsg|addlink");
-    if (perChTo.some(p => p.includes("❌"))) { return { ok: false, erro: perChTo } }
-    return { ok: true, erro: [] }
 }
 
 function chekDomain(domain: string | null) {

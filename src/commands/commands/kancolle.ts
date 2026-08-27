@@ -3,7 +3,7 @@ import { addBD, delBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/K
 import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { error } from '../../sys/logging';
-import { testPermisos } from '../../sys/zGears/auxiliares';
+import { masterPerm } from '../../sys/zGears/auxiliares';
 import { allLefts, mantDates, turnDate, JSTtoUTC, getNowJST } from '../../sys/zGears/kc_aux'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
 import emojis from '../../../adds/otros/emojis.json'
@@ -63,13 +63,13 @@ async function enableModal(interacciones: ChatInputCommandInteraction) {
     const modal = new ModalBuilder().setCustomId('modal_kancolle_activar').setTitle('Notificaciones de Kancolle');
 
     const chOp = new ChannelSelectMenuBuilder().setCustomId("canal").setPlaceholder("ej:#kantai-collection").setRequired(true).setChannelTypes(0, 5, 10, 11, 12);
-    const chMod = new LabelBuilder().setLabel('Canal o Hilo a enviar!').setChannelSelectMenuComponent(chOp);
+    const chMod = new LabelBuilder().setLabel('Canal o Hilo para enviar aviso!').setChannelSelectMenuComponent(chOp);
 
     const roleOp = new RoleSelectMenuBuilder().setCustomId("role").setPlaceholder("ej:@kancolle-ntfy").setRequired(false);
     const roleMod = new LabelBuilder().setLabel('Rol a mencionar al notificar!').setRoleSelectMenuComponent(roleOp)
 
     const KancolleToDo = [
-        { label: "Mantenimientos", value: "mnt", default: true, emoji: emojis.mante },
+        { label: "Mantenimientos", value: "mnt", default: false, emoji: emojis.mante },
         { label: "PvPs, Ejercicios!", value: "pvp", default: false, emoji: emojis.pvp },
         { label: "Misiones", value: "quest", default: false, emoji: emojis.quest },
         { label: "Extra Operaciones", value: "oem", default: false, emoji: emojis.oem },
@@ -77,14 +77,14 @@ async function enableModal(interacciones: ChatInputCommandInteraction) {
     ];
 
     const msgSendTypes = new StringSelectMenuBuilder().setCustomId("msgSendTypes")
-        .setMinValues(1).setMaxValues(5).setPlaceholder("Default: sin filtro. Max: 3").setRequired(true)
+        .setMinValues(1).setMaxValues(5).setPlaceholder("Mantenimiento, PvP, Misiones...").setRequired(false)
         .addOptions(KancolleToDo.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
-    const msgSend = new LabelBuilder().setLabel('Avisos a enviar').setStringSelectMenuComponent(msgSendTypes);
+    const msgSend = new LabelBuilder().setLabel('Aviso silencioso!').setStringSelectMenuComponent(msgSendTypes);
 
     const ntfyTypes = new StringSelectMenuBuilder().setCustomId("ntfyTypes")
-        .setMinValues(1).setMaxValues(5).setPlaceholder("Default: sin filtro. Max: 3").setRequired(false)
+        .setMinValues(1).setMaxValues(5).setPlaceholder("RECUERDA ASIGNAR UN ROL!!").setRequired(false)
         .addOptions(KancolleToDo.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
-    const ntfy = new LabelBuilder().setLabel('Avisar con mencion al Rol').setStringSelectMenuComponent(ntfyTypes);
+    const ntfy = new LabelBuilder().setLabel('Aviso con mención: Requiere un Rol!').setStringSelectMenuComponent(ntfyTypes);
 
     modal.addLabelComponents(chMod, roleMod, msgSend, ntfy)
     await interacciones.showModal(modal);
@@ -99,18 +99,19 @@ export async function enableModPost(interacciones: ModalSubmitInteraction) {
         const vrfyCh = rawCh ? await guild.channels.fetch(rawCh.id) as TextChannel : null;
         if (!vrfyCh) { await interacciones.editReply(i18next.t("commands:kancolle.interacciones.error_ch_noValido")); return; }
 
-        const me = vrfyCh.permissionsFor(guild.members.me!)
-        const perChTo = testPermisos(me, "viewCh|sendMsg|msgManager|mentions");
-        if (perChTo.some(p => p.includes("❌"))) {
-            await interacciones.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${rawCh}>`, a2: perChTo[0] }) });
-            return;
-        }
+        const testPerm = masterPerm(vrfyCh, "viewCh|sendMsg|msgManager|mentions")
+        if (!testPerm.ok) { await interacciones.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `${rawCh}`, a2: testPerm.msg.join('\n') }) }); return; }
 
         const rawRole = interacciones.fields.getSelectedRoles("role")?.first() ?? null;
         const vrfyRol = rawRole ? await guild.roles.fetch(rawRole.id) : null;
 
         const rawSndAviso = interacciones.fields.getStringSelectValues("msgSendTypes") || [];
         const rawSndNtfy = interacciones.fields.getStringSelectValues("ntfyTypes") || [];
+        if (rawSndAviso.length === 0 && rawSndNtfy.length === 0) {
+            await interacciones.editReply({ content: i18next.t("commands:kancolle.interacciones.error_both_noValido") });
+            return;
+        }
+
         const { snd, ntfy } = turnIntoBoo(rawSndAviso, rawSndNtfy, !!vrfyRol)
         const ntfANDsnd = (ntfy: boolean, snd: boolean) => ({ av: ntfy || snd, ntf: ntfy });
 
@@ -131,6 +132,7 @@ export async function enableModPost(interacciones: ModalSubmitInteraction) {
             .setTitle("Kancolle - Activado")
             .setColor(0xdf0000)
             .setFooter({ text: "⚓ |  Kancolle notify  | ⚓" })
+            .setDescription("Si activaste aviso con mencion sin elegir Rol estas se desactivaran automaticamente")
             .addFields(
                 { name: "Canal:", value: `<#${cnfKC.channel}>` },
                 { name: "Rol a notificar:", value: `${cnfKC.role ? `<@&${cnfKC.role}>` : "No asignado!!"}` },

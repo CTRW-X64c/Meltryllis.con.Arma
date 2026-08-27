@@ -658,7 +658,8 @@
       "emb_value_mante": "**⏰ Inicia:** {{a1}}\n **⏰ Termina:** {{a2}} \n",
       "resrts_let_send_fail": "NO SE PUDO ENVIAR EL MENSAJE AL CANAL LOCAL!!",
       "status_embed_field_active_ntf": "Configuracion de Notificaciones:",
-      "error_nada_activado": "Debes activar almenos un tipo de aviso!!"
+      "error_nada_activado": "Debes activar almenos un tipo de aviso!!",
+      "error_both_noValido": "❌ No seleccionaste ningun tipo de notificacion!! \n *** Las notificaciones con mencion requieren un Rol ***"
     },
     "bgProsses": {
       "siwtchNotify_vText": "**PVP:** {{a1}}\n**EO:** {{a2}}\n**Exp. Mensuales:** {{a3}}\n> Misiones:\n**Diarias:** {{a4}}\n**Semanales:** {{a5}}\n**Mensuales:** {{a6}}\n**Quaterly:** {{a7}}\n> Rank:\n**Cutoff Diario:** {{a8}}\n**Cutoff Mesual:** {{a9}}",

@@ -38,14 +38,12 @@ export async function updateFollowTweet(gremio: string, canal: string, xUser: st
     }
 }
 
-export async function deleteFollowTweetByGuild(guild: string): Promise<boolean> {
+export async function deleteFollowTweetByGuild(guild: string): Promise<void> {
     try {
         const pool = await getPool();
         await pool.query(`DELETE FROM followTweetX WHERE guild_id = ?`, [guild]);
-        return true;
     } catch (e) {
         error(`Falló la eliminación de datos de followTweet (Guild): ${e}`);
-        return false;
     }
 }
 

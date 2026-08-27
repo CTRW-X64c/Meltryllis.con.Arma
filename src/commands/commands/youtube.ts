@@ -6,7 +6,7 @@ import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next"
 import Parser from "rss-parser";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { masterPerm } from "../../sys/zGears/auxiliares";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { countItems } from "../../sys/DB-Engine/database";
 
@@ -118,12 +118,8 @@ async function seguirCanal(interaction: any, guild: Guild) {
     return;
   }
 
-  const me = discordChannel.permissionsFor(guild.members.me!);
-  const perChTo = testPermisos(me, "viewCh|sendMsg|addlink");
-  if (perChTo.some(p => p.includes("❌"))) {
-    await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo[0] }) });
-    return;
-  }
+  const testPerm = masterPerm(discordChannel, "viewCh|sendMsg|addlink")
+  if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 
   if (!rssUrl.includes("youtube.com/feeds/videos.xml") || !rssUrl.includes("channel_id=")) {
     await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.rss_error"), flags: MessageFlags.Ephemeral });

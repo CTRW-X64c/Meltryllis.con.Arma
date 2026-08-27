@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, 
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { masterPerm } from "../../sys/zGears/auxiliares";
 
 export async function registerCleanUpCommand(): Promise<SlashCommandBuilder[]> {
     const cleanupCommand = new SlashCommandBuilder()
@@ -71,15 +71,8 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
             return;
         }
 
-        const me = channel.permissionsFor(guild.members.me!);
-        const perChTo = testPermisos(me, "viewCh|chManager");
-        if (perChTo.some(p => p.includes("❌"))) {
-            await interaction.reply({
-                content: i18next.t("common:Errores.missing_permissions", { a1: `<#${channel.id}>`, a2: perChTo[0] }),
-                flags: MessageFlags.Ephemeral,
-            });
-            return;
-        }
+        const testPerm = masterPerm(channel, "viewCh|chManager")
+        if (!testPerm.ok) { await interaction.reply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${channel.id}>`, a2: testPerm.msg.join('\n') }), flags: MessageFlags.Ephemeral }); return; }
 
         const startOption = interaction.options.getString("start", true);
         const messageId = interaction.options.getString("message_id", true);

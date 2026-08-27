@@ -5,7 +5,7 @@ import { hasPermission } from "../../sys/zGears/mPermission";
 import { addCronpost, getCronpost, getMSGPreview, removeCronpost } from "../../sys/DB-Engine/links/Cronpost";
 import { programarTarea, detenerTarea } from "../../bgProcess/exeCron";
 import { error } from "node:console";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { masterPerm } from "../../sys/zGears/auxiliares";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { countItems } from "../../sys/DB-Engine/database";
 
@@ -176,13 +176,8 @@ async function cronPost(interaction: ChatInputCommandInteraction, guild: Guild) 
         return;
     }
 
-    const me = canalDestino.permissionsFor(guild.members.me!);
-    const myPerm = "viewCh|sendMsg|addlink|addfiles";
-    const perChTo = testPermisos(me, myPerm);
-    if (perChTo.some(p => p.includes("❌"))) {
-        await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${canalDestino.id}>`, a2: perChTo[0] }) });
-        return;
-    }
+    const testPerm = masterPerm(canalDestino, "viewCh|sendMsg|addlink|addfiles")
+    if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${canalDestino.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 
     const targetMessage = await canalOrigen.messages.fetch(idMsg).catch(() => null);
     if (!targetMessage) {

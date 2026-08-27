@@ -1,5 +1,5 @@
 // sc/sys/auxiliares.ts
-import { Client, Guild, GuildMember, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import { Client, Guild, GuildBasedChannel, GuildMember, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { error } from "../logging";
 import i18next from "i18next";
 
@@ -207,23 +207,19 @@ export function testPermisos(chkPerm: Readonly<PermissionsBitField>, idComamnd: 
     return chunks;
 }
 
-// Nota: Modulo para llamar el check 
-/* Tipo por canal!!
-    const me = canalDestino.permissionsFor(guild.members.me!);
-    const perChTo = testPermisos(me, "viewCh|sendMsg|addlink|addfiles");
-    if (perChTo.some(p => p.includes("❌"))) {
-        await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo[0] }) });
-        return;
-    }
-*/ /* Tipo General!!
-    const im = interaction.guild?.members.me?.permissions;
-    const serPrm = testPermisos(im, "viewCh|sendMsg|addlink|addfiles");
-    if (serPrm.some(p => p.includes("❌"))) {
-        await interaction.editReply({ content: `❌ El bot no tiene permisos suficientes en <#${canalDestino.id}>:\n${serPrm.join[0]}` });
-        return;
-    }
-*/
+export function masterPerm(iMe: Guild | GuildBasedChannel, toTest: string): { ok: boolean, msg: string[] } {
+    let im: Readonly<PermissionsBitField>
+    if (iMe instanceof Guild) im = iMe.members.me!.permissions
+    else im = iMe.permissionsFor(iMe.guild.members.me!)
 
+    const testing = testPermisos(im, toTest);
+    if (testing.some(p => p.includes("❌"))) { return { ok: false, msg: testing } }
+    else { return { ok: true, msg: testing } }
+}
+/*
+const testPerm = masterPerm(im, null)
+if (!testPerm.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
+*/
 /* ======================================== Check Permisos ======================================== */
 export async function topRol(guild: Guild, chkPerm: GuildMember, permIds?: string): Promise<string[]> {
     try {

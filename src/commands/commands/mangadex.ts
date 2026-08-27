@@ -4,7 +4,7 @@ import { AddMangadexFeed, getMangadexFeeds, MangadexFeed, removeMangadexFeed } f
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { masterPerm } from "../../sys/zGears/auxiliares";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { countItems } from "../../sys/DB-Engine/database";
 
@@ -100,12 +100,8 @@ export async function seguirMangaPost(interaction: ModalSubmitInteraction) {
   const limit = await getGuildLimits(guild.id);
   if ((conty >= limit.dexMax)) { await interaction.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.dexMax }) }); return; }
   // chek Perm
-  const me = discordChannel.permissionsFor(guild.members.me!);
-  const perChTo = testPermisos(me, "viewCh|sendMsg|addlink");
-  if (perChTo.some(p => p.includes("❌"))) {
-    await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo[0] }) });
-    return;
-  }
+  const testPerm = masterPerm(discordChannel, "viewCh|sendMsg|addlink")
+  if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
   // chek Ids
   const mangDex = getMangaId(manga_url);
   if (!mangDex.id || !mangDex.shortUrl) { await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.manga_error") }); return; }

@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, 
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { masterPerm } from "../../sys/zGears/auxiliares";
 
 export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
     const postCommand = new SlashCommandBuilder()
@@ -186,12 +186,8 @@ async function PostMsg(interaction: ChatInputCommandInteraction): Promise<void> 
         return;
     }
 
-    const me = targetChannel.permissionsFor(interaction.guild!.members.me!);
-    const perChTo = testPermisos(me, "viewCh|sendMsg|addlink|addfiles");
-    if (perChTo.some(p => p.includes("❌"))) {
-        await interaction.reply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${targetChannel.id}>`, a2: perChTo[0] }) });
-        return;
-    }
+    const testPerm = masterPerm(currentChannel, "viewCh|sendMsg|addlink|addfiles")
+    if (!testPerm.ok) { await interaction.reply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${currentChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 
     await interaction.reply({
         content: i18next.t("commands:post.interacciones.mensaje", { a1: `${targetChannel}` }),
@@ -299,19 +295,11 @@ async function PostCopy(interaction: ChatInputCommandInteraction): Promise<void>
             return;
         }
 
-        const meFrom = sourceChannel.permissionsFor(interaction.guild!.members.me!);
-        const perChFrom = testPermisos(meFrom, "viewCh|readMsg");
-        if (perChFrom.some(p => p.includes("❌"))) {
-            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions_origen", { a1: `<#${sourceChannel.id}>`, a2: perChFrom[0] }) });
-            return;
-        }
+        const meFrom = masterPerm(sourceChannel, "viewCh|readMsg")
+        if (!meFrom.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${sourceChannel.id}>`, a2: meFrom.msg.join('\n') }) }); return; }
 
-        const meTo = targetChannel.permissionsFor(interaction.guild!.members.me!);
-        const perChTo = testPermisos(meTo, "viewCh|sendMsg|addlink|addfiles");
-        if (perChTo.some(p => p.includes("❌"))) {
-            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${targetChannel.id}>`, a2: perChTo[0] }) });
-            return;
-        }
+        const meTo = masterPerm(targetChannel, "viewCh|sendMsg|addlink|addfiles")
+        if (!meTo.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `***objetivo*** <#${targetChannel.id}>`, a2: meTo.msg.join('\n') }) }); return; }
 
         let originalMessage: Message;
         try {
@@ -378,12 +366,8 @@ async function PostEdit(interaction: ChatInputCommandInteraction): Promise<void>
             return;
         }
 
-        const meTo = targetChannel.permissionsFor(interaction.guild!.members.me!);
-        const perChTo = testPermisos(meTo, "viewCh|msgManager|readMsg|addlink|addfiles");
-        if (perChTo.some(p => p.includes("❌"))) {
-            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${targetChannel.id}>`, a2: perChTo[0] }) });
-            return;
-        }
+        const testPerm = masterPerm(targetChannel, "viewCh|msgManager|readMsg|addlink|addfiles")
+        if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${targetChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 
         let messageToEdit: Message;
         try {
@@ -545,12 +529,8 @@ async function PostReply(interaction: ChatInputCommandInteraction): Promise<void
             return;
         }
 
-        const meTo = messageChannel.permissionsFor(interaction.guild!.members.me!);
-        const perChTo = testPermisos(meTo, "viewCh|readMsg|sendMsg|addlink|addfiles");
-        if (perChTo.some(p => p.includes("❌"))) {
-            await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${messageChannel.id}>`, a2: perChTo[0] }) });
-            return;
-        }
+        const meTo = masterPerm(messageChannel, "viewCh|readMsg|sendMsg|addlink|addfiles")
+        if (!meTo.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${messageChannel.id}>`, a2: meTo.msg.join('\n') }) }); return; }
 
         let originalMessage: Message;
         try {
@@ -661,12 +641,8 @@ async function PostEmbed(interaction: ChatInputCommandInteraction): Promise<void
         return;
     }
 
-    const me = targetChannel.permissionsFor(interaction.guild!.members.me!);
-    const perChTo = testPermisos(me, "viewCh|sendMsg|addlink|addfiles");
-    if (perChTo.some(p => p.includes("❌"))) {
-        await interaction.reply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${targetChannel.id}>`, a2: perChTo[0] }), flags: MessageFlags.Ephemeral });
-        return;
-    }
+    const testPerm = masterPerm(targetChannel, "viewCh|sendMsg|addlink|addfiles")
+    if (!testPerm.ok) { await interaction.reply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${targetChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 
     await interaction.reply({
         content:
