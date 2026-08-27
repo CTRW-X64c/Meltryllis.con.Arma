@@ -24,7 +24,7 @@ import { handleLimitsModal } from "./commandModales/modalLimits";
 import { handleLimitsButton } from "./commandButtons/NewLimits";
 import { handleMypermissionsCommand, registerMypermissionsCommands } from "./commands/chkperm";
 import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess/noEvery";
-import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "./commands/kancolle";
+import { handleKantaiCollectionCommand, registerKantaiCollectionCommand, enableModPost } from "./commands/kancolle";
 import { handleFollowXCommand, registerFollowXCommand, followXModalMake, removeFollowDo } from "./commands/followX";
 
 /* ================================= Registro de comandos ================================= */
@@ -151,6 +151,8 @@ export async function sysUpModals(interaction: ModalSubmitInteraction) {
       await followXModalMake(interaction); break;
     case interaction.customId === "modal_remove_x":
       await removeFollowDo(interaction); break;
+    case interaction.customId === "modal_kancolle_activar":
+      await enableModPost(interaction); break;
     case interaction.customId.startsWith("respondReport_"):
       await respondReportModal(interaction); break;
     case interaction.customId.startsWith("modal_lim_"):
