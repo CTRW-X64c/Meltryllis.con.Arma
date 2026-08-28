@@ -104,7 +104,6 @@ export async function handleJoinToCreateCommand(int: ChatInputCommandInteraction
                 filter: (i: ButtonInteraction) => i.user.id === int.user.id,
                 componentType: ComponentType.Button,
                 time: 120_000, // 2 min
-                max: 2
             });
 
             if (choice.customId === 'joinToV_Buton_exit') {
@@ -139,7 +138,7 @@ export async function handleJoinToCreateCommand(int: ChatInputCommandInteraction
                 try {
                     const allTempCh = await getAllTempVoiceChannels();
                     const guildTempCh = allTempCh.filter(ch => ch.guildId === guild.id);
-                    let deletedCount = 0, errorCount = 0;
+                    let deletedCount = 0;
                     for (const tempChannel of guildTempCh) {
                         try {
                             const channel = await int.guild?.channels.fetch(tempChannel.channelId);
@@ -149,7 +148,6 @@ export async function handleJoinToCreateCommand(int: ChatInputCommandInteraction
                                 deletedCount++;
                             }
                         } catch (err) {
-                            errorCount++;
                             debug(`Error eliminando canal ${tempChannel.channelId}: ${err}`, "JoinToCreate");
                         }
                     }
