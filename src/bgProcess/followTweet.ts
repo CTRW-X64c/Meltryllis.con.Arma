@@ -119,8 +119,8 @@ async function getting(dta: todoInt): Promise<{ lisTweets: string[]; lastPosID: 
         if (data.results[0].id) apiData.lastPosID = data.results[0].id;
         return apiData;
 
-    } catch {
-        error(`Error general del gremio: ${dta.gremio}`, "BG.TwitterFollow");
+    } catch (e: any) {
+        error(`Error al processar el follow del gremio: ${dta.gremio} | Error: ${e.message}`, "BG.TwitterFollow");
         return null;
     }
 }

@@ -10,7 +10,7 @@ import { registerWelcomeCommand, handleWelcomeCommand, fontsAutocomplete } from 
 import { registerRolemojiCommand, handleRolemojiCommand } from "./commands/rolemoji"
 import { registerOwnerCommands, handleOwnerCommands, respondReportModal, modalTkn } from "../sys/zGears/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "./commands/youtube";
-import { registerRedditCommand, handleRedditCommand } from "./commands/reddit";
+import { registerRedditCommand, handleRedditCommand, SeguiReddit } from "./commands/reddit";
 import { registerPostCommand, handlePostCommand } from "./commands/post";
 import { registerCleanUpCommand, handleCleanUpCommand } from "./commands/cleanup";
 import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "./commands/jointovoice";
@@ -143,16 +143,20 @@ export async function sysUpAutoComplete(interaction: AutocompleteInteraction) {
 
 export async function sysUpModals(interaction: ModalSubmitInteraction) {
   switch (true) {
+    // Comandos
     case interaction.customId === "modal_mangadex_follow":
       await seguirMangaPost(interaction); break;
-    case interaction.customId === "helpRepo":
-      await helpRepo(interaction); break;
     case interaction.customId === "modal_follow_x":
       await followXModalMake(interaction); break;
     case interaction.customId === "modal_remove_x":
       await removeFollowDo(interaction); break;
     case interaction.customId === "modal_kancolle_activar":
       await enableModPost(interaction); break;
+    case interaction.customId === "modal_reddit_modal":
+      await SeguiReddit(interaction); break;
+    // Ayudas
+    case interaction.customId === "helpRepo":
+      await helpRepo(interaction); break;
     case interaction.customId.startsWith("respondReport_"):
       await respondReportModal(interaction); break;
     case interaction.customId.startsWith("modal_lim_"):
@@ -160,7 +164,7 @@ export async function sysUpModals(interaction: ModalSubmitInteraction) {
     case interaction.customId.startsWith("token_verify_"):
       await modalTkn(interaction); break;
     default:
-      if (interaction.customId && interaction.customId.startsWith("modal_")) { return; }
+      if (interaction.customId && (interaction.customId.startsWith("joinVoice_") || interaction.customId.startsWith("modal_"))) { return; }
       error(`Modal (${interaction.customId}) no manejado!!`, "upCommands.Modals"); break;
   }
 }
@@ -176,7 +180,7 @@ export async function sysUpButtons(interaction: ButtonInteraction) {
     case interaction.customId.startsWith("btn_openreport_"):
       await handleReportResponseButton(interaction); break;
     default:
-      if (interaction.customId && (interaction.customId.startsWith("btn_"))) { return; }
+      if (interaction.customId && (interaction.customId.startsWith("btn_") || interaction.customId.startsWith("joinToV_Buton_"))) { return; }
       error(`Boton (${interaction.customId}) no manejado!!`, "upCommands.Buttons"); break;
   }
 }

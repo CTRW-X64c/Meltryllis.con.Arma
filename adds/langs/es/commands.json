@@ -14,14 +14,18 @@
       "set_success": "✅ **Canal maestro establecido:** {{a1}}\nLos usuarios que se unan a este canal crearán automáticamente su propia sala temporal.",
       "set_error": "❌ Error al establecer el canal maestro",
       "error_not_configured": "❌ No hay configuración activa",
-      "disable_success": "✅ /jointocreate desactivado \nYa no se generarán canales de voz.",
-      "disable_error": "❌ Error, no se pudo desactivar /jointocreate",
-      "status_error": "❌ No pude obtener el estatus de /jointocreate",
+      "disable_success": "✅ /jointovoice  configuracion eliminada!! \nYa no se generarán canales de voz.",
+      "disable_error": "❌ Error, no se pudo desactivar /jointovoice",
+      "status_error": "❌ No pude obtener el estatus de /jointovoice",
       "cleanup_confirm": "⚠️ Se limpiarán todos los canales de voz temporales!! \n 20 seg para confirmar",
       "cleanup_cancelled": "❌ **Cancelado**",
       "cleanup_result": "✅ **Limpieza completada**\n• Canales eliminados: {{a1}}\n• Errores: {{a2}}",
       "cleanup_timeout": "❌ **Tiempo de espera agotado**",
-      "cleanup_error": "❌ Error al lipiar los canales de voz temporales"
+      "cleanup_error": "❌ Error al lipiar los canales de voz temporales",
+      "existButon": "✅ No se realizo ningun cambio!! ",
+      "disableButon": "/jointovoice {{a1}}",
+      "deleteTemp_success": "✅ Se eliminaron {{a1}} canles temporales!!",
+      "deleteTemp_fall": "❌ Error, algo fallo al eliminar los canales temporales!!"
     }
   },
   "cleanup": {

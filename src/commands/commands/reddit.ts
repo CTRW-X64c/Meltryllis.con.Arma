@@ -1,5 +1,5 @@
 // src/Events-Commands/commands/reddit.ts
-import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, Guild, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { ChannelSelectMenuBuilder, ChatInputCommandInteraction, EmbedBuilder, Guild, LabelBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import { addRedditFeed, getRedditFeeds, removeRedditFeed, RedditFeed } from "../../sys/DB-Engine/links/Reddit";
 import { error, debug } from "../../sys/logging";
 import { redditApi } from "../../sys/zGears/RedditApi";
@@ -14,16 +14,7 @@ export async function registerRedditCommand() {
         .setName("reddit")
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .setDescription(i18next.t("commands:reddit.slashBuilder.command_reddit"))
-        .addSubcommand(s => s.setName("seguir").setDescription(i18next.t("commands:reddit.slashBuilder.descripcion"))
-            .addStringOption(o => o.setName("url_reddit").setRequired(true).setDescription(i18next.t("commands:reddit.slashBuilder.seguir")))
-            .addChannelOption(o => o.setName("canal").setRequired(true).setDescription(i18next.t("commands:reddit.slashBuilder.canal"))
-                .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement))
-            .addStringOption(o => o.setName("filtro").setRequired(true).setDescription(i18next.t("commands:reddit.slashBuilder.filtro"))
-                .addChoices(
-                    { name: i18next.t("commands:reddit.slashBuilder.sin_filtro"), value: 'all' },
-                    { name: i18next.t("commands:reddit.slashBuilder.filtro_multimedia"), value: 'media_only' },
-                    { name: i18next.t("commands:reddit.slashBuilder.filtro_texto"), value: 'text_only' }
-                )))
+        .addSubcommand(s => s.setName("seguir").setDescription(i18next.t("commands:reddit.slashBuilder.descripcion")))
         .addSubcommand(s => s.setName("lista").setDescription(i18next.t("commands:reddit.slashBuilder.lista")))
         .addSubcommand(s => s.setName("dejar").setDescription(i18next.t("commands:reddit.slashBuilder.dejar"))
             .addStringOption(o => o.setName("url_reddit").setRequired(true).setDescription(i18next.t("commands:reddit.slashBuilder.id_canal"))))
@@ -33,19 +24,17 @@ export async function registerRedditCommand() {
 }
 
 export async function handleRedditCommand(interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
     const guild = interaction.guild;
-    if (!guild) { await interaction.editReply(i18next.t("common:Errores.noGuild")); return };
+    if (!guild) { await interaction.reply(i18next.t("common:Errores.noGuild")); return };
 
     const isAllowed = await hasPermission(interaction, interaction.commandName);
-    if (!isAllowed) { await interaction.editReply(i18next.t("common:Errores.isAllowed")); return };
+    if (!isAllowed) { await interaction.reply(i18next.t("common:Errores.isAllowed")); return };
 
     try {
         const subcommand = interaction.options.getSubcommand();
         switch (subcommand) {
             case "seguir":
-                await SeguiReddit(interaction, guild);
+                await SeguiRedditModal(interaction);
                 break;
             case "lista":
                 await ListaReddit(interaction, guild);
@@ -59,14 +48,46 @@ export async function handleRedditCommand(interaction: ChatInputCommandInteracti
         }
     } catch (e) {
         error(`Error ejecutando comando Reddit: ${e}`);
-        await interaction.editReply({ content: i18next.t("common.Errores.switchGeneral") });
+        await interaction.reply({ content: i18next.t("common.Errores.switchGeneral") });
     }
 }
 
 // =============== SubSeguir =============== //
-async function SeguiReddit(interaction: ChatInputCommandInteraction, guild: Guild) {
-    const urlReddit = interaction.options.getString("url_reddit", true);
-    const channelOut = interaction.options.getChannel("canal", true);
+
+async function SeguiRedditModal(interaction: ChatInputCommandInteraction) {
+    const modal = new ModalBuilder().setCustomId('modal_reddit_modal').setTitle('Reddit - r/reddit | u/reddit');
+
+    const chOp = new ChannelSelectMenuBuilder().setCustomId("canal").setPlaceholder("ej:#reddit-post").setRequired(true).setChannelTypes(0, 5, 10, 11, 12);
+    const chMod = new LabelBuilder().setLabel('Canal o Hilo para enviar posts!').setChannelSelectMenuComponent(chOp);
+
+    const userOp1 = new TextInputBuilder().setCustomId('url_reddit').setStyle(TextInputStyle.Short).setRequired(true).setPlaceholder("ej: /r/all | /user/funalito");
+    const userIn = new LabelBuilder().setLabel('subReddit | usuario').setTextInputComponent(userOp1);
+
+    const typeCont = [
+        { default: true, emoji: "🗃️", value: 'all', label: "Sin filtro" },
+        { default: false, emoji: "📽️", value: 'media_only', label: "Solo contenido multimedia" },
+        { default: false, emoji: "📄", value: 'text_only', label: "Solo texto" }
+    ]
+
+    const typePost = new StringSelectMenuBuilder().setCustomId("filtro")
+        .setMinValues(1).setMaxValues(1).setPlaceholder("Filtro de tipo de contenido").setRequired(true)
+        .addOptions(typeCont.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
+    const msgSend = new LabelBuilder().setLabel('Tipo de contenido a seguir').setStringSelectMenuComponent(typePost);
+
+    modal.addLabelComponents(chMod, userIn, msgSend)
+    await interaction.showModal(modal);
+}
+
+export async function SeguiReddit(interaction: ModalSubmitInteraction) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const guild = interaction.guild!
+
+    const rawfilter = interaction.fields.getStringSelectValues("filtro")
+    const urlReddit = interaction.fields.getTextInputValue("url_reddit");
+    const rawChannle = interaction.fields.getSelectedChannels("canal", true).first();
+
+    const channelOut = rawChannle ? (await guild.channels.fetch(rawChannle.id).catch(() => null)) : null;
+    if (!channelOut) { await interaction.editReply({ content: i18next.t("common:Errores.noChannel") }); return; }
 
     const discordChannel = guild.channels.cache.get(channelOut.id);
     if (!discordChannel || !discordChannel.isTextBased()) {
@@ -97,7 +118,7 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guild: Guil
 
     const nsfwStatus = checkIfNSFW(discordChannel);
     const { name: resourceName, displayName, endpoint, resourceType } = resourceInfo;
-    const filterMode = (interaction.options.getString("filtro") ?? 'all') as 'all' | 'media_only' | 'text_only';
+    const filterMode = (rawfilter[0] ?? 'all') as 'all' | 'media_only' | 'text_only';
 
     try {
         const response = await redditApi.fetchAuthenticated(endpoint);
@@ -151,6 +172,7 @@ async function SeguiReddit(interaction: ChatInputCommandInteraction, guild: Guil
 
 // =============== SubList =============== //
 async function ListaReddit(interaction: ChatInputCommandInteraction, guild: Guild) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const feeds = await getRedditFeeds(guild.id);
 
     if (feeds.length === 0) {
@@ -200,6 +222,7 @@ async function ListaReddit(interaction: ChatInputCommandInteraction, guild: Guil
 
 // =============== SubDejar =============== //
 async function DejarReddit(interaction: ChatInputCommandInteraction, guild: Guild) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const userInput = interaction.options.getString("url_reddit", true);
     const resourceInfo = getRedditResourceInfo(userInput);
 
@@ -226,6 +249,7 @@ async function DejarReddit(interaction: ChatInputCommandInteraction, guild: Guil
 
 // =============== SubTest =============== //
 async function TestReddit(interaction: ChatInputCommandInteraction, guild: Guild) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const userInput = interaction.options.getString("url_reddit", true);
     const resourceInfo = getRedditResourceInfo(userInput);
 
