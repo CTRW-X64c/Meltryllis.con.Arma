@@ -172,11 +172,11 @@ class xTwitter {
             if (Data.status && Data.status.text) {
                 txtOut = Data.status.text.length > 1050 ? Data.status.text.slice(0, 1050) : Data.status.text
                 if (tlLang) {
-                    const TlText = Data.status.translation?.text;
-                    if (TlText) txtTlOut = TlText;
+                    const apiTLgoogle = await this.getTra({ txt: txtOut, lang: tlLang });
+                    if (apiTLgoogle) txtTlOut = apiTLgoogle
                     else {
-                        const apiTLgoogle = await this.getTra({ txt: txtOut, lang: tlLang });
-                        if (apiTLgoogle) txtTlOut = apiTLgoogle
+                        const TlText = Data.status.translation?.text;
+                        if (TlText) txtTlOut = TlText;
                     }
                     if (!txtTlOut) return null;
                     else { TlData = { oTxT: txtTlOut, oLng: this.wereLang(tlLang) } }
