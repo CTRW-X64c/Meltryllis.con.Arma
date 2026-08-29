@@ -59,8 +59,8 @@ export async function handleKantaiCollectionCommand(interaction: ChatInputComman
 }
 
 // ==================================================== activar ==================================================== //
-async function enableModal(interacciones: ChatInputCommandInteraction) {
-    const modal = new ModalBuilder().setCustomId('modal_kancolle_activar').setTitle('Notificaciones de Kancolle');
+async function enableModal(i: ChatInputCommandInteraction) {
+    const modal = new ModalBuilder().setCustomId(`KanColle_${i.user.id}`).setTitle('Notificaciones de Kancolle');
 
     const chOp = new ChannelSelectMenuBuilder().setCustomId("canal").setPlaceholder("ej:#kantai-collection").setRequired(true).setChannelTypes(0, 5, 10, 11, 12);
     const chMod = new LabelBuilder().setLabel('Canal o Hilo para enviar aviso!').setChannelSelectMenuComponent(chOp);
@@ -87,28 +87,32 @@ async function enableModal(interacciones: ChatInputCommandInteraction) {
     const ntfy = new LabelBuilder().setLabel('Aviso con mención: Requiere un Rol!').setStringSelectMenuComponent(ntfyTypes);
 
     modal.addLabelComponents(chMod, roleMod, msgSend, ntfy)
-    await interacciones.showModal(modal);
-}
-
-export async function enableModPost(interacciones: ModalSubmitInteraction) {
+    await i.showModal(modal);
+    // == // == // FINAL MODAL // == // == //
     try {
-        await interacciones.deferReply({ flags: MessageFlags.Ephemeral });
-        const guild = interacciones.guild!
+        const modalInt = await i.awaitModalSubmit({
+            filter: (i) => i.customId === `KanColle_${i.user.id}` && i.user.id === i.user.id,
+            time: 120_000, // 2 min
+        });
+        const submitInt = modalInt as ModalSubmitInteraction;
 
-        const rawCh = interacciones.fields.getSelectedChannels("canal", true).first();
+        await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
+        const guild = submitInt.guild!
+
+        const rawCh = submitInt.fields.getSelectedChannels("canal", true).first();
         const vrfyCh = rawCh ? await guild.channels.fetch(rawCh.id) as TextChannel : null;
-        if (!vrfyCh) { await interacciones.editReply(i18next.t("commands:kancolle.interacciones.error_ch_noValido")); return; }
+        if (!vrfyCh) { await i.editReply(i18next.t("commands:kancolle.interacciones.error_ch_noValido")); return; }
 
         const testPerm = masterPerm(vrfyCh, "viewCh|sendMsg|msgManager|mentions")
-        if (!testPerm.ok) { await interacciones.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `${rawCh}`, a2: testPerm.msg.join('\n') }) }); return; }
+        if (!testPerm.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `${rawCh}`, a2: testPerm.msg.join('\n') }) }); return; }
 
-        const rawRole = interacciones.fields.getSelectedRoles("role")?.first() ?? null;
+        const rawRole = submitInt.fields.getSelectedRoles("role")?.first() ?? null;
         const vrfyRol = rawRole ? await guild.roles.fetch(rawRole.id) : null;
 
-        const rawSndAviso = interacciones.fields.getStringSelectValues("msgSendTypes") || [];
-        const rawSndNtfy = interacciones.fields.getStringSelectValues("ntfyTypes") || [];
+        const rawSndAviso = submitInt.fields.getStringSelectValues("msgSendTypes") || [];
+        const rawSndNtfy = submitInt.fields.getStringSelectValues("ntfyTypes") || [];
         if (rawSndAviso.length === 0 && rawSndNtfy.length === 0) {
-            await interacciones.editReply({ content: i18next.t("commands:kancolle.interacciones.error_both_noValido") });
+            await submitInt.editReply({ content: i18next.t("commands:kancolle.interacciones.error_both_noValido") });
             return;
         }
 
@@ -143,10 +147,11 @@ export async function enableModPost(interacciones: ModalSubmitInteraction) {
                 { name: `${emojis.mexp} Expediciones Mensuales:`, value: `Aviso: ${cnfKC.mExp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mExp.ntf ? "✅" : "❌"}` },
             );
 
-        await interacciones.editReply({ embeds: [emb] });
+        await submitInt.editReply({ embeds: [emb] });
     } catch (err) {
+        if (!i.deferred) await i.deferReply({ flags: MessageFlags.Ephemeral });
         error(`Error ejecutando comando Kancolle: ${err}`);
-        await interacciones.editReply({ content: i18next.t("commands:mangadex.interacciones.command_error") });
+        await i.editReply({ content: i18next.t("commands:mangadex.interacciones.command_error") });
     }
 }
 

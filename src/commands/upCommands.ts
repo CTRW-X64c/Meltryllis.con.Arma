@@ -1,5 +1,5 @@
 // src/Events-Commands/upCommands.ts
-import { error, info } from "../sys/logging";
+import { error, info, debug } from "../sys/logging";
 import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags, ButtonInteraction } from "discord.js";
 import { handleReportResponseButton, helpRepo } from "./commandModales/reportHelp";
 import { registerTestCommand, handleTestCommand } from "./commands/test";
@@ -10,11 +10,11 @@ import { registerWelcomeCommand, handleWelcomeCommand, fontsAutocomplete } from 
 import { registerRolemojiCommand, handleRolemojiCommand } from "./commands/rolemoji"
 import { registerOwnerCommands, handleOwnerCommands, respondReportModal, modalTkn } from "../sys/zGears/owner";
 import { registerYouTubeCommand, handleYouTubeCommand } from "./commands/youtube";
-import { registerRedditCommand, handleRedditCommand, SeguiReddit } from "./commands/reddit";
+import { registerRedditCommand, handleRedditCommand } from "./commands/reddit";
 import { registerPostCommand, handlePostCommand } from "./commands/post";
 import { registerCleanUpCommand, handleCleanUpCommand } from "./commands/cleanup";
-import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "./commands/jointovoice";
-import { registerMangadexCommand, handleMangadexCommand, seguirMangaPost } from "./commands/mangadex";
+import { registerJoinToCreateCommand, handleJoinToCreateCommand, cleanupChannels } from "./commands/jointovoice";
+import { registerMangadexCommand, handleMangadexCommand } from "./commands/mangadex";
 import { registerPermissionsCommand, handlePermissionsCommand, permisosAutocomplete } from "./commands/permission";
 import { registerMusicCommands, handleMusicInteraction } from "./commands/music";
 import { registerRoleButtonCommand, handleRoleButtonCommand, roleButton } from "./commandButtons/roleButton";
@@ -24,8 +24,8 @@ import { handleLimitsModal } from "./commandModales/modalLimits";
 import { handleLimitsButton } from "./commandButtons/NewLimits";
 import { handleMypermissionsCommand, registerMypermissionsCommands } from "./commands/chkperm";
 import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess/noEvery";
-import { handleKantaiCollectionCommand, registerKantaiCollectionCommand, enableModPost } from "./commands/kancolle";
-import { handleFollowXCommand, registerFollowXCommand, followXModalMake, removeFollowDo } from "./commands/followX";
+import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "./commands/kancolle";
+import { handleFollowXCommand, registerFollowXCommand } from "./commands/followX";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -142,45 +142,19 @@ export async function sysUpAutoComplete(interaction: AutocompleteInteraction) {
 /* ================================= Formularios ================================= */
 
 export async function sysUpModals(interaction: ModalSubmitInteraction) {
-  switch (true) {
-    // Comandos
-    case interaction.customId === "modal_mangadex_follow":
-      await seguirMangaPost(interaction); break;
-    case interaction.customId === "modal_follow_x":
-      await followXModalMake(interaction); break;
-    case interaction.customId === "modal_remove_x":
-      await removeFollowDo(interaction); break;
-    case interaction.customId === "modal_kancolle_activar":
-      await enableModPost(interaction); break;
-    case interaction.customId === "modal_reddit_modal":
-      await SeguiReddit(interaction); break;
-    // Ayudas
-    case interaction.customId === "helpRepo":
-      await helpRepo(interaction); break;
-    case interaction.customId.startsWith("respondReport_"):
-      await respondReportModal(interaction); break;
-    case interaction.customId.startsWith("modal_lim_"):
-      await handleLimitsModal(interaction); break;
-    case interaction.customId.startsWith("token_verify_"):
-      await modalTkn(interaction); break;
-    default:
-      if (interaction.customId && (interaction.customId.startsWith("joinVoice_") || interaction.customId.startsWith("modal_"))) { return; }
-      error(`Modal (${interaction.customId}) no manejado!!`, "upCommands.Modals"); break;
-  }
+  if (interaction.customId.startsWith("helpRepo_")) await helpRepo(interaction);
+  else if (interaction.customId.startsWith("respondReport_")) await respondReportModal(interaction);
+  else if (interaction.customId.startsWith("modal_lim_")) await handleLimitsModal(interaction);
+  else if (interaction.customId.startsWith("token_verify_")) await modalTkn(interaction);
+  debug(`Modal (${interaction.customId}) no manejado!!`, "upCommands.Modals");
 }
 
 /* ================================= Botones ================================= */
 
 export async function sysUpButtons(interaction: ButtonInteraction) {
-  switch (true) {
-    case interaction.customId.startsWith("roleButton_"):
-      await roleButton(interaction); break;
-    case interaction.customId.startsWith("lim_"):
-      await handleLimitsButton(interaction); break;
-    case interaction.customId.startsWith("btn_openreport_"):
-      await handleReportResponseButton(interaction); break;
-    default:
-      if (interaction.customId && (interaction.customId.startsWith("btn_") || interaction.customId.startsWith("joinToV_Buton_"))) { return; }
-      error(`Boton (${interaction.customId}) no manejado!!`, "upCommands.Buttons"); break;
-  }
-}
+  if (interaction.customId.startsWith("roleButton_")) await roleButton(interaction);
+  else if (interaction.customId.startsWith("lim_")) await handleLimitsButton(interaction);
+  else if (interaction.customId.startsWith("btn_openreport_")) await handleReportResponseButton(interaction);
+  else if (interaction.customId.startsWith("joinToV_delTemp_")) await cleanupChannels(interaction);
+  debug(`Boton (${interaction.customId}) no manejado!!`, "upCommands.Buttons");
+} 

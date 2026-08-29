@@ -5,35 +5,25 @@ import { adminChannel, checkCooldown, startCooldown } from "../../sys/zGears/aux
 
 /* ============================================= Report ============================================= */
 
-export async function Report(interaction: ChatInputCommandInteraction): Promise<void> {
-  const isAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.Administrator) || interaction.guild?.ownerId === interaction.user.id;
-  const idGuild = interaction.guildId;
+export async function Report(i: ChatInputCommandInteraction): Promise<void> {
+  const isAdmin = i.memberPermissions?.has(PermissionFlagsBits.Administrator) || i.guild?.ownerId === i.user.id;
+  const idGuild = i.guildId;
   const idCooldown = "repCommand"
-  if (!idGuild) { await interaction.reply({ content: (i18next.t("botones:reportHelp.modal_no_guild")) }); return; }
-  else if (!isAdmin) { await interaction.reply({ content: i18next.t("botones:reportHelp.no_admin") }); return; }
+
+  if (!idGuild) { await i.reply({ content: (i18next.t("botones:reportHelp.modal_no_guild")) }); return; }
+  if (!isAdmin) { await i.reply({ content: i18next.t("botones:reportHelp.no_admin") }); return; }
 
   const cooldown = checkCooldown(idGuild, idCooldown);
-  if (cooldown.onCooldown) {
-    await interaction.reply({ content: i18next.t("botones:reportHelp.onCooldown", { a1: cooldown.timeLeft }) }); return;
-  }
+  if (cooldown.onCooldown) { await i.reply({ content: i18next.t("botones:reportHelp.onCooldown", { a1: cooldown.timeLeft }) }); return; }
+
   startCooldown(idGuild, idCooldown);
-
-  const modal = new ModalBuilder()
-    .setCustomId('helpRepo')
-    .setTitle(i18next.t("botones:reportHelp.modal_title"));
-  const reportIn = new TextInputBuilder()
-    .setCustomId('report_content')
-    .setPlaceholder(i18next.t("botones:reportHelp.modal_pholder"))
-    .setStyle(TextInputStyle.Paragraph)
-    .setMinLength(10)
-    .setMaxLength(500)
-    .setRequired(true);
-  const eMod = new LabelBuilder()
-    .setLabel(i18next.t("botones:reportHelp.modal_label"))
-    .setTextInputComponent(reportIn);
+  const modal = new ModalBuilder().setCustomId(`helpRepo_${i.user.id}`).setTitle(i18next.t("botones:reportHelp.modal_title"));
+  const eMod = new LabelBuilder().setLabel(i18next.t("botones:reportHelp.modal_label")).setTextInputComponent(
+    new TextInputBuilder().setCustomId('report_content').setPlaceholder(i18next.t("botones:reportHelp.modal_pholder"))
+      .setStyle(TextInputStyle.Paragraph).setMinLength(10).setMaxLength(500).setRequired(true)
+  );
   modal.addLabelComponents(eMod);
-
-  await interaction.showModal(modal);
+  await i.showModal(modal);
 }
 
 /* ============================================= /help report ============================================= */

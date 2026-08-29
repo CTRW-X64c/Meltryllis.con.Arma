@@ -54,8 +54,8 @@ export async function handleRedditCommand(interaction: ChatInputCommandInteracti
 
 // =============== SubSeguir =============== //
 
-async function SeguiRedditModal(interaction: ChatInputCommandInteraction) {
-    const modal = new ModalBuilder().setCustomId('modal_reddit_modal').setTitle('Reddit - r/reddit | u/reddit');
+async function SeguiRedditModal(i: ChatInputCommandInteraction) {
+    const modal = new ModalBuilder().setCustomId(`reddiChk_${i.user.id}`).setTitle('Reddit - r/reddit | u/reddit');
 
     const chOp = new ChannelSelectMenuBuilder().setCustomId("canal").setPlaceholder("ej:#reddit-post").setRequired(true).setChannelTypes(0, 5, 10, 11, 12);
     const chMod = new LabelBuilder().setLabel('Canal o Hilo para enviar posts!').setChannelSelectMenuComponent(chOp);
@@ -75,61 +75,65 @@ async function SeguiRedditModal(interaction: ChatInputCommandInteraction) {
     const msgSend = new LabelBuilder().setLabel('Tipo de contenido a seguir').setStringSelectMenuComponent(typePost);
 
     modal.addLabelComponents(chMod, userIn, msgSend)
-    await interaction.showModal(modal);
-}
-
-export async function SeguiReddit(interaction: ModalSubmitInteraction) {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    const guild = interaction.guild!
-
-    const rawfilter = interaction.fields.getStringSelectValues("filtro")
-    const urlReddit = interaction.fields.getTextInputValue("url_reddit");
-    const rawChannle = interaction.fields.getSelectedChannels("canal", true).first();
-
-    const channelOut = rawChannle ? (await guild.channels.fetch(rawChannle.id).catch(() => null)) : null;
-    if (!channelOut) { await interaction.editReply({ content: i18next.t("common:Errores.noChannel") }); return; }
-
-    const discordChannel = guild.channels.cache.get(channelOut.id);
-    if (!discordChannel || !discordChannel.isTextBased()) {
-        await interaction.editReply({ content: i18next.t("common:Errores.noChannel") });
-        return;
-    }
-
-    const conty = await countItems(guild.id, "reddit_feeds");
-    const limit = await getGuildLimits(guild.id);
-    if ((conty >= limit.dexMax)) {
-        await interaction.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.dexMax }) });
-        return;
-    }
-
-    const testPerm = masterPerm(discordChannel, "viewCh|sendMsg|addlink")
-    if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
-
-    const checkIfNSFW = (channel: any): boolean => {
-        if (!channel) return false;
-        return 'nsfw' in channel ? Boolean(channel.nsfw) : false;
-    }
-
-    const resourceInfo = getRedditResourceInfo(urlReddit);
-    if (!resourceInfo) {
-        await interaction.editReply({ content: i18next.t("commands:reddit.interacciones.subreddit_error") });
-        return;
-    }
-
-    const nsfwStatus = checkIfNSFW(discordChannel);
-    const { name: resourceName, displayName, endpoint, resourceType } = resourceInfo;
-    const filterMode = (rawfilter[0] ?? 'all') as 'all' | 'media_only' | 'text_only';
-
+    await i.showModal(modal);
+    // == // == // FINAL MODAL // == // == //
     try {
+        const modalInt = await i.awaitModalSubmit({
+            filter: (i) => i.customId === `reddiChk_${i.user.id}` && i.user.id === i.user.id,
+            time: 120_000, // 2 min
+        });
+        const submitInt = modalInt as ModalSubmitInteraction;
+
+        await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
+        const guild = submitInt.guild!
+
+        const rawfilter = submitInt.fields.getStringSelectValues("filtro")
+        const urlReddit = submitInt.fields.getTextInputValue("url_reddit");
+        const rawChannle = submitInt.fields.getSelectedChannels("canal", true).first();
+
+        const channelOut = rawChannle ? (await guild.channels.fetch(rawChannle.id).catch(() => null)) : null;
+        if (!channelOut) { await submitInt.editReply({ content: i18next.t("common:Errores.noChannel") }); return; }
+
+        const discordChannel = guild.channels.cache.get(channelOut.id);
+        if (!discordChannel || !discordChannel.isTextBased()) {
+            await submitInt.editReply({ content: i18next.t("common:Errores.noChannel") });
+            return;
+        }
+
+        const conty = await countItems(guild.id, "reddit_feeds");
+        const limit = await getGuildLimits(guild.id);
+        if ((conty >= limit.dexMax)) {
+            await submitInt.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.dexMax }) });
+            return;
+        }
+
+        const testPerm = masterPerm(discordChannel, "viewCh|sendMsg|addlink")
+        if (!testPerm.ok) { await submitInt.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
+
+        const checkIfNSFW = (channel: any): boolean => {
+            if (!channel) return false;
+            return 'nsfw' in channel ? Boolean(channel.nsfw) : false;
+        }
+
+        const resourceInfo = getRedditResourceInfo(urlReddit);
+        if (!resourceInfo) {
+            await submitInt.editReply({ content: i18next.t("commands:reddit.interacciones.subreddit_error") });
+            return;
+        }
+
+        const nsfwStatus = checkIfNSFW(discordChannel);
+        const { name: resourceName, displayName, endpoint, resourceType } = resourceInfo;
+        const filterMode = (rawfilter[0] ?? 'all') as 'all' | 'media_only' | 'text_only';
+
         const response = await redditApi.fetchAuthenticated(endpoint);
         if (response.status === 404) {
-            await interaction.editReply({ content: i18next.t("commands:reddit.interacciones.add_not_found", { a1: resourceName }) });
+            await submitInt.editReply({ content: i18next.t("commands:reddit.interacciones.add_not_found", { a1: resourceName }) });
             return;
         }
 
         const existingFeeds = await getRedditFeeds(guild.id);
         if (existingFeeds.some(feed => feed.subreddit_name.toLowerCase() === resourceName.toLowerCase())) {
-            await interaction.editReply({ content: i18next.t("commands:reddit.interacciones.duplicado", { a1: displayName }) });
+            await submitInt.editReply({ content: i18next.t("commands:reddit.interacciones.duplicado", { a1: displayName }) });
             return;
         }
 
@@ -157,16 +161,17 @@ export async function SeguiReddit(interaction: ModalSubmitInteraction) {
         };
         const filterText = filterToText[filterMode] || i18next.t("commands:reddit.slashBuilder.sin_filtro");
 
-        await interaction.editReply({
+        await submitInt.editReply({
             content: nsfwStatus
                 ? i18next.t("commands:reddit.interacciones.seguir_success_nsfw", { a1: displayName, a2: discordChannel.toString(), a3: filterText })
                 : i18next.t("commands:reddit.interacciones.seguir_success", { a1: displayName, a2: discordChannel.toString(), a3: filterText })
         });
         debug(`Se registro nuevo follow: ${displayName}`);
 
-    } catch (err) {
-        error(`Error al seguir ${displayName}: ${err}`);
-        await interaction.editReply({ content: i18next.t("commands:reddit.interacciones.seguir_error") });
+    } catch (e) {
+        if (!i.deferred) await i.deferReply({ flags: MessageFlags.Ephemeral });
+        error(`Error al agreagar nuevo follow Reddit en gremio ${i.guild!.name}: ${e}`);
+        await i.editReply({ content: i18next.t("commands:reddit.interacciones.seguir_error") });
     }
 }
 

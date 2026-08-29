@@ -52,7 +52,7 @@ export async function handleFollowXCommand(inter: ChatInputCommandInteraction) {
 
 // =================================================== addFollowX ===================================================
 async function followXModal(i: ChatInputCommandInteraction) {
-    const modal = new ModalBuilder().setCustomId('modal_follow_x').setTitle('Configurar Follow de X/Twitter');
+    const modal = new ModalBuilder().setCustomId(`followX_${i.user!.id}`).setTitle('Configurar Follow de X/Twitter');
     // User X|Twitter
     const userOp1 = new TextInputBuilder().setCustomId('usuario').setStyle(TextInputStyle.Short).setRequired(true).setPlaceholder("ej: @x | x.com/x | x");
     const userIn = new LabelBuilder().setLabel('Usuario de X/Twitter').setTextInputComponent(userOp1);
@@ -61,8 +61,8 @@ async function followXModal(i: ChatInputCommandInteraction) {
     const chIn = new LabelBuilder().setLabel('Canal o hilo a enviar!').setChannelSelectMenuComponent(chOp1);
     // Menu Solomedia
     const oMediaOp2 = new StringSelectMenuOptionBuilder().setLabel("Solo Multimedia").setValue("true").setDescription("Solo tweets con imagen/video/links");
-    const oMediaOp1 = new StringSelectMenuOptionBuilder().setLabel("Todo tipo").setValue("false").setDescription("Se mostrarán todos los tweets").setDefault(true);
-    const oMediaMenu1 = new StringSelectMenuBuilder().setCustomId("onlymedia").addOptions(oMediaOp1, oMediaOp2);
+    const oMediaOp1 = new StringSelectMenuOptionBuilder().setLabel("Todo tipo").setValue("false").setDescription("Se mostrarán todos los tweets");
+    const oMediaMenu1 = new StringSelectMenuBuilder().setCustomId("onlymedia").addOptions(oMediaOp1, oMediaOp2).setMinValues(1).setMaxValues(1).setRequired(false);
     const oMediaIn = new LabelBuilder().setLabel('¿Tipo de posts?').setStringSelectMenuComponent(oMediaMenu1);
     // Lang
     const langOp1 = new TextInputBuilder().setCustomId('traducir').setPlaceholder(`ej: "es", "en" ...`).setStyle(TextInputStyle.Short).setRequired(false);
@@ -73,41 +73,42 @@ async function followXModal(i: ChatInputCommandInteraction) {
     // Out
     modal.addLabelComponents(userIn, chIn, oMediaIn, langIn, domainIn)
     await i.showModal(modal);
-}
-
-export async function followXModalMake(i: ModalSubmitInteraction) {
+    // == // == // FINAL MODAL // == // == //
     try {
-        await i.deferReply({ flags: MessageFlags.Ephemeral });
-        const guild = i.guild!;
-        const userX = i.fields.getTextInputValue("usuario");
-        const rawinCh = i.fields.getSelectedChannels("canal")?.first() || null;
-        const rawOnlyMedia = i.fields.getStringSelectValues("onlymedia") || null;
-        const inTranslate = i.fields.getTextInputValue("traducir") || null;
-        const inDomain = i.fields.getTextInputValue("dominio") || null;
+        const modalInt = await i.awaitModalSubmit({
+            filter: (i) => i.customId === `followX_${i.user.id}` && i.user.id === i.user.id,
+            time: 120_000, // 2 min
+        });
+        const submitInt = modalInt as ModalSubmitInteraction;
+
+        await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
+        const guild = submitInt.guild!;
+        const userX = submitInt.fields.getTextInputValue("usuario");
+        const rawinCh = submitInt.fields.getSelectedChannels("canal")?.first() || null;
+        const rawOnlyMedia = submitInt.fields.getStringSelectValues("onlymedia");
+        const inTranslate = submitInt.fields.getTextInputValue("traducir") || null;
+        const inDomain = submitInt.fields.getTextInputValue("dominio") || null;
         // converts
         const inCh = rawinCh ? (await guild.channels.fetch(rawinCh.id).catch(() => null)) : null;
-        const inoMedia = rawOnlyMedia[0] === "true" ? true : false;
         // validUser
         const isValiUser = await userCheck(userX);
-        if (!isValiUser) { await i.editReply("¡Algo falló al añadir el usuario, puede ser privado o estar mal escrito!"); return; }
+        if (!isValiUser) { await submitInt.editReply("¡Algo falló al añadir el usuario, puede ser privado o estar mal escrito!"); return; }
         const langChk = chekLang(inTranslate);
         const dominChk = chekDomain(inDomain);
         // emb build
-        const embed = new EmbedBuilder()
-            .setTitle("Follow Twitter")
-            .setColor(0xff0000)
-            .setTimestamp();
+        const embed = new EmbedBuilder().setTitle("Follow Twitter").setColor(0xff0000).setTimestamp();
 
         const oldyData = await checFollowUser(guild.id, isValiUser);
         if (!oldyData || oldyData.length === 0) {
-            if (!inCh) { await i.editReply({ content: "Necesitas asignar un canal para primera configuracion de este usuario X | Twitter" }); return; }
+            if (!inCh) { await submitInt.editReply({ content: "Necesitas asignar un canal para primera configuracion de este usuario X | Twitter" }); return; }
             const testPerm = masterPerm(inCh, "viewCh|sendMsg|addlink")
-            if (!testPerm.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
+            if (!testPerm.ok) { await submitInt.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
             // valid cupos
             const conty = await countItems(guild.id, 'followTweetX');
             const limit = await getGuildLimits(guild.id);
+            const inoMedia = rawOnlyMedia[0] === "true";
             if ((conty >= limit.tweetMax)) {
-                await i.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.tweetMax }) });
+                await submitInt.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.tweetMax }) });
                 return;
             }
 
@@ -122,26 +123,26 @@ export async function followXModalMake(i: ModalSubmitInteraction) {
                         { name: "Idioma", value: langChk || "No definido", inline: false }
                     )
                     .setFooter({ text: `Total de follows: ${conty + 1}` });
-                await i.editReply({ embeds: [embed] });
-            } else { await i.editReply(`Ocurrio un erro al seguir **${isValiUser}**`); }
+                await submitInt.editReply({ embeds: [embed] });
+            } else { await submitInt.editReply(`Ocurrio un erro al seguir **${isValiUser}**`); }
         }
         else {
             const { canal, lang, Domain, onlyMedia, addBy, xUser, created_at } = oldyData[0];
             let channelo = canal, domando = Domain, lango = lang, onlyMediaO = onlyMedia;
-
-            if (!inCh && !inDomain && !inoMedia && !inTranslate) {
-                await i.editReply({ content: "No proporcionaste ninguna actualizacion para este usuario X | Twitter" });
+            const inoMediaX = (rawOnlyMedia.length === 0) ? onlyMedia : rawOnlyMedia[0] === "true";
+            if (!inCh && !inDomain && inoMediaX === onlyMedia && !inTranslate) {
+                await submitInt.editReply({ content: `No proporcionaste ninguna actualizacion para @${xUser}` });
                 return;
             }
 
             if (inCh) {
                 const validCh = masterPerm(inCh, "viewCh|sendMsg|addlink")
-                if (!validCh.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: validCh.msg.join('\n') }) }); return; }
+                if (!validCh.ok) { await submitInt.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: validCh.msg.join('\n') }) }); return; }
                 channelo = inCh.id;
             }
 
             if (inDomain) domando = dominChk;
-            if (inoMedia) onlyMediaO = inoMedia;
+            if (inoMediaX) onlyMediaO = inoMediaX;
             if (inTranslate) lango = langChk;
 
             const verify = await addFollowTweet({ guild_id: guild.id, canal: channelo, xUser: xUser, lang: lango, Domain: domando, lastPost: null, addBy: addBy, onlyMedia: onlyMediaO });
@@ -154,11 +155,15 @@ export async function followXModalMake(i: ModalSubmitInteraction) {
                         { name: "Idioma:", value: lango || "No traducir", inline: false },
                         { name: "Informacion del usuario:", value: `Fue añadido por <@${addBy}> el ${created_at.toLocaleString('es-MX', { dateStyle: 'short', })}` }
                     )
-                await i.editReply({ embeds: [embed] });
+                await submitInt.editReply({ embeds: [embed] });
             }
-            else { await i.editReply(`Ocurrio un erro al actualizar **${xUser}**`); }
+            else { await submitInt.editReply(`Ocurrio un erro al actualizar **${xUser}**`); }
         }
-    } catch (e: any) { error(`Ocurrio un error al procesar la solicitud!! ${e}`); await i.editReply("Ocurrio un error al procesar la solicitud!!") }
+    } catch (e: any) {
+        if (!i.deferred) await i.deferReply({ flags: MessageFlags.Ephemeral });
+        error(`Algo salio mal en añadir follow en el gremio: ${i.guild!.id}`);
+        await i.editReply("Ocurrio un error al procesar la solicitud!!");
+    }
 }
 
 // ======================= listFollow ======================= //
@@ -207,7 +212,7 @@ async function listFollow(i: ChatInputCommandInteraction, guild: Guild) {
 
 // ======================= removeFollow ======================= //
 async function removeFollowModal(i: ChatInputCommandInteraction) {
-    const modal = new ModalBuilder().setCustomId('modal_remove_x').setTitle('Remover Follow de X/Twitter');
+    const modal = new ModalBuilder().setCustomId(`followXR_${i.user.id}`).setTitle('Remover Follow de X/Twitter');
     // ID
     const idOp1 = new TextInputBuilder().setCustomId('id').setStyle(TextInputStyle.Short).setRequired(false).setPlaceholder("ID en /follow_twitter lista");
     const idIn = new LabelBuilder().setLabel('ID del follow a eliminar').setTextInputComponent(idOp1);
@@ -217,30 +222,39 @@ async function removeFollowModal(i: ChatInputCommandInteraction) {
     // Out
     modal.addLabelComponents(idIn, userIn)
     await i.showModal(modal);
-}
-
-export async function removeFollowDo(i: ModalSubmitInteraction) {
-    await i.deferReply({ flags: MessageFlags.Ephemeral });
+    // == // == // FINAL MODAL // == // == //
     try {
-        const id = i.fields.getTextInputValue("id").trim() || undefined;
-        const user = i.fields.getTextInputValue("usuario") || undefined;
-        if (!id && !user) { i.editReply("Debes proporcionar un ID o un Usuario para eliminar el follow!"); return; }
+        const modalInt = await i.awaitModalSubmit({
+            filter: (i) => i.customId === `followXR_${i.user.id}` && i.user.id === i.user.id,
+            time: 120_000, // 2 min
+        });
+        const submitInt = modalInt as ModalSubmitInteraction;
+
+        await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
+        const id = submitInt.fields.getTextInputValue("id").trim() || undefined;
+        const user = submitInt.fields.getTextInputValue("usuario") || undefined;
+        if (!id && !user) { submitInt.editReply("Debes proporcionar un ID o un Usuario para eliminar el follow!"); return; }
         let validUser: string | undefined = undefined, doNumber: number | undefined = undefined;
         if (id) {
             const strNum = parseInt(id, 10);
             doNumber = !isNaN(strNum) ? strNum : undefined;
-            if (!doNumber) { i.editReply("El ID debe ser un numero!"); return; }
+            if (!doNumber) { submitInt.editReply("El ID debe ser un numero!"); return; }
         }
         else {
             if (user) validUser = await userCheck(user)
-            else { i.editReply("Debes proporcionar el ID en lista o un Usuario para eliminar el follow!"); return; }
-            if (!validUser) { i.editReply(`El usuario ${user} no es valido!`); return; }
+            else { submitInt.editReply("Debes proporcionar el ID en lista o un Usuario para eliminar el follow!"); return; }
+            if (!validUser) { submitInt.editReply(`El usuario ${user} no es valido!`); return; }
         }
 
-        const eraser = await deleteFollowTweet({ gremio: i.guild!.id, id: doNumber, xUser: validUser })
-        if (eraser) i.editReply(`Se elimino el follow con el ${doNumber ? `ID: ${id}` : `Usuario: @${validUser}`}`)
-        else i.editReply(`No sepudo borrar el follow con el ${doNumber ? `ID: ${id}` : `Usuario: @${validUser}`}`)
-    } catch { i.editReply(`Algo salio mal al intentar borrar el follow!!`) }
+        const eraser = await deleteFollowTweet({ gremio: submitInt.guild!.id, id: doNumber, xUser: validUser })
+        if (eraser) submitInt.editReply(`Se elimino el follow con el ${doNumber ? `ID: ${id}` : `Usuario: @${validUser}`}`)
+        else submitInt.editReply(`No sepudo borrar el follow con el ${doNumber ? `ID: ${id}` : `Usuario: @${validUser}`}`)
+
+    } catch (e) {
+        if (!i.deferred) await i.deferReply({ flags: MessageFlags.Ephemeral });
+        error(`Algo salio mal en añadir follow en el gremio: ${i.guild!.id}`);
+        i.editReply(`Algo salio mal al intentar borrar el follow!!`);
+    }
 }
 
 // =============================== Aux =============================== // 

@@ -2,12 +2,12 @@
 import {
     SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, MessageFlags, ChannelType, EmbedBuilder, ComponentType,
     /*botnes*/  ButtonBuilder, ButtonStyle, ActionRowBuilder, ButtonInteraction,
-    /* modal*/ ChannelSelectMenuBuilder, LabelBuilder, ModalBuilder,
+    /* modal*/ ChannelSelectMenuBuilder, LabelBuilder, ModalBuilder, ModalSubmitInteraction
 } from "discord.js";
 
 import { error, info, debug } from "../../sys/logging";
 import i18next from "i18next";
-import { getAllTempVoiceChannels, getGuildTempChannelCount, getVoiceConfig, removeTempVoiceChannel, removeVoiceConfig, setVoiceConfig, } from "../../sys/DB-Engine/links/JointoVoice";
+import { getAllTempVoiceChannels, getGuildTempChannelCount, getVoiceConfig, removeVoiceConfig, setVoiceConfig, } from "../../sys/DB-Engine/links/JointoVoice";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { masterPerm } from "../../sys/zGears/auxiliares";
 
@@ -37,19 +37,19 @@ export async function handleJoinToCreateCommand(int: ChatInputCommandInteraction
     if (!yaConfig) {
         const chOp1 = new ChannelSelectMenuBuilder().setCustomId("voiceCh").setPlaceholder("ej:🔊 General").setRequired(true).setChannelTypes(ChannelType.GuildVoice);
         const chIn = new LabelBuilder().setLabel('Canal maestro!').setChannelSelectMenuComponent(chOp1);
-        const modal = new ModalBuilder().setCustomId(`joinVoice_${guild.id}`).setTitle('Primera configuracion!').addLabelComponents(chIn)
+        const modal = new ModalBuilder().setCustomId(`joinVoice_${int.user.id}`).setTitle('Primera configuracion!').addLabelComponents(chIn)
         await int.showModal(modal);
-
+        // == // == // FINAL MODAL // == // == //
         try {
             const modalInt = await int.awaitModalSubmit({
-                filter: (i) => i.customId === `joinVoice_${guild.id}` && i.user.id === int.user.id,
+                filter: (i) => i.customId === `joinVoice_${int.user.id}` && i.user.id === int.user.id,
                 time: 120_000, // 2 min
             });
 
-            const submitInt = modalInt as any;
+            const submitInt = modalInt as ModalSubmitInteraction;
             await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
             try {
-                const chViceRaw = submitInt.fields.getSelectedChannels("voiceCh").first();
+                const chViceRaw = submitInt.fields.getSelectedChannels("voiceCh", true).first();
                 const channel = chViceRaw ? (await guild.channels.fetch(chViceRaw.id).catch(() => null)) : null
                 if (!channel) { await submitInt.editReply(" ❌ No se encontro el canal de primera configuracion!!"); return; }
 
@@ -79,8 +79,8 @@ export async function handleJoinToCreateCommand(int: ChatInputCommandInteraction
 
             const redRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
                 new ButtonBuilder().setCustomId('joinToV_Buton_toogle').setLabel(Label).setStyle(Style),
-                new ButtonBuilder().setCustomId('joinToV_Buton_confirm_delete').setLabel('Borrar Temporales').setStyle(ButtonStyle.Danger),
                 new ButtonBuilder().setCustomId('joinToV_Buton_delete_conf').setLabel('Borrar Configuración').setStyle(ButtonStyle.Danger),
+                new ButtonBuilder().setCustomId(`joinToV_delTemp_${int.user.id}`).setLabel('Borrar Temporales').setStyle(ButtonStyle.Danger)
             )
 
             const grenRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -100,11 +100,11 @@ export async function handleJoinToCreateCommand(int: ChatInputCommandInteraction
                 .setFooter({ text: `Solicitado por: ${int.user.tag}`, iconURL: int.user.displayAvatarURL() });
 
             const msgMenu = await int.editReply({ embeds: [embed], components: [grenRow, redRow] });
-            const choice = await (msgMenu as any).awaitMessageComponent({
+            const choice = await (msgMenu).awaitMessageComponent({
                 filter: (i: ButtonInteraction) => i.user.id === int.user.id,
                 componentType: ComponentType.Button,
                 time: 120_000, // 2 min
-            });
+            }) as ButtonInteraction;
 
             if (choice.customId === 'joinToV_Buton_exit') {
                 await choice.update({ content: i18next.t("commands:joinCreate.interacciones.existButon"), embeds: [], components: [] });
@@ -134,34 +134,59 @@ export async function handleJoinToCreateCommand(int: ChatInputCommandInteraction
                 }
             }
 
-            if (choice.customId === "joinToV_Buton_confirm_delete") {
-                try {
-                    const allTempCh = await getAllTempVoiceChannels();
-                    const guildTempCh = allTempCh.filter(ch => ch.guildId === guild.id);
-                    let deletedCount = 0;
-                    for (const tempChannel of guildTempCh) {
-                        try {
-                            const channel = await int.guild?.channels.fetch(tempChannel.channelId);
-                            if (channel && channel.isVoiceBased()) {
-                                await channel.delete("Limpieza manual de canales temporales");
-                                removeTempVoiceChannel(channel.id)
-                                deletedCount++;
-                            }
-                        } catch (err) {
-                            debug(`Error eliminando canal ${tempChannel.channelId}: ${err}`, "JoinToCreate");
-                        }
-                    }
+        } catch (e: any) {
+            if (!int.deferred) await int.deferReply({ flags: MessageFlags.Ephemeral });
+            await int.editReply({ content: "⏳ Tiempo de panel agotado.", embeds: [], components: [] }).catch(() => null);
+            error(`Algo fallo en la seccion de botones de /jointovoice | ${e.message}`)
+        }
+    }
+}
 
-                    await choice.update({ content: i18next.t("commands:joinCreate.interacciones.deleteTemp_success", { a1: deletedCount }), embeds: [], components: [] });
-                    info(`Borrados todos los canales temporales ${guild.id}`, "JoinToCreate");
-                } catch (e) {
-                    await choice.update({ content: i18next.t("commands:joinCreate.interacciones.deleteTemp_fall"), embeds: [], components: [] });
-                    error(`Error borrando canales temporales sistema: ${e} | Guild: ${guild.id}`, "JoinToCreate");
+export async function cleanupChannels(interaction: ButtonInteraction): Promise<void> { // yei!! rescatemos la funcion con sus confirmaciones
+    const guild = interaction.guild!;
+    const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder().setCustomId('cancel_delete').setLabel('Cancelar').setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId('confirm_delete').setLabel('ELIMINAR!!').setStyle(ButtonStyle.Danger)
+    );
+
+    await interaction.update({ embeds: [], components: [actionRow], content: i18next.t("commands:joinCreate.interacciones.cleanup_confirm"), });
+    try { // Timeout, 20 segundos
+        const buttonInteraction = await interaction.channel?.awaitMessageComponent({
+            filter: (i) => (i.customId === 'confirm_delete' || i.customId === 'cancel_delete') && i.user.id === interaction.user.id,
+            time: 20_000
+        }) as ButtonInteraction;
+
+        if (buttonInteraction.customId === 'cancel_delete') {
+            await buttonInteraction.update({ components: [], content: i18next.t("commands:joinCreate.interacciones.cleanup_cancelled") }); return;
+        };
+
+        if (buttonInteraction.customId === 'confirm_delete') {
+            const allTempChannels = await getAllTempVoiceChannels();
+            const guildTempChannels = allTempChannels.filter(ch => ch.guildId === guild.id);
+            let deletedCount = 0, errorCount = 0;
+            for (const tempChannel of guildTempChannels) {
+                try {
+                    const channel = await interaction.guild?.channels.fetch(tempChannel.channelId);
+                    if (channel && channel.isVoiceBased()) {
+                        await channel.delete("Limpieza manual de canales temporales");
+                        deletedCount++;
+                    }
+                } catch (err) {
+                    errorCount++;
+                    debug(`Error eliminando canal ${tempChannel.channelId}: ${err}`, "JoinToCreate");
                 }
             }
-        } catch (e) {
-            await int.editReply({ content: "⏳ Tiempo de panel agotado.", embeds: [], components: [] }).catch(() => null);
-            error(`Algo fallo en la seccion de botones de /jointovoice`)
+            // Actualizar mensaje con resultados
+            await buttonInteraction.update({
+                content: i18next.t("commands:joinCreate.interacciones.cleanup_result", { ns: "jointocreate", a1: deletedCount, a2: errorCount }),
+                components: [],
+                embeds: []
+            });
+            info(`Limpieza manual: ${deletedCount} canales eliminados, ${errorCount} errores en servidor ${guild.id}`, "JoinToCreate");
         }
+    } catch (err) { // Timeout o error
+        if (!interaction.deferred) await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        if (err instanceof Error && err.message.includes('time')) { await interaction.editReply({ content: i18next.t("commands:joinCreate.interacciones.cleanup_timeout"), components: [] }); }
+        else { error(`Error en limpieza: ${err}`, "JoinToCreate"); await interaction.editReply({ content: i18next.t("commands:joinCreate.interacciones.cleanup_error"), components: [] }); }
     }
 }

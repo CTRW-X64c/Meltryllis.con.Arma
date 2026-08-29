@@ -57,7 +57,7 @@ export async function handleMangadexCommand(interaction: ChatInputCommandInterac
 
 // ============================== SubSeguir ============================== //
 async function seguirManga(i: ChatInputCommandInteraction) {
-  const modal = new ModalBuilder().setCustomId('modal_mangadex_follow').setTitle('Configurar Follow de Mangadex');
+  const modal = new ModalBuilder().setCustomId(`mangaDex_${i.user.id}`).setTitle('Configurar Follow de Mangadex');
   // Manga ID
   const userOp1 = new TextInputBuilder().setCustomId('manga_url').setStyle(TextInputStyle.Short).setRequired(true).setPlaceholder("Pega la URL completa del manga");
   const userIn = new LabelBuilder().setLabel('ID del Manga').setTextInputComponent(userOp1);
@@ -83,34 +83,37 @@ async function seguirManga(i: ChatInputCommandInteraction) {
   // Out
   modal.addLabelComponents(userIn, chIn, langs)
   await i.showModal(modal);
-}
-
-// ============================== addBD ============================== //
-export async function seguirMangaPost(interaction: ModalSubmitInteraction) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  const guild = interaction.guild!;
-  const manga_url = interaction.fields.getTextInputValue("manga_url");
-  const langModal = interaction.fields.getStringSelectValues("idiomas");
-  // chek CH
-  const discModalInput = interaction.fields.getSelectedChannels("canal", true).first();
-  const discordChannel = discModalInput ? await guild.channels.fetch(discModalInput.id) as TextChannel : null;
-  if (!discordChannel) { await interaction.editReply({ content: i18next.t("common:Errores.nochannelFind") }); return; }
-  // chek Limit
-  const conty = await countItems(guild.id, "mangadex_feeds");
-  const limit = await getGuildLimits(guild.id);
-  if ((conty >= limit.dexMax)) { await interaction.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.dexMax }) }); return; }
-  // chek Perm
-  const testPerm = masterPerm(discordChannel, "viewCh|sendMsg|addlink")
-  if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
-  // chek Ids
-  const mangDex = getMangaId(manga_url);
-  if (!mangDex.id || !mangDex.shortUrl) { await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.manga_error") }); return; }
-  // chek Rss
-  const { rssUrl, bdLangs } = buildRssUrl(mangDex.id, langModal);
-  const mangaName = await chkManga(rssUrl);
-  if (!mangaName) { await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.manga_error_no_dex") }); return; }
-
+  // == // == // FINAL MODAL // == // == //
   try {
+    const modalInt = await i.awaitModalSubmit({
+      filter: (i) => i.customId === `mangaDex_${i.user.id}` && i.user.id === i.user.id,
+      time: 120_000, // 2 min
+    });
+    const submitInt = modalInt as ModalSubmitInteraction;
+
+    await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
+    const guild = submitInt.guild!;
+    const manga_url = submitInt.fields.getTextInputValue("manga_url");
+    const langModal = submitInt.fields.getStringSelectValues("idiomas");
+    // chek CH
+    const discModalInput = submitInt.fields.getSelectedChannels("canal", true).first();
+    const discordChannel = discModalInput ? await guild.channels.fetch(discModalInput.id) as TextChannel : null;
+    if (!discordChannel) { await submitInt.editReply({ content: i18next.t("common:Errores.nochannelFind") }); return; }
+    // chek Limit
+    const conty = await countItems(guild.id, "mangadex_feeds");
+    const limit = await getGuildLimits(guild.id);
+    if ((conty >= limit.dexMax)) { await submitInt.editReply({ content: i18next.t("common:Errores.servLimit", { a1: conty, a2: limit.dexMax }) }); return; }
+    // chek Perm
+    const testPerm = masterPerm(discordChannel, "viewCh|sendMsg|addlink")
+    if (!testPerm.ok) { await submitInt.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
+    // chek Ids
+    const mangDex = getMangaId(manga_url);
+    if (!mangDex.id || !mangDex.shortUrl) { await submitInt.editReply({ content: i18next.t("commands:mangadex.interacciones.manga_error") }); return; }
+    // chek Rss
+    const { rssUrl, bdLangs } = buildRssUrl(mangDex.id, langModal);
+    const mangaName = await chkManga(rssUrl);
+    if (!mangaName) { await submitInt.editReply({ content: i18next.t("commands:mangadex.interacciones.manga_error_no_dex") }); return; }
+
     await AddMangadexFeed({
       guild_id: guild.id,
       channel_id: discordChannel.id,
@@ -131,24 +134,15 @@ export async function seguirMangaPost(interaction: ModalSubmitInteraction) {
       .setColor(0xFF6740)
       .setTimestamp();
 
-    await interaction.editReply({ embeds: [emb] });
+    await submitInt.editReply({ embeds: [emb] });
     debug(`Nuevo manga seguido: ${mangaName} en ${guild.name}`);
 
   } catch (err: any) {
+    if (!i.deferred) await i.deferReply({ flags: MessageFlags.Ephemeral });
     error(`Error BD Mangadex: ${err}`);
-
-    const isDuplicateError =
-      err.code === 'ER_DUP_ENTRY' ||
-      err.sqlMessage?.includes('Duplicate entry') ||
-      err.message?.includes('Duplicate entry') ||
-      err.message?.includes('idx_unique_rss_guild_channel');
-
-    if (isDuplicateError) {
-      await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.seguir_existente_error") });
-      return;
-    }
-
-    await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.seguir_error") });
+    const isDuplicateError = err.code === 'ER_DUP_ENTRY' || err.sqlMessage?.includes('Duplicate entry') || err.message?.includes('Duplicate entry') || err.message?.includes('idx_unique_rss_guild_channel');
+    if (isDuplicateError) { await i.reply({ content: i18next.t("commands:mangadex.interacciones.seguir_existente_error") }); return; }
+    await i.editReply({ content: i18next.t("commands:mangadex.interacciones.seguir_error") });
   }
 }
 
@@ -206,7 +200,6 @@ async function listaManga(interaction: ChatInputCommandInteraction, guild: Guild
   }
 
   embed.setFooter({ text: i18next.t("commands:mangadex.interacciones.manga_embed_footer") });
-
   await interaction.editReply({ embeds: [embed] });
 }
 
