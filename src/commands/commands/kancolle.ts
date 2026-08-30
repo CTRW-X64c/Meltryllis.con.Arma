@@ -60,8 +60,6 @@ export async function handleKantaiCollectionCommand(interaction: ChatInputComman
 
 // ==================================================== activar ==================================================== //
 async function enableModal(i: ChatInputCommandInteraction) {
-    const modal = new ModalBuilder().setCustomId(`KanColle_${i.user.id}`).setTitle('Notificaciones de Kancolle');
-
     const chOp = new ChannelSelectMenuBuilder().setCustomId("canal").setPlaceholder("ej:#kantai-collection").setRequired(true).setChannelTypes(0, 5, 10, 11, 12);
     const chMod = new LabelBuilder().setLabel('Canal o Hilo para enviar aviso!').setChannelSelectMenuComponent(chOp);
 
@@ -86,13 +84,16 @@ async function enableModal(i: ChatInputCommandInteraction) {
         .addOptions(KancolleToDo.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
     const ntfy = new LabelBuilder().setLabel('Aviso con mención: Requiere un Rol!').setStringSelectMenuComponent(ntfyTypes);
 
-    modal.addLabelComponents(chMod, roleMod, msgSend, ntfy)
+    const modal = new ModalBuilder().setCustomId(`KanColle_${i.id}`).setTitle('Notificaciones de Kancolle').addLabelComponents(chMod, roleMod, msgSend, ntfy);
     await i.showModal(modal);
     // == // == // FINAL MODAL // == // == //
     const submitInt = await i.awaitModalSubmit({
-        filter: (submitInt) => submitInt.customId === `KanColle_${i.user.id}` && submitInt.user.id === i.user.id,
+        filter: (submitInt) => submitInt.customId === `KanColle_${i.id}` && submitInt.user.id === i.user.id,
         time: 120_000, // 2 min
-    }).catch((e: any) => debug(`Modal kancolle error ${e.message}`)) as ModalSubmitInteraction;
+    }).catch((e: any) => {
+        debug(`Modal kancolle error ${e.message}`);
+        i.followUp({ content: '⏱️ ¡El formulario expiró después de 2 minutos; si fue intencional, ignora esta notificación!', flags: MessageFlags.Ephemeral });
+    }) as ModalSubmitInteraction;
     if (!submitInt) return;
 
     try {

@@ -134,7 +134,7 @@ async function getting(dta: todoInt): Promise<{ lisTweets: string[]; lastPosID: 
                 let tweetURL = x.url;
                 dta.cDom ? tweetURL = tweetURL.replace(/:?(?:twitter\.com|x\.com)/g, dta.cDom) : x.url;
                 dta.tl ? tweetURL = (tweetURL + `/${dta.tl}`) : tweetURL;
-                apiData.lisTweets.push(tweetURL);
+                apiData.lisTweets.push(`New tweet de @${dta.userX}: [Tweet!](${tweetURL})`);
             }
         }
 

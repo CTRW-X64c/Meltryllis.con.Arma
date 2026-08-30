@@ -2,7 +2,7 @@
 import {
     SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, MessageFlags, ChannelType, EmbedBuilder, ComponentType,
     /*botnes*/  ButtonBuilder, ButtonStyle, ActionRowBuilder, ButtonInteraction,
-    /* modal*/ ChannelSelectMenuBuilder, LabelBuilder, ModalBuilder, ModalSubmitInteraction
+    /* modal*/ ChannelSelectMenuBuilder, LabelBuilder, ModalBuilder, ModalSubmitInteraction,
 } from "discord.js";
 
 import { error, info, debug } from "../../sys/logging";
@@ -37,13 +37,16 @@ export async function handleJoinToCreateCommand(int: ChatInputCommandInteraction
     if (!yaConfig) {
         const chOp1 = new ChannelSelectMenuBuilder().setCustomId("voiceCh").setPlaceholder("ej:🔊 General").setRequired(true).setChannelTypes(ChannelType.GuildVoice);
         const chIn = new LabelBuilder().setLabel('Canal maestro!').setChannelSelectMenuComponent(chOp1);
-        const modal = new ModalBuilder().setCustomId(`joinVoice_${int.user.id}`).setTitle('Primera configuracion!').addLabelComponents(chIn)
+        const modal = new ModalBuilder().setCustomId(`joinVoice_${int.id}`).setTitle('Primera configuracion!').addLabelComponents(chIn);
         await int.showModal(modal);
         // == // == // FINAL MODAL // == // == //
         const submitInt = await int.awaitModalSubmit({
-            filter: (submitInt) => submitInt.customId === `joinVoice_${int.user.id}` && submitInt.user.id === int.user.id,
+            filter: (submitInt) => submitInt.customId === `joinVoice_${int.id}` && submitInt.user.id === int.user.id,
             time: 120_000, // 2 min
-        }).catch((e: any) => debug(`Modal kancolle error ${e.message}`)) as ModalSubmitInteraction;
+        }).catch((e: any) => {
+            debug(`Modal kancolle error ${e.message}`, "JointoVoice");
+            int.followUp({ content: '⏱️ ¡El formulario expiró después de 2 minutos; si fue intencional, ignora esta notificación!', flags: MessageFlags.Ephemeral });
+        }) as ModalSubmitInteraction;
         if (!submitInt) return;
 
         try {

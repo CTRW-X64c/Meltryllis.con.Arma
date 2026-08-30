@@ -55,8 +55,6 @@ export async function handleRedditCommand(interaction: ChatInputCommandInteracti
 // =============== SubSeguir =============== //
 
 async function SeguiRedditModal(i: ChatInputCommandInteraction) {
-    const modal = new ModalBuilder().setCustomId(`reddiChk_${i.user.id}`).setTitle('Reddit - r/reddit | u/reddit');
-
     const chOp = new ChannelSelectMenuBuilder().setCustomId("canal").setPlaceholder("ej:#reddit-post").setRequired(true).setChannelTypes(0, 5, 10, 11, 12);
     const chMod = new LabelBuilder().setLabel('Canal o Hilo para enviar posts!').setChannelSelectMenuComponent(chOp);
 
@@ -74,13 +72,16 @@ async function SeguiRedditModal(i: ChatInputCommandInteraction) {
         .addOptions(typeCont.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
     const msgSend = new LabelBuilder().setLabel('Tipo de contenido a seguir').setStringSelectMenuComponent(typePost);
 
-    modal.addLabelComponents(chMod, userIn, msgSend)
+    const modal = new ModalBuilder().setCustomId(`reddiChk_${i.id}`).setTitle('Reddit - r/reddit | u/reddit').addLabelComponents(chMod, userIn, msgSend);
     await i.showModal(modal);
     // == // == // FINAL MODAL // == // == //
     const submitInt = await i.awaitModalSubmit({
-        filter: (submitInt) => submitInt.customId === `reddiChk_${i.user.id}` && submitInt.user.id === i.user.id,
+        filter: (submitInt) => submitInt.customId === `reddiChk_${i.id}` && submitInt.user.id === i.user.id,
         time: 120_000, // 2 min
-    }).catch((e: any) => debug(`Modal Reddit error ${e.message}`)) as ModalSubmitInteraction;
+    }).catch((e: any) => {
+        debug(`Modal Reddit error ${e.message}`)
+        i.followUp({ content: '⏱️ ¡El formulario expiró después de 2 minutos; si fue intencional, ignora esta notificación!', flags: MessageFlags.Ephemeral });
+    }) as ModalSubmitInteraction;
     if (!submitInt) return;
 
     try {

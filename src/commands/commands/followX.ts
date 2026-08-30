@@ -1,12 +1,11 @@
 import { ChannelSelectMenuBuilder, ChatInputCommandInteraction, EmbedBuilder, Guild, LabelBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import i18next from "i18next";
 import { hasPermission } from "../../sys/zGears/mPermission";
-import { error } from "../../sys/logging";
+import { error, debug } from "../../sys/logging";
 import { addFollowTweet, checFollowUser, deleteFollowTweet, followTweetonGuild } from "../../sys/DB-Engine/links/followTweet";
 import { countItems } from "../../sys/DB-Engine/database";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { masterPerm } from "../../sys/zGears/auxiliares";
-import { debug } from "node:console";
 
 export async function registerFollowXCommand(): Promise<SlashCommandBuilder[]> {
     const followX = new SlashCommandBuilder()
@@ -53,7 +52,6 @@ export async function handleFollowXCommand(inter: ChatInputCommandInteraction) {
 
 // =================================================== addFollowX ===================================================
 async function followXModal(i: ChatInputCommandInteraction) {
-    const modal = new ModalBuilder().setCustomId(`followX_${i.user!.id}`).setTitle('Configurar Follow de X/Twitter');
     // User X|Twitter
     const userOp1 = new TextInputBuilder().setCustomId('usuario').setStyle(TextInputStyle.Short).setRequired(true).setPlaceholder("ej: @x | x.com/x | x");
     const userIn = new LabelBuilder().setLabel('Usuario de X/Twitter').setTextInputComponent(userOp1);
@@ -72,13 +70,16 @@ async function followXModal(i: ChatInputCommandInteraction) {
     const domainOp1 = new TextInputBuilder().setCustomId('dominio').setPlaceholder(`ej: d.fxtwitter.com`).setStyle(TextInputStyle.Short).setRequired(false);
     const domainIn = new LabelBuilder().setLabel('Dominio alterno al server').setTextInputComponent(domainOp1);
     // Out
-    modal.addLabelComponents(userIn, chIn, oMediaIn, langIn, domainIn)
+    const modal = new ModalBuilder().setCustomId(`followX_${i.id}`).setTitle('Configurar Follow de X/Twitter').addLabelComponents(userIn, chIn, oMediaIn, langIn, domainIn);
     await i.showModal(modal);
     // == // == // FINAL MODAL // == // == //
     const submitInt = await i.awaitModalSubmit({
-        filter: (submitInt) => submitInt.customId === `followX_${i.user.id}` && submitInt.user.id === i.user.id,
+        filter: (submitInt) => submitInt.customId === `followX_${i.id}` && submitInt.user.id === i.user.id,
         time: 120_000, // 2 min
-    }).catch((e: any) => { debug(`Modal FolloXadd error ${e.message}`); return }) as ModalSubmitInteraction;
+    }).catch((e: any) => {
+        debug(`Modal FolloXadd error ${e.message}`);
+        i.followUp({ content: '⏱️ ¡El formulario expiró después de 2 minutos; si fue intencional, ignora esta notificación!', flags: MessageFlags.Ephemeral });
+    }) as ModalSubmitInteraction;
     if (!submitInt) return;
 
     try {
@@ -212,7 +213,6 @@ async function listFollow(i: ChatInputCommandInteraction, guild: Guild) {
 
 // ======================= removeFollow ======================= //
 async function removeFollowModal(i: ChatInputCommandInteraction) {
-    const modal = new ModalBuilder().setCustomId(`followXR_${i.user.id}`).setTitle('Remover Follow de X/Twitter');
     // ID
     const idOp1 = new TextInputBuilder().setCustomId('id').setStyle(TextInputStyle.Short).setRequired(false).setPlaceholder("ID en /follow_twitter lista");
     const idIn = new LabelBuilder().setLabel('ID del follow a eliminar').setTextInputComponent(idOp1);
@@ -220,13 +220,16 @@ async function removeFollowModal(i: ChatInputCommandInteraction) {
     const userOp1 = new TextInputBuilder().setCustomId('usuario').setStyle(TextInputStyle.Short).setRequired(false).setPlaceholder("ej: @x | x.com/x | x");
     const userIn = new LabelBuilder().setLabel('Usuario de X/Twitter').setTextInputComponent(userOp1);
     // Out
-    modal.addLabelComponents(idIn, userIn)
+    const modal = new ModalBuilder().setCustomId(`followXR_${i.id}`).setTitle('Remover Follow de X/Twitter').addLabelComponents(idIn, userIn);
     await i.showModal(modal);
     // == // == // FINAL MODAL // == // == //
     const submitInt = await i.awaitModalSubmit({
-        filter: (submitInt) => submitInt.customId === `followXR_${i.user.id}` && submitInt.user.id === i.user.id,
+        filter: (submitInt) => submitInt.customId === `followXR_${i.id}` && submitInt.user.id === i.user.id,
         time: 120_000, // 2 min
-    }).catch((e: any) => { debug(`Modal FolloXremove error ${e.message}`); }) as ModalSubmitInteraction;
+    }).catch((e: any) => {
+        debug(`Modal FolloXremove error ${e.message}`);
+        i.followUp({ content: '⏱️ ¡El formulario expiró después de 2 minutos; si fue intencional, ignora esta notificación!', flags: MessageFlags.Ephemeral });
+    }) as ModalSubmitInteraction;
     if (!submitInt) return;
 
     try {

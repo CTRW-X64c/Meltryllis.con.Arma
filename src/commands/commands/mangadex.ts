@@ -57,7 +57,6 @@ export async function handleMangadexCommand(interaction: ChatInputCommandInterac
 
 // ============================== SubSeguir ============================== //
 async function seguirManga(i: ChatInputCommandInteraction) {
-  const modal = new ModalBuilder().setCustomId(`mangaDex_${i.user.id}`).setTitle('Configurar Follow de Mangadex');
   // Manga ID
   const userOp1 = new TextInputBuilder().setCustomId('manga_url').setStyle(TextInputStyle.Short).setRequired(true).setPlaceholder("Pega la URL completa del manga");
   const userIn = new LabelBuilder().setLabel('ID del Manga').setTextInputComponent(userOp1);
@@ -81,13 +80,16 @@ async function seguirManga(i: ChatInputCommandInteraction) {
     .addOptions(langsLsi.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji)));
   const langs = new LabelBuilder().setLabel('Idioma del Manga').setStringSelectMenuComponent(langMenu);
   // Out
-  modal.addLabelComponents(userIn, chIn, langs)
+  const modal = new ModalBuilder().setCustomId(`mangaDex_${i.id}`).setTitle('Configurar Follow de Mangadex').addLabelComponents(userIn, chIn, langs);
   await i.showModal(modal);
   // == // == // FINAL MODAL // == // == //
   const submitInt = await i.awaitModalSubmit({
-    filter: (submitInt) => submitInt.customId === `mangaDex_${i.user.id}` && submitInt.user.id === i.user.id,
+    filter: (submitInt) => submitInt.customId === `mangaDex_${i.id}` && submitInt.user.id === i.user.id,
     time: 120_000, // 2 min
-  }).catch((e: any) => debug(`Modal Mangadex error ${e.message}`)) as ModalSubmitInteraction;
+  }).catch((e: any) => {
+    debug(`Modal Mangadex error ${e.message}`)
+    i.followUp({ content: '⏱️ ¡El formulario expiró después de 2 minutos; si fue intencional, ignora esta notificación!', flags: MessageFlags.Ephemeral });
+  }) as ModalSubmitInteraction;
   if (!submitInt) return;
 
   try {
