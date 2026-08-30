@@ -77,16 +77,15 @@ async function SeguiRedditModal(i: ChatInputCommandInteraction) {
     modal.addLabelComponents(chMod, userIn, msgSend)
     await i.showModal(modal);
     // == // == // FINAL MODAL // == // == //
-    try {
-        const modalInt = await i.awaitModalSubmit({
-            filter: (i) => i.customId === `reddiChk_${i.user.id}` && i.user.id === i.user.id,
-            time: 120_000, // 2 min
-        });
-        const submitInt = modalInt as ModalSubmitInteraction;
+    const submitInt = await i.awaitModalSubmit({
+        filter: (submitInt) => submitInt.customId === `reddiChk_${i.user.id}` && submitInt.user.id === i.user.id,
+        time: 120_000, // 2 min
+    }).catch((e: any) => debug(`Modal Reddit error ${e.message}`)) as ModalSubmitInteraction;
+    if (!submitInt) return;
 
+    try {
         await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
         const guild = submitInt.guild!
-
         const rawfilter = submitInt.fields.getStringSelectValues("filtro")
         const urlReddit = submitInt.fields.getTextInputValue("url_reddit");
         const rawChannle = submitInt.fields.getSelectedChannels("canal", true).first();
@@ -169,9 +168,8 @@ async function SeguiRedditModal(i: ChatInputCommandInteraction) {
         debug(`Se registro nuevo follow: ${displayName}`);
 
     } catch (e) {
-        if (!i.deferred) await i.deferReply({ flags: MessageFlags.Ephemeral });
-        error(`Error al agreagar nuevo follow Reddit en gremio ${i.guild!.name}: ${e}`);
-        await i.editReply({ content: i18next.t("commands:reddit.interacciones.seguir_error") });
+        error(`Error al agreagar nuevo follow Reddit en gremio ${submitInt.guild!.name}: ${e}`);
+        await submitInt.reply({ content: i18next.t("commands:reddit.interacciones.seguir_error") }).catch(() => null);
     }
 }
 

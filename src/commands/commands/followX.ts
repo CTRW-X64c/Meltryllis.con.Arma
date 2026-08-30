@@ -6,6 +6,7 @@ import { addFollowTweet, checFollowUser, deleteFollowTweet, followTweetonGuild }
 import { countItems } from "../../sys/DB-Engine/database";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { masterPerm } from "../../sys/zGears/auxiliares";
+import { debug } from "node:console";
 
 export async function registerFollowXCommand(): Promise<SlashCommandBuilder[]> {
     const followX = new SlashCommandBuilder()
@@ -74,13 +75,13 @@ async function followXModal(i: ChatInputCommandInteraction) {
     modal.addLabelComponents(userIn, chIn, oMediaIn, langIn, domainIn)
     await i.showModal(modal);
     // == // == // FINAL MODAL // == // == //
-    try {
-        const modalInt = await i.awaitModalSubmit({
-            filter: (i) => i.customId === `followX_${i.user.id}` && i.user.id === i.user.id,
-            time: 120_000, // 2 min
-        });
-        const submitInt = modalInt as ModalSubmitInteraction;
+    const submitInt = await i.awaitModalSubmit({
+        filter: (submitInt) => submitInt.customId === `followX_${i.user.id}` && submitInt.user.id === i.user.id,
+        time: 120_000, // 2 min
+    }).catch((e: any) => { debug(`Modal FolloXadd error ${e.message}`); return }) as ModalSubmitInteraction;
+    if (!submitInt) return;
 
+    try {
         await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
         const guild = submitInt.guild!;
         const userX = submitInt.fields.getTextInputValue("usuario");
@@ -160,9 +161,8 @@ async function followXModal(i: ChatInputCommandInteraction) {
             else { await submitInt.editReply(`Ocurrio un erro al actualizar **${xUser}**`); }
         }
     } catch (e: any) {
-        if (!i.deferred) await i.deferReply({ flags: MessageFlags.Ephemeral });
-        error(`Algo salio mal en añadir follow en el gremio: ${i.guild!.id}`);
-        await i.editReply("Ocurrio un error al procesar la solicitud!!");
+        error(`Algo salio mal en añadir follow en el gremio: ${submitInt.guild!.id}`);
+        await submitInt.reply("Ocurrio un error al procesar la solicitud!!").catch(() => null);
     }
 }
 
@@ -223,13 +223,13 @@ async function removeFollowModal(i: ChatInputCommandInteraction) {
     modal.addLabelComponents(idIn, userIn)
     await i.showModal(modal);
     // == // == // FINAL MODAL // == // == //
-    try {
-        const modalInt = await i.awaitModalSubmit({
-            filter: (i) => i.customId === `followXR_${i.user.id}` && i.user.id === i.user.id,
-            time: 120_000, // 2 min
-        });
-        const submitInt = modalInt as ModalSubmitInteraction;
+    const submitInt = await i.awaitModalSubmit({
+        filter: (submitInt) => submitInt.customId === `followXR_${i.user.id}` && submitInt.user.id === i.user.id,
+        time: 120_000, // 2 min
+    }).catch((e: any) => { debug(`Modal FolloXremove error ${e.message}`); }) as ModalSubmitInteraction;
+    if (!submitInt) return;
 
+    try {
         await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
         const id = submitInt.fields.getTextInputValue("id").trim() || undefined;
         const user = submitInt.fields.getTextInputValue("usuario") || undefined;
@@ -251,9 +251,8 @@ async function removeFollowModal(i: ChatInputCommandInteraction) {
         else submitInt.editReply(`No sepudo borrar el follow con el ${doNumber ? `ID: ${id}` : `Usuario: @${validUser}`}`)
 
     } catch (e) {
-        if (!i.deferred) await i.deferReply({ flags: MessageFlags.Ephemeral });
-        error(`Algo salio mal en añadir follow en el gremio: ${i.guild!.id}`);
-        i.editReply(`Algo salio mal al intentar borrar el follow!!`);
+        error(`Algo salio mal en añadir follow en el gremio: ${submitInt.guild!.id}`);
+        submitInt.reply(`Algo salio mal al intentar borrar el follow!!`).catch(() => null);
     }
 }
 

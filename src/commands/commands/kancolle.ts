@@ -2,7 +2,7 @@ import { ChannelSelectMenuBuilder, ChatInputCommandInteraction, EmbedBuilder, Gu
 import { addBD, delBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/KancolleBD';
 import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
-import { error } from '../../sys/logging';
+import { debug, error } from '../../sys/logging';
 import { masterPerm } from '../../sys/zGears/auxiliares';
 import { allLefts, mantDates, turnDate, JSTtoUTC, getNowJST } from '../../sys/zGears/kc_aux'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
@@ -89,22 +89,21 @@ async function enableModal(i: ChatInputCommandInteraction) {
     modal.addLabelComponents(chMod, roleMod, msgSend, ntfy)
     await i.showModal(modal);
     // == // == // FINAL MODAL // == // == //
-    try {
-        const modalInt = await i.awaitModalSubmit({
-            filter: (i) => i.customId === `KanColle_${i.user.id}` && i.user.id === i.user.id,
-            time: 120_000, // 2 min
-        });
-        const submitInt = modalInt as ModalSubmitInteraction;
+    const submitInt = await i.awaitModalSubmit({
+        filter: (submitInt) => submitInt.customId === `KanColle_${i.user.id}` && submitInt.user.id === i.user.id,
+        time: 120_000, // 2 min
+    }).catch((e: any) => debug(`Modal kancolle error ${e.message}`)) as ModalSubmitInteraction;
+    if (!submitInt) return;
 
+    try {
         await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
         const guild = submitInt.guild!
-
         const rawCh = submitInt.fields.getSelectedChannels("canal", true).first();
         const vrfyCh = rawCh ? await guild.channels.fetch(rawCh.id) as TextChannel : null;
-        if (!vrfyCh) { await i.editReply(i18next.t("commands:kancolle.interacciones.error_ch_noValido")); return; }
+        if (!vrfyCh) { await submitInt.editReply(i18next.t("commands:kancolle.interacciones.error_ch_noValido")); return; }
 
         const testPerm = masterPerm(vrfyCh, "viewCh|sendMsg|msgManager|mentions")
-        if (!testPerm.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `${rawCh}`, a2: testPerm.msg.join('\n') }) }); return; }
+        if (!testPerm.ok) { await submitInt.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `${rawCh}`, a2: testPerm.msg.join('\n') }) }); return; }
 
         const rawRole = submitInt.fields.getSelectedRoles("role")?.first() ?? null;
         const vrfyRol = rawRole ? await guild.roles.fetch(rawRole.id) : null;
@@ -149,9 +148,8 @@ async function enableModal(i: ChatInputCommandInteraction) {
 
         await submitInt.editReply({ embeds: [emb] });
     } catch (err) {
-        if (!i.deferred) await i.deferReply({ flags: MessageFlags.Ephemeral });
         error(`Error ejecutando comando Kancolle: ${err}`);
-        await i.editReply({ content: i18next.t("commands:mangadex.interacciones.command_error") });
+        await submitInt.reply({ content: i18next.t("commands:mangadex.interacciones.command_error") }).catch(() => null);
     }
 }
 

@@ -84,13 +84,13 @@ async function seguirManga(i: ChatInputCommandInteraction) {
   modal.addLabelComponents(userIn, chIn, langs)
   await i.showModal(modal);
   // == // == // FINAL MODAL // == // == //
-  try {
-    const modalInt = await i.awaitModalSubmit({
-      filter: (i) => i.customId === `mangaDex_${i.user.id}` && i.user.id === i.user.id,
-      time: 120_000, // 2 min
-    });
-    const submitInt = modalInt as ModalSubmitInteraction;
+  const submitInt = await i.awaitModalSubmit({
+    filter: (submitInt) => submitInt.customId === `mangaDex_${i.user.id}` && submitInt.user.id === i.user.id,
+    time: 120_000, // 2 min
+  }).catch((e: any) => debug(`Modal Mangadex error ${e.message}`)) as ModalSubmitInteraction;
+  if (!submitInt) return;
 
+  try {
     await submitInt.deferReply({ flags: MessageFlags.Ephemeral });
     const guild = submitInt.guild!;
     const manga_url = submitInt.fields.getTextInputValue("manga_url");
@@ -138,11 +138,10 @@ async function seguirManga(i: ChatInputCommandInteraction) {
     debug(`Nuevo manga seguido: ${mangaName} en ${guild.name}`);
 
   } catch (err: any) {
-    if (!i.deferred) await i.deferReply({ flags: MessageFlags.Ephemeral });
     error(`Error BD Mangadex: ${err}`);
     const isDuplicateError = err.code === 'ER_DUP_ENTRY' || err.sqlMessage?.includes('Duplicate entry') || err.message?.includes('Duplicate entry') || err.message?.includes('idx_unique_rss_guild_channel');
-    if (isDuplicateError) { await i.reply({ content: i18next.t("commands:mangadex.interacciones.seguir_existente_error") }); return; }
-    await i.editReply({ content: i18next.t("commands:mangadex.interacciones.seguir_error") });
+    if (isDuplicateError) { await submitInt.reply({ content: i18next.t("commands:mangadex.interacciones.seguir_existente_error") }); return; }
+    await submitInt.reply({ content: i18next.t("commands:mangadex.interacciones.seguir_error") }).catch(() => null);
   }
 }
 
