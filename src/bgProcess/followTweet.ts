@@ -1,4 +1,4 @@
-import { Client, Guild, Message, TextChannel } from "discord.js"
+import { Client, Guild, TextChannel } from "discord.js"
 import { deleteFollowTweet, getAllFollowTweet, updateFollowTweet } from "../sys/DB-Engine/links/followTweet"
 import { debug, error } from "../sys/logging";
 import urlStatusManager from "../sys/embedding/domainChecker";
@@ -77,34 +77,38 @@ interface msgSendIn { Api: { lisTweets: string[], lastPosID: string } | null, ch
 async function msgSend(out: msgSendIn): Promise<void> {
     try {
         if (!out.Api || out.Api.lisTweets.length === 0) return;
-        const toChk: Message[] = [];
+        const { Api, channel, guild, xUser } = out
+        const { lisTweets, lastPosID } = Api;
 
-        for (let i = out.Api.lisTweets.length - 1; i >= 0; i--) {
-            const msgEmb = await out.channel.send(out.Api.lisTweets[i]);
+        for (let i = lisTweets.length - 1; i >= 0; i--) {
+            const msgEmb = await channel.send(lisTweets[i]);
             await wait(3_000);
-            if (msgEmb.embeds.length === 0) toChk.push(msgEmb);
-        }
-        await updateFollowTweet(out.guild, out.channel.id, out.xUser, out.Api.lastPosID);
-        debug(`Se enviaron ${out.Api.lisTweets.length} tweets del gremio: ${out.guild} para @${out.xUser}`, "BG.TwitterFollow")
 
-        if (toChk.length > 0) {
-            for (const msgX of toChk) {
-                let freshMsg = await msgX.channel.messages.fetch(msgX.id).catch(() => null);
-                if (!freshMsg || freshMsg.embeds.length > 0) continue;
+            if (msgEmb.embeds.length === 0) {
+                let freshMsg = await channel.messages.fetch(msgEmb.id).catch(() => null);
+                if (!freshMsg) continue;
+                if (freshMsg.embeds.length > 0) continue;
 
-                for (let i = 1; i <= 2; i++) {
-                    await freshMsg.edit({ content: "⏳" }).catch(() => { null });
-                    await wait(3_000);
+                let embOk = false;
+                for (let att = 1; att <= 2; att++) {
+                    await freshMsg.edit({ content: "⏳" }).catch(() => { });
+                    await wait(2_000 * att);
 
-                    await freshMsg.edit({ content: msgX.content }).catch(() => { null });
-                    await wait(4_000);
+                    await freshMsg.edit({ content: lisTweets[i] }).catch(() => { });
+                    await wait(3_000 * att);
 
                     freshMsg = await freshMsg.channel.messages.fetch(freshMsg.id).catch(() => null);
+
                     if (!freshMsg) break;
-                    if (freshMsg.embeds.length > 0) break;
+                    if (freshMsg.embeds.length > 0) { embOk = true; break }
                 }
+
+                if (freshMsg && !embOk) { await freshMsg.edit({ content: lisTweets[i] }).catch(() => { }); }
             }
         }
+
+        await updateFollowTweet(guild, channel.id, xUser, lastPosID);
+        debug(`Se enviaron ${lisTweets.length} tweets del gremio: ${guild} para @${xUser}`, "BG.TwitterFollow")
 
     } catch (e) { error(`Error en el envio del mensaje del gremio: ${out.guild}`, "BG.TwitterFollow") }
 }
