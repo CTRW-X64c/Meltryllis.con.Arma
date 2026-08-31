@@ -13,9 +13,12 @@ export async function initFolloX(C: Client): Promise<void> {
 // ===================== Engine ===================== //
 export async function tweEngine(cli: Client): Promise<void> {
     try {
+        const dta = await getAllFollowTweet();
+        if (!dta) return;
+        // Kche
         let kacheCh: { [key: string]: { chT: TextChannel | null } } = {};
         let kacheDom: { [key: string]: { dom: string | null } } = {};
-
+        // BDelepa
         const depurBD = async (guildy: string, idBDpos: number, idDelKach: string) => {
             kacheCh[idDelKach] = { chT: null };
             try {
@@ -23,10 +26,7 @@ export async function tweEngine(cli: Client): Promise<void> {
                 debug(`Borrando de la BD el X/Twitter con ID: ${idBDpos} del server: ${guildy}`, "BG.TwitterFollow");
             } catch (e) { error(`Algo fallo en la BD ${e}`, "BG.TwitterFollow"); }
         };
-
-        const dta = await getAllFollowTweet();
-        if (!dta) return;
-
+        // work
         for (const X of dta) {
             const { id, guild_id, canal, xUser, lastPost, Domain, lang, onlyMedia } = X;
             const idKch = `${guild_id}-${canal}`;
@@ -58,33 +58,37 @@ export async function tweEngine(cli: Client): Promise<void> {
 
             if (guild_id in kacheDom) { dominio = kacheDom[guild_id].dom; }
             else {
-                const guildConf = await getGuildReplacementConfig(guild_id)
-                const guildCustomD = Domain ? Domain : (guildConf.has("Twitter | X") ? guildConf.get("Twitter | X")?.custom_url : null);
-                const myCustomD = guildCustomD ?? urlStatusManager.getActiveUrl("twitter")
-                const tweetDomain = guildCustomD ? guildCustomD : myCustomD;
-                kacheDom[guild_id] = { dom: tweetDomain }; dominio = tweetDomain;
+                const gldCnfDom = await getGuildReplacementConfig(guild_id);
+                const hasCustom = Domain ? Domain : (gldCnfDom.get("Twitter | X")?.custom_url ?? null);
+                const localDomain = urlStatusManager.getActiveUrl("twitter") ?? null;
+                const outDom = hasCustom ? hasCustom : localDomain;
+                kacheDom[guild_id] = { dom: outDom }; dominio = outDom;
             }
 
             await wait(200);
-            const newPost = await getting({ gremio: guild_id, userX: xUser, typeUserX: onlyMedia, lPost: lastPost, tl: lang, cDom: dominio });
-            msgSend({ Api: newPost, channel: chToSend, guild: guild_id, xUser: xUser }).catch(e => error(e, "BG.TwitterFollow"));
+            const newPost = await getting({ gremio: guild_id, userX: xUser, typeUserX: onlyMedia, lPost: lastPost });
+            msgSend({ Api: newPost, channel: chToSend, guild: guild_id, xUser: xUser, domain: dominio, tl: lang }).catch(e => error(e, "BG.TwitterFollow"));
         }
     } catch (e) { error(`Fallo el checkTwitterFollow ${e}`, "BG.TwitterFollow") }
 }
 
 // === msgSender === //
-interface msgSendIn { Api: { lisTweets: string[], lastPosID: string } | null, channel: TextChannel, guild: string, xUser: string }
+interface msgSendIn { Api: { lisTweets: string[], lastPosID: string } | null, channel: TextChannel, guild: string, xUser: string, domain: string | null, tl: string | null }
 async function msgSend(out: msgSendIn): Promise<void> {
     try {
         if (!out.Api || out.Api.lisTweets.length === 0) return;
-        const { Api, channel, guild, xUser } = out
+        const { Api, channel, guild, xUser, domain, tl } = out
         const { lisTweets, lastPosID } = Api;
 
         for (let i = lisTweets.length - 1; i >= 0; i--) {
-            const msgEmb = await channel.send(lisTweets[i]);
+            let outLink = lisTweets[i];
+            if (domain) outLink = outLink.replace(/:?(?:twitter\.com|x\.com)/g, domain);
+            if (tl) outLink = (outLink + `/${tl}`);
+
+            const msgEmb = await channel.send({ content: `> ## Nuevo [tweet](${outLink}) de @${xUser}` }).catch(() => null);
             await wait(3_000);
 
-            if (msgEmb.embeds.length === 0) {
+            if (msgEmb && msgEmb.embeds.length === 0) {
                 let freshMsg = await channel.messages.fetch(msgEmb.id).catch(() => null);
                 if (!freshMsg) continue;
                 if (freshMsg.embeds.length > 0) continue;
@@ -94,7 +98,7 @@ async function msgSend(out: msgSendIn): Promise<void> {
                     await freshMsg.edit({ content: "⏳" }).catch(() => { });
                     await wait(2_000 * att);
 
-                    await freshMsg.edit({ content: lisTweets[i] }).catch(() => { });
+                    await freshMsg.edit({ content: `> ## Nuevo [tweet](${outLink}) de @${xUser}` }).catch(() => { });
                     await wait(3_000 * att);
 
                     freshMsg = await freshMsg.channel.messages.fetch(freshMsg.id).catch(() => null);
@@ -103,7 +107,14 @@ async function msgSend(out: msgSendIn): Promise<void> {
                     if (freshMsg.embeds.length > 0) { embOk = true; break }
                 }
 
-                if (freshMsg && !embOk) { await freshMsg.edit({ content: lisTweets[i] }).catch(() => { }); }
+                if (freshMsg && !embOk) {
+                    freshMsg.delete().catch(() => { })
+                    const lasTry = await channel.send({ content: `> ## Nuevo [tweet](${outLink}) de @${xUser}` }).catch(() => { });
+                    await wait(3_500)
+                    if (lasTry && lasTry.embeds.length === 0) {
+                        await lasTry.edit({ content: `> ## Nuevo [tweet](${lisTweets[i]}) de @${xUser} \n> ***No genero embed, devuelto link original***` }).catch(() => { });
+                    }
+                }
             }
         }
 
@@ -114,7 +125,7 @@ async function msgSend(out: msgSendIn): Promise<void> {
 }
 
 // === apiSolver === //
-interface todoInt { gremio: string, userX: string, typeUserX: boolean, lPost: string | null, tl: string | null, cDom: string | null }
+interface todoInt { gremio: string, userX: string, typeUserX: boolean, lPost: string | null }
 async function getting(dta: todoInt): Promise<{ lisTweets: string[]; lastPosID: string; } | null> {
     try {
         let typePostGet = dta.typeUserX ? "media" : "statuses";
@@ -131,18 +142,15 @@ async function getting(dta: todoInt): Promise<{ lisTweets: string[]; lastPosID: 
         let apiData = { lisTweets: [] as string[], lastPosID: "noLastPost" };
         for (const x of data.results) {
             if (x.url && x.id) {
-                if (x.id === dta.lPost) {
-                    debug(`Se salto el follow: ${dta.userX} del gremio: ${dta.gremio}, no cuenta con actualizaciones`, "BG.TwitterFollow");
-                    break;
-                }
-                let tweetURL = x.url;
-                dta.cDom ? tweetURL = tweetURL.replace(/:?(?:twitter\.com|x\.com)/g, dta.cDom) : x.url;
-                dta.tl ? tweetURL = (tweetURL + `/${dta.tl}`) : tweetURL;
-                apiData.lisTweets.push(`New tweet de @${dta.userX}: [Tweet!](${tweetURL})`);
+                if (x.id === dta.lPost) break;
+                if (!dta.lPost && apiData.lisTweets.length >= 2) break;
+                apiData.lisTweets.push(x.url);
             }
         }
 
         if (data.results[0].id) apiData.lastPosID = data.results[0].id;
+
+        debug(`Se termino de verificar los post de: ${dta.userX} del gremio: ${dta.gremio}`, "BG.TwitterFollow")
         return apiData;
 
     } catch (e: any) {

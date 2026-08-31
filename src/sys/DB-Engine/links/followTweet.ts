@@ -18,7 +18,7 @@ interface FollowTweetX {
 export async function getAllFollowTweet(): Promise<FollowTweetX[] | null> {
     try {
         const pool = await getPool();
-        const [rows] = await pool.query("SELECT id, guild_id, canal, xUser, lastPost, lang, customDomain, addBy, onlyMedia, created_at FROM followTweetX");
+        const [rows] = await pool.query("SELECT id, guild_id, canal, xUser, lastPost, lang, Domain, addBy, onlyMedia, created_at FROM followTweetX");
         return rows as FollowTweetX[];
     } catch (e) {
         error(`Falló la recuperación de datos de followTweet: ${e}`);
@@ -52,8 +52,8 @@ export async function addFollowTweet(dta: Omit<FollowTweetX, 'id' | 'created_at'
     try {
         const pool = await getPool();
         await pool.query(`
-            INSERT INTO followTweetX (guild_id, canal, xUser, lang, customDomain, addBy, onlyMedia) VALUES (?, ?, ?, ?, ?, ?, ?) 
-            ON DUPLICATE KEY UPDATE canal = ?, lang = ?, customDomain = ?, onlyMedia = ?`,
+            INSERT INTO followTweetX (guild_id, canal, xUser, lang, Domain, addBy, onlyMedia) VALUES (?, ?, ?, ?, ?, ?, ?) 
+            ON DUPLICATE KEY UPDATE canal = ?, lang = ?, Domain = ?, onlyMedia = ?`,
             [dta.guild_id, dta.canal, dta.xUser, dta.lang, dta.Domain, dta.addBy, dta.onlyMedia,
             dta.canal, dta.lang, dta.Domain, dta.onlyMedia]);
         return true;
@@ -66,7 +66,7 @@ export async function addFollowTweet(dta: Omit<FollowTweetX, 'id' | 'created_at'
 export async function checFollowUser(gremio: string, user: string): Promise<FollowTweetX[] | null> {
     try {
         const pool = await getPool();
-        const [rows] = await pool.query("SELECT id, guild_id, canal, xUser, lastPost, lang, customDomain, addBy, onlyMedia, created_at FROM followTweetX WHERE guild_id = ? AND xUser = ?",
+        const [rows] = await pool.query("SELECT id, guild_id, canal, xUser, lastPost, lang, Domain, addBy, onlyMedia, created_at FROM followTweetX WHERE guild_id = ? AND xUser = ?",
             [gremio, user]);
         return rows as FollowTweetX[];
     } catch (e) {
@@ -79,7 +79,7 @@ export async function followTweetonGuild(gremio: string): Promise<FollowTweetX[]
     debug(`Cache MISS para guild: ${gremio} `, "Database");
     try {
         const pool = await getPool();
-        const [rows] = await pool.query("SELECT id, guild_id, canal, xUser, lastPost, lang, customDomain, addBy, onlyMedia, created_at FROM followTweetX WHERE guild_id = ?",
+        const [rows] = await pool.query("SELECT id, guild_id, canal, xUser, lastPost, lang, Domain, addBy, onlyMedia, created_at FROM followTweetX WHERE guild_id = ?",
             [gremio]);
         return rows as FollowTweetX[];
     } catch (e) {

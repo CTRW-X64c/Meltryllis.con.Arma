@@ -320,7 +320,7 @@ async function poolManager(): Promise<void> {
       xUser VARCHAR(50) NOT NULL,
       lastPost VARCHAR(255),
       lang VARCHAR(255),
-      customDomain VARCHAR(255),
+      Domain VARCHAR(255),
       addBy VARCHAR(50) NOT NULL,
       onlyMedia BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
