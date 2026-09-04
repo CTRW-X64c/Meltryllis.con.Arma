@@ -70,7 +70,7 @@ export async function startServices(client: Client) {
             const envTimmer = envVal ? parseInt(envVal, 10) : NaN;
             const fTimmer = bdTimmers.get(serv) ?? envTimmer;
 
-            if (!isNaN(fTimmer) && (fTimmer >= 10 || fTimmer === 0)) { bdTimmers.set(serv, fTimmer); }
+            if (!isNaN(fTimmer) && (fTimmer >= 5 || fTimmer === 0)) { bdTimmers.set(serv, fTimmer); }
             else { bdTimmers.set(serv, 15); }
 
             const mTimmer = bdTimmers.get(serv)!;

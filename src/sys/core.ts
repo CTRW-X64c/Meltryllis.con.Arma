@@ -18,6 +18,7 @@ import registerIOevent from "./zGears/IO-Server";
 import { initNoEveryone } from "../bgProcess/noEvery";
 import { startServices } from "./zGears/_managerServices";
 import { initKC } from "../bgProcess/KanCron";
+import { startProxyChecker } from "./zGears/newAux";
 
 /*========= Inicializadores =========*/
 
@@ -35,6 +36,7 @@ async function main(): Promise<void> {
         sysUpRegister(client);
         await registerIOevent(client);
         registerRolemojiEvents(client);
+        startProxyChecker()
         if (BDready) {
             info("💽​ Base de datos lista, iniciando servicios...")
             const sld = await startListDomains()

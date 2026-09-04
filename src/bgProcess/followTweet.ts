@@ -65,7 +65,7 @@ export async function tweEngine(cli: Client): Promise<void> {
                 kacheDom[guild_id] = { dom: outDom }; dominio = outDom;
             }
 
-            await wait(200);
+            await wait(100);
             const newPost = await getting({ gremio: guild_id, userX: xUser, typeUserX: onlyMedia, lPost: lastPost });
             msgSend({ Api: newPost, channel: chToSend, guild: guild_id, xUser: xUser, domain: dominio, tl: lang }).catch(e => error(e, "BG.TwitterFollow"));
         }
@@ -139,22 +139,25 @@ async function getting(dta: todoInt): Promise<{ lisTweets: string[]; lastPosID: 
             return null;
         }
 
-        let apiData = { lisTweets: [] as string[], lastPosID: "noLastPost" };
+        const lisTweets: string[] = [];
+        const ids = dta.lPost?.split("#") ?? [];
+
         for (const x of data.results) {
             if (x.url && x.id) {
-                if (x.id === dta.lPost) break;
-                if (!dta.lPost && apiData.lisTweets.length >= 2) break;
-                apiData.lisTweets.push(x.url);
+                if (ids.includes(x.id)) break;
+                if (!dta.lPost && lisTweets.length >= 2) break;
+                lisTweets.push(x.url);
             }
         }
 
-        if (data.results[0].id) apiData.lastPosID = data.results[0].id;
+        const topIds = data.results.slice(0, 4).map(r => r.id).filter(Boolean);
+        const lastPosID = topIds.length ? topIds.join('#') : "noLastPost";
 
         debug(`Se termino de verificar los post de: ${dta.userX} del gremio: ${dta.gremio}`, "BG.TwitterFollow")
-        return apiData;
+        return { lisTweets, lastPosID };
 
     } catch (e: any) {
-        error(`Error al processar el follow del gremio: ${dta.gremio} | Error: ${e.message}`, "BG.TwitterFollow");
+        error(`Error al processar el follow del gremio: ${dta.gremio} | User: ${dta.userX} | Error: ${e.message}`, "BG.TwitterFollow");
         return null;
     }
 }

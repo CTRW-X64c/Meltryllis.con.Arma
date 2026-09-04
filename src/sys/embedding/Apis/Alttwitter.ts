@@ -3,6 +3,11 @@ import { Message, AttachmentBuilder, TextChannel, EmbedBuilder } from "discord.j
 import { ApiHandler, pResult } from "../embedingSwitch"
 import { debug, error } from "../../logging";
 import { translate } from '@vitalets/google-translate-api';
+import ffmpeg from 'fluent-ffmpeg';
+import { PassThrough } from 'stream';
+import ffmpegStatic from 'ffmpeg-static';
+import axios from "axios";
+import { Proxy } from "../../zGears/newAux";
 
 // ================================= APi: xTwitter Meltrys ================================= //
 
@@ -231,26 +236,34 @@ class xTwitter {
             try {
                 const limiteBytes = 9_961_472; // ~9.5 MB
                 const controller = new AbortController();
-                const res = await fetch(downUrl, { headers: this.headers, signal: controller.signal });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const res = await axios.get(downUrl, {
+                    headers: this.headers,
+                    signal: controller.signal,
+                    httpAgent: Proxy,
+                    httpsAgent: Proxy,
+                    responseType: 'stream'
+                });
+                if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
 
-                const contentLength = res.headers.get('content-length');
+                const headerContentLength = res.headers['content-length'];
+                const contentLength = typeof headerContentLength === 'string' ? headerContentLength : Array.isArray(headerContentLength) ? headerContentLength[0] : undefined;
                 if (contentLength && parseInt(contentLength, 10) > limiteBytes) { controller.abort(); return null; }
 
-                const chunks: Uint8Array[] = [];
+                const chunks: Buffer[] = [];
                 let downloadedBytes = 0, exceeded = false;
-                if (res.body) {
+                if (res.data) {
                     try {
-                        for await (const chunk of res.body as any) {
-                            downloadedBytes += chunk.length;
+                        for await (const chunk of res.data) {
+                            const bufferChunk = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+                            downloadedBytes += bufferChunk.length;
                             if (downloadedBytes > limiteBytes) { exceeded = true; controller.abort(); break; }
-                            chunks.push(chunk);
+                            chunks.push(bufferChunk);
                         }
                     } catch (err: any) { if (err.name !== 'AbortError') throw err; }
                 }
                 if (exceeded) return null;
                 return Buffer.concat(chunks);
-            } catch (e) { error(`Erro en el procesa de descarga: ${e}`); return null }
+            } catch (e: any) { error(`Erro en el procesa de descarga: ${e} | Causa: ${e.cause}`); return null }
         }
 
         if (vid) {
@@ -279,13 +292,19 @@ class xTwitter {
                     const match = trg ? trg[1] : null;
                     if (match) {
                         let chk: Response | null = null;
-                        try { chk = await fetch(`https://gif.fxtwitter.com/tweet_video/${match}.webp`, { headers: { method: 'HEAD' } }); }
+                        try { chk = await fetch(`https://gif.fxtwitter.com/tweet_video/${match}.webp`, { method: 'HEAD' }); }
                         catch (e) { error(`ERROR EN FETCH REVISAR POR BLOQUEO DE HEAD!!: ${e}`); }
                         downUrl = (chk && chk.ok) ? chk.url : inf.url;
                     }
                     const downGif = await downMedia(downUrl)
-                    if (!downGif) { downData.links.push(`[.](${downUrl})`); }
-                    else { downData.gifs.push(downGif); }
+                    if (downGif) {
+                        if (this.isWebp(downGif)) { downData.gifs.push(downGif); }
+                        else {
+                            const convert = await this.turnMp4ToWebp(downGif);
+                            if (convert) { downData.gifs.push(convert); }
+                            else { downData.links.push(`[.](${downUrl})`); }
+                        }
+                    } else { downData.links.push(`[.](${downUrl})`); }
                 }
             }
         }
@@ -340,8 +359,44 @@ class xTwitter {
         if (!nLang) return lang;
         return nLang;
     }
-}
 
+    private static isWebp(buffer: Buffer): boolean {
+        if (!buffer || buffer.length < 12) return false;
+        const riff = buffer.toString('ascii', 0, 4);
+        const webp = buffer.toString('ascii', 8, 12);
+        return riff === 'RIFF' && webp === 'WEBP';
+    }
+
+    private static turnMp4ToWebp(mp4Buffer: Buffer): Promise<Buffer | null> {
+        if (ffmpegStatic) { ffmpeg.setFfmpegPath(ffmpegStatic); }
+        debug("[SYTEM CONVERT]: Se incio una conversion a webp")
+        return new Promise((resolve) => {
+            const inputStream = new PassThrough();
+            inputStream.end(mp4Buffer);
+
+            const outputStream = new PassThrough();
+            const chunks: Buffer[] = [];
+
+            outputStream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+            outputStream.on('end', () => resolve(Buffer.concat(chunks)));
+
+            ffmpeg(inputStream)
+                .outputOptions([
+                    '-loop 0',
+                    '-qscale:v 75',
+                    '-r 12',
+                    //'-vf scale=480:-1',
+
+                ])
+                .format('webp')
+                .on('error', (err) => {
+                    console.error(`Error procesando video con FFmpeg: ${err.message}`);
+                    resolve(null);
+                })
+                .pipe(outputStream, { end: true });
+        });
+    }
+}
 
 //txt4Tl = txt4Tl.replace(/\r\n/g, '\n').replace(/\n{2,}/g, '\n').trim(); // quita doble saltos
 //txt4Tl = txt4Tl.replace(/\s{2,}/g, ' ').trim(); // removedor de doble espacios

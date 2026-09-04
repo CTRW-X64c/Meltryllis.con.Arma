@@ -45,8 +45,8 @@ export async function handleFollowXCommand(inter: ChatInputCommandInteraction) {
             default:
                 inter.editReply({ content: i18next.t("common:Errores.switchGeneral") })
         }
-    } catch (e) {
-        error(`Error en el comando followX: ${e}`);
+    } catch (e: any) {
+        error(`Comando: /followX SWITCH | Guild: ${inter.guild!.id} | Error: ${e.message}`);
     }
 }
 
@@ -171,44 +171,56 @@ async function followXModal(i: ChatInputCommandInteraction) {
 async function listFollow(i: ChatInputCommandInteraction, guild: Guild) {
     await i.deferReply({ flags: MessageFlags.Ephemeral });
     try {
-        let embes: EmbedBuilder[] = [], txtOut: string | undefined = undefined;
+        let embes: EmbedBuilder[] = [];
         const follow = await followTweetonGuild(guild.id);
         const flagsMap: Record<string, string> = { 'es': '🇲🇽', 'en': '🇺🇸', 'pt': '🇧🇷', 'ja': '🇯🇵', 'ko': '🇰🇷' };
-        const em = new EmbedBuilder().setAuthor({ name: "Lista de Usuarios de  X | Twitter siguiendo!" })
-        if (!follow) {
-            em.setDescription("# No se han agregado usuarios para seguir").setColor(0xFF00BB)
+
+        if (!follow || follow.length === 0) {
+            const em = new EmbedBuilder()
+                .setAuthor({ name: "Lista de Usuarios de X | Twitter siguiendo!" })
+                .setDescription("# No se han agregado usuarios para seguir")
+                .setColor(0xFF00BB);
             embes.push(em);
         } else {
-            let adFields: { name: string, value: string, inline?: boolean }[] = [], tooLong = false;
+
             const lisEmb: string[] = [];
             for (const flw of follow) {
                 const F1 = flw.Domain ?? "Default";
                 const F2 = flw.lang ? flagsMap[flw.lang] : '\`No traducir!\`';
-                const F3 = new Date(flw.created_at).toLocaleString('es-MX', { dateStyle: 'short', });
-                lisEmb.push(`🆔: \`${flw.id}\` | 🗣️: [@${flw.xUser}](https://x.com/${flw.xUser}) | 🗨️: <#${flw.canal}> | 👤: <@${flw.addBy}>` + "\n"
-                    + `📅: \`${F3}\` | 🔗: \`${F1}\` | 🌐: ${F2} | 🎥: ${flw.onlyMedia ? "\`Multimedia\`" : "\`Todo\`"}`);
+                const F3 = new Date(flw.created_at).toLocaleString('es-MX', { dateStyle: 'short' });
+                lisEmb.push(`🆔: \`${flw.id}\` | 🗣️: [@${flw.xUser}](https://x.com/${flw.xUser}) | 🗨️: <#${flw.canal}> | 👤: <@${flw.addBy}>\n📅: \`${F3}\` | 🔗: \`${F1}\` | 🌐: ${F2} | 🎥: ${flw.onlyMedia ? "\`Multimedia\`" : "\`Todo\`"}`);
             }
 
             const totalParts = Math.ceil(lisEmb.length / 5);
-            for (let i = 0; i < lisEmb.length; i += 5) {
-                const partNumber = Math.floor(i / 5) + 1;
-                adFields.push({
-                    name: `**Parte ${partNumber} de ${totalParts}**`,
-                    value: lisEmb.slice(i, i + 5).join('\n\n'),
-                    inline: false
-                });
-                if (adFields.length >= 23) { tooLong = true; break };
-            }
+            for (let index = 0; index < lisEmb.length; index += 5) {
+                const partNumber = Math.floor(index / 5) + 1;
+                const em = new EmbedBuilder()
+                    .setColor(0x010101)
+                    .addFields({
+                        name: `**Parte ${partNumber} de ${totalParts}**`,
+                        value: lisEmb.slice(index, index + 5).join('\n\n'),
+                        inline: false
+                    });
 
-            em.setDescription("## Lista de follows!!" + "\n\n" + "X user | Canal | Añadido | Añadido el | Dominio | Traducir | Solo multimedia"
-                + (tooLong ? (`\n\n` + `La lista de follows es muy larga, mostrando ${lisEmb.length} follows!`) : ""))
-                .setColor(0x010101)
-                .setFields(adFields)
-                .setFooter({ text: `Total de follows: ${follow.length}` })
-            embes.push(em);
+                if (partNumber === 1) {
+                    em.setAuthor({ name: "Lista de Usuarios de X | Twitter siguiendo!" })
+                        .setDescription("## Lista de follows!!\nX user | Canal | Añadido | Añadido el | Dominio | Traducir | Solo multimedia");
+                }
+
+                if (partNumber === totalParts) { em.setFooter({ text: `Total de follows: ${follow.length}` }); }
+                embes.push(em);
+            }
         }
-        await i.editReply({ content: txtOut, embeds: embes });
-    } catch { await i.editReply("Algo Fallo al listar los usuarios!!") }
+
+        if (embes.length <= 5) { await i.editReply({ embeds: embes }); }
+        else {
+            await i.editReply({ embeds: embes.slice(0, 5) });
+            await i.followUp({ embeds: embes.slice(5), flags: MessageFlags.Ephemeral });
+        }
+    } catch (e: any) {
+        error(`Comando: /followX List | Guild: ${i.guild!.id} | Error: ${e.message}`);
+        await i.editReply("Algo Fallo al listar los usuarios!!");
+    }
 }
 
 // ======================= removeFollow ======================= //
@@ -253,8 +265,8 @@ async function removeFollowModal(i: ChatInputCommandInteraction) {
         if (eraser) submitInt.editReply(`Se elimino el follow con el ${doNumber ? `ID: ${id}` : `Usuario: @${validUser}`}`)
         else submitInt.editReply(`No sepudo borrar el follow con el ${doNumber ? `ID: ${id}` : `Usuario: @${validUser}`}`)
 
-    } catch (e) {
-        error(`Algo salio mal en añadir follow en el gremio: ${submitInt.guild!.id}`);
+    } catch (e: any) {
+        error(`Comando: /followX Remover | Guild: ${i.guild!.id} | Error: ${e.message}`);
         submitInt.reply(`Algo salio mal al intentar borrar el follow!!`).catch(() => null);
     }
 }

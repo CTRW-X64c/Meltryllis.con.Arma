@@ -4,6 +4,8 @@ import { error, debug } from '../sys/logging';
 import { YouTubeFeed, getYouTubeFeeds, updateYouTubeFeedLastVideo } from '../sys/DB-Engine/links/Youtube';
 import { Client, TextChannel } from 'discord.js';
 import i18next from 'i18next';
+import axios from 'axios';
+import { Proxy } from '../sys/zGears/newAux';
 
 export function extractVideoId(video: any): string | null {
   if (video.id) {
@@ -23,16 +25,14 @@ export function extractVideoId(video: any): string | null {
   return null;
 }
 
-
-const parser = new Parser({
-  headers: {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.5',
-  }
-});
-
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const parser = new Parser();
+const optHead = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.5',
+};
 
 class YTRssService {
   private client: Client;
@@ -85,9 +85,14 @@ class YTRssService {
 
   private async checkFeed(feed: YouTubeFeed): Promise<void> {
     debug(`Revisando feed: ${feed.youtube_channel_name}`,);
+    let xmlText: string;
+    try {
+      const response = await axios.get(feed.rss_url, { headers: optHead, httpAgent: Proxy, httpsAgent: Proxy });
+      if (response.status !== 200) { error(`Error Fetch: ${response.status} - ${response.statusText}`); return }
+      xmlText = response.data();
+    } catch (e: any) { error(`Error YoutubeRSS: ${e.message}`); return }
 
-    const rssFeed = await parser.parseURL(feed.rss_url);
-
+    const rssFeed = await parser.parseString(xmlText);
     if (!rssFeed.items || rssFeed.items.length === 0) {
       debug(`El ${feed.youtube_channel_name} parece no tener videos`);
       return;
@@ -102,10 +107,7 @@ class YTRssService {
     }
 
     if (!feed.last_video_id || feed.last_video_id !== videoId) {
-      if (feed.last_video_id) {
-        await this.NewVideo(feed, latestVideo, videoId);
-      }
-
+      if (feed.last_video_id) { await this.NewVideo(feed, latestVideo, videoId); }
       await updateYouTubeFeedLastVideo(feed.id, videoId, feed.guild_id);
       debug(`Ultimo video de ${feed.youtube_channel_name}: ${videoId}`);
     }

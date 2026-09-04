@@ -1,4 +1,4 @@
-// sc/sys/auxiliares.ts
+// src/sys/zGears/auxiliares.ts
 import { Client, Guild, GuildBasedChannel, GuildMember, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { error } from "../logging";
 import i18next from "i18next";
