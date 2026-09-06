@@ -23,18 +23,10 @@ export async function registerMangadexCommand() {
 
 export async function handleMangadexCommand(interaction: ChatInputCommandInteraction) {
   const guild = interaction.guild;
-  if (!guild) {
-    await interaction.reply(i18next.t("common:Errores.noGuild"));
-    return;
-  }
+  if (!guild) { await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return };
 
   const isAllowed = await hasPermission(interaction, interaction.commandName);
-  if (!isAllowed) {
-    await interaction.reply({
-      content: i18next.t("common:Errores.isAllowed"),
-    });
-    return;
-  }
+  if (!isAllowed) { await interaction.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral }); return };
 
   try {
     const subcommand = interaction.options.getSubcommand();

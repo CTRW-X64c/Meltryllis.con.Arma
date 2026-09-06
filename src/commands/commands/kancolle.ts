@@ -3,7 +3,7 @@ import { addBD, delBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/K
 import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { debug, error } from '../../sys/logging';
-import { masterPerm } from '../../sys/zGears/auxiliares';
+import { masterPerm, msgDeleter } from '../../sys/zGears/auxiliares';
 import { allLefts, mantDates, turnDate, JSTtoUTC, getNowJST } from '../../sys/zGears/kc_aux'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
 import emojis from '../../../adds/otros/emojis.json'
@@ -22,24 +22,14 @@ export async function registerKantaiCollectionCommand() {
 
 export async function handleKantaiCollectionCommand(interaction: ChatInputCommandInteraction) {
     try {
-
         const guild = interaction.guild;
-        if (!guild) {
-            await interaction.reply(i18next.t("common:Errores.noGuild"));
-            return;
-        }
+        if (!guild) { await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return };
 
         const command = interaction.options.getSubcommand();
-        if (command === "resets") {
-            await resrts(interaction);
-            return;
-        }
+        if (command === "resets") { await resrts(interaction); return; }
 
         const isAllowed = await hasPermission(interaction, interaction.commandName);
-        if (!isAllowed) {
-            await interaction.reply({ content: i18next.t("common:Errores.isAllowed"), });
-            return;
-        }
+        if (!isAllowed) { await interaction.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral }); return };
 
         switch (command) {
             case 'activar':
@@ -271,8 +261,8 @@ async function resrts(interacciones: ChatInputCommandInteraction) {
             if (ch && ch.isTextBased()) {
                 const txtch = ch as TextChannel
                 await interacciones.editReply({ content: "✅ " })
-                const tempMsg = await txtch.send({ embeds: [emb] });
-                setTimeout(() => { if (tempMsg.deletable) tempMsg.delete().catch(() => { }) }, 30_000);
+                const msgResets = await txtch.send({ embeds: [emb] });
+                msgDeleter({ msg: msgResets, userId: interacciones.user.id });
             } else await interacciones.editReply({ content: i18next.t("commands:kancolle.interacciones.resrts_let_send_fail"), embeds: [emb] });
         } catch (e) { await interacciones.editReply({ content: i18next.t("commands:kancolle.interacciones.resrts_let_send_fail"), embeds: [emb] }) }
     }

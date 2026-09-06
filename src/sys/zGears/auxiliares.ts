@@ -1,5 +1,5 @@
 // src/sys/zGears/auxiliares.ts
-import { Client, Guild, GuildBasedChannel, GuildMember, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import { Client, Guild, GuildBasedChannel, GuildMember, Message, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { error } from "../logging";
 import i18next from "i18next";
 
@@ -257,3 +257,35 @@ export async function topRol(guild: Guild, chkPerm: GuildMember, permIds?: strin
         return chunks;
     } catch (e) { error(`Error en generar topRol, Error: ${e}`); return [`ERROR AL GENERAR LISTA DE ROLES`]; };
 }
+
+/* ======================================== msgDelete ======================================== */
+interface msgDeletINT { msg: Message, userId: string }
+export async function msgDeleter(dta: msgDeletINT) {
+    if (!dta.msg.channel.isSendable() || !dta.msg.deletable || !dta.msg.author) return;
+    try {
+        await dta.msg.react('🗑️');
+        const collector = dta.msg.createReactionCollector({
+            filter: (reaction, user) => reaction.emoji.name === '🗑️' && user.id === dta.userId,
+            max: 1,
+            time: 60_000
+        });
+
+        collector.on('collect', async () => {
+            await dta.msg.delete().catch(() => { });
+            collector.stop();
+        });
+
+        collector.on('end', async (_, reason) => {
+            if (reason === 'time' && dta.msg.reactions.cache.has('🗑️')) {
+                const reaction = dta.msg.reactions.cache.get('🗑️');
+                if (reaction?.me) { await reaction.users.remove(dta.msg.client.user?.id).catch(() => { }); }
+            }
+        });
+
+    } catch (e: any) {
+        if (e.message.includes("Missing Permissions") && dta.msg.channel.isSendable()) {
+            await dta.msg.channel.send({ content: i18next.t("common:embedService.emojErr"), allowedMentions: { repliedUser: false } }).catch(() => { });
+        }
+        if (!e.message.includes("Missing Access")) { error(`Error en msgDeleter: ${e.message}, Guild: ${dta.msg.guild?.name}`, "msgAuxDelet"); }
+    }
+};

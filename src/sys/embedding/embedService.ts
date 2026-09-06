@@ -57,10 +57,18 @@ export default function startEmbedService(client: Client): void {
 // ================================= sPost ================================= //
 async function sPost(msg: Message, dta: contPack[], autorId: string) {
     const data = dta.map(r => Object.values(r)[0]);
+    let isFirst = true;
     for (const post of data) {
         try {
-            const sntMsg = await msg.reply({ content: post.content, embeds: post.embeds, files: post.files, allowedMentions: { repliedUser: false } })
-            if (sntMsg) deleteMSG(sntMsg, autorId);
+            if (isFirst) {
+                const sntMsgFirst = await msg.reply({ content: post.content, embeds: post.embeds, files: post.files, allowedMentions: { repliedUser: false } })
+                if (sntMsgFirst) deleteMSG(sntMsgFirst, autorId);
+                isFirst = false;
+            } else {
+                const sntMsg = msg.channel.isSendable() ? await msg.channel.send({ content: post.content, embeds: post.embeds, files: post.files }) :
+                    await msg.reply({ content: post.content, embeds: post.embeds, files: post.files, allowedMentions: { repliedUser: false } });
+                if (sntMsg) deleteMSG(sntMsg, autorId);
+            }
         } catch (err) {
             const errMsg = (err as Error).message;
             if (!errMsg.includes("Missing Access") && !errMsg.includes("Missing Permissions")) {
@@ -194,7 +202,7 @@ export async function embeRemove(msg: Message) {
 };
 
 // ================================= emojiDelet ================================= //
-export async function deleteMSG(msg: Message, autorId: string) {
+async function deleteMSG(msg: Message, autorId: string) {
     if (!msg.channel.isSendable() || !msg.deletable) return;
     try {
         await msg.react('❌');

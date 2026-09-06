@@ -1,5 +1,5 @@
 // src/Events-Commands/commands/youtube.ts
-import { ChannelType, Guild, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
+import { ChannelType, Guild, GuildBasedChannel, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
 import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/DB-Engine/links/Youtube";
 import { extractVideoId } from "../../bgProcess/youtubeCheck";
 import { error, debug } from "../../sys/logging";
@@ -111,6 +111,7 @@ async function seguirCanal(interaction: any, guild: Guild) {
     return;
   }
 
+  const ch = discordChannel as GuildBasedChannel;
   const conty = await countItems(guild.id, "youtube_feeds");
   const limit = await getGuildLimits(guild.id);
   if ((conty >= limit.dexMax)) {
@@ -118,7 +119,7 @@ async function seguirCanal(interaction: any, guild: Guild) {
     return;
   }
 
-  const testPerm = masterPerm(discordChannel, "viewCh|sendMsg|addlink")
+  const testPerm = masterPerm(ch, "viewCh|sendMsg|addlink")
   if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 
   if (!rssUrl.includes("youtube.com/feeds/videos.xml") || !rssUrl.includes("channel_id=")) {
@@ -167,7 +168,7 @@ async function seguirCanal(interaction: any, guild: Guild) {
 
     await addYouTubeFeed({
       guild_id: guild.id,
-      channel_id: discordChannel.id,
+      channel_id: ch.id,
       youtube_channel_id: channelId,
       youtube_channel_name: vChName,
       rss_url: rssUrl,

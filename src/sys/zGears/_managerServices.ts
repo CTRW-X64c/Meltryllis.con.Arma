@@ -83,7 +83,7 @@ export async function newTimmerService(serv: string, time: number, client: Clien
     try {
         const validServices: string[] = ["youtube", "mangadex", "reddit", "twitter"];
         if (!validServices.includes(serv)) { return "❌ ¡No existe un servicio registrado con ese nombre!"; }
-        if (time < 10 && time !== 0) { return "⚠️ El timer mínimo configurado debe ser igual o mayor a 10 minutos."; }
+        if (time < 5 && time !== 0) { return "⚠️ El timer mínimo configurado debe ser igual o mayor a 10 minutos."; }
         cleanService(serv);
         bdTimmers.set(serv, time);
         runService(serv as chkServices, time, client);

@@ -53,78 +53,57 @@ class YTRssService {
     try {
       const guilds = Array.from(this.client.guilds.cache.values());
       for (const guild of guilds) {
-        try {
-          await this.checkGuildFeeds(guild.id);
-        } catch (err) {
-          error(`Erro al checar el Feed en el gremio "${guild.name}": ${err}`);
-        }
+        try { await this.checkGuildFeeds(guild.id); }
+        catch (err) { error(`Erro al checar el Feed en el gremio "${guild.name}": ${err}`); }
       }
-    } finally {
-      this.isChecking = false;
-    }
+    } finally { this.isChecking = false; }
   }
 
   private async checkGuildFeeds(guildId: string): Promise<void> {
-    const feeds = await getYouTubeFeeds(guildId);
+    try {
+      const callErr = { code500: 0, code404: 0 };
+      const feeds = await getYouTubeFeeds(guildId);
+      for (const feed of feeds) {
+        const delay = Math.floor(Math.random() * 4000) + 3000;
+        await wait(delay);
 
-    for (const feed of feeds) {
-      const delay = Math.floor(Math.random() * 4000) + 3000;
-      await wait(delay);
+        let xmlText: string;
+        try {
+          const response = await axios.get(feed.rss_url, { headers: optHead, httpAgent: Proxy, httpsAgent: Proxy });
+          if (response.status !== 200) { error(`Error Fetch: ${response.status} - ${response.statusText}`); continue }
+          xmlText = response.data;
+        } catch (e: any) {
+          if (e.message.includes("404")) { callErr.code404++ };
+          if (e.message.includes("500")) { callErr.code500++ };
+          if (!e.message.includes("404") || !e.message.includes("500")) error(`Error YoutubeRSS: ${e.message}`);
+          continue;
+        }
 
-      try {
-        await this.checkFeed(feed);
-      } catch (err) { /* Esto nunca quedara libre de fallos pero funciona, asi que bueno*/
-        const errMsg = (err as Error).message || "";
-        const statusCode = (err as any)?.statusCode;
-        if (statusCode !== 404 && statusCode !== 500 && !errMsg.includes("404") && !errMsg.includes("500")) {
-          error(`Erro al checar el feed: "${feed.youtube_channel_name}" en el gremio: ${guildId}; ${errMsg}`);
+        const rssFeed = await parser.parseString(xmlText);
+        if (!rssFeed.items || rssFeed.items.length === 0) { debug(`El ${feed.youtube_channel_name} parece no tener videos`); continue }
+
+        const latestVideo = rssFeed.items[0];
+        const videoId = extractVideoId(latestVideo);
+        if (!videoId) { debug(`No se pudo extraer el ID del ultimo video de ${feed.youtube_channel_name}`); continue }
+
+        if (!feed.last_video_id || feed.last_video_id !== videoId) {
+          if (feed.last_video_id) { await this.NewVideo(feed, latestVideo, videoId); }
+          await updateYouTubeFeedLastVideo(feed.id, videoId, feed.guild_id);
+          debug(`Ultimo video de ${feed.youtube_channel_name}: ${videoId}`);
         }
       }
-    }
+
+      if (callErr.code404 > 0 || callErr.code500 > 0) error(`Errores 404: ${callErr.code404} | Errores 500: ${callErr.code500} | Guild: ${guildId}`);
+    } catch (e: any) { error(`Error en loop YoutubeRSS: ${e.message}`); }
   }
 
-  private async checkFeed(feed: YouTubeFeed): Promise<void> {
-    debug(`Revisando feed: ${feed.youtube_channel_name}`,);
-    let xmlText: string;
-    try {
-      const response = await axios.get(feed.rss_url, { headers: optHead, httpAgent: Proxy, httpsAgent: Proxy });
-      if (response.status !== 200) { error(`Error Fetch: ${response.status} - ${response.statusText}`); return }
-      xmlText = response.data();
-    } catch (e: any) { error(`Error YoutubeRSS: ${e.message}`); return }
-
-    const rssFeed = await parser.parseString(xmlText);
-    if (!rssFeed.items || rssFeed.items.length === 0) {
-      debug(`El ${feed.youtube_channel_name} parece no tener videos`);
-      return;
-    }
-
-    const latestVideo = rssFeed.items[0];
-    const videoId = extractVideoId(latestVideo);
-
-    if (!videoId) {
-      debug(`No se pudo extraer el ID del ultimo video de ${feed.youtube_channel_name}`);
-      return;
-    }
-
-    if (!feed.last_video_id || feed.last_video_id !== videoId) {
-      if (feed.last_video_id) { await this.NewVideo(feed, latestVideo, videoId); }
-      await updateYouTubeFeedLastVideo(feed.id, videoId, feed.guild_id);
-      debug(`Ultimo video de ${feed.youtube_channel_name}: ${videoId}`);
-    }
-  }
 
   private async NewVideo(feed: YouTubeFeed, video: any, videoId: string): Promise<void> {
     const guild = this.client.guilds.cache.get(feed.guild_id);
-    if (!guild) {
-      debug(`No se encontro el gremio: ${feed.guild_id} `,);
-      return;
-    }
+    if (!guild) { debug(`No se encontro el gremio: ${feed.guild_id} `,); return; }
 
     const channel = guild.channels.cache.get(feed.channel_id) as TextChannel;
-    if (!channel) {
-      debug(`No se encontro el ${feed.channel_id} en ${guild.name}`);
-      return;
-    }
+    if (!channel) { debug(`No se encontro el ${feed.channel_id} en ${guild.name}`); return; }
 
     // añadido filtro de caracteres y largo de titulo, ya que rompe los hyperlinks [{{a2}}]({{a3}})
     const videoUrl = video.link || `https://www.youtube.com/watch?v=${videoId}`;
@@ -140,13 +119,13 @@ class YTRssService {
         content: i18next.t("commands:youtube.check.novo_video", { ns: "youtube", a1: feed.youtube_channel_name, a2: safeTitle, a3: videoUrl }),
       });
 
-      debug(`Aviso a ${guild.name} de nuevo video de ${feed.youtube_channel_name}`);
-    } catch (err) { error(`Error al notificar a ${guild.name}: ${err}`) }
+      debug(`Aviso a ${guild.name} de nuevo video de ${feed.youtube_channel_name} `);
+    } catch (err) { error(`Error al notificar a ${guild.name}: ${err} `) }
   }
 }
 
 // Inicializador de timer y espera al inicio. 
 export function startYoutubeService(client: Client): void {
   const rssYT = new YTRssService(client);
-  rssYT.checkAllFeeds().catch(err => { error(`[Youtube Checker]: Error al inciar, Error: ${err}`) });
+  rssYT.checkAllFeeds().catch(err => { error(`[Youtube Checker]: Error al inciar, Error: ${err} `) });
 }

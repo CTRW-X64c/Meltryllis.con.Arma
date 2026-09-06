@@ -19,19 +19,11 @@ export async function registerFollowXCommand(): Promise<SlashCommandBuilder[]> {
 }
 
 export async function handleFollowXCommand(inter: ChatInputCommandInteraction) {
-    const isAllowed = await hasPermission(inter, inter.commandName);
-    if (!isAllowed) {
-        await inter.reply({
-            content: i18next.t("common:Errores.isAllowed"),
-        });
-        return;
-    }
-
     const guild = inter.guild;
-    if (!guild) {
-        await inter.reply(i18next.t("common:Errores.noGuild"));
-        return;
-    }
+    if (!guild) { await inter.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return };
+
+    const isAllowed = await hasPermission(inter, inter.commandName);
+    if (!isAllowed) { await inter.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral }); return };
 
     try {
         const subcommand = inter.options.getSubcommand();
