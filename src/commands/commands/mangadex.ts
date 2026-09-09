@@ -14,10 +14,9 @@ export async function registerMangadexCommand() {
     .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex"))
     .addSubcommand(s => s.setName("seguir").setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_descripcion")))
-    .addSubcommand(s => s.setName("lista").setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_lista_desc", { defaultValue: "Ver mangas seguidos" })))
-    .addSubcommand(s => s.setName("dejar").setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_dejar_desc", { defaultValue: "Dejar de seguir un manga" })).addStringOption(option =>
-      option.setName("id_manga").setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_dejar_url", { defaultValue: "URL del manga a eliminar" })).setRequired(true)
-    ));
+    .addSubcommand(s => s.setName("lista").setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_lista_desc")))
+    .addSubcommand(s => s.setName("dejar").setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_dejar_desc"))
+      .addIntegerOption(o => o.setName("id_manga").setDescription(i18next.t("commands:mangadex.slashBuilder.mangadex_dejar_url")).setRequired(true)));
   return [mangadex] as SlashCommandBuilder[];
 }
 
@@ -200,13 +199,13 @@ async function listaManga(interaction: ChatInputCommandInteraction, guild: Guild
 
 async function dejarManga(interaction: ChatInputCommandInteraction, guild: Guild) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  const mangaIdToDelete = interaction.options.getString("id_manga", true);
+  const idNum = interaction.options.getInteger("id_manga", true);
+  if (isNaN(idNum)) { await interaction.editReply({ content: "Debes ingresar un numero valido!" }); return };
   try {
-    const removed = await removeMangadexFeed(guild.id, mangaIdToDelete);
-
+    const removed = await removeMangadexFeed(guild.id, idNum);
     if (removed) {
       await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.dejar_exito") });
-      debug(`Manga eliminado: ${mangaIdToDelete} del servidor ${guild.id}`);
+      debug(`Manga eliminado: ${idNum} del servidor ${guild.id}`);
     } else {
       await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.dejar_fallo") });
     }

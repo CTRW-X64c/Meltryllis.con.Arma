@@ -19,6 +19,7 @@ import { initNoEveryone } from "../bgProcess/noEvery";
 import { startServices } from "./zGears/_managerServices";
 import { initKC } from "../bgProcess/KanCron";
 import { startProxyChecker } from "./zGears/newAux";
+import { initPixivCheck } from "../bgProcess/pixivCheck";
 
 /*========= Inicializadores =========*/
 
@@ -45,6 +46,7 @@ async function main(): Promise<void> {
                 startEmbedService(client);
                 info("Servicio de embed inicializado")
             } else { error("❌ ERROR AL INICIAR EL SISTEMA DE EMBEDDING!!") }
+            initPixivCheck(client)
             loadNodes()
             startVoiceChannelService(client);
             startServices(client)

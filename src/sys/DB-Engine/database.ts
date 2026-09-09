@@ -237,7 +237,8 @@ async function poolManager(): Promise<void> {
       dex_max INT DEFAULT 10,
       red_max INT DEFAULT 10,
       yt_max INT DEFAULT 10,
-      tweet_max INT DEFAULT 5
+      tweet_max INT DEFAULT 10,
+      pixi_max INT DEFAULT 10
     )
   `);
 
@@ -328,6 +329,26 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  //Tabla pixivData
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS pixivdata (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      guild_id VARCHAR(50) NOT NULL,
+      chGuild VARCHAR(50) NOT NULL,
+      pixiUser VARCHAR(50) NOT NULL,
+      pixiUserName VARCHAR(50) NOT NULL,
+      illustOn BOOLEAN DEFAULT FALSE,
+      lstPostIllust VARCHAR(100),
+      mangaOn BOOLEAN DEFAULT FALSE,
+      lstPostManga VARCHAR(100),
+      novelOn BOOLEAN DEFAULT FALSE,
+      lstPostNovel VARCHAR(100),
+      addby VARCHAR(50) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE INDEX idx_unique_pixiUser (guild_id, pixiUser)
+    )
+  `);
+
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;
   info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");
@@ -392,7 +413,7 @@ export async function closeBD(): Promise<boolean> {
 }
 
 // Otros
-type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config' | 'followTweetX';
+type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config' | 'followTweetX' | 'pixivData';
 export async function countItems(guildId: string, table: FeedTables): Promise<number> {
   try {
     const pool = await getPool();

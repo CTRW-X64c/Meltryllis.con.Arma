@@ -20,12 +20,13 @@ import { registerMusicCommands, handleMusicInteraction } from "./commands/music"
 import { registerRoleButtonCommand, handleRoleButtonCommand, roleButton } from "./commandButtons/roleButton";
 import { registerButtonLinkCommand, handleButtonLinkCommand } from "./commandButtons/buttonLink";
 import { registerCronpostCommand, handleCronPost } from "./commands/cronpost";
-import { handleLimitsModal } from "./commandModales/modalLimits";
+import { handleLimitsModalA, handleLimitsModalB } from "./commandModales/modalLimits";
 import { handleLimitsButton } from "./commandButtons/NewLimits";
 import { handleMypermissionsCommand, registerMypermissionsCommands } from "./commands/chkperm";
 import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess/noEvery";
 import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "./commands/kancolle";
 import { handleFollowXCommand, registerFollowXCommand } from "./commands/followX";
+import { handlePixiFollowCommand, registerFollowPixiCommand } from "./commands/pixiFollow";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -51,7 +52,8 @@ export async function sysUpRegister(client: Client) {
     ...(await registerMypermissionsCommands()),
     ...(await registernoEveryoneCommand()),
     ...(await registerKantaiCollectionCommand()),
-    ...(await registerFollowXCommand())
+    ...(await registerFollowXCommand()),
+    ...(await registerFollowPixiCommand())
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -115,8 +117,10 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handleNoEveryoneCommand(interaction); break;
     case 'kancolle':
       await handleKantaiCollectionCommand(interaction); break;
-    case 'follow_twitter':
+    case 'twitter':
       await handleFollowXCommand(interaction); break;
+    case 'pixiv':
+      await handlePixiFollowCommand(interaction); break;
     default:
       fail(interaction); break;
   }
@@ -144,7 +148,8 @@ export async function sysUpAutoComplete(interaction: AutocompleteInteraction) {
 export async function sysUpModals(interaction: ModalSubmitInteraction) {
   if (interaction.customId.startsWith("helpRepo_")) await helpRepo(interaction);
   else if (interaction.customId.startsWith("respondReport_")) await respondReportModal(interaction);
-  else if (interaction.customId.startsWith("modal_lim_")) await handleLimitsModal(interaction);
+  else if (interaction.customId.startsWith("modal_lim_A_")) await handleLimitsModalA(interaction);
+  else if (interaction.customId.startsWith("modal_lim_B_")) await handleLimitsModalB(interaction);
   else if (interaction.customId.startsWith("token_verify_")) await modalTkn(interaction);
   debug(`Modal (${interaction.customId}) no manejado!!`, "upCommands.Modals");
 }

@@ -4,13 +4,13 @@ import { sendLimitsDashboard } from "../../sys/zGears/owner";
 
 export async function handleLimitsButton(interaction: ButtonInteraction) {
     const customId = interaction.customId;
-    const targetGuildId = customId.split('_')[2]; // Saca el ID del servidor (ej. de 'lim_edit_12345')
+    const targetGuildId = customId.split('_')[3]; // Saca el ID del servidor (ej. de 'lim_edit_12345')
 
     // 1. Si presionó el botón de abrir formulario
-    if (customId.startsWith("lim_edit_")) {
+    if (customId.startsWith("lim_edit_A_")) {
         const limits = await getGuildLimits(targetGuildId);
         const modal = new ModalBuilder()
-            .setCustomId(`modal_lim_${targetGuildId}`)
+            .setCustomId(`modal_lim_A_${targetGuildId}`)
             .setTitle('Editar Límites Numéricos');
         //cronjobs
         const inCronjobs = new TextInputBuilder()
@@ -58,21 +58,40 @@ export async function handleLimitsButton(interaction: ButtonInteraction) {
         return;
     }
 
-    if (customId.startsWith("lim_togdom_")) {
+    if (customId.startsWith("lim_edit_B_")) {
+        const limits = await getGuildLimits(targetGuildId);
+        const modal = new ModalBuilder()
+            .setCustomId(`modal_lim_B_${targetGuildId}`)
+            .setTitle('Editar Límites Numéricos');
+        //pixiv
+        const inPixi = new TextInputBuilder()
+            .setCustomId('input_pixiMax')
+            .setStyle(TextInputStyle.Short)
+            .setValue(limits.pixiMax.toString());
+        const row1 = new LabelBuilder()
+            .setLabel('Límite de publicaciones de /pixiv')
+            .setTextInputComponent(inPixi)
+
+        modal.addLabelComponents(row1);
+        await interaction.showModal(modal);
+        return;
+    }
+
+    if (customId.startsWith("lim_tog_dom_")) {
         const current = await getGuildLimits(targetGuildId);
         await setGuildLimits(targetGuildId, { chkDomain: !current.chkDomain });
         await sendLimitsDashboard(interaction, targetGuildId);
         return;
     }
 
-    if (customId.startsWith("lim_tognode_")) {
+    if (customId.startsWith("lim_tog_node_")) {
         const current = await getGuildLimits(targetGuildId);
         await setGuildLimits(targetGuildId, { noWaitNode: !current.noWaitNode });
         await sendLimitsDashboard(interaction, targetGuildId);
         return;
     }
 
-    if (customId.startsWith("lim_reset_")) {
+    if (customId.startsWith("lim_reset_default_")) {
         await resetGuildLimits(targetGuildId);
         await sendLimitsDashboard(interaction, targetGuildId);
         return;

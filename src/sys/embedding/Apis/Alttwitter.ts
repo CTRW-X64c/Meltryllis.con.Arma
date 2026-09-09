@@ -26,7 +26,7 @@ export class xTwitterCustom implements ApiHandler {
         return true;
     }
 
-    async process(url: string, message?: Message): Promise<pResult> {
+    async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
         const matchLang = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/.*\/([a-z]+)/i);
         const lang = matchLang ? matchLang[1].toLowerCase() : undefined;
         if (lang && !["es", "en", "pt", "it"].includes(lang)) return { ok: false };
@@ -47,7 +47,8 @@ export class xTwitterCustom implements ApiHandler {
         try {
             let files: AttachmentBuilder[] = [], embeds: EmbedBuilder[] = [], packTxt: string | undefined = undefined;
             const statTxt = `❤️: **${xData.likes}** | 🔁: **${xData.reTwi}** | 💬: **${xData.resp}** | 👀: **${xData.views}**`
-            if (xData.hasVideo) { // Formato plano
+
+            if (xData.hasVideo || isSpoiler) { // Formato plano
                 let outText: string | undefined = undefined, tweDes: string | undefined = undefined, tweTl: string | undefined = undefined
                 const urlRegex = /(?:\()?\[?(https?:\/\/[^\s\)]+)\)?/g;
                 if (xData.tweetDesc) {
@@ -64,19 +65,20 @@ export class xTwitterCustom implements ApiHandler {
                 // addItems
                 packTxt = outText;
                 xData.bufferVideo.forEach((buffer, index) => {
-                    const fileName = `Xvideo_${xId}_${index}.mp4`;
+                    const fileName = isSpoiler ? `SPOILER_Xvideo_${xId}_${index}.mp4` : `Xvideo_${xId}_${index}.mp4`;
                     files.push(new AttachmentBuilder(buffer, { name: fileName }));
                 });
                 xData.bufferGifs.forEach((buffer, index) => {
-                    const fileName = `Xgif_${xId}_${index}.webp`;
+                    const fileName = isSpoiler ? `SPOILER_Xgif_${xId}_${index}.webp` : `Xgif_${xId}_${index}.webp`;
                     files.push(new AttachmentBuilder(buffer, { name: fileName }));
                 });
                 xData.bufferPics.forEach((buffer, index) => {
-                    const fileName = `Ximg_${xId}_${index}.jpg`;
+                    const fileName = isSpoiler ? `SPOILER_Ximg_${xId}_${index}.jpg` : `Ximg_${xId}_${index}.jpg`;
                     files.push(new AttachmentBuilder(buffer, { name: fileName }));
                 });
             }
-            if (!xData.hasVideo) { // Formato embed
+
+            else { // Formato embed
                 const fields: { name: string, value: string, inline?: boolean }[] = [];
                 xData.bufferPics.forEach((buffer, index) => {
                     const fileName = `Ximg_${xId}_${index}.jpg`;

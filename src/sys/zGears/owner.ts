@@ -513,29 +513,33 @@ export async function sendLimitsDashboard(interaction: ChatInputCommandInteracti
         .setTitle(`🛠️ Panel de Límites | Servidor: ${guild?.name || idGuild}`)
         .setColor('Blue')
         .addFields(
-            { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}\n> **Twitter:** ${limits.tweetMax}` },
+            { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}\n> **Twitter:** ${limits.tweetMax}\n> **Pixiv:** ${limits.pixiMax}` },
             { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${limits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${limits.noWaitNode ? '✅' : '❌'}` }
         );
 
-    const btnEdit = new ButtonBuilder()
-        .setCustomId(`lim_edit_${idGuild}`)
-        .setLabel('Editar Números')
-        .setEmoji('📝')
+    const btnEditA = new ButtonBuilder()
+        .setCustomId(`lim_edit_A_${idGuild}`)
+        .setLabel('⏰ | 📚 | 🌚 | 📽️ |💬')
+        .setStyle(ButtonStyle.Primary);
+    const btnEditB = new ButtonBuilder()
+        .setCustomId(`lim_edit_B_${idGuild}`)
+        .setLabel('🖼️')
         .setStyle(ButtonStyle.Primary);
     const btnDomain = new ButtonBuilder()
-        .setCustomId(`lim_togdom_${idGuild}`)
+        .setCustomId(`lim_tog_dom_${idGuild}`)
         .setLabel('Toggle Domain')
         .setStyle(ButtonStyle.Secondary);
     const btnNode = new ButtonBuilder()
-        .setCustomId(`lim_tognode_${idGuild}`)
+        .setCustomId(`lim_tog_node_${idGuild}`)
         .setLabel('Toggle Node')
         .setStyle(ButtonStyle.Secondary);
     const btnReset = new ButtonBuilder()
-        .setCustomId(`lim_reset_${idGuild}`)
+        .setCustomId(`lim_reset_default_${idGuild}`)
         .setLabel('Reiniciar Límites')
         .setStyle(ButtonStyle.Danger);
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(btnEdit, btnDomain, btnNode, btnReset);
-    await interaction.editReply({ embeds: [embed], components: [row] });
+    const rowA = new ActionRowBuilder<ButtonBuilder>().addComponents(btnEditA, btnEditB);
+    const rowB = new ActionRowBuilder<ButtonBuilder>().addComponents(btnDomain, btnNode, btnReset);
+    await interaction.editReply({ embeds: [embed], components: [rowA, rowB] });
 }
 
 /* ================================================================== Status ================================================================== */

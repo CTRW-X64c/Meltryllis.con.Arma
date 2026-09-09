@@ -96,7 +96,7 @@ export async function updateMangadexFeedLastChapter(id: number, lastChapter: str
   }
 }
 
-export async function removeMangadexFeed(guildId: string, feedId: string): Promise<boolean> {
+export async function removeMangadexFeed(guildId: string, feedId: number): Promise<boolean> {
   try {
     const pool = await getPool();
     const [result] = await pool.query(

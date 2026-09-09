@@ -17,8 +17,20 @@ export default function startEmbedService(client: Client): void {
         const gld = message.guild?.id;
         if (!gld) return
 
-        const urls = [...message.content.matchAll(urlRegex)];
-        if (urls.length === 0) return;
+        const extractedUrls = [...message.content.matchAll(urlRegex)].map(match => {
+            const rawUrl = match[1];
+            const matchIndex = match.index || 0;
+
+            const textBefore = message.content.substring(0, matchIndex);
+            const spoilerCount = (textBefore.match(/\|\|/g) || []).length;
+
+            const isSpoiler = spoilerCount % 2 !== 0;
+            const cleanUrl = rawUrl.replace(/\|\|.*$/, '');
+
+            return { url: cleanUrl, isSpoiler: isSpoiler };
+        });
+
+        if (extractedUrls.length === 0) return;
 
         const chConfig = (await getConfigMap()).get(gld)?.get(message.channel.id);
         if (chConfig?.enabled === false) return;
@@ -28,21 +40,19 @@ export default function startEmbedService(client: Client): void {
         const rmpLocal = localEmb.getParam(gConfigs);
 
         const iFix: string[] = [], iPack: contPack[] = [];
-        for (const match of urls) {
+        for (const item of extractedUrls) {
             let domainSite: string | null = null;
-            const originalUrl = match[1];
-
+            const originalUrl = item.url;
             try {
                 const urlObject = new URL(originalUrl);
                 domainSite = urlObject.hostname.replace('www.', '');
             } catch (err) { debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate"); continue }
 
-            const apiResult = await urlProcess({ oURL: originalUrl, domain: domainSite, guild: gld, gConf: gConfigs, remp: rmpLocal, msg: message });
+            const apiResult = await urlProcess({ oURL: originalUrl, domain: domainSite, guild: gld, gConf: gConfigs, remp: rmpLocal, msg: message, isSpoiler: item.isSpoiler });
             if (apiResult.ok) {
                 if (apiResult.fix) {
-                    const hiddenMessage = message.content.split("||").length > 2;
                     let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: apiResult.fix });
-                    if (hiddenMessage) messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: apiResult.fix });
+                    if (item.isSpoiler) messageContent = i18next.t("common:embedService.format_link_spoiler", { Site: domainSite, RemUrl: apiResult.fix });
                     iFix.push(messageContent);
                 }
                 if (apiResult.pack) iPack.push(...apiResult.pack);

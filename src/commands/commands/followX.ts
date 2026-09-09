@@ -9,7 +9,7 @@ import { masterPerm } from "../../sys/zGears/auxiliares";
 
 export async function registerFollowXCommand(): Promise<SlashCommandBuilder[]> {
     const followX = new SlashCommandBuilder()
-        .setName("follow_twitter")
+        .setName("twitter")
         .setDescription("Permite seguir usarios de X | Twitter!")
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
         .addSubcommand(s => s.setName("seguir").setDescription("Seguir usuario"))
@@ -62,7 +62,7 @@ async function followXModal(i: ChatInputCommandInteraction) {
     const domainOp1 = new TextInputBuilder().setCustomId('dominio').setPlaceholder(`ej: d.fxtwitter.com`).setStyle(TextInputStyle.Short).setRequired(false);
     const domainIn = new LabelBuilder().setLabel('Dominio alterno al server').setTextInputComponent(domainOp1);
     // Out
-    const modal = new ModalBuilder().setCustomId(`followX_${i.id}`).setTitle('Configurar Follow de X/Twitter').addLabelComponents(userIn, chIn, oMediaIn, langIn, domainIn);
+    const modal = new ModalBuilder().setCustomId(`followX_${i.id}`).setTitle('Configurar X/Twitter').addLabelComponents(userIn, chIn, oMediaIn, langIn, domainIn);
     await i.showModal(modal);
     // == // == // FINAL MODAL // == // == //
     const submitInt = await i.awaitModalSubmit({

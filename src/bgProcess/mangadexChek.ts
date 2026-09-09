@@ -1,6 +1,6 @@
 // src/client/coreCommands/mangadexChek.ts
-import { Client, TextChannel } from 'discord.js';
-import { getAllMangadexFeeds, updateMangadexFeedLastChapter, MangadexFeed } from '../sys/DB-Engine/links/Mangadex';
+import { Client, GuildTextBasedChannel } from 'discord.js';
+import { getAllMangadexFeeds, updateMangadexFeedLastChapter, MangadexFeed, removeMangadexFeed } from '../sys/DB-Engine/links/Mangadex';
 import { error, debug } from '../sys/logging';
 
 const BATCH_SIZE = 10; // Número de feeds a procesar por ciclo
@@ -41,12 +41,19 @@ function parseMangadexRSS(xml: string): RSSItem[] {
 }
 
 async function processSingleFeed(client: Client, feed: MangadexFeed) {
-    if (!feed.channel_id || !feed.RSS_manga) return;
-    try {
-        const response = await fetch(feed.RSS_manga, {
-            headers: { 'User-Agent': 'MeltryllisBot/1.2.7' }
-        });
+    let channel: GuildTextBasedChannel
+    try { channel = await client.channels.fetch(feed.channel_id) as GuildTextBasedChannel; }
+    catch (e: any) {
+        if (e.code === 10003 || e.code === 404 || e.code === 50001) {
+            try { await removeMangadexFeed(feed.guild_id, feed.id) }
+            catch (ex) { debug(`Error al borrar el feed ${feed.id}: ${ex}`, "MangadexCheck") }
+        }
+        debug(`[Mangadex Check] No se pudo enviar mensaje al canal ${feed.channel_id}: ${e.message}`, "MangadexCheck")
+        return;
+    }
 
+    try {
+        const response = await fetch(feed.RSS_manga, { headers: { 'User-Agent': 'MeltryllisBot/1.2.7' } });
         if (!response.ok) {
             debug(`[Mangadex Check] Error HTTP ${response.status} en feed ${feed.id}`, "MangadexCheck");
             return;
@@ -60,7 +67,7 @@ async function processSingleFeed(client: Client, feed: MangadexFeed) {
         if (feed.last_chapter === latestChapter.guid) return;
 
         if (feed.last_chapter === null) {
-            await sendMangaUpdate(client, feed, latestChapter);
+            await sendMangaUpdate(channel, feed, latestChapter);
             await updateMangadexFeedLastChapter(feed.id, latestChapter.guid, feed.guild_id);
             return;
         }
@@ -71,16 +78,14 @@ async function processSingleFeed(client: Client, feed: MangadexFeed) {
         if (lastKnownIndex === -1) { newChapters = [latestChapter]; }
         else { newChapters = allChapters.slice(0, lastKnownIndex); }
 
-        for (const chapter of newChapters.reverse()) { await sendMangaUpdate(client, feed, chapter); }
+        for (const chapter of newChapters.reverse()) { await sendMangaUpdate(channel, feed, chapter); }
 
         await updateMangadexFeedLastChapter(feed.id, latestChapter.guid, feed.guild_id);
     } catch (err) { debug(`[Mangadex Check] Error procesando feed ${feed.manga_title}: ${err}`, "MangadexCheck"); }
 }
 
-async function sendMangaUpdate(client: Client, feed: MangadexFeed, chapter: RSSItem) {
+async function sendMangaUpdate(channel: GuildTextBasedChannel, feed: MangadexFeed, chapter: RSSItem) {
     try {
-        const channel = await client.channels.fetch(feed.channel_id) as TextChannel;
-        if (!channel) return;
         const MAX_LENGTH = 60;
         const noTiManCha = chapter.title.replace(feed.manga_title, "").trim().replace(/^:/, "").trim();
         const safeChapterTitle = noTiManCha.length > MAX_LENGTH ? noTiManCha.substring(0, MAX_LENGTH) + "..." : noTiManCha;

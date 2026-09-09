@@ -17,7 +17,7 @@ export interface ApiHandler {
     isAvailable(): boolean;
     isDomain(domain: string): boolean;
     guildChk(domain: string, guildId: string, guildConfigs: Map<string, any>): Promise<boolean>;
-    process(url: string, message?: Message): Promise<pResult>;
+    process(url: string, message?: Message, spoiler?: boolean): Promise<pResult>;
 }
 
 // =========== Registro de APIs =========== //
@@ -29,7 +29,7 @@ const apiHandlers: ApiHandler[] = [
 ];
 
 // =========== Procesador principal =========== //
-interface urlData { oURL: string, domain: string, guild: string, gConf: Map<string, any>, remp: Record<string, any>, msg?: Message }
+interface urlData { oURL: string, domain: string, guild: string, gConf: Map<string, any>, remp: Record<string, any>, msg?: Message, isSpoiler?: boolean }
 export async function urlProcess(dta: urlData): Promise<pResult> {
     for (const apiHandler of apiHandlers) {
         if (!apiHandler.isAvailable()) continue;
@@ -39,7 +39,7 @@ export async function urlProcess(dta: urlData): Promise<pResult> {
         if (!shouldUse) continue;
 
         try {
-            const apiResult = await apiHandler.process(dta.oURL, dta.msg);
+            const apiResult = await apiHandler.process(dta.oURL, dta.msg, dta.isSpoiler);
             if (apiResult.ok === true) return apiResult;
         } catch (err) {
             debug(`Error crítico en API ${apiHandler.name}: ${(err as Error).message}`, "Events.MessageCreate");

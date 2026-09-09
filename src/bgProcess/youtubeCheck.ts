@@ -75,7 +75,7 @@ class YTRssService {
         } catch (e: any) {
           if (e.message.includes("404")) { callErr.code404++ };
           if (e.message.includes("500")) { callErr.code500++ };
-          if (!e.message.includes("404") || !e.message.includes("500")) error(`Error YoutubeRSS: ${e.message}`);
+          if (!e.message.includes("404") && !e.message.includes("500")) { error(`Error YoutubeRSS: ${e.message}`) }
           continue;
         }
 

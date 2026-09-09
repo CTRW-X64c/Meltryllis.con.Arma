@@ -1,5 +1,5 @@
 // src/client/coreCommands/redditCheck.ts
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, TextChannel } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, GuildTextBasedChannel } from 'discord.js';
 import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed, removeRedditFeed } from '../sys/DB-Engine/links/Reddit';
 import { debug, error } from '../sys/logging';
 import i18next from 'i18next';
@@ -44,8 +44,20 @@ function getDisplayNameFromUrl(url: string): string {
 }
 
 async function processSingleFeed(client: Client, feed: RedditFeed) {
+    let ch: GuildTextBasedChannel;
+    try { ch = await client.channels.fetch(feed.channel_id) as GuildTextBasedChannel }
+    catch (e: any) {
+        if (e.code === 10003 || e.code === 404 || e.code === 50001) {
+            try { await removeRedditFeed(feed.guild_id, feed.subreddit_name); }
+            catch (e: any) { error(`[Reddit Checker]: Error al eliminar ${feed.subreddit_url}: ${e.message}`) }
+        }
+        debug(`[Reddit Checker]: Canal no disponible para ${feed.subreddit_url}`);
+        return;
+    }
+
     const displayName = getDisplayNameFromUrl(feed.subreddit_url);
     const resourceName = getSubredditNameFromUrl(feed.subreddit_url);
+
     try {
         if (!resourceName) {
             error(`[Reddit Checker]: URL inválida en BD: ${feed.subreddit_url}`);
@@ -61,14 +73,13 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
         if (jsonData?.reason === 'banned' || jsonData?.reason === 'private' || jsonData?.reason === 'quarantined') {
             try {
                 const removed = await removeRedditFeed(feed.guild_id, feed.subreddit_name);
-                const channel = await client.channels.fetch(feed.channel_id) as TextChannel;
-                if (removed && channel) {
+                if (removed && ch) {
                     switch (jsonData.reason) {
-                        case 'banned': await channel.send(i18next.t("commands:reddit.check.Reduit_baneado", { a1: displayName }));
+                        case 'banned': await ch.send(i18next.t("commands:reddit.check.Reduit_baneado", { a1: displayName }));
                             break;
-                        case 'private': await channel.send(i18next.t("commands:reddit.check.Reduit_privado", { a1: displayName }));
+                        case 'private': await ch.send(i18next.t("commands:reddit.check.Reduit_privado", { a1: displayName }));
                             break;
-                        case 'quarantined': await channel.send(i18next.t("commands:reddit.check.Reduit_cuarentena", { a1: displayName }));
+                        case 'quarantined': await ch.send(i18next.t("commands:reddit.check.Reduit_cuarentena", { a1: displayName }));
                             break;
                         default:
                             break;
@@ -105,10 +116,6 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
         if (newPosts.length > 0) {
             debug(`[Reddit Checker]: ¡${newPosts.length} post(s) nuevo(s) en ${displayName}`);
             newPosts.reverse();
-
-            const channel = await client.channels.fetch(feed.channel_id);
-            if (!channel || !channel.isTextBased()) { error(`[Reddit Checker]: El canal ${feed.channel_id} para ${displayName} no es un canal de texto.`); return }
-            const ch = channel as TextChannel;
 
             for (const post of newPosts) {
                 let baseUrl: string | null = null;
@@ -158,8 +165,8 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
 /* ====================================== Publisher ====================================== */
 let failPost = false;
 let failPostQueue = new Map<string, data>();
-interface data { dch: TextChannel; dlink: string; dnsfw: boolean; }
-const publisher = async (msg: string, ch: TextChannel, link: string, idPost: string, nsfw: boolean) => {
+interface data { dch: GuildTextBasedChannel; dlink: string; dnsfw: boolean; }
+const publisher = async (msg: string, ch: GuildTextBasedChannel, link: string, idPost: string, nsfw: boolean) => {
     try {
         const URL = `https://www.reddit.com${link}`;
         const boton = new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(URL));
