@@ -1,11 +1,11 @@
-import { Message, EmbedBuilder, AttachmentBuilder } from "discord.js"
+import { Message, EmbedBuilder, AttachmentBuilder, ContainerBuilder } from "discord.js"
 import { debug } from "../logging"
 import { apiEmbedez } from "./Apis/embedez"
 import { apiPixivCustom } from "./Apis/PixivAPI"
 import { fakeApiFB } from "./Apis/fbFakeApi"
 import { xTwitterCustom } from "./Apis/Alttwitter"
 
-export interface contPack { [key: string]: { content?: string, embeds?: EmbedBuilder[], files?: AttachmentBuilder[] } }
+export interface contPack { [key: string]: { content?: string, embeds?: EmbedBuilder[], files?: AttachmentBuilder[], components?: ContainerBuilder[], isV2?: boolean } }
 export interface pResult {
     ok: boolean;
     fix?: string;

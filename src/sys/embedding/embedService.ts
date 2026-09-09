@@ -1,5 +1,5 @@
 // src/sys/embeding/embedService.ts
-import { Client, Events, Message } from "discord.js";
+import { Client, Events, Message, MessageFlags } from "discord.js";
 import { getGuildReplacementConfig } from "../DB-Engine/links/Embed";
 import { getConfigMap } from "../DB-Engine/links/ReplyBots";
 import localEmb from "./index";
@@ -70,13 +70,14 @@ async function sPost(msg: Message, dta: contPack[], autorId: string) {
     let isFirst = true;
     for (const post of data) {
         try {
+            const flags = post.isV2 ? MessageFlags.IsComponentsV2 : undefined;
             if (isFirst) {
-                const sntMsgFirst = await msg.reply({ content: post.content, embeds: post.embeds, files: post.files, allowedMentions: { repliedUser: false } })
+                const sntMsgFirst = await msg.reply({ embeds: post.embeds, files: post.files, components: post.components, allowedMentions: { repliedUser: false }, flags });
                 if (sntMsgFirst) deleteMSG(sntMsgFirst, autorId);
                 isFirst = false;
             } else {
-                const sntMsg = msg.channel.isSendable() ? await msg.channel.send({ content: post.content, embeds: post.embeds, files: post.files }) :
-                    await msg.reply({ content: post.content, embeds: post.embeds, files: post.files, allowedMentions: { repliedUser: false } });
+                const sntMsg = msg.channel.isSendable() ? await msg.channel.send({ content: post.content, embeds: post.embeds, files: post.files, components: post.components, flags }) :
+                    await msg.reply({ embeds: post.embeds, files: post.files, components: post.components, allowedMentions: { repliedUser: false }, flags });
                 if (sntMsg) deleteMSG(sntMsg, autorId);
             }
         } catch (err) {

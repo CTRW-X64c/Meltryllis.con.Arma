@@ -1,5 +1,5 @@
 // src/sys/embedding/Apis/PixivAPI.ts
-import { Message, AttachmentBuilder, TextChannel, EmbedBuilder } from "discord.js";
+import { Message, AttachmentBuilder, TextChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, ContainerBuilder, TextDisplayBuilder } from "discord.js";
 import { ApiHandler, pResult } from "../embedingSwitch"
 import { debug, error } from "../../logging";
 import { translate } from '@vitalets/google-translate-api';
@@ -45,75 +45,66 @@ export class xTwitterCustom implements ApiHandler {
         if (!xData) return { ok: false };
         if (xData.bufferPics.length === 0 && !xData.hasVideo && xData.tweetDesc) return { ok: false };
         try {
-            let files: AttachmentBuilder[] = [], embeds: EmbedBuilder[] = [], packTxt: string | undefined = undefined;
+            let files: AttachmentBuilder[] = [], components: any[] = [], packTxt: string | undefined = undefined;
             const statTxt = `❤️: **${xData.likes}** | 🔁: **${xData.reTwi}** | 💬: **${xData.resp}** | 👀: **${xData.views}**`
 
-            if (xData.hasVideo || isSpoiler) { // Formato plano
-                let outText: string | undefined = undefined, tweDes: string | undefined = undefined, tweTl: string | undefined = undefined
-                const urlRegex = /(?:\()?\[?(https?:\/\/[^\s\)]+)\)?/g;
-                if (xData.tweetDesc) {
-                    tweDes = xData.tweetDesc.replace(urlRegex, '`$&`');
-                    if (!xData.tweetTl && xData.tweetDesc.length > 1100) tweDes = (xData.tweetDesc.slice(0, 1010).replace(urlRegex, '`$&`') + "...");
-                    if (xData.tweetTl && xData.tweetTl.oTxT.length > 350) tweDes = xData.tweetDesc.slice(0, 350).replace(urlRegex, '`$&`') + "...";
-                }
-                if (xData.tweetTl) tweTl = xData.tweetTl.oTxT.length > 1050 ? (xData.tweetTl.oTxT.slice(0, 1010).replace(urlRegex, '`$&`') + "...") : xData.tweetTl.oTxT.replace(urlRegex, '`$&`');
-                outText = `> ### 👤 ${xData.userName} (@${xData.showName})`
-                outText += `\n> ${statTxt}` + `\n> ***X | Twitter • by Meltryllis Api***`;
-                if (xData.rawUrl.length > 0) outText += xData.rawUrl.join(" ");
-                if (xData.tweetTl && xData.tweetTl.oTxT.length > 0) outText += `\n### 📄 Traducido al ${xData.tweetTl.oLng}:\n` + tweTl;
-                if (xData.tweetDesc && xData.tweetDesc.length > 0) outText += (xData.tweetTl ? `\n### 📃 Texto original:\n` : "\n") + tweDes;
-                // addItems
-                packTxt = outText;
-                xData.bufferVideo.forEach((buffer, index) => {
-                    const fileName = isSpoiler ? `SPOILER_Xvideo_${xId}_${index}.mp4` : `Xvideo_${xId}_${index}.mp4`;
-                    files.push(new AttachmentBuilder(buffer, { name: fileName }));
-                });
-                xData.bufferGifs.forEach((buffer, index) => {
-                    const fileName = isSpoiler ? `SPOILER_Xgif_${xId}_${index}.webp` : `Xgif_${xId}_${index}.webp`;
-                    files.push(new AttachmentBuilder(buffer, { name: fileName }));
-                });
-                xData.bufferPics.forEach((buffer, index) => {
-                    const fileName = isSpoiler ? `SPOILER_Ximg_${xId}_${index}.jpg` : `Ximg_${xId}_${index}.jpg`;
-                    files.push(new AttachmentBuilder(buffer, { name: fileName }));
-                });
+            // Formato plano
+            let outText: string | undefined = undefined, tweDes: string | undefined = undefined, tweTl: string | undefined = undefined
+            if (xData.tweetDesc) {
+                tweDes = xData.tweetDesc;
+                if (!xData.tweetTl && xData.tweetDesc.length > 2000) { tweDes = (xData.tweetDesc.slice(0, 2000) + "...") };
+                if (xData.tweetTl && xData.tweetTl.oTxT.length > 500) { tweDes = xData.tweetDesc.slice(0, 500) + "..." };
+            }
+            if (xData.tweetTl) { tweTl = xData.tweetTl.oTxT.length > 2000 ? (xData.tweetTl.oTxT.slice(0, 2000) + "...") : xData.tweetTl.oTxT };
+            outText = `> ### 👤 ${xData.userName} (@${xData.showName})`
+            outText += `\n> ${statTxt}` + `\n> ***X | Twitter • by Meltryllis Api***`;
+            if (xData.tweetTl && xData.tweetTl.oTxT.length > 0) outText += `\n### 📄 Traducido al ${xData.tweetTl.oLng}:\n` + tweTl;
+            if (xData.tweetDesc && xData.tweetDesc.length > 0) outText += (xData.tweetTl ? `\n### 📃 Texto original:\n` : "\n") + tweDes;
+            packTxt = outText;
+            // addItems
+            xData.bufferVideo.forEach((buffer, index) => {
+                const fileName = `Xvideo_${xId}_${index}.mp4`;
+                files.push(new AttachmentBuilder(buffer, { name: fileName }));
+            });
+            xData.bufferGifs.forEach((buffer, index) => {
+                const fileName = `Xgif_${xId}_${index}.webp`;
+                files.push(new AttachmentBuilder(buffer, { name: fileName }));
+            });
+            xData.bufferPics.forEach((buffer, index) => {
+                const fileName = `Ximg_${xId}_${index}.jpg`;
+                files.push(new AttachmentBuilder(buffer, { name: fileName }));
+            });
+
+            // todo esto se hizo porque alguien reporto que no respetaba el modo spoiler 
+            const txtComp = new TextDisplayBuilder().setContent(packTxt);
+            const gallegry = new MediaGalleryBuilder();
+
+            for (const file of files) {
+                gallegry.addItems(new MediaGalleryItemBuilder().setURL(`attachment://${file.name}`))
             }
 
-            else { // Formato embed
-                const fields: { name: string, value: string, inline?: boolean }[] = [];
-                xData.bufferPics.forEach((buffer, index) => {
-                    const fileName = `Ximg_${xId}_${index}.jpg`;
-                    const embed = new EmbedBuilder()
-                        .setURL(xData.urlPost)
-                        .setImage(`attachment://${fileName}`);
-                    let desct = statTxt;
-                    if (xData.rawUrl.length > 0) { desct += xData.rawUrl.join(" ") }
-                    if (index === 0) {
-                        embed.setAuthor({ name: `${xData.userName} (@${xData.showName})`, url: xData.urlPost, iconURL: xData.avatarPic })
-                            .setColor('#1DA1F2')
-                            .setDescription(desct)
-                            .setFooter({ text: `X | Twitter • by Meltryllis Api`, iconURL: 'https://abs.twimg.com/favicons/twitter.ico' });
-                        if (xData.tweetTl && xData.tweetDesc) {
-                            fields.push(
-                                { name: `📄 Traducido al ${xData.tweetTl.oLng}:`, value: (xData.tweetTl.oTxT.length > 1010 ? xData.tweetTl.oTxT.slice(0, 1010) + "..." : xData.tweetTl.oTxT), inline: false },
-                                { name: "📃 Texto original:", value: (xData.tweetDesc.length > 1010 ? xData.tweetDesc.slice(0, 1010) + "..." : xData.tweetDesc), inline: false },
-                            )
-                        } else if (!xData.tweetTl && xData.tweetDesc) {
-                            fields.push({ name: "Tweet:", value: (xData.tweetDesc.length > 1020 ? xData.tweetDesc.slice(0, 1010) + "..." : xData.tweetDesc), inline: false });
-                        }
-                        if (fields.length > 0) { embed.addFields(fields) }
-                    }
-                    // addItems
-                    files.push(new AttachmentBuilder(buffer, { name: fileName }));
-                    embeds.push(embed);
-                });
+            if (xData.rawUrl && xData.rawUrl.length > 0) {
+                for (const url of xData.rawUrl) {
+                    gallegry.addItems(new MediaGalleryItemBuilder().setURL(url));
+                }
             }
-            return { ok: true, pack: [{ [xId]: { content: packTxt, embeds: embeds, files: files } }] };
+
+            const container = new ContainerBuilder()
+                .addMediaGalleryComponents(gallegry)
+                .setAccentColor(0x000055)
+                .setSpoiler(isSpoiler);
+
+            components.push(txtComp, container);
+
+            return { ok: true, pack: [{ [xId]: { files: files, components: components, isV2: true } }] };
+
         } catch (e) {
             error(`[xTwitterCustom] Error al enviar:`);
             return { ok: false };
         }
     }
 }
+
 
 // ================================= xTwitter Process ================================= //
 interface twitterData {
@@ -216,8 +207,8 @@ class xTwitter {
                 bufferGifs: gifBuffers
             };
 
-        } catch (e) {
-            error(`[xTwitter] Error interno al obtener twitter ${idX}:${e}`);
+        } catch (e: any) {
+            if (!e.message.includes("ABORT")) error(`[xTwitter] Error interno al obtener twitter ${idX}:${e}`);
             return null;
         }
     }
@@ -285,7 +276,7 @@ class xTwitter {
                     }
 
                     const downVideo = await downMedia(downUrl)
-                    if (!downVideo) { downData.links.push(`[.](${inf.url})`) }
+                    if (!downVideo) { throw new Error("ABORT") /*downData.links.push(downUrl)*/ }
                     else { downData.videos.push(downVideo) }
                 }
 
@@ -304,9 +295,9 @@ class xTwitter {
                         else {
                             const convert = await this.turnMp4ToWebp(downGif);
                             if (convert) { downData.gifs.push(convert); }
-                            else { downData.links.push(`[.](${downUrl})`); }
+                            else { downData.links.push(downUrl); }
                         }
-                    } else { downData.links.push(`[.](${downUrl})`); }
+                    } else { downData.links.push(downUrl) };
                 }
             }
         }
