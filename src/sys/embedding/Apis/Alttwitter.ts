@@ -1,5 +1,5 @@
 // src/sys/embedding/Apis/PixivAPI.ts
-import { Message, AttachmentBuilder, TextChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, ContainerBuilder, TextDisplayBuilder } from "discord.js";
+import { Message, AttachmentBuilder, TextChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize } from "discord.js";
 import { ApiHandler, pResult } from "../embedingSwitch"
 import { debug, error } from "../../logging";
 import { translate } from '@vitalets/google-translate-api';
@@ -45,23 +45,35 @@ export class xTwitterCustom implements ApiHandler {
         if (!xData) return { ok: false };
         if (xData.bufferPics.length === 0 && !xData.hasVideo && xData.tweetDesc) return { ok: false };
         try {
-            let files: AttachmentBuilder[] = [], components: any[] = [], packTxt: string | undefined = undefined;
-            const statTxt = `❤️: **${xData.likes}** | 🔁: **${xData.reTwi}** | 💬: **${xData.resp}** | 👀: **${xData.views}**`
-
+            let files: AttachmentBuilder[] = [], components: any[] = [];
             // Formato plano
-            let outText: string | undefined = undefined, tweDes: string | undefined = undefined, tweTl: string | undefined = undefined
+            const statTxt = `❤️: **${xData.likes}** | 🔁: **${xData.reTwi}** | 💬: **${xData.resp}** | 👀: **${xData.views}**`
+            const TopTxt = `> ### 👤 ${xData.userName.length > 28 ? xData.userName.slice(0, 25) + `...` : xData.userName} ([@${xData.showName}](${xData.urlPost})) \n> ${statTxt}`
+            const BottomTxt = `> *** X | Twitter • by Meltryllis Api *** `;
+
+            let tweDes = "";
+            let tweTl = "";
             if (xData.tweetDesc) {
                 tweDes = xData.tweetDesc;
-                if (!xData.tweetTl && xData.tweetDesc.length > 2000) { tweDes = (xData.tweetDesc.slice(0, 2000) + "...") };
-                if (xData.tweetTl && xData.tweetTl.oTxT.length > 500) { tweDes = xData.tweetDesc.slice(0, 500) + "..." };
+                if (!xData.tweetTl && tweDes.length > 2000) tweDes = tweDes.slice(0, 2000) + "...";
+                if (xData.tweetTl && tweDes.length > 500) tweDes = tweDes.slice(0, 500) + "...";
             }
-            if (xData.tweetTl) { tweTl = xData.tweetTl.oTxT.length > 2000 ? (xData.tweetTl.oTxT.slice(0, 2000) + "...") : xData.tweetTl.oTxT };
-            outText = `> ### 👤 ${xData.userName} (@${xData.showName})`
-            outText += `\n> ${statTxt}` + `\n> ***X | Twitter • by Meltryllis Api***`;
-            if (xData.tweetTl && xData.tweetTl.oTxT.length > 0) outText += `\n### 📄 Traducido al ${xData.tweetTl.oLng}:\n` + tweTl;
-            if (xData.tweetDesc && xData.tweetDesc.length > 0) outText += (xData.tweetTl ? `\n### 📃 Texto original:\n` : "\n") + tweDes;
-            packTxt = outText;
-            // addItems
+
+            if (xData.tweetTl && xData.tweetTl.oTxT) {
+                tweTl = xData.tweetTl.oTxT.length > 2000 ? xData.tweetTl.oTxT.slice(0, 2000) + "..." : xData.tweetTl.oTxT;
+            }
+
+            const textBlocks: string[] = [];
+            if (tweTl.length > 0 && xData.tweetTl) {
+                textBlocks.push(`### 📄 Traducido al ${xData.tweetTl.oLng}:\n${tweTl}`);
+            }
+            if (tweDes.length > 0) {
+                if (tweTl.length > 0) { textBlocks.push(`### 📃 Texto original:\n${tweDes}`); }
+                else { textBlocks.push(tweDes); }
+            }
+
+            const outText = textBlocks.length > 0 ? textBlocks.join("\n\n") : undefined;
+
             xData.bufferVideo.forEach((buffer, index) => {
                 const fileName = `Xvideo_${xId}_${index}.mp4`;
                 files.push(new AttachmentBuilder(buffer, { name: fileName }));
@@ -76,8 +88,8 @@ export class xTwitterCustom implements ApiHandler {
             });
 
             // todo esto se hizo porque alguien reporto que no respetaba el modo spoiler 
-            const txtComp = new TextDisplayBuilder().setContent(packTxt);
             const gallegry = new MediaGalleryBuilder();
+            const parte = new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small);
 
             for (const file of files) {
                 gallegry.addItems(new MediaGalleryItemBuilder().setURL(`attachment://${file.name}`))
@@ -90,11 +102,15 @@ export class xTwitterCustom implements ApiHandler {
             }
 
             const container = new ContainerBuilder()
-                .addMediaGalleryComponents(gallegry)
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent(TopTxt));
+            if (outText) { container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(outText)) };
+            container.addMediaGalleryComponents(gallegry)
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent(BottomTxt))
                 .setAccentColor(0x000055)
                 .setSpoiler(isSpoiler);
 
-            components.push(txtComp, container);
+
+            components.push(container);
 
             return { ok: true, pack: [{ [xId]: { files: files, components: components, isV2: true } }] };
 

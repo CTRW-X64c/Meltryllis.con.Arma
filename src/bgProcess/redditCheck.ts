@@ -148,9 +148,9 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
                 const emojiRgx = /<a?:[a-zA-Z0-9_]+:\d+>|[\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\p{Emoji_Component}\u{200D}]+/gu;
                 const safeTitle = shrtTitle
                     .replace(/\[/g, '').replace(/\]/g, '').replace(/\\/g, '').replace(/\//g, '').replace(/\|/g, ' ').replace(emojiRgx, '');
-
-                let msg = i18next.t("commands:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitle.trim(), a3: postLink });
-                if (nsfwCheck) { msg = i18next.t("commands:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitle.trim(), a3: postLink }) }
+                const safeTitleOut = safeTitle.length > 2 ? safeTitle : "Reddit Post!";
+                let msg = i18next.t("commands:reddit.check.Reduit_pioste", { a1: displayName, a2: safeTitleOut.trim(), a3: postLink });
+                if (nsfwCheck) { msg = i18next.t("commands:reddit.check.Reduit_pioste_nsfw", { a1: displayName, a2: safeTitleOut.trim(), a3: postLink }) }
 
                 publisher(msg, ch, pLink, post.name, nsfwCheck);
                 await wait(3_000);
