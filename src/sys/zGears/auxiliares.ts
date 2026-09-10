@@ -14,6 +14,7 @@ const COOLDOWN_TIMES: Record<string, number> = {
     "netCommand": 30 * minutos,
     "playMusic": 5 * minutos,
     "netCommandNoWait": 5 * minutos,
+    "Kancolle": 15 * minutos,
     "skip": 2_500,
 };
 

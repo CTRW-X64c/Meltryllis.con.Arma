@@ -27,6 +27,7 @@ import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess
 import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "./commands/kancolle";
 import { handleFollowXCommand, registerFollowXCommand } from "./commands/followX";
 import { handlePixiFollowCommand, registerFollowPixiCommand } from "./commands/pixiFollow";
+import { handleBSkyCommand, registerBSkyCommand } from "./commands/blueSky";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -53,7 +54,8 @@ export async function sysUpRegister(client: Client) {
     ...(await registernoEveryoneCommand()),
     ...(await registerKantaiCollectionCommand()),
     ...(await registerFollowXCommand()),
-    ...(await registerFollowPixiCommand())
+    ...(await registerFollowPixiCommand()),
+    ...(await registerBSkyCommand())
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -121,6 +123,8 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handleFollowXCommand(interaction); break;
     case 'pixiv':
       await handlePixiFollowCommand(interaction); break;
+    case 'bsky':
+      await handleBSkyCommand(interaction); break;
     default:
       fail(interaction); break;
   }

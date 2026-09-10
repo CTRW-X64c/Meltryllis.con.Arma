@@ -513,7 +513,8 @@ export async function sendLimitsDashboard(interaction: ChatInputCommandInteracti
         .setTitle(`🛠️ Panel de Límites | Servidor: ${guild?.name || idGuild}`)
         .setColor('Blue')
         .addFields(
-            { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}\n> **Twitter:** ${limits.tweetMax}\n> **Pixiv:** ${limits.pixiMax}` },
+            { name: '📊 Limites A', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}\n> **Twitter:** ${limits.tweetMax}` },
+            { name: '📊 Limites B', value: `> **Pixiv:** ${limits.pixiMax}\n> **BlueSky:** ${limits.bskyMax}` },
             { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${limits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${limits.noWaitNode ? '✅' : '❌'}` }
         );
 
@@ -523,7 +524,7 @@ export async function sendLimitsDashboard(interaction: ChatInputCommandInteracti
         .setStyle(ButtonStyle.Primary);
     const btnEditB = new ButtonBuilder()
         .setCustomId(`lim_edit_B_${idGuild}`)
-        .setLabel('🖼️')
+        .setLabel('🖼️ | 🦋')
         .setStyle(ButtonStyle.Primary);
     const btnDomain = new ButtonBuilder()
         .setCustomId(`lim_tog_dom_${idGuild}`)

@@ -71,8 +71,16 @@ export async function handleLimitsButton(interaction: ButtonInteraction) {
         const row1 = new LabelBuilder()
             .setLabel('Límite de publicaciones de /pixiv')
             .setTextInputComponent(inPixi)
+        //tweeter
+        const inBSky = new TextInputBuilder()
+            .setCustomId('input_bskyMax')
+            .setStyle(TextInputStyle.Short)
+            .setValue(limits.bskyMax.toString());
+        const row2 = new LabelBuilder()
+            .setLabel('Límite de publicaciones de /bsky')
+            .setTextInputComponent(inBSky)
 
-        modal.addLabelComponents(row1);
+        modal.addLabelComponents(row1, row2);
         await interaction.showModal(modal);
         return;
     }

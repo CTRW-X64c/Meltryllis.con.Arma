@@ -28,7 +28,8 @@ export async function handleLimitsModalA(interaction: ModalSubmitInteraction) {
             .setTitle(`🛠️ Panel de Límites | Servidor: ${targetGuildId}`)
             .setColor('Blue')
             .addFields(
-                { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}\n> **Twitter:** ${limits.tweetMax}\n> **Pixiv:** ${limits.pixiMax}` },
+                { name: '📊 Limites A', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}\n> **Twitter:** ${limits.tweetMax}` },
+                { name: '📊 Limites B', value: `> **Pixiv:** ${limits.pixiMax}\n> **BlueSky:** ${limits.bskyMax}` },
                 { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${limits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${limits.noWaitNode ? '✅' : '❌'}` }
             );
         await interaction.editReply({ content: `✅ Limites actualizados para el servidor ${serverName}.`, embeds: [embed] });
@@ -43,13 +44,14 @@ export async function handleLimitsModalB(interaction: ModalSubmitInteraction) {
         const targetGuildId = customId.split('_')[3];
 
         const newPixi = parseInt(interaction.fields.getTextInputValue('input_pixiMax'));
+        const newBsky = parseInt(interaction.fields.getTextInputValue('input_bskyMax'));
 
-        if (isNaN(newPixi)) {
+        if (isNaN(newPixi) || isNaN(newBsky)) {
             await interaction.editReply({ content: '❌ Solo ingresa números válidos.' });
             return;
         }
 
-        await setGuildLimits(targetGuildId, { pixiMax: newPixi });
+        await setGuildLimits(targetGuildId, { pixiMax: newPixi, bskyMax: newBsky });
 
         const chkServer = await interaction.client.guilds.fetch(targetGuildId).catch(() => null);
         const serverName = chkServer ? chkServer.name : targetGuildId;
@@ -58,7 +60,8 @@ export async function handleLimitsModalB(interaction: ModalSubmitInteraction) {
             .setTitle(`🛠️ Panel de Límites | Servidor: ${targetGuildId}`)
             .setColor('Blue')
             .addFields(
-                { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}\n> **Twitter:** ${limits.tweetMax}\n> **Pixiv:** ${limits.pixiMax}` },
+                { name: '📊 Limites A', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}\n> **Twitter:** ${limits.tweetMax}` },
+                { name: '📊 Limites B', value: `> **Pixiv:** ${limits.pixiMax}\n> **BlueSky:** ${limits.bskyMax}` },
                 { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${limits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${limits.noWaitNode ? '✅' : '❌'}` }
             );
         await interaction.editReply({ content: `✅ Limites actualizados para el servidor ${serverName}.`, embeds: [embed] });

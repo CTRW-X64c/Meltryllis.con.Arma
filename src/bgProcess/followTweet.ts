@@ -3,6 +3,7 @@ import { deleteFollowTweet, getAllFollowTweet, updateFollowTweet } from "../sys/
 import { debug, error } from "../sys/logging";
 import urlStatusManager from "../sys/embedding/domainChecker";
 import { getGuildReplacementConfig } from "../sys/DB-Engine/links/Embed";
+import { bskyEngine } from "./blusky";
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function initFolloX(C: Client): Promise<void> {
@@ -70,6 +71,7 @@ export async function tweEngine(cli: Client): Promise<void> {
             msgSend({ Api: newPost, channel: chToSend, guild: guild_id, xUser: xUser, domain: dominio, tl: lang }).catch(e => error(e, "BG.TwitterFollow"));
         }
     } catch (e) { error(`Fallo el checkTwitterFollow ${e}`, "BG.TwitterFollow") }
+    await bskyEngine(cli)
 }
 
 // === msgSender === //

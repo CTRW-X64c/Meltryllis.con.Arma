@@ -238,7 +238,8 @@ async function poolManager(): Promise<void> {
       red_max INT DEFAULT 10,
       yt_max INT DEFAULT 10,
       tweet_max INT DEFAULT 10,
-      pixi_max INT DEFAULT 10
+      pixi_max INT DEFAULT 10,
+      bsky_max INT DEFAULT 10
     )
   `);
 
@@ -349,6 +350,23 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  // Tabla BSky
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS blueskya (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      guild_id VARCHAR(50) NOT NULL,
+      chanel VARCHAR(50) NOT NULL,
+      bskyUserId VARCHAR(50) NOT NULL,
+      bskyUserName VARCHAR(50) NOT NULL,
+      lastPost VARCHAR(255),
+      addby VARCHAR(50) NOT NULL,
+      modo BOOLEAN DEFAULT FALSE,
+      lang VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE INDEX idx_unique_bskyUser (guild_id, bskyUserId)
+    )
+  `);
+
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;
   info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");
@@ -413,7 +431,7 @@ export async function closeBD(): Promise<boolean> {
 }
 
 // Otros
-type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config' | 'followTweetX' | 'pixivData';
+type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config' | 'followTweetX' | 'pixivData' | `blueskya`;
 export async function countItems(guildId: string, table: FeedTables): Promise<number> {
   try {
     const pool = await getPool();

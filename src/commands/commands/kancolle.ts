@@ -3,7 +3,7 @@ import { addBD, delBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/K
 import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { debug, error } from '../../sys/logging';
-import { masterPerm, msgDeleter } from '../../sys/zGears/auxiliares';
+import { checkCooldown, masterPerm, msgDeleter, startCooldown } from '../../sys/zGears/auxiliares';
 import { allLefts, mantDates, turnDate, JSTtoUTC, getNowJST } from '../../sys/zGears/kc_aux'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
 import emojis from '../../../adds/otros/emojis.json'
@@ -257,11 +257,16 @@ async function resrts(interacciones: ChatInputCommandInteraction) {
         await interacciones.editReply({ embeds: [emb] });
     } else {
         try {
-            const ch = interacciones.channel
+            const ch = interacciones.channel as TextChannel;
             if (ch && ch.isTextBased()) {
-                const txtch = ch as TextChannel
+                // AntiSpam
+                const tommer = checkCooldown(interacciones.guild!.id, "Kancolle")
+                const isAllowed = await hasPermission(interacciones, interacciones.commandName);
+                if (!isAllowed && tommer.onCooldown) { await interacciones.editReply({ content: `EL COMANDO ESTA EN CD: ${tommer.timeLeft} | Pide a un admin que lo ejecute!` }); return }
+                // Run
                 await interacciones.editReply({ content: "✅ " })
-                const msgResets = await txtch.send({ embeds: [emb] });
+                const msgResets = await ch.send({ embeds: [emb] });
+                if (!isAllowed) startCooldown(interacciones.guild!.id, "Kancolle");
                 msgDeleter({ msg: msgResets, userId: interacciones.user.id });
             } else await interacciones.editReply({ content: i18next.t("commands:kancolle.interacciones.resrts_let_send_fail"), embeds: [emb] });
         } catch (e) { await interacciones.editReply({ content: i18next.t("commands:kancolle.interacciones.resrts_let_send_fail"), embeds: [emb] }) }

@@ -273,7 +273,7 @@ async function userCheck(userX: string): Promise<string | undefined> {
     }
     chekUserX = chekUserX.toLowerCase().trim();
     try {
-        const userFetch = await fetch(`https://api.fxtwitter.com/2/profile/${chekUserX}/statuses?count=1`)
+        const userFetch = await fetch(`https://api.fxtwitter.com/2/profile/${chekUserX}?about_account=1`)
         if (userFetch.ok) {
             const codFe = await userFetch.json() as { code?: number }
             if (codFe.code === 200) return chekUserX;
