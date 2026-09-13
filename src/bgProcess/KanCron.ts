@@ -1,13 +1,11 @@
 //import * as cron from 'node-cron';
-import { Client, EmbedBuilder, Role, TextChannel } from 'discord.js';
+import { Client, EmbedBuilder, GuildTextBasedChannel, Message, Role } from 'discord.js';
 import { debug, error, info } from '../sys/logging';
-import { startKC, data, maint, updateKCmant, kcheMaint } from '../sys/DB-Engine/links/KancolleBD';
-import { leftTimeConv, JSTtoUTC, getNowJST, rawPreset, fetchData } from "../sys/zGears/kc_aux";
-import { translate } from '@vitalets/google-translate-api';
+import { startKC, data, kcheMaint } from '../sys/DB-Engine/links/KancolleBD';
+import { leftTimeConv, mantChk, rawPreset } from "../sys/zGears/kc_aux";
 
 let CLIENTE: Client | null = null;
 const minuts = 60 * 1_000;
-const idStart = `maintStart`, idEnd = `mntEnd`;
 
 // ========================================================= Init ========================================================= //
 export async function initKC(cli: Client) {
@@ -23,7 +21,7 @@ export async function initKC(cli: Client) {
         }
         if (y) {
             mantChk()
-            setInterval(() => mantChk(), 20 * minuts)
+            setInterval(() => mantChk(), 10 * minuts)
             inf += " > Mantenimientos < ";
         }
         info(inf)
@@ -71,44 +69,6 @@ async function timmerAv() {
     }; if (!notifyTimers.has('mExp')) mExpStr();
 }
 
-// ===== notifyMaint ===== //
-let kcTimmers = new Map<string, NodeJS.Timeout>();
-async function startMant() {
-    try {
-        if (!maint.lastMaintStart) return;
-        const now = getNowJST(), INItime = JSTtoUTC(maint.lastMaintStart);
-        if (!INItime) return;
-        const maintStart = INItime.getTime();
-        const leftStart = maintStart - now;
-        const HORA = 60 * minuts;
-
-        if (leftStart > 0 && leftStart < (12 * HORA)) {
-            if (leftStart > HORA && !kcTimmers.has(idStart)) {
-                const timer1h = setTimeout(() => {
-                    notifyKC(idStart);
-                    kcTimmers.delete(idStart);
-                }, leftStart - HORA);
-                kcTimmers.set(idStart, timer1h);
-            }
-        }
-
-        if (maint.MaintEnd && !kcTimmers.has(idEnd)) {
-            const ENDtime = JSTtoUTC(maint.MaintEnd);
-            if (ENDtime) {
-                const maintEndMs = new Date(ENDtime).getTime();
-                const leftEnd = maintEndMs - now;
-                if (leftEnd > 0 && leftEnd < (12 * HORA)) {
-                    const endoMeinto = setTimeout(() => {
-                        notifyKC(idEnd);
-                        kcTimmers.delete(idEnd);
-                    }, leftEnd);
-                    kcTimmers.set(idEnd, endoMeinto);
-                }
-            }
-        }
-    } catch (e) { error(`Error al programar temporizadores de mantenimiento: ${e}`, "KancolleBD"); }
-}
-
 // ========================================================= Main ========================================================= //
 const chkType = new Map<notifyType, (cfg: any) => boolean>([
     ['pvp', cfg => cfg.pvp.av], ['quest', cfg => cfg.quest.av], ['oem', cfg => cfg.oem.av], ['mExp', cfg => cfg.mExp.av],
@@ -117,8 +77,11 @@ const chkType = new Map<notifyType, (cfg: any) => boolean>([
 const chkRole = new Map<notifyType, (cfg: any) => boolean>([
     ['pvp', cfg => cfg.pvp.ntf], ['quest', cfg => cfg.quest.ntf], ['oem', cfg => cfg.oem.ntf], ['mExp', cfg => cfg.mExp.ntf],
     ['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
+
+
+
 /* === Core === */
-async function notifyKC(type: notifyType) {
+export async function notifyKC(type: notifyType) {
     for (const [guildId, configs] of data.entries()) {
         for (const cfg of configs) {
             const check = chkType.get(type), checkRol = chkRole.get(type)
@@ -128,143 +91,118 @@ async function notifyKC(type: notifyType) {
                 if (!guild) continue;
                 const channel = await guild.channels.fetch(cfg.channel).catch(() => null);
                 if (!channel || !channel.isTextBased()) continue;
-                const txtCh = channel as TextChannel;
+                const txtCh = channel as GuildTextBasedChannel;
                 let chkRol: Role | null = null;
                 if (cfg.role && checkRol && checkRol(cfg)) chkRol = await guild.roles.fetch(cfg.role).catch(() => null)
-                msgMgr({ ch: txtCh, rol: chkRol, type: type })
+                msgMgr({ ch: txtCh, rol: chkRol, type: type }).catch(err => error(`[${type}] ${guildId}: ${err}`, "KanCron"));
             } catch (err) { error(`Error al notificar: ${guildId} ${err}`); }
         }
     }
 }
+
+
+// ========================================================= OutNotify ========================================================= //
+interface msgBuild { ch: GuildTextBasedChannel, rol: Role | null, type: notifyType }
+interface msgSend {
+    ch: GuildTextBasedChannel,
+    title: string,
+    fields: { name: string, value: string, inline?: boolean }[],
+    desc: string,
+    pic: string | undefined,
+    rolOn: string | undefined,
+    color: number,
+    url: string | undefined,
+    delAf: number
+}
+/* === kchs === */
+interface cachedMsg { msgId: string, chId: string }
+const msgkch = new Map<string, cachedMsg>();
+const msgEpoch = new Map<string, number>();
+const outErase = new Map<string, NodeJS.Timeout>();
 /* === msgManager === */
-interface msgBuild { ch: TextChannel, rol: Role | null, type: notifyType }
-interface msgSend { ch: TextChannel, title: string, fields: any[], desc: string, pic: string | undefined, roleContent: string | undefined, color: number, url: string | undefined }
 async function msgMgr(dat: msgBuild) {
     const prst = rawPreset(dat.type);
     if (!prst) return;
 
+    const key = `${dat.ch.guildId}-${dat.type}`;
+    const myEpoch = (msgEpoch.get(key) ?? 0) + 1;
+    msgEpoch.set(key, myEpoch);
+    const isStale = () => msgEpoch.get(key) !== myEpoch;
+
     const msgSnd = async (dta: msgSend) => {
         try {
-            const emb = new EmbedBuilder().setColor(dta.color).setTitle(dta.title).setDescription(dta.desc);
-            if (dta.pic) emb.setImage(dta.pic); if (dta.url) emb.setURL(dta.url); if (dta.fields && dta.fields.length > 0) emb.addFields(dta.fields);
-            const msg = await dta.ch.send({ content: dta.roleContent, embeds: [emb] });
-            if (dat.type !== "newMante" && msg.deletable) { setTimeout(() => { msg.delete().catch(err => error(`Error al borrar msg: ${err}`, "KanCron")) }, 10 * minuts); }
-        } catch (e) { error(`Error enviando notificación: ${e}`, "KanCron"); }
-    }
+            const emb = new EmbedBuilder().setTimestamp().setColor(dta.color).setTitle(dta.title).setDescription(dta.desc);
+            if (dta.pic) emb.setImage(dta.pic);
+            if (dta.url) emb.setURL(dta.url);
+            if (dta.fields.length > 0) emb.addFields(dta.fields);
 
-    const rMnt = dat.rol ? `AVISO: ${dat.rol}!` : undefined;
-    await msgSnd({ ch: dat.ch, title: prst.title.A, fields: prst.field, desc: prst.desc.ini, pic: prst.urlPic.A, roleContent: rMnt, color: 0xFFA500, url: prst.url });
-    if (prst.ntfy.ntf_30 && prst.mTimmer > (30 * minuts)) {
-        setTimeout(async () => {
-            await msgSnd({ ch: dat.ch, title: prst.title.A, fields: [], desc: prst.desc.l30, pic: prst.urlPic.A, roleContent: undefined, color: 0xFFA500, url: prst.url });
-        }, prst.mTimmer - (30 * minuts));
-    }
-    if (prst.ntfy.ntf_15 && prst.mTimmer > (15 * minuts)) {
-        setTimeout(async () => {
-            await msgSnd({ ch: dat.ch, title: prst.title.A, fields: [], desc: prst.desc.l15, pic: prst.urlPic.A, roleContent: undefined, color: 0xFFA500, url: prst.url });
-        }, prst.mTimmer - (15 * minuts));
-    }
-    if (prst.ntfy.ntf_end && prst.mTimmer > 0) {
-        setTimeout(async () => {
-            await msgSnd({ ch: dat.ch, title: prst.title.B, fields: [], desc: prst.desc.fn, pic: prst.urlPic.B, roleContent: rMnt, color: 0x00AA00, url: prst.url });
-        }, prst.mTimmer);
-    }
-}
-
-// ========================================================= fetchMaint ========================================================= //
-interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
-interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: string[] | null };
-export let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
-async function mantChk() {
-    const fData = await fetchData("https://raw.githubusercontent.com/ElectronicObserverEN/Data/refs/heads/master/update.json")
-    if (!fData) return;
-
-    const processData = await fData.json() as dataGit;
-    const newMaintStartStr = processData.MaintStart ?? null;
-    if (!newMaintStartStr) return;
-    const newMaintEndStr = processData.MaintEnd ?? null;
-    //startManteTimes
-    const newMaintDate = new Date(newMaintStartStr);
-    const lastMantTime = maint?.lastMaintStart ? maint.lastMaintStart.getTime() : null;
-    const newMantTime = newMaintDate.getTime();
-    // endManteTimes
-    const endMantDate = newMaintEndStr ? new Date(newMaintEndStr) : null;
-    const lastEndTime = maint?.MaintEnd ? maint.MaintEnd.getTime() : null;
-    const endMantTime = endMantDate ? endMantDate.getTime() : null;
-
-    if (lastMantTime !== newMantTime) {
-        maint.lastMaintStart = newMaintDate;
-        maint.MaintEnd = endMantDate;
-        maint.maintNotified = false;
-        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: false, lastNotificationTime: null, MaintEnd: endMantDate });
-    }
-
-    if ((lastEndTime && endMantTime) && lastEndTime !== endMantTime) {
-        if (kcTimmers.has(idEnd)) kcTimmers.delete(idEnd)
-        maint.MaintEnd = endMantDate;
-        await updateKCmant({ lastMaintStart: maint.lastMaintStart, maintNotified: maint.maintNotified, lastNotificationTime: maint.lastNotificationTime, MaintEnd: endMantDate });
-    }
-
-    if (maint.maintNotified === false) {
-        if (newMantTime < Date.now()) {
-            debug(`🔧 Mantenimiento pasado detectado en BD. Marcando como notificado silenciosamente.`, "KancolleBD");
-            maint.maintNotified = true;
-            await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: null, MaintEnd: endMantDate });
-            return;
-        }
-
-        const datTwet = await tweetKC.geTwiitter(processData.MaintInfoLink)
-        debug(`🔧 Anunciando nuevo mantenimiento a los servidores: ${newMaintStartStr}`, "KancolleBD");
-        ntfMantData = { MaintDate: newMaintDate, endMantDate: endMantDate, url: processData.MaintInfoLink, tweetInfo: datTwet };
-        notifyKC("newMante")
-        maint.maintNotified = true;
-        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: new Date(), MaintEnd: endMantDate });
-    }
-    if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd)) startMant();
-}
-
-class tweetKC {
-    private static get headers() { return { method: 'GET' }; }
-
-    public static async geTwiitter(tweet: string): Promise<string[] | null> {
-        try {
-            const match = tweet.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
-            if (!match) return null;
-            const xId = match[1];
-
-            const call = await fetch(`https://api.fxtwitter.com/2/status/${xId}`, { headers: this.headers });
-            if (!call.ok) return null;
-
-            interface xTweet { code: number, status?: { text?: string } }
-            const Data = await call.json() as xTweet;
-            const orgTxT = Data.status?.text
-            if (!Data || Data.code !== 200 || !orgTxT) return null;
-
-            const tlList = ["es", "en"]
-            const traslates: string[] = []
-            traslates.push(orgTxT)
-
-            for (const lang of tlList) {
-                try {
-                    let out = lang === "es" ? "Traduccion no disponible" : "Translation not available";
-                    const callGoogle = await this.googleTranslate(orgTxT, lang)
-                    if (callGoogle) out = callGoogle;
-                    traslates.push(out)
-                    await new Promise(X => setTimeout(X, 2_000)) // una pausa de hidratacion "emoji de wea guiñando"
-                } catch (e) { error(`Error obteniendo tweet: ${e}`, "KanCron"); }
+            /* Buscar mensaje */
+            const reUsed = dat.type !== "newMante";
+            let msg: Message | null = null;
+            if (reUsed) {
+                const cached = msgkch.get(key);
+                if (cached) {
+                    if (cached.chId === dta.ch.id) {
+                        msg = await dta.ch.messages.fetch(cached.msgId).catch(() => null);
+                        if (!msg) msgkch.delete(key);
+                    } else { msgkch.delete(key); }
+                }
             }
 
-            return traslates
-        } catch (e) {
-            error(`Error obteniendo tweet: ${e}`, "KanCron");
-            return null
-        }
-    }
+            if (msg) {
+                try { await msg.edit({ content: dta.rolOn, embeds: [emb] }); }
+                catch {
+                    msg = await dta.ch.send({ content: dta.rolOn, embeds: [emb] });
+                    msgkch.delete(key);
+                }
+            } else { msg = await dta.ch.send({ content: dta.rolOn, embeds: [emb] }); }
 
-    private static async googleTranslate(text: string, lang: string): Promise<string | null> {
-        try {
-            const { text: out } = await translate(text, { to: lang });
-            return out;
-        } catch { return null; }
+            if (reUsed) msgkch.set(key, { msgId: msg.id, chId: dta.ch.id });
+
+            if (dta.delAf > 0 && dat.type !== "newMante" && msg.deletable) {
+                const prev = outErase.get(key);
+                if (prev) { clearTimeout(prev); outErase.delete(key); }
+                const target = msg;
+                const erase = setTimeout(async () => {
+                    await target.delete().catch(err => error(`Error al borrar msg [${dat.type}]: ${err}`, "KanCron"));
+                    const cur = msgkch.get(key);
+                    if (cur?.msgId === target.id) msgkch.delete(key);
+                    outErase.delete(key);
+                }, dta.delAf);
+                outErase.set(key, erase);
+            }
+        } catch (e) { error(`Error enviando notificación [${dat.type}]: ${e}`, "KanCron"); }
+    };
+
+    const rMnt = dat.rol ? `AVISO: ${dat.rol}!` : undefined;
+    const BORRAR = dat.type === "mntEnd" ? (30 * minuts) : 0;
+    /* Now */
+    await msgSnd({ ch: dat.ch, title: prst.title.A, fields: prst.field, desc: prst.desc.ini, pic: prst.urlPic.A, rolOn: rMnt, color: 0xFFA500, url: prst.url, delAf: BORRAR });
+    /* 30 min */
+    if (prst.ntfy.ntf_30 && prst.mTimmer > (30 * minuts)) {
+        setTimeout(async () => {
+            if (isStale()) return;
+            const p = rawPreset(dat.type);
+            if (!p) return;
+            await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l30, pic: p.urlPic.A, rolOn: undefined, color: 0xFFA500, url: p.url, delAf: BORRAR });
+        }, prst.mTimmer - (30 * minuts));
+    }
+    /* 15 min */
+    if (prst.ntfy.ntf_15 && prst.mTimmer > (15 * minuts)) {
+        setTimeout(async () => {
+            if (isStale()) return;
+            const p = rawPreset(dat.type);
+            if (!p) return;
+            await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l15, pic: p.urlPic.A, rolOn: undefined, color: 0xFFA500, url: p.url, delAf: BORRAR });
+        }, prst.mTimmer - (15 * minuts));
+    }
+    /* Fin */
+    if (prst.ntfy.ntf_end && prst.mTimmer > 0) {
+        setTimeout(async () => {
+            if (isStale()) return;
+            const p = rawPreset(dat.type);
+            if (!p) return;
+            await msgSnd({ ch: dat.ch, title: p.title.B, fields: p.field, desc: p.desc.fn, pic: p.urlPic.B, rolOn: rMnt, color: 0x00AA00, url: p.url, delAf: 30 * minuts });
+        }, prst.mTimmer);
     }
 }

@@ -1,9 +1,151 @@
 import i18next from "i18next";
-import { notifyType, ntfMantData } from "../../bgProcess/KanCron";
-import { maint } from "../DB-Engine/links/KancolleBD";
-import { error } from "../logging";
+import { notifyKC, notifyType } from "../../bgProcess/KanCron";
+import { maint, updateKCmant } from "../DB-Engine/links/KancolleBD";
+import { debug, error } from "../logging";
+import { translate } from "@vitalets/google-translate-api";
 
-// =========================================================== msgBuilder =========================================================== //
+
+// ========================================================= fetchMaint ========================================================= //
+const idStart = `maintStart`, idEnd = `mntEnd`;
+const minuts = 60 * 1_000;
+
+interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
+interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: string[] | null };
+let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
+export async function mantChk() {
+    const fData = await fetchData("https://raw.githubusercontent.com/ElectronicObserverEN/Data/refs/heads/master/update.json")
+    if (!fData) return;
+
+    const processData = await fData.json() as dataGit;
+    const newMaintStartStr = processData.MaintStart ?? null;
+    if (!newMaintStartStr) return;
+    const newMaintEndStr = processData.MaintEnd ?? null;
+    //startManteTimes
+    const newMaintDate = new Date(newMaintStartStr);
+    const lastMantTime = maint?.lastMaintStart ? maint.lastMaintStart.getTime() : null;
+    const newMantTime = newMaintDate.getTime();
+    // endManteTimes
+    const endMantDate = newMaintEndStr ? new Date(newMaintEndStr) : null;
+    const lastEndTime = maint?.MaintEnd ? maint.MaintEnd.getTime() : null;
+    const endMantTime = endMantDate ? endMantDate.getTime() : null;
+
+    if (lastMantTime !== newMantTime) {
+        maint.lastMaintStart = newMaintDate;
+        maint.MaintEnd = endMantDate;
+        maint.maintNotified = false;
+        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: false, lastNotificationTime: null, MaintEnd: endMantDate });
+    }
+
+    if ((lastEndTime && endMantTime) && lastEndTime !== endMantTime) {
+        if (kcTimmers.has(idEnd)) kcTimmers.delete(idEnd)
+        maint.MaintEnd = endMantDate;
+        await updateKCmant({ lastMaintStart: maint.lastMaintStart, maintNotified: maint.maintNotified, lastNotificationTime: maint.lastNotificationTime, MaintEnd: endMantDate });
+    }
+
+    if (maint.maintNotified === false) {
+        /*if (newMantTime < Date.now()) {
+            debug(`🔧 Mantenimiento pasado detectado en BD. Marcando como notificado silenciosamente.`, "KancolleBD");
+            maint.maintNotified = true;
+            await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: null, MaintEnd: endMantDate });
+            return;
+        }*/
+
+        const datTwet = await tweetKC.geTwiitter(processData.MaintInfoLink)
+        debug(`🔧 Anunciando nuevo mantenimiento a los servidores: ${newMaintStartStr}`, "KancolleBD");
+        ntfMantData = { MaintDate: newMaintDate, endMantDate: endMantDate, url: processData.MaintInfoLink, tweetInfo: datTwet };
+        notifyKC("newMante")
+        maint.maintNotified = true;
+        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: new Date(), MaintEnd: endMantDate });
+    }
+    if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd)) startMant();
+}
+
+class tweetKC {
+    private static get headers() { return { method: 'GET' }; }
+
+    public static async geTwiitter(tweet: string): Promise<string[] | null> {
+        try {
+            const match = tweet.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
+            if (!match) return null;
+            const xId = match[1];
+
+            const call = await fetch(`https://api.fxtwitter.com/2/status/${xId}`, { headers: this.headers });
+            if (!call.ok) return null;
+
+            interface xTweet { code: number, status?: { text?: string } }
+            const Data = await call.json() as xTweet;
+            const orgTxT = Data.status?.text;
+            if (!Data || Data.code !== 200 || !orgTxT) return null;
+
+            const tlList = ["es", "en"]
+            const traslates: string[] = []
+            traslates.push(orgTxT)
+
+            for (const lang of tlList) {
+                try {
+                    let out = lang === "es" ? "Traduccion no disponible" : "Translation not available";
+                    const callGoogle = await this.googleTranslate(orgTxT, lang)
+                    if (callGoogle) out = callGoogle;
+                    traslates.push(out)
+                    await new Promise(X => setTimeout(X, 2_000)) // una pausa de hidratacion "emoji de wea guiñando"
+                } catch (e) { error(`Error obteniendo tweet: ${e}`, "KanCron"); }
+            }
+
+            return traslates
+        } catch (e) {
+            error(`Error obteniendo tweet: ${e}`, "KanCron");
+            return null
+        }
+    }
+
+    private static async googleTranslate(text: string, lang: string): Promise<string | null> {
+        try {
+            const { text: out } = await translate(text, { to: lang });
+            return out;
+        } catch { return null; }
+    }
+}
+
+// ===== notifyMaint ===== //
+let kcTimmers = new Map<string, NodeJS.Timeout>();
+async function startMant() {
+    try {
+        if (!maint.lastMaintStart) return;
+        const now = getNowJST(), INItime = JSTtoUTC(maint.lastMaintStart);
+        if (!INItime) return;
+        const maintStart = INItime.getTime();
+        const leftStart = maintStart - now;
+        const HORA = 60 * minuts;
+
+        if (leftStart > 0 && leftStart < (12 * HORA)) {
+            if (leftStart > HORA && !kcTimmers.has(idStart)) {
+                const timer1h = setTimeout(() => {
+                    notifyKC(idStart);
+                    kcTimmers.delete(idStart);
+                }, leftStart - HORA);
+                kcTimmers.set(idStart, timer1h);
+            }
+        }
+
+        if (maint.MaintEnd && !kcTimmers.has(idEnd)) {
+            const ENDtime = JSTtoUTC(maint.MaintEnd);
+            if (ENDtime) {
+                const maintEndMs = new Date(ENDtime).getTime();
+                const leftEnd = maintEndMs - now;
+                if (leftEnd > 0 && leftEnd < (12 * HORA)) {
+                    const endoMeinto = setTimeout(() => {
+                        notifyKC(idEnd);
+                        kcTimmers.delete(idEnd);
+                    }, leftEnd);
+                    kcTimmers.set(idEnd, endoMeinto);
+                }
+            }
+        }
+    } catch (e) { error(`Error al programar temporizadores de mantenimiento: ${e}`, "KancolleBD"); }
+}
+
+
+// =========================================================== SitchNotify =========================================================== //
 interface presetsKC {
     title: { A: string, B: string },
     desc: { ini: string, l30: string, l15: string, fn: string },
@@ -138,6 +280,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
             return null;
     }
 };
+
 
 // ========================================================= Euxiliares ========================================================= //
 export function allLefts() {
