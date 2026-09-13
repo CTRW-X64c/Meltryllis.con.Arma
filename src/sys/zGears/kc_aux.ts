@@ -10,7 +10,8 @@ const idStart = `maintStart`, idEnd = `mntEnd`;
 const minuts = 60 * 1_000;
 
 interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
-interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: string[] | null };
+export interface TweetInfoTl { Orginal: string; isoES: string; isoEN: string }
+interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: TweetInfoTl | null };
 let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
 export async function mantChk() {
     const fData = await fetchData("https://raw.githubusercontent.com/ElectronicObserverEN/Data/refs/heads/master/update.json")
@@ -43,12 +44,12 @@ export async function mantChk() {
     }
 
     if (maint.maintNotified === false) {
-        /*if (newMantTime < Date.now()) {
+        if (newMantTime < Date.now()) {
             debug(`🔧 Mantenimiento pasado detectado en BD. Marcando como notificado silenciosamente.`, "KancolleBD");
             maint.maintNotified = true;
             await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: null, MaintEnd: endMantDate });
             return;
-        }*/
+        }
 
         const datTwet = await tweetKC.geTwiitter(processData.MaintInfoLink)
         debug(`🔧 Anunciando nuevo mantenimiento a los servidores: ${newMaintStartStr}`, "KancolleBD");
@@ -63,38 +64,38 @@ export async function mantChk() {
 class tweetKC {
     private static get headers() { return { method: 'GET' }; }
 
-    public static async geTwiitter(tweet: string): Promise<string[] | null> {
+    public static async geTwiitter(tweet: string): Promise<TweetInfoTl> {
+        let traslates = { Orginal: "Error al obtener el Tweet 😩", isoES: "Traduccion no disponible", isoEN: "Translation not available" };
         try {
             const match = tweet.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
-            if (!match) return null;
+            if (!match) return traslates;
             const xId = match[1];
 
             const call = await fetch(`https://api.fxtwitter.com/2/status/${xId}`, { headers: this.headers });
-            if (!call.ok) return null;
+            if (!call.ok) return traslates;
 
             interface xTweet { code: number, status?: { text?: string } }
             const Data = await call.json() as xTweet;
             const orgTxT = Data.status?.text;
-            if (!Data || Data.code !== 200 || !orgTxT) return null;
+            if (!Data || Data.code !== 200 || !orgTxT) return traslates;
+            traslates.Orginal = orgTxT.length > 1010 ? orgTxT.slice(0, 1010) + "..." : orgTxT;
 
-            const tlList = ["es", "en"]
-            const traslates: string[] = []
-            traslates.push(orgTxT)
-
+            const tlList = ["es", "en"];
             for (const lang of tlList) {
                 try {
-                    let out = lang === "es" ? "Traduccion no disponible" : "Translation not available";
-                    const callGoogle = await this.googleTranslate(orgTxT, lang)
-                    if (callGoogle) out = callGoogle;
-                    traslates.push(out)
-                    await new Promise(X => setTimeout(X, 2_000)) // una pausa de hidratacion "emoji de wea guiñando"
+                    const callGoogle = await this.googleTranslate(orgTxT, lang);
+                    if (callGoogle) {
+                        if (lang == "es") traslates.isoES = callGoogle.length > 1010 ? callGoogle.slice(0, 1010) + `...` : callGoogle;
+                        else traslates.isoEN = callGoogle.length > 1010 ? callGoogle.slice(0, 1010) + `...` : callGoogle;
+                    }
+                    await new Promise(X => setTimeout(X, 2_000)); // una pausa de hidratacion "emoji de wea guiñando"
                 } catch (e) { error(`Error obteniendo tweet: ${e}`, "KanCron"); }
             }
+            return traslates;
 
-            return traslates
         } catch (e) {
             error(`Error obteniendo tweet: ${e}`, "KanCron");
-            return null
+            return traslates
         }
     }
 
@@ -239,9 +240,9 @@ export function rawPreset(type: notifyType): presetsKC | null {
                     { name: "> ***🇯🇵 JST*** | ***GMT+9***", value: `📅 INICIO: \`${tim.sJP}\` \n📅 TERMINO: \`${tim.eJP}\`` },
                     { name: "> ***🌐 UTC***", value: `📅 INICIO: \`${tim.sUTC}\` \n📅 TERMINO: \`${tim.eUTC} \`` },
                     { name: "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***", value: `📅 INICO: \`${tim.sMX}\` \n📅 TERMINO: \`${tim.eMX}\`` },
-                    { name: "> ***Tweet del anuncio:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo[0] : "No disponible!" },
-                    { name: "> ***Tweet traducido al Español:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo[1] : "No disponible!" },
-                    { name: "> ***Tweet traducido al Inglés:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo[2] : "No disponible!" }
+                    { name: "> ***Tweet del anuncio:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.Orginal : "No disponible!" },
+                    { name: "> ***Tweet traducido al Español:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoES : "No disponible!" },
+                    { name: "> ***Tweet traducido al Inglés:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoEN : "No disponible!" }
                 ],
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },

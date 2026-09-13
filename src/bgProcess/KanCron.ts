@@ -171,7 +171,7 @@ async function msgMgr(dat: msgBuild) {
                 }, dta.delAf);
                 outErase.set(key, erase);
             }
-        } catch (e) { error(`Error enviando notificación [${dat.type}]: ${e}`, "KanCron"); }
+        } catch (e: any) { error(`Error enviando notificación [${dat.type}]: ${e.message} | ${e.stack}`, "KanCron"); }
     };
 
     const rMnt = dat.rol ? `AVISO: ${dat.rol}!` : undefined;
