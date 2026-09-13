@@ -6,13 +6,14 @@ import { translate } from "@vitalets/google-translate-api";
 
 
 // ========================================================= fetchMaint ========================================================= //
+let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
 const idStart = `maintStart`, idEnd = `mntEnd`;
 const minuts = 60 * 1_000;
 
-interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
-export interface TweetInfoTl { Orginal: string; isoES: string; isoEN: string }
+interface TweetInfoTl { Orginal: string; isoES: string; isoEN: string }
 interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: TweetInfoTl | null };
-let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
+interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
+
 export async function mantChk() {
     const fData = await fetchData("https://raw.githubusercontent.com/ElectronicObserverEN/Data/refs/heads/master/update.json")
     if (!fData) return;
@@ -78,25 +79,22 @@ class tweetKC {
             const Data = await call.json() as xTweet;
             const orgTxT = Data.status?.text;
             if (!Data || Data.code !== 200 || !orgTxT) return traslates;
-            traslates.Orginal = orgTxT.length > 1010 ? orgTxT.slice(0, 1010) + "..." : orgTxT;
+            traslates.Orginal = orgTxT.length > 1015 ? orgTxT.slice(0, 1015) + "..." : orgTxT;
 
             const tlList = ["es", "en"];
             for (const lang of tlList) {
                 try {
                     const callGoogle = await this.googleTranslate(orgTxT, lang);
                     if (callGoogle) {
-                        if (lang == "es") traslates.isoES = callGoogle.length > 1010 ? callGoogle.slice(0, 1010) + `...` : callGoogle;
-                        else traslates.isoEN = callGoogle.length > 1010 ? callGoogle.slice(0, 1010) + `...` : callGoogle;
+                        if (lang == "es") traslates.isoES = callGoogle.length > 1015 ? callGoogle.slice(0, 1015) + `...` : callGoogle;
+                        else traslates.isoEN = callGoogle.length > 1015 ? callGoogle.slice(0, 1015) + `...` : callGoogle;
                     }
                     await new Promise(X => setTimeout(X, 2_000)); // una pausa de hidratacion "emoji de wea guiñando"
                 } catch (e) { error(`Error obteniendo tweet: ${e}`, "KanCron"); }
             }
-            return traslates;
 
-        } catch (e) {
-            error(`Error obteniendo tweet: ${e}`, "KanCron");
-            return traslates
-        }
+            return traslates;
+        } catch (e) { error(`Error obteniendo tweet: ${e}`, "KanCron"); return traslates }
     }
 
     private static async googleTranslate(text: string, lang: string): Promise<string | null> {
@@ -153,8 +151,8 @@ interface presetsKC {
     urlPic: { A?: string, B?: string },
     field: { name: string, value: string, inline?: boolean }[],
     mTimmer: number,
-    ntfy: { ntf_30: boolean, ntf_15: boolean, ntf_end: boolean }
-    url?: string;
+    ntfy: { ntf_30: boolean, ntf_15: boolean, ntf_end: boolean },
+    url?: string,
 }
 
 export function rawPreset(type: notifyType): presetsKC | null {
