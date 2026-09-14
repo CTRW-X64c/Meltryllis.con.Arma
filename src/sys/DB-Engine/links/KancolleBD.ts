@@ -18,12 +18,18 @@ export async function startKC(): Promise<boolean> {
     try {
         const pool = await getPool();
         const [rows]: any = await pool.query("SELECT * FROM kc_conf");
-
         data.clear();
         for (const db of rows) {
             if (!data.has(db.guild_id)) data.set(db.guild_id, []);
             data.get(db.guild_id)!.push({
-                guild: db.guild_id, role: db.role, channel: db.channel, pvp: JSON.parse(db.pvp), quest: JSON.parse(db.quest), oem: JSON.parse(db.oem), mnt: JSON.parse(db.mnt), mExp: JSON.parse(db.mExp)
+                guild: db.guild_id,
+                role: db.role,
+                channel: db.channel,
+                pvp: JSON.parse(db.pvp),
+                quest: JSON.parse(db.quest),
+                oem: JSON.parse(db.oem),
+                mnt: JSON.parse(db.mnt),
+                mExp: JSON.parse(db.mExp)
             });
         }
         const count = data.size;
@@ -35,6 +41,7 @@ export async function startKC(): Promise<boolean> {
     }
 }
 
+
 // ==== mantKche ==== //
 export let maint: KCmant = { lastMaintStart: null, maintNotified: false, lastNotificationTime: null, MaintEnd: null };
 export interface KCmant { lastMaintStart: Date | null, maintNotified: boolean, lastNotificationTime: Date | null, MaintEnd: Date | null, }
@@ -44,8 +51,12 @@ export async function kcheMaint() {
         const [rows]: any = await pool.query("SELECT * FROM kc_maint WHERE id = 1");
         if (rows && rows.length > 0) {
             const r = rows[0];
-            maint = { lastMaintStart: r.lastMaintStart || r.last_maint_start || null, maintNotified: r.maintNotified ?? r.maint_notified ?? false, lastNotificationTime: r.lastNotificationTime || r.last_notification_time || null, MaintEnd: r.MaintEnd || r.MaintEnd || null };
-            debug(`Kancolle maintenance kche cargada`, "KancolleBD");
+            maint = {
+                lastMaintStart: r.lastMaintStart ?? null,
+                maintNotified: Boolean(r.maintNotified ?? false),
+                lastNotificationTime: r.lastNotificationTime ?? null,
+                MaintEnd: r.MaintEnd ?? null
+            }; debug(`Kancolle maintenance kche cargada`, "KancolleBD");
         } else debug(`Kancolle maintenance usando default kche`, "KancolleBD");
         return true
     } catch (e) {
@@ -54,7 +65,7 @@ export async function kcheMaint() {
     }
 }
 
-// ========================================================= Melt <=> BD ========================================================= //
+// ==== Melt <=> BD ==== //
 export async function addBD(guildId: string, kcData: Kancolle) {
     try {
         const pool = await getPool();
@@ -98,5 +109,58 @@ export async function updateKCmant(upD: KCmant) {
         debug(`Se actualizo la info del mantenimiento Kancolle`, "KancolleBD");
     } catch (e) {
         error(`Error al añadir nueva info de mantenimiento Kancolle: ${e}`, "KancolleBD");
+    }
+}
+
+// ========================================================= tempBD ========================================================= //
+interface kchT {
+    guild_id: string;
+    id_key: string;
+    id_msg: string;
+    id_ch: string;
+    sup_time: number;
+}
+
+export async function kchTempMSg(upD: kchT) {
+    try {
+        const pool = await getPool();
+        await pool.query(
+            `INSERT INTO kc_temp_msg (guild_id, id_key, id_msg, id_ch, sup_time) VALUES (?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE id_msg = VALUES(id_msg), id_ch = VALUES(id_ch), sup_time = VALUES(sup_time)`,
+            [upD.guild_id, upD.id_key, upD.id_msg, upD.id_ch, upD.sup_time]
+        );
+        debug(`Kancolle Temp Msg GUARDADO/ACTUALIZADO: Key ${upD.id_key} (Guild ${upD.guild_id})`, "KancolleBD");
+    } catch (err) {
+        error(`Error guardando Kancolle Temp Msg: ${err}`, "KancolleBD");
+    }
+}
+
+export async function delKchTemp(idkey: string, idguild: string) {
+    try {
+        const pool = await getPool();
+        await pool.query(`DELETE FROM kc_temp_msg WHERE id_key = ? AND guild_id = ?`, [idkey, idguild]);
+        debug(`Kancolle Temp ELIMINADA para idkey: ${idkey}`, "KancolleBD");
+    } catch (err) {
+        error(`Error eliminando Kancolle Temp: ${err}`, "KancolleBD");
+    }
+}
+
+export async function loadKchMsg(): Promise<kchT[]> {
+    try {
+        const pool = await getPool();
+        const [rows]: any = await pool.query("SELECT guild_id, id_key, id_msg, id_ch, sup_time FROM kc_temp_msg");
+        if (rows && rows.length > 0) {
+            return rows.map((r: any) => ({
+                guild_id: r.guild_id,
+                id_key: r.id_key,
+                id_msg: r.id_msg,
+                id_ch: r.id_ch,
+                sup_time: Number(r.sup_time)
+            }));
+        }
+        return [];
+    } catch (err) {
+        error(`Error cargando Kancolle Temp Msg: ${err}`, "KancolleBD");
+        return [];
     }
 }

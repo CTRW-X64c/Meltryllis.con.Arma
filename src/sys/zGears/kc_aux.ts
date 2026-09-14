@@ -326,10 +326,10 @@ export function turnDate(data: number) {
     const s = Math.floor((data % 60000) / 1000);
     const t = [];
 
-    if (d >= 1) t.push(d === 1 ? "un día" : `${d} días`);
-    if (h >= 1) t.push(h === 1 ? "una hora" : `${h} horas`);
-    if (m >= 1) t.push(m === 1 ? "un minuto" : `${m} minutos`);
-    if (s > 0 && d === 0 && h === 0) t.push(s === 1 ? "un segundo" : `${s} segundos`);
+    if (d >= 1) t.push(d === 1 ? "1 día" : `${d} días`);
+    if (h >= 1) t.push(h === 1 ? "1 hora" : `${h} horas`);
+    if (m >= 1) t.push(m === 1 ? "1 minuto" : `${m} minutos`);
+    if (s > 0 && d === 0 && h === 0) t.push(s === 1 ? "1 segundo" : `${s} segundos`);
     return t.join(', ') || '0 segundos';
 }
 
@@ -428,7 +428,7 @@ export function leftTimeConv(opts: timeData): number {
             target.setHours(opts.hours as number);
         }
     }
-    return target.getTime() - nowTime;
+    return target.getTime() - (nowTime - 1_200); // añadido tiempo de compensacion 1s
 }
 
 // === TZcore === //

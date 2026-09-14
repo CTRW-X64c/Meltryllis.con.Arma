@@ -99,20 +99,6 @@ async function post(msg: Message, replacedUrls: string[], autorId: string) {
     const content = replacedUrls.join(' | ');
     if (!canSend) return;
 
-    const badEmbed = (embed: any): boolean => {
-        const embedText = JSON.stringify(embed).toLowerCase();
-        const noAllowed = [
-            "log in or sign up to view",
-            "sign up to continue",
-            "login to view",
-            "you need to log in",
-            "content is private",
-            "this content is only available to",
-            "that post doesn't exist :("
-        ];
-        return noAllowed.some(p => embedText.includes(p));
-    };
-
     if (replacedUrls.length <= MAX_MSG) {
         let sentMsg: Message;
         try {
@@ -251,4 +237,22 @@ async function deleteMSG(msg: Message, autorId: string) {
             error(`Error en deleteMSG: ${errMsg}, Guild: ${msg.guild?.name}`, "Events.MessageCreate");
         }
     }
+};
+
+// ================================= checkMsg ================================= //
+export function badEmbed(embed: any): boolean {
+    const embedText = JSON.stringify(embed).toLowerCase();
+    const noAllowed = [
+        "log in or sign up to view",
+        "sign up to continue",
+        "login to view",
+        "you need to log in",
+        "content is private",
+        "this content is only available to",
+        "that post doesn't exist :(",
+        "Failed to Get Post | EmbedEZ",
+        "Failed to Get Post",
+        "reddit auth session unavailable"
+    ];
+    return noAllowed.some(p => embedText.includes(p));
 };

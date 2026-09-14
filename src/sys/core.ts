@@ -46,15 +46,15 @@ async function main(): Promise<void> {
                 startEmbedService(client);
                 info("Servicio de embed inicializado")
             } else { error("❌ ERROR AL INICIAR EL SISTEMA DE EMBEDDING!!") }
-            initPixivCheck(client)
-            loadNodes()
+            await loadNodes()
             startVoiceChannelService(client);
-            startServices(client)
             await startWelcomeEvents(client);
             startCronpost(client);
-            startStatusRotation(client);
-            initNoEveryone(client);
+            await startStatusRotation(client);
+            await initNoEveryone(client);
             initKC(client)
+            startServices(client)
+            initPixivCheck(client)
         } else {
             error("❌ La BD no arranco, bye bye~");
             process.exit(1);

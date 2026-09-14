@@ -302,7 +302,7 @@ async function poolManager(): Promise<void> {
     )
   `);
 
-  //Tabla KCMantenimiento
+  //Tabla kancolle Mantenimiento
   await pool.query(`
     CREATE TABLE IF NOT EXISTS kc_maint(
       id INT PRIMARY KEY DEFAULT 1,
@@ -310,6 +310,18 @@ async function poolManager(): Promise<void> {
       maintNotified BOOLEAN DEFAULT FALSE,
       lastNotificationTime DATETIME,
       MaintEnd DATETIME
+    )
+  `);
+
+  //Tabla kancolle rtcmsg
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kc_temp_msg(
+      guild_id VARCHAR(50) NOT NULL,
+      id_key VARCHAR(100) NOT NULL,
+      id_msg VARCHAR(50) NOT NULL,
+      id_ch VARCHAR(50) NOT NULL,
+      sup_time BIGINT NOT NULL,
+      UNIQUE INDEX idx_unique_key_msg (id_key, guild_id)
     )
   `);
 

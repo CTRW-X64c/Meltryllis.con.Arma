@@ -1,7 +1,7 @@
 //import * as cron from 'node-cron';
 import { Client, EmbedBuilder, GuildTextBasedChannel, Message, Role } from 'discord.js';
 import { debug, error, info } from '../sys/logging';
-import { startKC, data, kcheMaint } from '../sys/DB-Engine/links/KancolleBD';
+import { startKC, data, kcheMaint, kchTempMSg, loadKchMsg, delKchTemp } from '../sys/DB-Engine/links/KancolleBD';
 import { leftTimeConv, mantChk, rawPreset } from "../sys/zGears/kc_aux";
 
 let CLIENTE: Client | null = null;
@@ -13,18 +13,20 @@ export async function initKC(cli: Client) {
     if (!cli) { inf = "[Kancolle] FALLO EL INICIO DE LOS SERVICIOS DE KANCOLLE!! (No cliente!)"; return }
     else {
         CLIENTE = cli;
-        const x = await startKC(), y = await kcheMaint();
-        if (x) {
-            timmerAv()
-            setInterval(() => timmerAv(), 120 * minuts)
-            inf += " > Avisos < ";
+        const z = await loadingKc(), x = await startKC(), y = await kcheMaint();
+        if (z) {
+            if (x) {
+                timmerAv()
+                setInterval(() => timmerAv(), 120 * minuts)
+                inf += " > Avisos < ";
+            }
+            if (y) {
+                mantChk()
+                setInterval(() => mantChk(), 10 * minuts)
+                inf += " > Mantenimientos < ";
+            }
+            info(inf)
         }
-        if (y) {
-            mantChk()
-            setInterval(() => mantChk(), 10 * minuts)
-            inf += " > Mantenimientos < ";
-        }
-        info(inf)
     }
 }
 
@@ -119,6 +121,48 @@ interface cachedMsg { msgId: string, chId: string }
 const msgkch = new Map<string, cachedMsg>();
 const msgEpoch = new Map<string, number>();
 const outErase = new Map<string, NodeJS.Timeout>();
+
+/* === loadKchs === */
+async function loadingKc(): Promise<boolean> {
+    const tempKche = await loadKchMsg();
+    if (tempKche.length === 0) return true;
+    for (const kChe of tempKche) {
+        try {
+            const guild = await CLIENTE!.guilds.fetch(kChe.guild_id).catch(() => null);
+            const rawCh = guild ? await guild.channels.fetch(kChe.id_ch).catch(() => null) : null;
+            const channel = rawCh && rawCh.isTextBased() ? rawCh as GuildTextBasedChannel : null;
+
+            if ((kChe.sup_time - Date.now()) <= 0) {
+                if (channel) {
+                    const oldMsg = await channel.messages.fetch(kChe.id_msg).catch(() => null);
+                    if (oldMsg) await oldMsg.delete().catch(e => error(`Error borrando msg vencido [${kChe.id_key}]: ${e}`, "KanCron"));
+                }
+                await delKchTemp(kChe.id_key, kChe.guild_id).catch(e => error(`Error delKchTemp [${kChe.id_key}]: ${e}`, "KanCron"));
+                continue;
+            }
+
+            if (!channel) {
+                await delKchTemp(kChe.id_key, kChe.guild_id).catch(() => { });
+                continue;
+            }
+
+            msgkch.set(kChe.id_key, { msgId: kChe.id_msg, chId: kChe.id_ch });
+            const t = setTimeout(async () => {
+                const retMsg = await channel.messages.fetch(kChe.id_msg).catch(() => null);
+                if (retMsg) await retMsg.delete().catch(e => error(`Error borrando msg [${kChe.id_key}]: ${e}`, "KanCron"));
+                await delKchTemp(kChe.id_key, kChe.guild_id).catch(e => error(`Error delKchTemp [${kChe.id_key}]: ${e}`, "KanCron"));
+                msgkch.delete(kChe.id_key);
+                outErase.delete(kChe.id_key);
+            }, kChe.sup_time - Date.now());
+            outErase.set(kChe.id_key, t);
+        } catch (err) {
+            error(`Error recuperando [${kChe.id_key}]: ${err}`, "KanCron");
+            await delKchTemp(kChe.id_key, kChe.guild_id).catch(() => { });
+        }
+    }
+    return true;
+}
+
 /* === msgManager === */
 async function msgMgr(dat: msgBuild) {
     const prst = rawPreset(dat.type);
@@ -168,8 +212,11 @@ async function msgMgr(dat: msgBuild) {
                     const cur = msgkch.get(key);
                     if (cur?.msgId === target.id) msgkch.delete(key);
                     outErase.delete(key);
+                    await delKchTemp(key, dta.ch.guildId).catch(err => error(`Error borrando temp en db [${dat.type}]: ${err}`, "KanCron"))
                 }, dta.delAf);
                 outErase.set(key, erase);
+                const timeToErase = Date.now() + dta.delAf;
+                await kchTempMSg({ guild_id: dta.ch.guildId, id_key: key, id_msg: target.id, id_ch: dta.ch.id, sup_time: timeToErase })
             }
         } catch (e: any) { error(`Error enviando notificación [${dat.type}]: ${e.message} | ${e.stack}`, "KanCron"); }
     };
@@ -193,7 +240,7 @@ async function msgMgr(dat: msgBuild) {
             if (isStale()) return;
             const p = rawPreset(dat.type);
             if (!p) return;
-            await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l15, pic: p.urlPic.A, rolOn: undefined, color: 0xFFA500, url: p.url, delAf: BORRAR });
+            await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l15, pic: p.urlPic.A, rolOn: undefined, color: 0xFFA500, url: p.url, delAf: (15 * minuts) - 30_000 });
         }, prst.mTimmer - (15 * minuts));
     }
     /* Fin */
@@ -202,7 +249,9 @@ async function msgMgr(dat: msgBuild) {
             if (isStale()) return;
             const p = rawPreset(dat.type);
             if (!p) return;
-            await msgSnd({ ch: dat.ch, title: p.title.B, fields: p.field, desc: p.desc.fn, pic: p.urlPic.B, rolOn: rMnt, color: 0x00AA00, url: p.url, delAf: 30 * minuts });
+            await msgSnd({ ch: dat.ch, title: p.title.B, fields: p.field, desc: p.desc.fn, pic: p.urlPic.B, rolOn: rMnt, color: 0x00AA00, url: p.url, delAf: 45 * minuts });
         }, prst.mTimmer);
     }
 }
+
+

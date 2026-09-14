@@ -5,6 +5,7 @@ import { debug, error } from '../sys/logging';
 import i18next from 'i18next';
 import { redditApi } from '../sys/zGears/RedditApi';
 import urlStatusManager from '../sys/embedding/domainChecker';
+import { badEmbed } from '../sys/embedding/embedService';
 
 const BATCH_SIZE = 99;
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -189,6 +190,14 @@ const publisher = async (msg: string, ch: GuildTextBasedChannel, link: string, i
             debug(`[Reddit Publisher]: Mensaje eliminado - no se generaron embeds para: ${URL} `);
             return;
         }
+
+        if (freshMsg && freshMsg.embeds.length > 0 && badEmbed(freshMsg.embeds[0])) {
+            failPostQueue.set(idPost, { dch: ch, dlink: URL, dnsfw: nsfw }); checkFailQueue();
+            await sMsg.delete().catch(() => null);
+            debug(`[Reddit Publisher]: Mensaje eliminado - bad msg en eembed: ${URL} `);
+            return;
+        }
+
     } catch (e) { error(`[Reddit Publisher]: Error al publicar: ${e} `) }
 }
 
