@@ -252,7 +252,8 @@ export function badEmbed(embed: any): boolean {
         "that post doesn't exist :(",
         "Failed to Get Post | EmbedEZ",
         "Failed to Get Post",
-        "reddit auth session unavailable"
+        "reddit auth session unavailable",
+        "Reddit returned a non-JSON response"
     ];
     return noAllowed.some(p => embedText.includes(p));
 };

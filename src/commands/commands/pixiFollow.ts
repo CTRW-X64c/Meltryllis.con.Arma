@@ -1,4 +1,3 @@
-import { debug, error } from "console";
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, MessageFlags, ChannelSelectMenuBuilder, LabelBuilder, ModalBuilder, ModalSubmitInteraction, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder, Guild } from "discord.js";
 import i18next from "i18next";
 import { hasPermission } from "../../sys/zGears/mPermission";
@@ -6,6 +5,7 @@ import { addPixiFollow, deletePixi, guildPixiFollow } from "../../sys/DB-Engine/
 import { masterPerm } from "../../sys/zGears/auxiliares";
 import { countItems } from "../../sys/DB-Engine/database";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
+import { error, debug } from "../../sys/logging";
 
 export async function registerFollowPixiCommand(): Promise<SlashCommandBuilder[]> {
     const followPix = new SlashCommandBuilder()
@@ -124,53 +124,65 @@ async function followPixModal(int: ChatInputCommandInteraction) {
 async function listPixFollow(i: ChatInputCommandInteraction, guild: Guild) {
     await i.deferReply({ flags: MessageFlags.Ephemeral });
     try {
-        let embes: EmbedBuilder[] = [];
         const follow = await guildPixiFollow(guild.id);
 
         if (!follow || follow.length === 0) {
-            const em = new EmbedBuilder()
+            const embFall = new EmbedBuilder()
                 .setAuthor({ name: "Lista de Usuarios de Pixiv siguiendo!" })
                 .setDescription("# No se han agregado usuarios para seguir")
                 .setColor(0xFF00BB);
-            embes.push(em);
-        } else {
 
-            const lisEmb: string[] = [];
-            for (const flw of follow) {
-                const F3 = new Date(flw.created_at).toLocaleString('es-MX', { dateStyle: 'short' });
-                lisEmb.push(`🆔: \`${flw.id}\` | 🖌️: [${flw.pixiUserName}](https://pixiv.net/en/users/${flw.pixiUser}) | 🗨️: <#${flw.chGuild}> | 👤: <@${flw.addby}> | 📅: \`${F3}\`` +
-                    `\n🎨 Ilustraciones: ${flw.illustOn ? "✅" : "❌"} | 📖 Mangas: ${flw.mangaOn ? "✅" : "❌"} | 📕 Novelas: ${flw.novelOn ? "✅" : "❌"}`);
-            }
+            i.editReply({ embeds: [embFall] });
+            return;
+        };
 
-            const totalParts = Math.ceil(lisEmb.length / 5);
-            for (let index = 0; index < lisEmb.length; index += 5) {
-                const partNumber = Math.floor(index / 5) + 1;
-                const em = new EmbedBuilder()
-                    .setColor(0x010101)
-                    .addFields({
-                        name: `**Parte ${partNumber} de ${totalParts}**`,
-                        value: lisEmb.slice(index, index + 5).join('\n\n'),
-                        inline: false
-                    });
+        const byCh: Record<string, string[]> = {};
+        for (const flw of follow) {
+            if (!byCh[flw.chGuild]) byCh[flw.chGuild] = [];
+            const F3 = new Date(flw.created_at).toLocaleString('es-MX', { dateStyle: 'short' });
 
-                if (partNumber === 1) {
-                    em.setAuthor({ name: "Lista de Usuarios de Pixiv siguiendo!" })
-                        .setDescription("## Lista de follows!!\n Pivix User | Canal | Añadio | Fecha adicion | Ilustraciones | Mangas | Novelas");
+            byCh[flw.chGuild].push(`🆔: \`${flw.id}\` | 🖌️: [${flw.pixiUserName}](https://pixiv.net/en/users/${flw.pixiUser}) | 👤: <@${flw.addby}> | 📅: \`${F3}\` | 🎨 Ilustraciones: ${flw.illustOn ? "✅" : "❌"} | 📖 Mangas: ${flw.mangaOn ? "✅" : "❌"} | 📕 Novelas: ${flw.novelOn ? "✅" : "❌"}`);
+        }
+
+        const chunks: string[] = [];
+        let itChunk = "";
+        let InChunk = 0;
+
+        for (const [canalId, lines] of Object.entries(byCh)) {
+            let Head4Chunk = false;
+            for (const line of lines) {
+                if (InChunk >= 8) {
+                    chunks.push(itChunk);
+                    itChunk = "";
+                    InChunk = 0;
+                    Head4Chunk = false;
                 }
 
-                if (partNumber === totalParts) { em.setFooter({ text: `Total de follows: ${follow.length}` }); }
-                embes.push(em);
+                if (!Head4Chunk) {
+                    itChunk += `### 🗨️ Canal: <#${canalId}>\n`;
+                    Head4Chunk = true;
+                }
+
+                itChunk += line + "\n\n";
+                InChunk++;
             }
         }
 
-        if (embes.length <= 5) { await i.editReply({ embeds: embes }); }
-        else {
-            await i.editReply({ embeds: embes.slice(0, 5) });
-            await i.followUp({ embeds: embes.slice(5), flags: MessageFlags.Ephemeral });
+        if (itChunk.trim().length > 0) chunks.push(itChunk);
+        for (let index = 0; index < chunks.length; index++) {
+            const embOk = new EmbedBuilder()
+                .setColor(0x010101)
+                .setDescription(chunks[index]);
+
+            if (index === 0) { embOk.setAuthor({ name: "Lista de Usuarios de Pixiv siguiendo!" }); }
+            if (index === chunks.length - 1) { embOk.setFooter({ text: `Total de follows: ${follow.length}` }); }
+            if (index === 0) { await i.editReply({ embeds: [embOk] }); }
+            else { await i.followUp({ embeds: [embOk], flags: MessageFlags.Ephemeral }); }
         }
+
     } catch (e: any) {
         error(`Comando: /followPixi List | Guild: ${i.guild!.id} | Error: ${e.message}`);
-        await i.editReply("Algo Fallo al listar los usuarios!!");
+        await i.editReply("¡Algo falló al listar los usuarios!");
     }
 }
 

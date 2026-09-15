@@ -3,9 +3,11 @@ import { notifyKC, notifyType } from "../../bgProcess/KanCron";
 import { maint, updateKCmant } from "../DB-Engine/links/KancolleBD";
 import { debug, error } from "../logging";
 import { translate } from "@vitalets/google-translate-api";
+import emojis from '../../../adds/otros/emojis.json'
 
 
 // ========================================================= fetchMaint ========================================================= //
+let kcTimmers = new Map<string, NodeJS.Timeout>();
 let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
 const idStart = `maintStart`, idEnd = `mntEnd`;
 const minuts = 60 * 1_000;
@@ -106,7 +108,6 @@ class tweetKC {
 }
 
 // ===== notifyMaint ===== //
-let kcTimmers = new Map<string, NodeJS.Timeout>();
 async function startMant() {
     try {
         if (!maint.lastMaintStart) return;
@@ -290,7 +291,7 @@ export function allLefts() {
     const dQ = leftTimeConv({ type: 'daily', hours: 5 });
     const wQ = leftTimeConv({ type: 'weekly', targetDay: 1, hours: 5 });
     const mQ = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5 });
-    const qQ = leftTimeConv({ type: 'quarterly', targetDay: 1, hours: 5 })
+    const qQ = leftTimeConv({ type: 'quarterly', targetDay: 1, hours: 5 });
     const oem = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0 });
     const dPt = leftTimeConv({ type: 'daily', hours: [2, 14] });
     const mPt = leftTimeConv({ type: 'monthly', targetDay: 100, hours: 22 });
@@ -311,25 +312,26 @@ function aQuest() {
     const numDay = tokyoDate.getDate(); // 1 - 31
     const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
     // === msg === //
-    let aviso = "\n- DIARIAS!!"
-    if (dayOfWeek === 1) aviso += "\n- SEMANALES!!"
-    if (numDay === 1) aviso += "\n- MENSUALES!!"
-    if (numDay === 1 && [2, 5, 8, 11].includes(month)) aviso += "\n- TRIMESTRALES (Quarterly)!" //Marzo, Junio, Septiembre, Diciembre
+    let aviso = `\n## ${emojis.Daily} DIARIAS!!`
+    if (dayOfWeek === 1) aviso += `\n## ${emojis.Weekly} SEMANALES!!`
+    if (numDay === 1) aviso += `\n## ${emojis.Monthly} MENSUALES!!`
+    if (numDay === 1 && [2, 5, 8, 11].includes(month)) aviso += `\n## ${emojis.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre
     return aviso;
 }
 
 // === timeDateConvert === //
 export function turnDate(data: number) {
-    const d = Math.floor(data / 86400000);
-    const h = Math.floor((data % 86400000) / 3600000);
-    const m = Math.floor((data % 3600000) / 60000);
-    const s = Math.floor((data % 60000) / 1000);
+    const fixTime = data + 20_000; // añadido tiempo de compensacion
+    const d = Math.floor(fixTime / 86400000);
+    const h = Math.floor((fixTime % 86400000) / 3600000);
+    const m = Math.floor((fixTime % 3600000) / 60000);
+    const s = Math.floor((fixTime % 60000) / 1000);
     const t = [];
 
     if (d >= 1) t.push(d === 1 ? "1 día" : `${d} días`);
     if (h >= 1) t.push(h === 1 ? "1 hora" : `${h} horas`);
     if (m >= 1) t.push(m === 1 ? "1 minuto" : `${m} minutos`);
-    if (s > 0 && d === 0 && h === 0) t.push(s === 1 ? "1 segundo" : `${s} segundos`);
+    if (s > 0 && d === 0 && h === 0 && m === 0) t.push(s === 1 ? "1 segundo" : `${s} segundos`);
     return t.join(', ') || '0 segundos';
 }
 
@@ -428,7 +430,8 @@ export function leftTimeConv(opts: timeData): number {
             target.setHours(opts.hours as number);
         }
     }
-    return target.getTime() - (nowTime - 1_200); // añadido tiempo de compensacion 1s
+    const fnTime = target.getTime() - nowTime; // NO TOCAR!!
+    return fnTime;
 }
 
 // === TZcore === //

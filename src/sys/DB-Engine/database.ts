@@ -320,7 +320,7 @@ async function poolManager(): Promise<void> {
       id_key VARCHAR(100) NOT NULL,
       id_msg VARCHAR(50) NOT NULL,
       id_ch VARCHAR(50) NOT NULL,
-      sup_time BIGINT NOT NULL,
+      sup_time DATETIME NOT NULL,
       UNIQUE INDEX idx_unique_key_msg (id_key, guild_id)
     )
   `);

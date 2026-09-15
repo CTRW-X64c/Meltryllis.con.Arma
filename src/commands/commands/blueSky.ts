@@ -2,7 +2,6 @@ import { ChannelSelectMenuBuilder, ChatInputCommandInteraction, EmbedBuilder, Gu
 import i18next from "i18next";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error, debug } from "../../sys/logging";
-
 import { countItems } from "../../sys/DB-Engine/database";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { masterPerm } from "../../sys/zGears/auxiliares";
@@ -129,55 +128,65 @@ async function baskyModal(i: ChatInputCommandInteraction) {
 async function bskyList(i: ChatInputCommandInteraction, guild: Guild) {
     await i.deferReply({ flags: MessageFlags.Ephemeral });
     try {
-        let embes: EmbedBuilder[] = [];
         const follow = await getGuildBSky(guild.id);
         const flagsMap: Record<string, string> = { 'es': '🇲🇽', 'en': '🇺🇸', 'pt': '🇧🇷', 'ja': '🇯🇵', 'ko': '🇰🇷' };
 
         if (!follow || follow.length === 0) {
-            const em = new EmbedBuilder()
+            const embFall = new EmbedBuilder()
                 .setAuthor({ name: "Lista de Usuarios de BlueSky siguiendo!" })
                 .setDescription("# No se han agregado usuarios para seguir")
                 .setColor(0xFF00BB);
-            embes.push(em);
 
-        } else {
-            const lisEmb: string[] = [];
-            for (const bsky of follow) {
-                const F2 = bsky.lang ? flagsMap[bsky.lang] : '\`No traducir!\`';
-                const F3 = new Date(bsky.created_at).toLocaleString('es-MX', { dateStyle: 'short' });
-                lisEmb.push(`🆔: \`${bsky.id}\` | 🗣️: [@${bsky.bskyUserName}](https://bsky.app/profile/${bsky.bskyUserId}) | 🗨️: <#${bsky.chanel}> | 👤: <@${bsky.addby}> ` +
-                    `\n📅: \`${F3}\` | 🌐: ${F2} | 🎥: ${bsky.modo ? "\`Multimedia\`" : "\`Todo\`"}`);
-            }
+            i.editReply({ embeds: [embFall] }); return
+        }
 
-            const totalParts = Math.ceil(lisEmb.length / 5);
-            for (let index = 0; index < lisEmb.length; index += 5) {
-                const partNumber = Math.floor(index / 5) + 1;
-                const em = new EmbedBuilder()
-                    .setColor(0x010101)
-                    .addFields({
-                        name: `**Parte ${partNumber} de ${totalParts}**`,
-                        value: lisEmb.slice(index, index + 5).join('\n\n'),
-                        inline: false
-                    });
+        const byCh: Record<string, string[]> = {};
+        for (const bsky of follow) {
+            if (!byCh[bsky.chanel]) byCh[bsky.chanel] = [];
 
-                if (partNumber === 1) {
-                    em.setAuthor({ name: "Lista de Usuarios de BlueSky siguiendo!" })
-                        .setDescription("## Lista de follows!!\nBSky user | Canal | Añadido | Añadido el | Dominio | Traducir | Solo multimedia");
+            const F2 = bsky.lang ? flagsMap[bsky.lang] : '`No traducir!`';
+            const F3 = new Date(bsky.created_at).toLocaleString('es-MX', { dateStyle: 'short' });
+            byCh[bsky.chanel].push(`🆔: \`${bsky.id}\` | 🗣️: [@${bsky.bskyUserName}](https://bsky.app/profile/${bsky.bskyUserId}) | 👤: <@${bsky.addby}>\n📅: \`${F3}\` | 🌐: ${F2} | 🎥: ${bsky.modo ? "`Multimedia`" : "`Todo`"}`);
+        }
+
+        const chunks: string[] = [];
+        let itChunk = "";
+        let InChunk = 0;
+
+        for (const [canalId, lines] of Object.entries(byCh)) {
+            let Head4Chunk = false;
+            for (const line of lines) {
+                if (InChunk >= 8) {
+                    chunks.push(itChunk);
+                    itChunk = "";
+                    InChunk = 0;
+                    Head4Chunk = false;
                 }
 
-                if (partNumber === totalParts) { em.setFooter({ text: `Total de follows: ${follow.length}` }); }
-                embes.push(em);
+                if (!Head4Chunk) {
+                    itChunk += `### 🗨️ Canal: <#${canalId}>\n`;
+                    Head4Chunk = true;
+                }
+
+                itChunk += line + "\n\n";
+                InChunk++;
             }
         }
 
-        if (embes.length <= 5) { await i.editReply({ embeds: embes }); }
-        else {
-            await i.editReply({ embeds: embes.slice(0, 5) });
-            await i.followUp({ embeds: embes.slice(5), flags: MessageFlags.Ephemeral });
+        if (itChunk.trim().length > 0) chunks.push(itChunk);
+        for (let index = 0; index < chunks.length; index++) {
+            const embOk = new EmbedBuilder()
+                .setColor(0x010101)
+                .setDescription(chunks[index]);
+
+            if (index === 0) { embOk.setAuthor({ name: "Lista de Usuarios de BlueSky siguiendo!" }); }
+            if (index === chunks.length - 1) { embOk.setFooter({ text: `Total de follows: ${follow.length}` }); }
+            if (index === 0) { await i.editReply({ embeds: [embOk] }); }
+            else { await i.followUp({ embeds: [embOk], flags: MessageFlags.Ephemeral }); }
         }
     } catch (e: any) {
-        error(`Comando: /basky lista | Guild: ${i.guild!.id} | Error: ${e.message}`);
-        await i.editReply("Algo Fallo al listar los usuarios!!");
+        console.error(`Comando: /bsky lista | Guild: ${i.guild!.id} | Error: ${e.message}`);
+        await i.editReply("¡Algo falló al listar los usuarios!");
     }
 }
 

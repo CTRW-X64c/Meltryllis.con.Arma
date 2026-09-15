@@ -118,7 +118,7 @@ interface kchT {
     id_key: string;
     id_msg: string;
     id_ch: string;
-    sup_time: number;
+    sup_time: Date;
 }
 
 export async function kchTempMSg(upD: kchT) {
@@ -155,7 +155,7 @@ export async function loadKchMsg(): Promise<kchT[]> {
                 id_key: r.id_key,
                 id_msg: r.id_msg,
                 id_ch: r.id_ch,
-                sup_time: Number(r.sup_time)
+                sup_time: r.sup_time
             }));
         }
         return [];

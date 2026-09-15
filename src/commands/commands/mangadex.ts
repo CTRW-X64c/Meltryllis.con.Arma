@@ -191,7 +191,6 @@ async function listaManga(interaction: ChatInputCommandInteraction, guild: Guild
     }
   }
 
-  embed.setFooter({ text: i18next.t("commands:mangadex.interacciones.manga_embed_footer") });
   await interaction.editReply({ embeds: [embed] });
 }
 
