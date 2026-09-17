@@ -1,12 +1,14 @@
 // src/sys/zGears/newAux.ts
 import axios from 'axios';
-import { debug, info } from "../logging";
+import { debug, info, warn } from "../logging";
 import { Agent } from 'https';
 
 export let Proxy: Agent | undefined = undefined;
+let proxyStatus = false;
 const proxCheck = new Map<string, NodeJS.Timeout>();
 
 async function chkProxy(proxyUrl: string) {
+    let ctrlStatus: boolean;
     try {
         const { HttpsProxyAgent } = await import('https-proxy-agent');
         const agent = new HttpsProxyAgent(proxyUrl);
@@ -21,15 +23,20 @@ async function chkProxy(proxyUrl: string) {
 
         clearTimeout(timeoutId);
 
-        if (response.status !== 200) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        if (response.status !== 200) { throw new Error(`HTTP ${response.status}`); }
 
         Proxy = agent;
-        debug(`✅ Sistema de Proxy: ${proxyUrl} Pass check!`, "AUXILIAR");
+        ctrlStatus = true;
+
     } catch (e: any) {
-        debug(`❌ Sistema de Proxy: Falló el check: ${e.message}`, "AUXILIAR");
         Proxy = undefined;
+        ctrlStatus = false;
+        debug(`❌ Proxy: Falló el check: ${e.message}`, "AUXILIAR");
+    }
+
+    if (proxyStatus !== ctrlStatus) {
+        warn(`⚠️ CAMBIO EL ESTADO DEL PROXY A: ${ctrlStatus ? "✅ ACTIVO" : "❌ INACTIVO"}`, "AUXILIAR");
+        proxyStatus = ctrlStatus;
     }
 }
 

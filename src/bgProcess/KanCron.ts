@@ -1,4 +1,4 @@
-//import * as cron from 'node-cron';
+// src/bgProcess/KanCron.ts
 import { Client, EmbedBuilder, GuildTextBasedChannel, Message, Role } from 'discord.js';
 import { debug, error, info } from '../sys/logging';
 import { startKC, data, kcheMaint, kchTempMSg, loadKchMsg, delKchTemp } from '../sys/DB-Engine/links/KancolleBD';
@@ -6,6 +6,7 @@ import { leftTimeConv, mantChk, rawPreset } from "../sys/zGears/kc_aux";
 
 let CLIENTE: Client | null = null;
 const minuts = 60 * 1_000;
+const hours = 60 * minuts;
 
 // ========================================================= Init ========================================================= //
 export async function initKC(cli: Client) {
@@ -27,57 +28,61 @@ export async function initKC(cli: Client) {
             }
         }
     } info(inf)
-}
+};
 
-export type notifyType = 'pvp' | 'quest' | 'oem' | 'mExp' | 'newMante' | 'maintStart' | 'mntEnd';
+// ========================================================= engineTimmers ========================================================= //
+export type notifyType = 'pvp' | 'quest' | 'oem' | 'loem' | 'mExp' | 'lmExp' | 'newMante' | 'maintStart' | 'mntEnd';
 let notifyTimers = new Map<notifyType, NodeJS.Timeout>();
 async function timmerAv() {
-    /* ===== pvp ===== */
-    const pvpStr = () => {
-        if (notifyTimers.has('pvp')) notifyTimers.delete('pvp');
-        const pvp = leftTimeConv({ type: 'daily', hours: [2, 14], minutes: 30 });
-        const timer = setTimeout(() => { notifyTimers.delete('pvp'); notifyKC('pvp'); }, pvp);
-        debug(`[KanCron]: pvpStr establecido en ${pvp / minuts} min`)
-        notifyTimers.set('pvp', timer);
-    }; if (!notifyTimers.has('pvp')) pvpStr();
-    /* ===== quest ===== */
-    const questStr = () => {
-        if (notifyTimers.has('quest')) notifyTimers.delete('quest');
-        const quest = leftTimeConv({ type: 'daily', hours: 4, minutes: 30 });
-        const timer = setTimeout(() => { notifyTimers.delete('quest'); notifyKC('quest'); }, quest);
-        debug(`[KanCron]: questStr establecido en ${quest / minuts} min`)
-        notifyTimers.set('quest', timer);
-    }; if (!notifyTimers.has('quest')) questStr();
-    /* ===== extra operaciones ===== */
-    const oemStr = () => {
-        const oem = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0, minutes: 0 });
-        if (oem > (4 * 60 * minuts)) return;
-        if (notifyTimers.has('oem')) notifyTimers.delete('oem');
-        const delay = Math.max(0, oem - (60 * minuts));
-        const timer = setTimeout(() => { notifyTimers.delete('oem'); notifyKC('oem'); }, delay);
-        debug(`[KanCron]: oemStr establecido en ${delay / minuts} min`)
-        notifyTimers.set('oem', timer);
-    }; if (!notifyTimers.has('oem')) oemStr();
-    /* ===== expediciones mensuales ===== */
-    const mExpStr = () => {
-        if (notifyTimers.has('mExp')) notifyTimers.delete('mExp');
-        const mExp = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12, minutes: 0 });
-        if (mExp > (4 * 60 * minuts)) return;
-        const delay = Math.max(0, mExp - (60 * minuts));
-        const timer = setTimeout(() => { notifyTimers.delete('mExp'); notifyKC('mExp'); }, delay);
-        debug(`[KanCron]: mExpStr establecido en ${delay / minuts} min`)
-        notifyTimers.set('mExp', timer);
-    }; if (!notifyTimers.has('mExp')) mExpStr();
+    /* =============== pvp =============== */
+    const pvpStr = () => { teki("pvp") };
+    if (!notifyTimers.has('pvp')) pvpStr();
+    /* =============== quest =============== */
+    const questStr = () => { teki("quest") };
+    if (!notifyTimers.has('quest')) questStr();
+    /* =============== oem =============== */
+    const oemStr = () => { teki("oem") };
+    if (!notifyTimers.has('oem')) oemStr();
+    // // longOem
+    const oemLong = () => { teki("loem", true) };
+    if (!notifyTimers.has('loem')) oemLong();
+    /* =============== mExp =============== */
+    const mExpStr = () => { teki("mExp") };
+    if (!notifyTimers.has('mExp')) mExpStr();
+    // // long mExp
+    const mExpLong = () => { teki("lmExp", true) };
+    if (!notifyTimers.has('lmExp')) mExpLong();
+}
+// === setTimmers === //
+function teki(tpy: notifyType, h12?: boolean) {
+    let toChk: number;
+    switch (tpy) {
+        case 'pvp': { toChk = leftTimeConv({ type: 'daily', hours: [3, 15], minutes: 0 }); break };
+        case 'quest': { toChk = leftTimeConv({ type: 'daily', hours: 5, minutes: 0 }); break };
+        case 'oem': case 'loem': { toChk = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0, minutes: 0 }); break };
+        case 'mExp': case 'lmExp': { toChk = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12, minutes: 0 }); break };
+        default: { error(`[KanCron]: Tipo introducido sin parametro: ${tpy}`); return }
+    }
+    if (toChk > 18 * hours) return;
+    toChk = h12 ? Math.max(0, toChk - (12 * hours)) : Math.max(0, toChk - hours);
+    if (toChk <= 0) { debug(`[KanCron]: ${tpy} Paso horario de notificacion`); return }
+    const timer = setTimeout(() => { notifyTimers.delete(tpy); notifyKC(tpy); }, toChk);
+    notifyTimers.set(tpy, timer);
+    debug(`[KanCron]: Establecido ${tpy} en ${toChk / minuts} min`)
 }
 
 // ========================================================= Main ========================================================= //
 const chkType = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.av], ['quest', cfg => cfg.quest.av], ['oem', cfg => cfg.oem.av], ['mExp', cfg => cfg.mExp.av],
-    ['newMante', cfg => cfg.mnt.av], ['maintStart', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av]]);
+    ['pvp', cfg => cfg.pvp.av], ['quest', cfg => cfg.quest.av],
+    /*OEM*/['oem', cfg => cfg.oem.av], ['loem', cfg => cfg.oem.av],
+    /*EXP*/['mExp', cfg => cfg.mExp.av], ['lmExp', cfg => cfg.mExp.av],
+    /*Mante*/['newMante', cfg => cfg.mnt.av], ['maintStart', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av]]);
 
 const chkRole = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.ntf], ['quest', cfg => cfg.quest.ntf], ['oem', cfg => cfg.oem.ntf], ['mExp', cfg => cfg.mExp.ntf],
-    ['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
+    ['pvp', cfg => cfg.pvp.ntf], ['quest', cfg => cfg.quest.ntf],
+    /*OEM*/['oem', cfg => cfg.oem.ntf], ['loem', cfg => cfg.oem.ntf],
+    /*EXP*/['mExp', cfg => cfg.mExp.ntf], ['lmExp', cfg => cfg.mExp.ntf],
+    /*Mante*/['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
 
 /* === Core === */
 export async function notifyKC(type: notifyType) {
@@ -199,7 +204,7 @@ async function msgMgr(dat: msgBuild) {
 
             if (reUsed) msgkch.set(key, { msgId: msg.id, chId: dta.ch.id });
 
-            if (dta.delAft > 0 && !["newMante", "mntEnd"].includes(dat.type) && msg.deletable) {
+            if (dta.delAft > 0 && dat.type !== "newMante" && msg.deletable) {
                 const prev = outErase.get(key);
                 if (prev) { clearTimeout(prev); outErase.delete(key); }
                 const target = msg;
@@ -217,12 +222,11 @@ async function msgMgr(dat: msgBuild) {
         } catch (e: any) { error(`Error enviando notificación [${dat.type}]: ${e.message} | ${e.stack}`, "KanCron"); }
     };
 
-    let rMnt: string | undefined = undefined, del30: number = 0, del15: number = 0;
-    if (dat.rol) {
-        rMnt = `AVISO: ${dat.rol}!`;
-        del30 = (30 * minuts) - 20_000;
-        del15 = (15 * minuts) - 20_000;
-    }
+    let rMnt: string | undefined = undefined, del30 = 45 * minuts, del15 = 45 + minuts;
+    if (dat.rol) { rMnt = `AVISO: ${dat.rol}!`; del30 = (30 * minuts) - 20_000; del15 = (15 * minuts) - 20_000; }
+    if (dat.type === "mntEnd") del30 = hours;
+    const preNtfy = (["loem", "lmExp"] as notifyType[]).includes(dat.type);
+    if (preNtfy) del30 = 8 * hours;
     /* Now */
     await msgSnd({ ch: dat.ch, title: prst.title.A, fields: prst.field, desc: prst.desc.ini, pic: prst.urlPic.A, rolOn: rMnt, color: 0xFFA500, url: prst.url, delAft: del30 });
     /* 30 min */
@@ -249,7 +253,7 @@ async function msgMgr(dat: msgBuild) {
             if (isStale()) return;
             const p = rawPreset(dat.type);
             if (!p) return;
-            await msgSnd({ ch: dat.ch, title: p.title.B, fields: p.field, desc: p.desc.fn, pic: p.urlPic.B, rolOn: rMnt, color: 0x00AA00, url: p.url, delAft: 60 * minuts });
+            await msgSnd({ ch: dat.ch, title: p.title.B, fields: p.field, desc: p.desc.fn, pic: p.urlPic.B, rolOn: rMnt, color: 0x00AA00, url: p.url, delAft: hours });
         }, prst.mTimmer);
     }
 }

@@ -668,11 +668,11 @@
     "bgProsses": {
       "siwtchNotify_vText": "**PVP:** {{a1}}\n**EO:** {{a2}}\n**Exp. Mensuales:** {{a3}}\n> Misiones:\n**Diarias:** {{a4}}\n**Semanales:** {{a5}}\n**Mensuales:** {{a6}}\n**Quaterly:** {{a7}}\n> Rank:\n**Cutoff Diario:** {{a8}}\n**Cutoff Mesual:** {{a9}}",
       "siwtchNotify_pvp_title": "⚓ ¡Aviso de PvP!",
-      "siwtchNotify_pvp_desc": "**Los Ejercicios (PvP) se reiniciaran en 30 minutos!!**.",
+      "siwtchNotify_pvp_desc": "**Los Ejercicios (PvP) se reiniciaran en 60 minutos!!**.",
       "siwtchNotify_pvp_uTitle": "⚔️ ¡PvP Reiniciado!",
       "siwtchNotify_pvp_uDesc": "✅ Los PvPs se han reiniciado!",
       "siwtchNotify_quest_title": "📝 Aviso sobre las Quest!",
-      "siwtchNotify_quest_desc": "**Reinicio de misiones en 30 minutos!!** \n Tipo de misiones que se reiniciaran: {{a1}}",
+      "siwtchNotify_quest_desc": "**Reinicio de misiones en 60 minutos!!** \n Tipo de misiones que se reiniciaran: {{a1}}",
       "siwtchNotify_quest_uTitle": "✅ ¡Las Quest se han reiniciado!",
       "siwtchNotify_quest_uDesc": "**Categorias de misiones reiniciadas!:** {{a1}}",
       "siwtchNotify_oem_title": "📦 ¡Aviso de Extra Operaciones!",
@@ -705,7 +705,9 @@
       "siwtchNotify_newMante_B": "TERMINO:",
       "siwtchNotify_nextReset_A_F": "Proximos resets:",
       "siwtchNotify_drank_title": "🧮 Aviso Rank!!",
-      "siwtchNotify_drank_desc": "Cierre de puntos del rank!"
+      "siwtchNotify_drank_desc": "Cierre de puntos del rank!",
+      "siwtchNotify_pvp_desc_30": "**Los Ejercicios (PvP) se reiniciaran en 30 minutos!!**",
+      "siwtchNotify_quest_desc_30m": "**Reinicio de misiones en 30 minutos!!** \n Tipo de misiones que se reiniciaran: {{a1}}"
     }
   }
 }

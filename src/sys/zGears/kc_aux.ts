@@ -1,10 +1,10 @@
+// src/sys/zGears/kc_aux.ts
 import i18next from "i18next";
 import { notifyKC, notifyType } from "../../bgProcess/KanCron";
 import { maint, updateKCmant } from "../DB-Engine/links/KancolleBD";
 import { debug, error } from "../logging";
 import { translate } from "@vitalets/google-translate-api";
 import emojis from '../../../adds/otros/emojis.json'
-
 
 // ========================================================= fetchMaint ========================================================= //
 let kcTimmers = new Map<string, NodeJS.Timeout>();
@@ -143,144 +143,6 @@ async function startMant() {
         }
     } catch (e) { error(`Error al programar temporizadores de mantenimiento: ${e}`, "KancolleBD"); }
 }
-
-
-// =========================================================== SitchNotify =========================================================== //
-interface presetsKC {
-    title: { A: string, B: string },
-    desc: { ini: string, l30: string, l15: string, fn: string },
-    urlPic: { A?: string, B?: string },
-    field: { name: string, value: string, inline?: boolean }[],
-    mTimmer: number,
-    ntfy: { ntf_30: boolean, ntf_15: boolean, ntf_end: boolean },
-    url?: string,
-}
-
-export function rawPreset(type: notifyType): presetsKC | null {
-    const rst = allLefts(), minuts = 60 * 1_000;
-    const vlueTxt = i18next.t("commands:kancolle.bgProsses.siwtchNotify_vText", { a1: rst.pvp, a2: rst.oem, a3: rst.mExp, a4: rst.dQuest, a5: rst.wQuest, a6: rst.mQuest, a7: rst.qQuest, a8: rst.dPtCutof, a9: rst.mPtCutof });
-    switch (type) {
-        case "pvp":
-            const timePvp = leftTimeConv({ type: 'daily', hours: [3, 15] });
-            return {
-                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_title"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_uTitle"), },
-                desc: {
-                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_desc"),
-                    l30: "TBA",
-                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_desc_15"),
-                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_uDesc"),
-                },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: `${vlueTxt}` }],
-                mTimmer: timePvp,
-                ntfy: { ntf_30: false, ntf_15: true, ntf_end: true, },
-                urlPic: { A: "https://i.imgur.com/rhaHOhq.png" }
-            };
-        case "quest":
-            const timeQuest = leftTimeConv({ type: 'daily', hours: [5] });
-            const tx = aQuest();
-            return {
-                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_title"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_uTitle") },
-                desc: {
-                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_desc", { a1: tx }),
-                    l30: "TBA",
-                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_desc_15", { a1: tx }),
-                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_uDesc", { a1: tx }),
-                },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
-                mTimmer: timeQuest,
-                ntfy: { ntf_30: false, ntf_15: true, ntf_end: true, },
-                urlPic: { A: "https://i.imgur.com/pJZdK4i.jpeg" }
-            };
-        // too long time
-        case "oem":
-            const timeOem = leftTimeConv({ type: 'monthly', targetDay: 1, hours: [0] });
-            return {
-                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_title"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_uTitle") },
-                desc: {
-                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_desc"),
-                    l30: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_desc_30m"),
-                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_desc_15"),
-                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_uDesc"),
-                },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
-                mTimmer: timeOem,
-                ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
-                urlPic: { A: "https://i.imgur.com/72A2KNE.png", }
-            };
-        case "mExp":
-            const timemExp = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12 });
-            return {
-                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_title"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_uTitle") },
-                desc: {
-                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_desc"),
-                    l30: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_desc_30m"),
-                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_desc_15"),
-                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_uDesc"),
-                },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
-                mTimmer: timemExp,
-                ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
-                urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
-            };
-        // Mantenimiento 
-        case "newMante":
-            if (!ntfMantData.MaintDate) return null;
-            const tokyoDate = getNowJST(), INItime = JSTtoUTC(ntfMantData.MaintDate), ENDtime = JSTtoUTC(ntfMantData.endMantDate);;
-            const left2start = INItime ? turnDate(INItime.getTime() - tokyoDate) : "TBA";
-            const lef2end = ENDtime ? turnDate(ENDtime.getTime() - tokyoDate) : "TBA";
-            const tim = mantDates(ntfMantData.MaintDate, ntfMantData.endMantDate)
-            return {
-                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: "TBA" },
-                desc: {
-                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntStart_des"), l30: "TBA", l15: "TBA", fn: "TBA"
-                },
-                field: [
-                    { name: '> ***Tiempo restante:***', value: `⏰ INICIO: \`${left2start}\` \n⏰ TERMINO:  \`${lef2end}\`` },
-                    { name: "> ***🇯🇵 JST*** | ***GMT+9***", value: `📅 INICIO: \`${tim.sJP}\` \n📅 TERMINO: \`${tim.eJP}\`` },
-                    { name: "> ***🌐 UTC***", value: `📅 INICIO: \`${tim.sUTC}\` \n📅 TERMINO: \`${tim.eUTC} \`` },
-                    { name: "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***", value: `📅 INICO: \`${tim.sMX}\` \n📅 TERMINO: \`${tim.eMX}\`` },
-                    { name: "> ***Tweet del anuncio:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.Orginal : "No disponible!" },
-                    { name: "> ***Tweet traducido al Español:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoES : "No disponible!" },
-                    { name: "> ***Tweet traducido al Inglés:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoEN : "No disponible!" }
-                ],
-                mTimmer: 0,
-                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
-                urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" },
-                url: ntfMantData.url ? ntfMantData.url : undefined
-            }
-        case "maintStart":
-            const endRawDate = JSTtoUTC(maint.MaintEnd);
-            const endDate = endRawDate ? new Date(endRawDate).toLocaleString('es-MX', { hour12: false }) : `\`TBA!\``;
-            return {
-                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle") },
-                desc: {
-                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart", { a1: endDate }),
-                    l30: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart_30"),
-                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart_15"),
-                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uDesc", { a1: endDate }),
-                },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }],
-                mTimmer: 60 * minuts,
-                ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
-                urlPic: { A: "https://i.imgur.com/zTF3hlZ.png", B: "https://i.imgur.com/ed3cVTh.png" }
-            };
-        case "mntEnd":
-            return {
-                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: "TBA" },
-                desc: {
-                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_endMant"),
-                    l30: "TBA", l15: "TBA", fn: "TBA"
-                },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
-                mTimmer: 0,
-                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
-                urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" }
-            };
-        default:
-            return null;
-    }
-};
-
 
 // ========================================================= Euxiliares ========================================================= //
 export function allLefts() {
@@ -466,3 +328,165 @@ export async function fetchData(url: string) {
     return chkData
 }
 
+// =================================================================================================================================== //
+// =========================================================== SitchNotify =========================================================== //
+// =================================================================================================================================== //
+interface presetsKC {
+    title: { A: string, B: string },
+    desc: { ini: string, l30: string, l15: string, fn: string },
+    urlPic: { A?: string, B?: string },
+    field: { name: string, value: string, inline?: boolean }[],
+    mTimmer: number,
+    ntfy: { ntf_30: boolean, ntf_15: boolean, ntf_end: boolean },
+    url?: string,
+}
+
+export function rawPreset(type: notifyType): presetsKC | null {
+    const rst = allLefts(), minuts = 60 * 1_000;
+    const vlueTxt = i18next.t("commands:kancolle.bgProsses.siwtchNotify_vText", { a1: rst.pvp, a2: rst.oem, a3: rst.mExp, a4: rst.dQuest, a5: rst.wQuest, a6: rst.mQuest, a7: rst.qQuest, a8: rst.dPtCutof, a9: rst.mPtCutof });
+    switch (type) {
+        case "pvp":
+            const timePvp = leftTimeConv({ type: 'daily', hours: [3, 15] });
+            return {
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_title"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_uTitle"), },
+                desc: {
+                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_desc"),
+                    l30: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_desc_30"),
+                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_desc_15"),
+                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_uDesc"),
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: `${vlueTxt}` }],
+                mTimmer: timePvp,
+                ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
+                urlPic: { A: "https://i.imgur.com/rhaHOhq.png" }
+            };
+        case "quest":
+            const timeQuest = leftTimeConv({ type: 'daily', hours: 5 });
+            const tx = aQuest();
+            return {
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_title"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_uTitle") },
+                desc: {
+                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_desc", { a1: tx }),
+                    l30: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_desc_30m", { a1: tx }),
+                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_desc_15", { a1: tx }),
+                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_uDesc", { a1: tx }),
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                mTimmer: timeQuest,
+                ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
+                urlPic: { A: "https://i.imgur.com/pJZdK4i.jpeg" }
+            };
+        // ======================================== OEM NTFY ======================================== //
+        case "oem":
+            const timeOem = leftTimeConv({ type: 'monthly', targetDay: 1, hours: [0] });
+            return {
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_title"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_uTitle") },
+                desc: {
+                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_desc"),
+                    l30: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_desc_30m"),
+                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_desc_15"),
+                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_uDesc"),
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                mTimmer: timeOem,
+                ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
+                urlPic: { A: "https://i.imgur.com/72A2KNE.png", }
+            };
+        case "loem": // pre aviso OEM
+            return {
+                title: { A: "EXTRA OPERACIONES!", B: "TBA" },
+                desc: {
+                    ini: `# REINICIO EN 12HRS!!`,
+                    l30: "TBA", l15: "TBA", fn: "TBA"
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                mTimmer: 0,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                urlPic: { A: "https://pbs.twimg.com/media/FOqFIkaXIAMbdMy.jpg" }
+            };
+        // ========================================  MEXP NTFY ======================================== //
+        case "mExp":
+            const timemExp = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12 });
+            return {
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_title"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_uTitle") },
+                desc: {
+                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_desc"),
+                    l30: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_desc_30m"),
+                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_desc_15"),
+                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_uDesc"),
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                mTimmer: timemExp,
+                ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
+                urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
+            };
+        case "lmExp": // pre aviso mExp
+            return {
+                title: { A: "EXPEDICIONES MENSUALES!", B: "TBA" },
+                desc: {
+                    ini: `# REINICIO EN 12HRS!!`,
+                    l30: "TBA", l15: "TBA", fn: "TBA"
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                mTimmer: 0,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
+            }
+        // ======================================== Mantenimiento ======================================== //
+        case "newMante":
+            if (!ntfMantData.MaintDate) return null;
+            const tokyoDate = getNowJST(), INItime = JSTtoUTC(ntfMantData.MaintDate), ENDtime = JSTtoUTC(ntfMantData.endMantDate);;
+            const left2start = INItime ? turnDate(INItime.getTime() - tokyoDate) : "TBA";
+            const lef2end = ENDtime ? turnDate(ENDtime.getTime() - tokyoDate) : "TBA";
+            const tim = mantDates(ntfMantData.MaintDate, ntfMantData.endMantDate)
+            return {
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: "TBA" },
+                desc: {
+                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntStart_des"), l30: "TBA", l15: "TBA", fn: "TBA"
+                },
+                field: [
+                    { name: '> ***Tiempo restante:***', value: `⏰ INICIO: \`${left2start}\` \n⏰ TERMINO:  \`${lef2end}\`` },
+                    { name: "> ***🇯🇵 JST*** | ***GMT+9***", value: `📅 INICIO: \`${tim.sJP}\` \n📅 TERMINO: \`${tim.eJP}\`` },
+                    { name: "> ***🌐 UTC***", value: `📅 INICIO: \`${tim.sUTC}\` \n📅 TERMINO: \`${tim.eUTC} \`` },
+                    { name: "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***", value: `📅 INICO: \`${tim.sMX}\` \n📅 TERMINO: \`${tim.eMX}\`` },
+                    { name: "> ***Tweet del anuncio:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.Orginal : "No disponible!" },
+                    { name: "> ***Tweet traducido al Español:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoES : "No disponible!" },
+                    { name: "> ***Tweet traducido al Inglés:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoEN : "No disponible!" }
+                ],
+                mTimmer: 0,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" },
+                url: ntfMantData.url ? ntfMantData.url : undefined
+            }
+        case "maintStart":
+            const endRawDate = JSTtoUTC(maint.MaintEnd);
+            const endDate = endRawDate ? new Date(endRawDate).toLocaleString('es-MX', { hour12: false }) : `\`TBA!\``;
+            return {
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle") },
+                desc: {
+                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart", { a1: endDate }),
+                    l30: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart_30"),
+                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart_15"),
+                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uDesc", { a1: endDate }),
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }],
+                mTimmer: 60 * minuts,
+                ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
+                urlPic: { A: "https://i.imgur.com/zTF3hlZ.png", B: "https://i.imgur.com/ed3cVTh.png" }
+            };
+        case "mntEnd":
+            return {
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: "TBA" },
+                desc: {
+                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_endMant"),
+                    l30: "TBA", l15: "TBA", fn: "TBA"
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                mTimmer: 0,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" }
+            };
+        default:
+            return null;
+    }
+};
