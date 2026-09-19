@@ -31,7 +31,7 @@ export async function initKC(cli: Client) {
 };
 
 // ========================================================= engineTimmers ========================================================= //
-export type notifyType = 'pvp' | 'quest' | 'oem' | 'loem' | 'mExp' | 'lmExp' | 'newMante' | 'maintStart' | 'mntEnd';
+export type notifyType = 'pvp' | 'quest' | 'qQuest' | 'oem' | 'loem' | 'mExp' | 'lmExp' | 'newMante' | 'maintStart' | 'mntEnd';
 let notifyTimers = new Map<notifyType, NodeJS.Timeout>();
 async function timmerAv() {
     /* =============== pvp =============== */
@@ -40,6 +40,9 @@ async function timmerAv() {
     /* =============== quest =============== */
     const questStr = () => { teki("quest") };
     if (!notifyTimers.has('quest')) questStr();
+    // // qQuest
+    const qQuestStr = () => { teki("qQuest", true) };
+    if (!notifyTimers.has('qQuest')) qQuestStr();
     /* =============== oem =============== */
     const oemStr = () => { teki("oem") };
     if (!notifyTimers.has('oem')) oemStr();
@@ -59,27 +62,28 @@ function teki(tpy: notifyType, h12?: boolean) {
     switch (tpy) {
         case 'pvp': { toChk = leftTimeConv({ type: 'daily', hours: [3, 15], minutes: 0 }); break };
         case 'quest': { toChk = leftTimeConv({ type: 'daily', hours: 5, minutes: 0 }); break };
+        case 'qQuest': { toChk = leftTimeConv({ type: 'quarterly', targetDay: 1, hours: 5, minutes: 0 }); break };
         case 'oem': case 'loem': { toChk = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0, minutes: 0 }); break };
         case 'mExp': case 'lmExp': { toChk = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12, minutes: 0 }); break };
         default: { error(`[KanCron]: Tipo introducido sin parametro: ${tpy}`); return }
     }
     if (toChk > 18 * hours) return;
     toChk = h12 ? Math.max(0, toChk - (12 * hours)) : Math.max(0, toChk - hours);
-    if (toChk <= 0) { debug(`[KanCron]: ${tpy} Paso horario de notificacion`); return }
+    if (toChk <= 0 || toChk < 4) { debug(`[KanCron]: ${tpy} Paso horario de notificacion`); return }
     const timer = setTimeout(() => { notifyTimers.delete(tpy); notifyKC(tpy); }, toChk);
     notifyTimers.set(tpy, timer);
-    debug(`[KanCron]: Establecido ${tpy} en ${toChk / minuts} min`)
+    debug(`[KanCron]: Establecido ${tpy} en ${Math.round(toChk / minuts)} min`)
 }
 
 // ========================================================= Main ========================================================= //
 const chkType = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.av], ['quest', cfg => cfg.quest.av],
+    ['pvp', cfg => cfg.pvp.av], /*QUEST*/['quest', cfg => cfg.quest.av], ['qQuest', cfg => cfg.quest.av],
     /*OEM*/['oem', cfg => cfg.oem.av], ['loem', cfg => cfg.oem.av],
     /*EXP*/['mExp', cfg => cfg.mExp.av], ['lmExp', cfg => cfg.mExp.av],
     /*Mante*/['newMante', cfg => cfg.mnt.av], ['maintStart', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av]]);
 
 const chkRole = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.ntf], ['quest', cfg => cfg.quest.ntf],
+    ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf], ['qQuest', cfg => cfg.quest.ntf],
     /*OEM*/['oem', cfg => cfg.oem.ntf], ['loem', cfg => cfg.oem.ntf],
     /*EXP*/['mExp', cfg => cfg.mExp.ntf], ['lmExp', cfg => cfg.mExp.ntf],
     /*Mante*/['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
@@ -204,28 +208,30 @@ async function msgMgr(dat: msgBuild) {
 
             if (reUsed) msgkch.set(key, { msgId: msg.id, chId: dta.ch.id });
 
-            if (dta.delAft > 0 && dat.type !== "newMante" && msg.deletable) {
+            if (dat.type !== "newMante" && msg.deletable) {
+                let timeToErase = dta.delAft;
+                if (dta.delAft === 0) timeToErase = prst.mTimmer + minuts;
+                const fire = timeToErase, target = msg;
                 const prev = outErase.get(key);
                 if (prev) { clearTimeout(prev); outErase.delete(key); }
-                const target = msg;
                 const erase = setTimeout(async () => {
                     await target.delete().catch(e => error(`Error al borrar msg [${dat.type}]: ${e}`, "KanCron"));
                     const cur = msgkch.get(key);
                     if (cur?.msgId === target.id) msgkch.delete(key);
                     outErase.delete(key);
                     delKchTemp(key, dta.ch.guildId).catch(e => error(`Erase temp db [${dat.type}]: ${e}`, "KanCron"));
-                }, dta.delAft);
+                }, fire);
                 outErase.set(key, erase);
-                const timeToErase = Date.now() + dta.delAft;
+                timeToErase = Date.now() + fire;
                 await kchTempMSg({ guild_id: dta.ch.guildId, id_key: key, id_msg: target.id, id_ch: dta.ch.id, sup_time: new Date(timeToErase) });
             }
         } catch (e: any) { error(`Error enviando notificación [${dat.type}]: ${e.message} | ${e.stack}`, "KanCron"); }
     };
-
-    let rMnt: string | undefined = undefined, del30 = 45 * minuts, del15 = 45 + minuts;
+    // ==== timmerDelControl ==== //
+    let rMnt: string | undefined = undefined, del30 = 0, del15 = 0;
     if (dat.rol) { rMnt = `AVISO: ${dat.rol}!`; del30 = (30 * minuts) - 20_000; del15 = (15 * minuts) - 20_000; }
     if (dat.type === "mntEnd") del30 = hours;
-    const preNtfy = (["loem", "lmExp"] as notifyType[]).includes(dat.type);
+    const preNtfy = (["loem", "lmExp", "qQuest"] as notifyType[]).includes(dat.type);
     if (preNtfy) del30 = 8 * hours;
     /* Now */
     await msgSnd({ ch: dat.ch, title: prst.title.A, fields: prst.field, desc: prst.desc.ini, pic: prst.urlPic.A, rolOn: rMnt, color: 0xFFA500, url: prst.url, delAft: del30 });

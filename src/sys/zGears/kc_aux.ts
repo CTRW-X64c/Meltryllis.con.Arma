@@ -376,6 +376,18 @@ export function rawPreset(type: notifyType): presetsKC | null {
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/pJZdK4i.jpeg" }
             };
+        case "qQuest": // pre aviso qQuest
+            return {
+                title: { A: "RESET DE MISIONES TRIMESTRALES (QUARTERLY)!", B: "TBA" },
+                desc: {
+                    ini: `# ${emojis.Quarterly} REINICIO EN 12HRS! `,
+                    l30: "TBA", l15: "TBA", fn: "TBA"
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                mTimmer: 0,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                urlPic: { A: "https://i.imgur.com/pJZdK4i.jpeg" }
+            };
         // ======================================== OEM NTFY ======================================== //
         case "oem":
             const timeOem = leftTimeConv({ type: 'monthly', targetDay: 1, hours: [0] });

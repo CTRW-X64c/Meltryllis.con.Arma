@@ -250,10 +250,10 @@ export function badEmbed(embed: any): boolean {
         "content is private",
         "this content is only available to",
         "that post doesn't exist :(",
-        "Failed to Get Post | EmbedEZ",
-        "Failed to Get Post",
+        "failed to get post | embedez",
+        "failed to get post",
         "reddit auth session unavailable",
-        "Reddit returned a non-JSON response"
+        "reddit returned a non-json response"
     ];
     return noAllowed.some(p => embedText.includes(p));
 };

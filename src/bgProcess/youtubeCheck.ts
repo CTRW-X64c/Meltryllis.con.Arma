@@ -61,7 +61,6 @@ class YTRssService {
 
   private async checkGuildFeeds(guildId: string): Promise<void> {
     try {
-      const callErr = { code500: 0, code404: 0 };
       const feeds = await getYouTubeFeeds(guildId);
       for (const feed of feeds) {
         const delay = Math.floor(Math.random() * 4000) + 3000;
@@ -73,8 +72,6 @@ class YTRssService {
           if (response.status !== 200) { error(`Error Fetch: ${response.status} - ${response.statusText}`); continue }
           xmlText = response.data;
         } catch (e: any) {
-          if (e.message.includes("404")) { callErr.code404++ };
-          if (e.message.includes("500")) { callErr.code500++ };
           if (!e.message.includes("404") && !e.message.includes("500")) { error(`Error YoutubeRSS: ${e.message}`) }
           continue;
         }
@@ -92,8 +89,6 @@ class YTRssService {
           debug(`Ultimo video de ${feed.youtube_channel_name}: ${videoId}`);
         }
       }
-
-      if (callErr.code404 > 0 || callErr.code500 > 0) error(`Errores 404: ${callErr.code404} | Errores 500: ${callErr.code500} | Guild: ${guildId}`);
     } catch (e: any) { error(`Error en loop YoutubeRSS: ${e.message}`); }
   }
 
