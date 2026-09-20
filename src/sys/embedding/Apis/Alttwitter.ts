@@ -26,7 +26,7 @@ export class xTwitterCustom implements ApiHandler {
         return true;
     }
 
-    async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
+    public async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
         const matchLang = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/.*\/([a-z]+)/i);
         const lang = matchLang ? matchLang[1].toLowerCase() : undefined;
         if (lang && !["es", "en", "pt", "it"].includes(lang)) return { ok: false };
@@ -43,7 +43,7 @@ export class xTwitterCustom implements ApiHandler {
 
         const xData = await xTwitter.getTweetData(xId, lang);
         if (!xData) return { ok: false };
-        if (xData.bufferPics.length === 0 && !xData.hasVideo && xData.tweetDesc) return { ok: false };
+        if (!xData.hasMedias && !xData.tweetDesc) return { ok: false };
         try {
             let files: AttachmentBuilder[] = [], components: any[] = [];
             // Formato plano
@@ -104,8 +104,8 @@ export class xTwitterCustom implements ApiHandler {
             const container = new ContainerBuilder()
                 .addTextDisplayComponents(new TextDisplayBuilder().setContent(TopTxt));
             if (outText) { container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(outText)) };
-            container.addMediaGalleryComponents(gallegry)
-                .addTextDisplayComponents(new TextDisplayBuilder().setContent(BottomTxt))
+            if (gallegry.items.length > 0) container.addMediaGalleryComponents(gallegry);
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(BottomTxt))
                 .setAccentColor(0x000055)
                 .setSpoiler(isSpoiler);
 
@@ -126,7 +126,7 @@ export class xTwitterCustom implements ApiHandler {
 interface twitterData {
     urlPost: string, showName: string, userName: string,
     likes: string, resp: string, reTwi: string, views: string, avatarPic: string,
-    hasVideo: boolean, tweetDesc?: string, tweetTl?: { oTxT: string, oLng: string },
+    hasMedias: boolean, tweetDesc?: string, tweetTl?: { oTxT: string, oLng: string },
     rawUrl: string[], bufferPics: Buffer[], bufferVideo: Buffer[], bufferGifs: Buffer[]
 }
 
@@ -174,12 +174,10 @@ class xTwitter {
             const call = await fetch(callURl, { headers: this.headers });
             const Data = await call.json() as ApiFxResponse;
             if (!Data || Data.code !== 200) return null;
-            let imageBuffers: Buffer[] = [], videoBuffers: Buffer[] = [], gifBuffers: Buffer[] = [], rawLinks: string[] = [], wVideo = false;
+            let imageBuffers: Buffer[] = [], videoBuffers: Buffer[] = [], gifBuffers: Buffer[] = [], rawLinks: string[] = [], hasMedia = false;
 
             const picURLs = Data.status?.media?.photos?.map(p => p.url);
             const videoURLs = Data.status?.media?.videos?.map(v => v);
-
-            if (videoURLs && videoURLs.length > 0) wVideo = true;
 
             let txtOut: string | undefined = undefined, txtTlOut: string | undefined = undefined;
             let TlData: { oTxT: string, oLng: string } | undefined = undefined;
@@ -205,6 +203,8 @@ class xTwitter {
                 rawLinks = gets.links;
             }
 
+            if (imageBuffers.length > 0 || videoBuffers.length > 0 || gifBuffers.length > 0 || rawLinks.length > 0) hasMedia = true;
+
             return {
                 urlPost: Data.status?.url || "https://x.com",
                 showName: Data.author?.screen_name || "Usuario desconocido",
@@ -216,7 +216,7 @@ class xTwitter {
                 tweetDesc: txtOut,
                 tweetTl: TlData, //fixDes.Tl ? { oTxT: tlReq, oLng: fixDes.Tl.oLng } : undefined, //fixDes.Tl.oTxt
                 avatarPic: Data.author?.avatar_url || 'https://abs.twimg.com/favicons/twitter.ico',
-                hasVideo: wVideo,
+                hasMedias: hasMedia,
                 rawUrl: rawLinks,
                 bufferPics: imageBuffers,
                 bufferVideo: videoBuffers,
@@ -229,8 +229,8 @@ class xTwitter {
         }
     }
 
-    private static numShort(total?: number): string {
-        if (total === undefined) return "?";
+    private static numShort(total?: number | null): string {
+        if (!total) return "0";
         if (total >= 1_000_000_000) return `${(total / 1_000_000_000).toFixed(1)}B`;
         if (total >= 1_000_000) return `${(total / 1_000_000).toFixed(1)}M`;
         if (total >= 1_000) return `${(total / 1_000).toFixed(1)}K`;

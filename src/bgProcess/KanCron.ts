@@ -209,20 +209,21 @@ async function msgMgr(dat: msgBuild) {
             if (reUsed) msgkch.set(key, { msgId: msg.id, chId: dta.ch.id });
 
             if (dat.type !== "newMante" && msg.deletable) {
-                let timeToErase = dta.delAft;
-                if (dta.delAft === 0) timeToErase = prst.mTimmer + minuts;
-                const fire = timeToErase, target = msg;
-                const prev = outErase.get(key);
-                if (prev) { clearTimeout(prev); outErase.delete(key); }
-                const erase = setTimeout(async () => {
-                    await target.delete().catch(e => error(`Error al borrar msg [${dat.type}]: ${e}`, "KanCron"));
-                    const cur = msgkch.get(key);
-                    if (cur?.msgId === target.id) msgkch.delete(key);
-                    outErase.delete(key);
-                    delKchTemp(key, dta.ch.guildId).catch(e => error(`Erase temp db [${dat.type}]: ${e}`, "KanCron"));
-                }, fire);
-                outErase.set(key, erase);
-                timeToErase = Date.now() + fire;
+                const target = msg;
+                const fire = dta.delAft > 10_000 ? dta.delAft : (prst.mTimmer * 2);
+                if (dta.delAft > 10_000) {
+                    const prev = outErase.get(key);
+                    if (prev) { clearTimeout(prev); outErase.delete(key); }
+                    const erase = setTimeout(async () => {
+                        await target.delete().catch(e => error(`Error al borrar msg [${dat.type}]: ${e}`, "KanCron"));
+                        const cur = msgkch.get(key);
+                        if (cur?.msgId === target.id) msgkch.delete(key);
+                        outErase.delete(key);
+                        delKchTemp(key, dta.ch.guildId).catch(e => error(`Erase temp db [${dat.type}]: ${e}`, "KanCron"));
+                    }, fire);
+                    outErase.set(key, erase);
+                }
+                const timeToErase = Date.now() + fire;
                 await kchTempMSg({ guild_id: dta.ch.guildId, id_key: key, id_msg: target.id, id_ch: dta.ch.id, sup_time: new Date(timeToErase) });
             }
         } catch (e: any) { error(`Error enviando notificación [${dat.type}]: ${e.message} | ${e.stack}`, "KanCron"); }

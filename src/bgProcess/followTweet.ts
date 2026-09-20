@@ -1,9 +1,10 @@
-import { Client, Guild, TextChannel } from "discord.js"
+import { Client, Guild, MessageFlags, TextChannel } from "discord.js"
 import { deleteFollowTweet, getAllFollowTweet, updateFollowTweet } from "../sys/DB-Engine/links/followTweet"
 import { debug, error } from "../sys/logging";
 import urlStatusManager from "../sys/embedding/domainChecker";
 import { getGuildReplacementConfig } from "../sys/DB-Engine/links/Embed";
 import { bskyEngine } from "./blusky";
+import { xTwitterCustom } from "../sys/embedding/Apis/Alttwitter";
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function initFolloX(C: Client): Promise<void> {
@@ -110,11 +111,18 @@ async function msgSend(out: msgSendIn): Promise<void> {
                 }
 
                 if (freshMsg && !embOk) {
-                    freshMsg.delete().catch(() => { })
-                    const lasTry = await channel.send({ content: `> ## Nuevo [tweet](${outLink}) de @${xUser}` }).catch(() => { });
-                    await wait(3_500)
-                    if (lasTry && lasTry.embeds.length === 0) {
-                        await lasTry.edit({ content: `> ## Nuevo [tweet](${lisTweets[i]}) de @${xUser} \n> ***No genero embed, devuelto link original***` }).catch(() => { });
+                    const x = new xTwitterCustom();
+                    const tryMeltrys = await x.process(lisTweets[i], freshMsg);
+                    try {
+                        if (!tryMeltrys.ok || !tryMeltrys.pack) throw new Error("Fallo en respuesta de xTwitterCustom");
+                        const packData = Object.values(tryMeltrys.pack[0])[0];
+                        if (!packData.components || packData.components.length === 0) throw new Error("No data Pack xTwitterCustom");
+                        await freshMsg.delete().catch(() => { });
+                        if (packData) { await channel.send({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 }) };
+                    } catch (e) {
+                        debug(`Fallo al usar MeltrysApi ${e}`, "BG.TwitterFollow")
+                        await freshMsg.delete().catch(() => { });
+                        await channel.send({ content: `> ## Nuevo [tweet](${lisTweets[i]}) de @${xUser} \n> ***No genero embed, devuelto link original***` }).catch(() => { });
                     }
                 }
             }
