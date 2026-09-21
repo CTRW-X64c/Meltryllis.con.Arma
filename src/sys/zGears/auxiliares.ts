@@ -290,3 +290,29 @@ export async function msgDeleter(dta: msgDeletINT) {
         if (!e.message.includes("Missing Access")) { error(`Error en msgDeleter: ${e.message}, Guild: ${dta.msg.guild?.name}`, "msgAuxDelet"); }
     }
 };
+
+
+/* ======================================== stilOn ======================================== */
+interface stillOnInt { cli: Client, chkChID: string, chkGuiId: string }
+interface StillOnR { ok: boolean; erase?: boolean; msg?: string; gremio: Guild | null; canale: GuildBasedChannel | null; }
+export async function stillOn(dta: stillOnInt): Promise<StillOnR> {
+    let guildy: Guild, canalito: GuildBasedChannel | null;
+    try { guildy = await dta.cli.guilds.fetch(dta.chkGuiId) }
+    catch (e: any) {
+        // 10004: Unknown Guild | 50001: Missing Access
+        if (e.code === 10004 || e.code === 50001) return { ok: false, erase: true, msg: `No tengo acceso al servidor ${dta.chkGuiId}, ${e.code}`, gremio: null, canale: null }
+        else return { ok: false, erase: false, msg: `Error al buscar el servidor ${dta.chkGuiId}, ${e.code}`, gremio: null, canale: null }
+    }
+
+    try {
+        canalito = await guildy.channels.fetch(dta.chkChID);
+        if (!canalito) { return { ok: false, erase: true, msg: `El canal ${dta.chkChID} no existe en ${guildy.name}`, gremio: guildy, canale: null }; }
+    }
+    catch (e: any) {
+        // 404: Not Found | 10003: Unknown Channel | 50001: Missing Access 
+        if (e.code === 404 || e.code === 10003 || e.code === 50001) return { ok: false, erase: true, msg: `No tengo acceso al canal ${dta.chkChID} en el servidor ${guildy.name}, ${e.code}`, gremio: null, canale: null }
+        else return { ok: false, erase: false, msg: `Error al buscar el canal ${dta.chkChID} en el servidor ${guildy.name}, ${e.code}`, gremio: null, canale: null }
+    }
+
+    return { ok: true, gremio: guildy, canale: canalito }
+}
