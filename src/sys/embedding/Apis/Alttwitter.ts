@@ -68,7 +68,7 @@ export class xTwitterCustom implements ApiHandler {
                 textBlocks.push(`### 📄 Traducido al ${xData.tweetTl.oLng}:\n${tweTl}`);
             }
             if (tweDes.length > 0) {
-                if (tweTl.length > 0) { textBlocks.push(`### 📃 Texto original:\n${tweDes}`); }
+                if (tweTl.length > 0) { textBlocks.push(`### 📃 Texto original:\n> ${tweDes}`); }
                 else { textBlocks.push(tweDes); }
             }
 
@@ -101,14 +101,13 @@ export class xTwitterCustom implements ApiHandler {
                 }
             }
 
-            const container = new ContainerBuilder()
-                .addTextDisplayComponents(new TextDisplayBuilder().setContent(TopTxt));
-            if (outText) { container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(outText)) };
+            const spoiler = isSpoiler === true;
+            const container = new ContainerBuilder();
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(TopTxt)).addSeparatorComponents(parte);
+            if (outText) { container.addTextDisplayComponents(new TextDisplayBuilder().setContent(outText)) };
             if (gallegry.items.length > 0) container.addMediaGalleryComponents(gallegry);
-            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(BottomTxt))
-                .setAccentColor(0x000055)
-                .setSpoiler(isSpoiler);
-
+            container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(BottomTxt)).setAccentColor(0x000055)
+                .setSpoiler(spoiler);
 
             components.push(container);
 
@@ -120,7 +119,6 @@ export class xTwitterCustom implements ApiHandler {
         }
     }
 }
-
 
 // ================================= xTwitter Process ================================= //
 interface twitterData {

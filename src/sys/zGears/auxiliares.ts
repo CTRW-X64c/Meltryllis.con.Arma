@@ -1,10 +1,9 @@
 // src/sys/zGears/auxiliares.ts
-import { Client, Guild, GuildBasedChannel, GuildMember, Message, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import { Client, Guild, GuildBasedChannel, GuildMember, Message, PermissionFlagsBits, PermissionsBitField, Role } from "discord.js";
 import { error } from "../logging";
 import i18next from "i18next";
 
 /* ======================================== TIMMERS ======================================== */
-
 const minutos = 60 * 1000;
 const hrs = 60 * minutos;
 const cooldownsMap = new Map<string, number>();
@@ -218,7 +217,7 @@ export function masterPerm(iMe: Guild | GuildBasedChannel, toTest: string): { ok
     else { return { ok: true, msg: testing } }
 }
 /*
-const testPerm = masterPerm(im, null)
+const testPerm = masterPerm(im, "test")
 if (!testPerm.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 */
 /* ======================================== Check Permisos ======================================== */
@@ -291,28 +290,31 @@ export async function msgDeleter(dta: msgDeletINT) {
     }
 };
 
-
 /* ======================================== stilOn ======================================== */
-interface stillOnInt { cli: Client, chkChID: string, chkGuiId: string }
-interface StillOnR { ok: boolean; erase?: boolean; msg?: string; gremio: Guild | null; canale: GuildBasedChannel | null; }
+interface stillOnInt { cli: Client, chkChID: string, chkGuiId: string, roley?: string | null }
+interface StillOnR { ok: boolean, erase: boolean, msg?: string, gremio: Guild | null, canale: GuildBasedChannel | null, rolito: Role | null }
+// === engine === //
 export async function stillOn(dta: stillOnInt): Promise<StillOnR> {
-    let guildy: Guild, canalito: GuildBasedChannel | null;
-    try { guildy = await dta.cli.guilds.fetch(dta.chkGuiId) }
-    catch (e: any) {
-        // 10004: Unknown Guild | 50001: Missing Access
-        if (e.code === 10004 || e.code === 50001) return { ok: false, erase: true, msg: `No tengo acceso al servidor ${dta.chkGuiId}, ${e.code}`, gremio: null, canale: null }
-        else return { ok: false, erase: false, msg: `Error al buscar el servidor ${dta.chkGuiId}, ${e.code}`, gremio: null, canale: null }
+    let guildy: Guild, canalito: GuildBasedChannel | null, rolito: Role | null = null;
+    // === Server === //
+    try { guildy = dta.cli.guilds.cache.get(dta.chkGuiId) ?? await dta.cli.guilds.fetch(dta.chkGuiId) }
+    catch (e: any) { // 10004: Unknown Guild | 50001: Missing Access
+        if (e.code === 10004 || e.code === 50001) return { ok: false, erase: true, msg: `No tengo acceso al servidor ${dta.chkGuiId}, ${e.code}`, gremio: null, canale: null, rolito: null }
+        else return { ok: false, erase: false, msg: `Error al buscar el servidor ${dta.chkGuiId}, ${e.code}`, gremio: null, canale: null, rolito: null }
     }
-
+    // === Canal === //
     try {
-        canalito = await guildy.channels.fetch(dta.chkChID);
-        if (!canalito) { return { ok: false, erase: true, msg: `El canal ${dta.chkChID} no existe en ${guildy.name}`, gremio: guildy, canale: null }; }
+        canalito = guildy.channels.cache.get(dta.chkChID) ?? await guildy.channels.fetch(dta.chkChID);
+        if (!canalito) { return { ok: false, erase: true, msg: `El canal ${dta.chkChID} no existe en ${guildy.name}`, gremio: guildy, canale: null, rolito: null }; }
     }
-    catch (e: any) {
-        // 404: Not Found | 10003: Unknown Channel | 50001: Missing Access 
-        if (e.code === 404 || e.code === 10003 || e.code === 50001) return { ok: false, erase: true, msg: `No tengo acceso al canal ${dta.chkChID} en el servidor ${guildy.name}, ${e.code}`, gremio: null, canale: null }
-        else return { ok: false, erase: false, msg: `Error al buscar el canal ${dta.chkChID} en el servidor ${guildy.name}, ${e.code}`, gremio: null, canale: null }
+    catch (e: any) { // 404: Not Found | 10003: Unknown Channel | 50001: Missing Access 
+        if (e.code === 404 || e.code === 10003 || e.code === 50001) return { ok: false, erase: true, msg: `No tengo acceso al canal ${dta.chkChID} en el servidor ${guildy.name}, ${e.code}`, gremio: null, canale: null, rolito: null }
+        else return { ok: false, erase: false, msg: `Error al buscar el canal ${dta.chkChID} en el servidor ${guildy.name}, ${e.code}`, gremio: null, canale: null, rolito: null }
     }
-
-    return { ok: true, gremio: guildy, canale: canalito }
+    // === Rol === //
+    if (dta.roley) { rolito = guildy.roles.cache.get(dta.roley) ?? await guildy.roles.fetch(dta.roley).catch(() => null) }
+    // === OUT === //
+    return { ok: true, erase: false, gremio: guildy, canale: canalito, rolito: rolito }
 }
+
+/* ======================================== NEXT ======================================== */

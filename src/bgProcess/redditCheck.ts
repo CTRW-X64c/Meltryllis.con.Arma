@@ -6,6 +6,7 @@ import i18next from 'i18next';
 import { redditApi } from '../sys/zGears/RedditApi';
 import urlStatusManager from '../sys/embedding/domainChecker';
 import { badEmbed } from '../sys/embedding/embedService';
+import { stillOn } from '../sys/zGears/auxiliares';
 
 const BATCH_SIZE = 99;
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -46,15 +47,12 @@ function getDisplayNameFromUrl(url: string): string {
 
 async function processSingleFeed(client: Client, feed: RedditFeed) {
     let ch: GuildTextBasedChannel;
-    try { ch = await client.channels.fetch(feed.channel_id) as GuildTextBasedChannel }
-    catch (e: any) {
-        if (e.code === 10003 || e.code === 404 || e.code === 50001) {
-            try { await removeRedditFeed(feed.guild_id, feed.subreddit_name); }
-            catch (e: any) { error(`[Reddit Checker]: Error al eliminar ${feed.subreddit_url}: ${e.message}`) }
-        }
-        debug(`[Reddit Checker]: Canal no disponible para ${feed.subreddit_url}`);
+    const chkSout = await stillOn({ cli: client, chkChID: feed.channel_id, chkGuiId: feed.guild_id });
+    if (!chkSout.ok) {
+        if (chkSout.erase) { await removeRedditFeed(feed.guild_id, feed.subreddit_name).catch((ex: any) => { debug(`Error al borrar el feed ${feed.id}: ${ex.message}`, "RedditCheck") }) }
+        debug(`${chkSout.msg}`, "RedditCheck");
         return;
-    }
+    } else { ch = chkSout.canale as GuildTextBasedChannel };
 
     const displayName = getDisplayNameFromUrl(feed.subreddit_url);
     const resourceName = getSubredditNameFromUrl(feed.subreddit_url);

@@ -1,10 +1,11 @@
-import { Client, Guild, MessageFlags, TextChannel } from "discord.js"
+import { Client, GuildTextBasedChannel, MessageFlags, } from "discord.js"
 import { deleteFollowTweet, getAllFollowTweet, updateFollowTweet } from "../sys/DB-Engine/links/followTweet"
 import { debug, error } from "../sys/logging";
 import urlStatusManager from "../sys/embedding/domainChecker";
 import { getGuildReplacementConfig } from "../sys/DB-Engine/links/Embed";
 import { bskyEngine } from "./blusky";
 import { xTwitterCustom } from "../sys/embedding/Apis/Alttwitter";
+import { stillOn } from "../sys/zGears/auxiliares";
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function initFolloX(C: Client): Promise<void> {
@@ -18,11 +19,11 @@ export async function tweEngine(cli: Client): Promise<void> {
         const dta = await getAllFollowTweet();
         if (!dta) return;
         // Kche
-        let kacheCh: { [key: string]: { chT: TextChannel | null } } = {};
-        let kacheDom: { [key: string]: { dom: string | null } } = {};
+        const kacheCh: Record<string, GuildTextBasedChannel | null> = {};
+        const kacheDom: Record<string, string | null> = {};
         // BDelepa
         const depurBD = async (guildy: string, idBDpos: number, idDelKach: string) => {
-            kacheCh[idDelKach] = { chT: null };
+            kacheCh[idDelKach] = null;
             try {
                 await deleteFollowTweet({ gremio: guildy, id: idBDpos });
                 debug(`Borrando de la BD el X/Twitter con ID: ${idBDpos} del server: ${guildy}`, "BG.TwitterFollow");
@@ -33,38 +34,29 @@ export async function tweEngine(cli: Client): Promise<void> {
             const { id, guild_id, canal, xUser, lastPost, Domain, lang, onlyMedia } = X;
             const idKch = `${guild_id}-${canal}`;
 
-            let chToSend: TextChannel | null = null, dominio: string | null;
-            if (idKch in kacheCh) { chToSend = kacheCh[idKch].chT; }
+            let chToSend: GuildTextBasedChannel | null = null, dominio: string | null;
+            if (idKch in kacheCh) { chToSend = kacheCh[idKch]; }
             else {
-                let guild: Guild;
-                try { guild = await cli.guilds.fetch(guild_id) }
-                catch (e: any) {
-                    if (e.code === 10004 || e.code === 50001) { await depurBD(guild_id, id, idKch) };
+                const chekSrvCh = await stillOn({ cli, chkGuiId: guild_id, chkChID: canal });
+                if (!chekSrvCh.ok) {
+                    if (chekSrvCh.erase) { await depurBD(guild_id, id, idKch); }
                     continue;
                 }
 
-                let channel: TextChannel | null = null;
-                try { channel = await guild.channels.fetch(canal) as TextChannel }
-                catch (e: any) {
-                    if (e.code === 404 || e.code === 10003 || e.code === 50001) { await depurBD(guild_id, id, idKch) }
-                    else { debug(`Error al comrobar el ${canal} en ${guild_id}: ${e.message}`, "BG.TwitterFollow") };
-                    continue;
-                }
-
-                if (!channel) { await depurBD(guild_id, id, idKch); continue }
-
-                kacheCh[idKch] = { chT: channel }; chToSend = channel;
+                const ch = chekSrvCh.canale as GuildTextBasedChannel;
+                kacheCh[idKch] = ch;
+                chToSend = ch;
             }
 
-            if (!chToSend) { await depurBD(guild_id, id, idKch); continue }
+            if (!chToSend) continue;
 
-            if (guild_id in kacheDom) { dominio = kacheDom[guild_id].dom; }
+            if (guild_id in kacheDom) { dominio = kacheDom[guild_id]; }
             else {
                 const gldCnfDom = await getGuildReplacementConfig(guild_id);
                 const hasCustom = Domain ? Domain : (gldCnfDom.get("Twitter | X")?.custom_url ?? null);
                 const localDomain = urlStatusManager.getActiveUrl("twitter") ?? null;
                 const outDom = hasCustom ? hasCustom : localDomain;
-                kacheDom[guild_id] = { dom: outDom }; dominio = outDom;
+                kacheDom[guild_id] = outDom; dominio = outDom;
             }
 
             await wait(100);
@@ -76,7 +68,7 @@ export async function tweEngine(cli: Client): Promise<void> {
 }
 
 // === msgSender === //
-interface msgSendIn { Api: { lisTweets: string[], lastPosID: string } | null, channel: TextChannel, guild: string, xUser: string, domain: string | null, tl: string | null }
+interface msgSendIn { Api: { lisTweets: string[], lastPosID: string } | null, channel: GuildTextBasedChannel, guild: string, xUser: string, domain: string | null, tl: string | null }
 async function msgSend(out: msgSendIn): Promise<void> {
     try {
         if (!out.Api || out.Api.lisTweets.length === 0) return;
@@ -112,17 +104,22 @@ async function msgSend(out: msgSendIn): Promise<void> {
 
                 if (freshMsg && !embOk) {
                     const x = new xTwitterCustom();
-                    const tryMeltrys = await x.process(lisTweets[i], freshMsg);
+                    const useUrl = lisTweets[i];
+                    const tryMeltrys = await x.process((tl ? `${useUrl}/${tl}` : useUrl), freshMsg);
                     try {
                         if (!tryMeltrys.ok || !tryMeltrys.pack) throw new Error("Fallo en respuesta de xTwitterCustom");
                         const packData = Object.values(tryMeltrys.pack[0])[0];
                         if (!packData.components || packData.components.length === 0) throw new Error("No data Pack xTwitterCustom");
                         await freshMsg.delete().catch(() => { });
-                        if (packData) { await channel.send({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 }) };
+                        if (packData) {
+                            const preMsg = await channel.send(`> ## Nuevo tweet de @${xUser} \n ***Usando Meltryllis Api***`)
+                            preMsg ? await preMsg.reply({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 }) :
+                                await channel.send({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 });
+                        };
                     } catch (e) {
                         debug(`Fallo al usar MeltrysApi ${e}`, "BG.TwitterFollow")
                         await freshMsg.delete().catch(() => { });
-                        await channel.send({ content: `> ## Nuevo [tweet](${lisTweets[i]}) de @${xUser} \n> ***No genero embed, devuelto link original***` }).catch(() => { });
+                        await channel.send({ content: `> ## Nuevo [tweet](${useUrl}) de @${xUser} \n> ***No genero embed, devuelto link original***` }).catch(() => { });
                     }
                 }
             }

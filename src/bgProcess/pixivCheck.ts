@@ -1,10 +1,11 @@
-import { Client, Guild, TextChannel } from "discord.js";
+import { Client, GuildTextBasedChannel } from "discord.js";
 import { deletePixi, getAllPixis, updatePixi } from "../sys/DB-Engine/links/PixivData";
 import { debug, error } from "../sys/logging";
 import urlStatusManager from "../sys/embedding/domainChecker";
 import { getGuildReplacementConfig } from "../sys/DB-Engine/links/Embed";
 import axios, { AxiosResponse } from "axios";
 import { Proxy } from "../sys/zGears/newAux";
+import { stillOn } from "../sys/zGears/auxiliares";
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 let galleta: string | null = null;
@@ -20,7 +21,7 @@ export async function initPixivCheck(cli: Client) {
 // ============================================================== core ============================================================== //
 interface apichek {
     id: number,
-    ch: TextChannel,
+    ch: GuildTextBasedChannel,
     guild: string,
     doman: string | null,
     pUser: string,
@@ -40,11 +41,11 @@ async function enginePixi(cli: Client) {
         const data = await getAllPixis()
         if (!data.length) return;
         // kche
-        let kacheCh: { [key: string]: { chT: TextChannel | null } } = {};
-        let kacheDom: { [key: string]: { dom: string | null } } = {};
+        const kacheCh: Record<string, GuildTextBasedChannel | null> = {};
+        const kacheDom: Record<string, string | null> = {};
         // BDelepa
         const depurBD = async (guildy: string, idBDpos: number, idDelKach: string) => {
-            kacheCh[idDelKach] = { chT: null };
+            kacheCh[idDelKach] = null;
             try {
                 await deletePixi({ gldPi: guildy, idPi: idBDpos });
                 debug(`Borrando de la BD el Pixiv con ID: ${idBDpos} del server: ${guildy}`, "BG.PixivFollow");
@@ -54,38 +55,29 @@ async function enginePixi(cli: Client) {
         for (const pixi of data) {
             const idKch = `${pixi.guild_id}-${pixi.chGuild}`;
 
-            let chToSend: TextChannel | null = null, dominio: string | null;
-            if (idKch in kacheCh) { chToSend = kacheCh[idKch].chT; }
+            let chToSend: GuildTextBasedChannel | null = null, dominio: string | null;
+            if (idKch in kacheCh) { chToSend = kacheCh[idKch]; }
             else {
-                let guild: Guild;
-                try { guild = await cli.guilds.fetch(pixi.guild_id) }
-                catch (e: any) {
-                    if (e.code === 10004 || e.code === 50001) { await depurBD(pixi.guild_id, pixi.id, idKch) };
+                const chekSrvCh = await stillOn({ cli, chkGuiId: pixi.guild_id, chkChID: pixi.chGuild });
+                if (!chekSrvCh.ok) {
+                    if (chekSrvCh.erase) { await depurBD(pixi.guild_id, pixi.id, idKch); }
                     continue;
                 }
 
-                let channel: TextChannel | null = null;
-                try { channel = await guild.channels.fetch(pixi.chGuild) as TextChannel }
-                catch (e: any) {
-                    if (e.code === 404 || e.code === 10003 || e.code === 50001) { await depurBD(pixi.guild_id, pixi.id, idKch) }
-                    else { debug(`Error al comrobar el ${pixi.chGuild} en ${pixi.guild_id}: ${e.message}`, "BG.PixivFollow") };
-                    continue;
-                }
-
-                if (!channel) { await depurBD(pixi.guild_id, pixi.id, idKch); continue }
-
-                kacheCh[idKch] = { chT: channel }; chToSend = channel;
+                const ch = chekSrvCh.canale as GuildTextBasedChannel;
+                kacheCh[idKch] = ch;
+                chToSend = ch;
             }
 
-            if (!chToSend) { await depurBD(pixi.guild_id, pixi.id, idKch); continue }
+            if (!chToSend) continue;
 
-            if (pixi.guild_id in kacheDom) { dominio = kacheDom[pixi.guild_id].dom; }
+            if (pixi.guild_id in kacheDom) { dominio = kacheDom[pixi.guild_id] }
             else {
                 const gldCnfDom = await getGuildReplacementConfig(pixi.guild_id);
                 const hasCustom = (gldCnfDom.get("Pixiv")?.custom_url ?? null);
                 const localDomain = urlStatusManager.getActiveUrl("pixiv") ?? null;
                 const outDom = hasCustom ? hasCustom : localDomain;
-                kacheDom[pixi.guild_id] = { dom: outDom }; dominio = outDom;
+                kacheDom[pixi.guild_id] = outDom; dominio = outDom;
             }
 
             await wait(300);
@@ -176,7 +168,7 @@ async function proccesData(dta: apichek) {
 // ============================================================== sndMSG ============================================================== //
 interface outMsg {
     gld: string,
-    ch: TextChannel,
+    ch: GuildTextBasedChannel,
     pUser: string,
     pUserName: string,
     postList: { illusList: string[], mangaList: string[], novelList: string[] },

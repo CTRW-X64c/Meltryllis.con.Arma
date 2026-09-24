@@ -181,6 +181,16 @@ function aQuest() {
     return aviso;
 }
 
+function lQusty() {
+    const cmpDay = 23 * 60 * minuts; // Fix por chek de 24hrs
+    const now = getNowJST() + cmpDay, tokyoDate = new Date(now);
+    const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
+    // === msg === //
+    let aviso = `## PREAVISO DE RESET DE MISONES: \n\n# ${emojis.Monthly} MENSUALES!!`
+    if ([2, 5, 8, 11].includes(month)) aviso += `\n# ${emojis.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre 
+    return aviso;
+}
+
 // === timeDateConvert === //
 export function turnDate(data: number) {
     const fixTime = data + 20_000; // añadido tiempo de compensacion
@@ -360,6 +370,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/rhaHOhq.png" }
             };
+        // ======================================== QUEST ======================================== //
         case "quest":
             const timeQuest = leftTimeConv({ type: 'daily', hours: 5 });
             const tx = aQuest();
@@ -376,17 +387,18 @@ export function rawPreset(type: notifyType): presetsKC | null {
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/pJZdK4i.jpeg" }
             };
-        case "qQuest": // pre aviso qQuest
+        case "lQuest": // pre aviso lQuest
+            const reset = lQusty()
             return {
-                title: { A: "RESET DE MISIONES TRIMESTRALES (QUARTERLY)!", B: "TBA" },
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_title"), B: "TBA" },
                 desc: {
-                    ini: `# ${emojis.Quarterly} REINICIO EN 12HRS! `,
+                    ini: `${reset} \n\n ## > RESET EN 24 HRS`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
                 field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
-                urlPic: { A: "https://i.imgur.com/pJZdK4i.jpeg" }
+                urlPic: { A: "https://i.imgur.com/2pCJyiW.jpeg" }
             };
         // ======================================== OEM NTFY ======================================== //
         case "oem":
@@ -406,9 +418,9 @@ export function rawPreset(type: notifyType): presetsKC | null {
             };
         case "loem": // pre aviso OEM
             return {
-                title: { A: "EXTRA OPERACIONES!", B: "TBA" },
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_title"), B: "TBA" },
                 desc: {
-                    ini: `# REINICIO EN 12HRS!!`,
+                    ini: `# REINICIO EN 24 HRS!!`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
                 field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
@@ -436,7 +448,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
             return {
                 title: { A: "EXPEDICIONES MENSUALES!", B: "TBA" },
                 desc: {
-                    ini: `# REINICIO EN 12HRS!!`,
+                    ini: `# REINICIO EN 24 HRS!!`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
                 field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],

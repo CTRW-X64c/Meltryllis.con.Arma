@@ -1,8 +1,9 @@
 // src/bgProcess/KanCron.ts
 import { Client, EmbedBuilder, GuildTextBasedChannel, Message, Role } from 'discord.js';
 import { debug, error, info } from '../sys/logging';
-import { startKC, data, kcheMaint, kchTempMSg, loadKchMsg, delKchTemp } from '../sys/DB-Engine/links/KancolleBD';
+import { startKC, data, kcheMaint, kchTempMSg, loadKchMsg, delKchTemp, delBD } from '../sys/DB-Engine/links/KancolleBD';
 import { leftTimeConv, mantChk, rawPreset } from "../sys/zGears/kc_aux";
+import { stillOn } from '../sys/zGears/auxiliares';
 
 let CLIENTE: Client | null = null;
 const minuts = 60 * 1_000;
@@ -31,7 +32,7 @@ export async function initKC(cli: Client) {
 };
 
 // ========================================================= engineTimmers ========================================================= //
-export type notifyType = 'pvp' | 'quest' | 'qQuest' | 'oem' | 'loem' | 'mExp' | 'lmExp' | 'newMante' | 'maintStart' | 'mntEnd';
+export type notifyType = 'pvp' | 'quest' | 'lQuest' | 'oem' | 'loem' | 'mExp' | 'lmExp' | 'newMante' | 'maintStart' | 'mntEnd';
 let notifyTimers = new Map<notifyType, NodeJS.Timeout>();
 async function timmerAv() {
     /* =============== pvp =============== */
@@ -41,8 +42,8 @@ async function timmerAv() {
     const questStr = () => { teki("quest") };
     if (!notifyTimers.has('quest')) questStr();
     // // qQuest
-    const qQuestStr = () => { teki("qQuest", true) };
-    if (!notifyTimers.has('qQuest')) qQuestStr();
+    const qQuestStr = () => { teki("lQuest", true) };
+    if (!notifyTimers.has('lQuest')) qQuestStr();
     /* =============== oem =============== */
     const oemStr = () => { teki("oem") };
     if (!notifyTimers.has('oem')) oemStr();
@@ -57,18 +58,18 @@ async function timmerAv() {
     if (!notifyTimers.has('lmExp')) mExpLong();
 }
 // === setTimmers === //
-function teki(tpy: notifyType, h12?: boolean) {
+function teki(tpy: notifyType, long?: boolean) {
     let toChk: number;
     switch (tpy) {
         case 'pvp': { toChk = leftTimeConv({ type: 'daily', hours: [3, 15], minutes: 0 }); break };
         case 'quest': { toChk = leftTimeConv({ type: 'daily', hours: 5, minutes: 0 }); break };
-        case 'qQuest': { toChk = leftTimeConv({ type: 'quarterly', targetDay: 1, hours: 5, minutes: 0 }); break };
+        case 'lQuest': { toChk = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5, minutes: 0 }); break };
         case 'oem': case 'loem': { toChk = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0, minutes: 0 }); break };
         case 'mExp': case 'lmExp': { toChk = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12, minutes: 0 }); break };
         default: { error(`[KanCron]: Tipo introducido sin parametro: ${tpy}`); return }
     }
-    if (toChk > 18 * hours) return;
-    toChk = h12 ? Math.max(0, toChk - (12 * hours)) : Math.max(0, toChk - hours);
+    if (toChk > 30 * hours) return;
+    toChk = long ? Math.max(0, toChk - (24 * hours)) : Math.max(0, toChk - hours);
     if (toChk <= 0 || toChk < 4) { debug(`[KanCron]: ${tpy} Paso horario de notificacion`); return }
     const timer = setTimeout(() => { notifyTimers.delete(tpy); notifyKC(tpy); }, toChk);
     notifyTimers.set(tpy, timer);
@@ -77,32 +78,38 @@ function teki(tpy: notifyType, h12?: boolean) {
 
 // ========================================================= Main ========================================================= //
 const chkType = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.av], /*QUEST*/['quest', cfg => cfg.quest.av], ['qQuest', cfg => cfg.quest.av],
+    ['pvp', cfg => cfg.pvp.av], /*QUEST*/['quest', cfg => cfg.quest.av], ['lQuest', cfg => cfg.quest.av],
     /*OEM*/['oem', cfg => cfg.oem.av], ['loem', cfg => cfg.oem.av],
     /*EXP*/['mExp', cfg => cfg.mExp.av], ['lmExp', cfg => cfg.mExp.av],
     /*Mante*/['newMante', cfg => cfg.mnt.av], ['maintStart', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av]]);
 
 const chkRole = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf], ['qQuest', cfg => cfg.quest.ntf],
+    ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf], ['lQuest', cfg => cfg.quest.ntf],
     /*OEM*/['oem', cfg => cfg.oem.ntf], ['loem', cfg => cfg.oem.ntf],
     /*EXP*/['mExp', cfg => cfg.mExp.ntf], ['lmExp', cfg => cfg.mExp.ntf],
     /*Mante*/['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
 
 /* === Core === */
 export async function notifyKC(type: notifyType) {
+    if (data.size === 0) return;
     for (const [guildId, configs] of data.entries()) {
         for (const cfg of configs) {
             const check = chkType.get(type), checkRol = chkRole.get(type)
             if (!check || !check(cfg)) continue;
             try {
-                const guild = await CLIENTE!.guilds.fetch(guildId).catch(() => null);
-                if (!guild) continue;
-                const channel = await guild.channels.fetch(cfg.channel).catch(() => null);
-                if (!channel || !channel.isTextBased()) continue;
-                const txtCh = channel as GuildTextBasedChannel;
-                let chkRol: Role | null = null;
-                if (cfg.role && checkRol && checkRol(cfg)) chkRol = await guild.roles.fetch(cfg.role).catch(() => null)
-                msgMgr({ ch: txtCh, rol: chkRol, type: type }).catch(err => error(`[${type}] ${guildId}: ${err}`, "KanCron"));
+                let chkRol: Role | null = null, channel: GuildTextBasedChannel;
+                const chkSout = await stillOn({ cli: CLIENTE!, chkChID: cfg.channel, chkGuiId: cfg.guild, roley: cfg.role });
+                if (!chkSout.ok) {
+                    if (chkSout.erase) { delBD(cfg.guild).catch((ex: any) => { debug(`Error al borrar el feed ${cfg.guild}: ${ex.message}`, "KanCron") }); }
+                    debug(`${chkSout.msg}`, "KanCron");
+                    continue;
+                }
+                else {
+                    channel = chkSout.canale as GuildTextBasedChannel;
+                    if (cfg.role && !chkSout.rolito) { cfg.role = null }
+                    else if (cfg.role && checkRol && checkRol(cfg)) chkRol = chkSout.rolito
+                }
+                msgMgr({ ch: channel, rol: chkRol, type: type }).catch(err => error(`[${type}] ${guildId}: ${err}`, "KanCron"));
             } catch (err) { error(`Error al notificar: ${guildId} ${err}`); }
         }
     }
@@ -233,7 +240,7 @@ async function msgMgr(dat: msgBuild) {
     if (dat.rol) { rMnt = `AVISO: ${dat.rol}!`; del30 = (30 * minuts) - 20_000; del15 = (15 * minuts) - 20_000; }
     if (dat.type === "mntEnd") del30 = hours;
     const preNtfy = (["loem", "lmExp", "qQuest"] as notifyType[]).includes(dat.type);
-    if (preNtfy) del30 = 8 * hours;
+    if (preNtfy) del30 = 24 * hours;
     /* Now */
     await msgSnd({ ch: dat.ch, title: prst.title.A, fields: prst.field, desc: prst.desc.ini, pic: prst.urlPic.A, rolOn: rMnt, color: 0xFFA500, url: prst.url, delAft: del30 });
     /* 30 min */

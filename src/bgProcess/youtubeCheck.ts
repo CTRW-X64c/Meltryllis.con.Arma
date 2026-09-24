@@ -1,11 +1,12 @@
 // src/client/coreCommands/youtubeCheck.ts
 import Parser from 'rss-parser';
 import { error, debug } from '../sys/logging';
-import { YouTubeFeed, getYouTubeFeeds, updateYouTubeFeedLastVideo } from '../sys/DB-Engine/links/Youtube';
-import { Client, TextChannel } from 'discord.js';
+import { YouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, updateYouTubeFeedLastVideo } from '../sys/DB-Engine/links/Youtube';
+import { Client, Guild, GuildTextBasedChannel } from 'discord.js';
 import i18next from 'i18next';
 import axios from 'axios';
 import { Proxy } from '../sys/zGears/newAux';
+import { stillOn } from '../sys/zGears/auxiliares';
 
 export function extractVideoId(video: any): string | null {
   if (video.id) {
@@ -63,6 +64,18 @@ class YTRssService {
     try {
       const feeds = await getYouTubeFeeds(guildId);
       for (const feed of feeds) {
+        let channel: GuildTextBasedChannel, guild: Guild;
+
+        const chkSout = await stillOn({ cli: this.client, chkChID: feed.channel_id, chkGuiId: feed.guild_id });
+        if (!chkSout.ok) {
+          if (chkSout.erase) { await removeYouTubeFeed(feed.guild_id, feed.youtube_channel_name).catch((ex: any) => { error(`Error al borrar el feed ${feed.id}: ${ex}`, "YoutubeRSSCheck") }) }
+          debug(`${chkSout.msg}`, "YoutubeRSSCheck");
+          return;
+        } else {
+          channel = chkSout.canale as GuildTextBasedChannel;
+          guild = chkSout.gremio!;
+        };
+
         const delay = Math.floor(Math.random() * 4000) + 3000;
         await wait(delay);
 
@@ -84,7 +97,7 @@ class YTRssService {
         if (!videoId) { debug(`No se pudo extraer el ID del ultimo video de ${feed.youtube_channel_name}`); continue }
 
         if (!feed.last_video_id || feed.last_video_id !== videoId) {
-          if (feed.last_video_id) { await this.NewVideo(feed, latestVideo, videoId); }
+          if (feed.last_video_id) { await this.NewVideo(feed, latestVideo, videoId, channel, guild); }
           await updateYouTubeFeedLastVideo(feed.id, videoId, feed.guild_id);
           debug(`Ultimo video de ${feed.youtube_channel_name}: ${videoId}`);
         }
@@ -92,14 +105,7 @@ class YTRssService {
     } catch (e: any) { error(`Error en loop YoutubeRSS: ${e.message}`); }
   }
 
-
-  private async NewVideo(feed: YouTubeFeed, video: any, videoId: string): Promise<void> {
-    const guild = this.client.guilds.cache.get(feed.guild_id);
-    if (!guild) { debug(`No se encontro el gremio: ${feed.guild_id} `,); return; }
-
-    const channel = guild.channels.cache.get(feed.channel_id) as TextChannel;
-    if (!channel) { debug(`No se encontro el ${feed.channel_id} en ${guild.name}`); return; }
-
+  private async NewVideo(feed: YouTubeFeed, video: any, videoId: string, channel: GuildTextBasedChannel, guild: Guild): Promise<void> {
     // añadido filtro de caracteres y largo de titulo, ya que rompe los hyperlinks [{{a2}}]({{a3}})
     const videoUrl = video.link || `https://www.youtube.com/watch?v=${videoId}`;
     const MAX_LENGTH = 50;

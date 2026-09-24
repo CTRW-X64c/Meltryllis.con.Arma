@@ -1,8 +1,9 @@
-import { Client, Guild, GuildTextBasedChannel } from "discord.js";
+import { Client, GuildTextBasedChannel } from "discord.js";
 import { deleteBskyFollow, getAllBlueskya, updateBskyLastPost } from "../sys/DB-Engine/links/blueSkya";
 import { debug, error } from "../sys/logging";
 import { getGuildReplacementConfig } from "../sys/DB-Engine/links/Embed";
 import urlStatusManager from "../sys/embedding/domainChecker";
+import { stillOn } from "../sys/zGears/auxiliares";
 
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -10,13 +11,13 @@ const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function bskyEngine(cli: Client): Promise<void> {
     try {
         const dta = await getAllBlueskya();
-        if (!dta) return;
+        if (!dta || dta.length === 0) return;
         // Kche
-        let kacheCh: { [key: string]: { chT: GuildTextBasedChannel | null } } = {};
-        let kacheDom: { [key: string]: { dom: string | null } } = {};
+        const kacheCh: Record<string, GuildTextBasedChannel | null> = {};
+        const kacheDom: Record<string, string | null> = {};
         // BDelepa
         const depurBD = async (guildy: string, idBDpos: number, idDelKach: string) => {
-            kacheCh[idDelKach] = { chT: null };
+            kacheCh[idDelKach] = null;
             try {
                 await deleteBskyFollow({ gremio: guildy, id: idBDpos });
                 debug(`Borrando de la BD el Blueskya con ID: ${idBDpos} del server: ${guildy}`, "BG.bskyFollow");
@@ -27,37 +28,28 @@ export async function bskyEngine(cli: Client): Promise<void> {
             const idKch = `${bky.guild_id}-${bky.chanel}`;
 
             let chToSend: GuildTextBasedChannel | null = null, dominio: string | null;
-            if (idKch in kacheCh) { chToSend = kacheCh[idKch].chT; }
+            if (idKch in kacheCh) { chToSend = kacheCh[idKch]; }
             else {
-                let guild: Guild;
-                try { guild = await cli.guilds.fetch(bky.guild_id) }
-                catch (e: any) {
-                    if (e.code === 10004 || e.code === 50001) { await depurBD(bky.guild_id, bky.id, idKch) };
+                const chekSrvCh = await stillOn({ cli, chkGuiId: bky.guild_id, chkChID: bky.chanel });
+                if (!chekSrvCh.ok) {
+                    if (chekSrvCh.erase) { await depurBD(bky.guild_id, bky.id, idKch); }
                     continue;
                 }
 
-                let channel: GuildTextBasedChannel | null = null;
-                try { channel = await guild.channels.fetch(bky.chanel) as GuildTextBasedChannel }
-                catch (e: any) {
-                    if (e.code === 404 || e.code === 10003 || e.code === 50001) { await depurBD(bky.guild_id, bky.id, idKch) }
-                    else { debug(`Error al comrobar el ${bky.chanel} en ${bky.guild_id}: ${e.message}`, "BG.bskyFollow") };
-                    continue;
-                }
-
-                if (!channel) { await depurBD(bky.guild_id, bky.id, idKch); continue }
-
-                kacheCh[idKch] = { chT: channel }; chToSend = channel;
+                const ch = chekSrvCh.canale as GuildTextBasedChannel;
+                kacheCh[idKch] = ch;
+                chToSend = ch;
             }
 
-            if (!chToSend) { await depurBD(bky.guild_id, bky.id, idKch); continue }
+            if (!chToSend) continue;
 
-            if (bky.guild_id in kacheDom) { dominio = kacheDom[bky.guild_id].dom; }
+            if (bky.guild_id in kacheDom) { dominio = kacheDom[bky.guild_id]; }
             else {
                 const gldCnfDom = await getGuildReplacementConfig(bky.guild_id);
                 const hasCustom = (gldCnfDom.get("Bluesky")?.custom_url ?? null);
                 const localDomain = urlStatusManager.getActiveUrl("bluesky") ?? null;
                 const outDom = hasCustom ? hasCustom : localDomain;
-                kacheDom[bky.guild_id] = { dom: outDom }; dominio = outDom;
+                kacheDom[bky.guild_id] = outDom; dominio = outDom;
             }
 
             await wait(100);
@@ -65,7 +57,7 @@ export async function bskyEngine(cli: Client): Promise<void> {
                 guild: bky.guild_id, ch: chToSend, dominio: dominio, lang: bky.lang, usrID: bky.bskyUserId, usrName: bky.bskyUserName, modo: bky.modo, lastPost: bky.lastPost
             });
         }
-    } catch (e) { error(`Fallo el checkTwitterFollow ${e}`, "BG.TwitterFollow") }
+    } catch (e) { error(`Fallo el bskyEngine ${e}`, "BG.bskyFollow") }
 }
 
 //========================================== apiGet ========================================== //

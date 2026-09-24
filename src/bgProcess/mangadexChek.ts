@@ -2,6 +2,7 @@
 import { Client, GuildTextBasedChannel } from 'discord.js';
 import { getAllMangadexFeeds, updateMangadexFeedLastChapter, MangadexFeed, removeMangadexFeed } from '../sys/DB-Engine/links/Mangadex';
 import { error, debug } from '../sys/logging';
+import { stillOn } from '../sys/zGears/auxiliares';
 
 const BATCH_SIZE = 10; // Número de feeds a procesar por ciclo
 let currentFeedIndex = 0;
@@ -41,18 +42,15 @@ function parseMangadexRSS(xml: string): RSSItem[] {
 }
 
 async function processSingleFeed(client: Client, feed: MangadexFeed) {
-    let channel: GuildTextBasedChannel
-    try { channel = await client.channels.fetch(feed.channel_id) as GuildTextBasedChannel; }
-    catch (e: any) {
-        if (e.code === 10003 || e.code === 404 || e.code === 50001) {
-            try { await removeMangadexFeed(feed.guild_id, feed.id) }
-            catch (ex) { debug(`Error al borrar el feed ${feed.id}: ${ex}`, "MangadexCheck") }
-        }
-        debug(`[Mangadex Check] No se pudo enviar mensaje al canal ${feed.channel_id}: ${e.message}`, "MangadexCheck")
-        return;
-    }
-
     try {
+        let channel: GuildTextBasedChannel;
+        const chkSout = await stillOn({ cli: client, chkChID: feed.channel_id, chkGuiId: feed.guild_id });
+        if (!chkSout.ok) {
+            if (chkSout.erase) { await removeMangadexFeed(feed.guild_id, feed.id).catch((ex: any) => { debug(`Error al borrar el feed ${feed.id}: ${ex.message}`, "MangadexCheck") }) }
+            debug(`${chkSout.msg}`, "MangadexCheck");
+            return;
+        } else { channel = chkSout.canale as GuildTextBasedChannel };
+
         const response = await fetch(feed.RSS_manga, { headers: { 'User-Agent': 'MeltryllisBot/1.2.7' } });
         if (!response.ok) {
             debug(`[Mangadex Check] Error HTTP ${response.status} en feed ${feed.id}`, "MangadexCheck");
