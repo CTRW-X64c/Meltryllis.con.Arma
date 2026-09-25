@@ -45,7 +45,7 @@ export class xTwitterCustom implements ApiHandler {
         if (!xData) return { ok: false };
         if (!xData.hasMedias && !xData.tweetDesc) return { ok: false };
         try {
-            let files: AttachmentBuilder[] = [], components: any[] = [];
+            let files: AttachmentBuilder[] = [], filesQuo: AttachmentBuilder[] = [], components: any[] = [];
             // Formato plano
             const statTxt = `❤️: **${xData.likes}** | 🔁: **${xData.reTwi}** | 💬: **${xData.resp}** | 👀: **${xData.views}**`
             const TopTxt = `> ### 👤 ${xData.userName.length > 28 ? xData.userName.slice(0, 25) + `...` : xData.userName} ([@${xData.showName}](${xData.urlPost})) \n> ${statTxt}`
@@ -74,6 +74,16 @@ export class xTwitterCustom implements ApiHandler {
 
             const outText = textBlocks.length > 0 ? textBlocks.join("\n\n") : undefined;
 
+            let outTxtQuote: string | undefined = undefined;
+            if (xData.tweetQuotes && (xData.tweetQuotes.author || xData.tweetQuotes.url || xData.tweetQuotes.txt)) {
+                const statTxtQuo = `> ❤️: **${xData.tweetQuotes.stdst.likes}** | 🔁: **${xData.tweetQuotes.stdst.reTwi}** | 💬: **${xData.tweetQuotes.stdst.resp}** | 👀: **${xData.tweetQuotes.stdst.views}**`
+                const urlPro = (xData.tweetQuotes.url && xData.tweetQuotes.name && xData.tweetQuotes.author) ? (`> ** 👤 ${xData.tweetQuotes.author.length > 28 ? xData.tweetQuotes.author.slice(0, 25) + `...` : xData.tweetQuotes.author} ([@${xData.tweetQuotes.name}](${xData.tweetQuotes.url}))**`) : "Usuario desconocido!!";
+                const txtQuo = xData.tweetQuotes.txt ? xData.tweetQuotes.txt : "...";
+                outTxtQuote = `**Citado:** \n ${urlPro} \n ${statTxtQuo} \n\n ${txtQuo}`;
+            }
+
+            // originalMedia
+            const gallegry = new MediaGalleryBuilder();
             xData.bufferVideo.forEach((buffer, index) => {
                 const fileName = `Xvideo_${xId}_${index}.mp4`;
                 files.push(new AttachmentBuilder(buffer, { name: fileName }));
@@ -86,10 +96,7 @@ export class xTwitterCustom implements ApiHandler {
                 const fileName = `Ximg_${xId}_${index}.jpg`;
                 files.push(new AttachmentBuilder(buffer, { name: fileName }));
             });
-
             // todo esto se hizo porque alguien reporto que no respetaba el modo spoiler 
-            const gallegry = new MediaGalleryBuilder();
-            const parte = new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small);
 
             for (const file of files) {
                 gallegry.addItems(new MediaGalleryItemBuilder().setURL(`attachment://${file.name}`))
@@ -101,17 +108,50 @@ export class xTwitterCustom implements ApiHandler {
                 }
             }
 
+            // QuoMedia
+            const gallegryQuo = new MediaGalleryBuilder();
+            xData.tweetQuotes.kcheMedia.vidQuo.forEach((buffer, index) => {
+                const fileName = `Xvideo_Quo_${xId}_${index}.mp4`;
+                filesQuo.push(new AttachmentBuilder(buffer, { name: fileName }));
+            });
+            xData.tweetQuotes.kcheMedia.gifQuo.forEach((buffer, index) => {
+                const fileName = `Xgif_Quo_${xId}_${index}.webp`;
+                filesQuo.push(new AttachmentBuilder(buffer, { name: fileName }));
+            });
+            xData.tweetQuotes.kcheMedia.imQuo.forEach((buffer, index) => {
+                const fileName = `Ximg_Quo_${xId}_${index}.jpg`;
+                filesQuo.push(new AttachmentBuilder(buffer, { name: fileName }));
+            });
+
+            for (const file of filesQuo) {
+                gallegryQuo.addItems(new MediaGalleryItemBuilder().setURL(`attachment://${file.name}`))
+            }
+
+            if (xData.tweetQuotes?.kcheMedia.rawLink && xData.tweetQuotes?.kcheMedia.rawLink.length > 0) {
+                for (const url of xData.tweetQuotes?.kcheMedia.rawLink) {
+                    gallegryQuo.addItems(new MediaGalleryItemBuilder().setURL(url));
+                }
+            }
+
+            //ensambler
+            const parte = new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small);
             const spoiler = isSpoiler === true;
             const container = new ContainerBuilder();
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(TopTxt)).addSeparatorComponents(parte);
             if (outText) { container.addTextDisplayComponents(new TextDisplayBuilder().setContent(outText)) };
             if (gallegry.items.length > 0) container.addMediaGalleryComponents(gallegry);
+            if (outTxtQuote) { container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(outTxtQuote)); }
+            if (gallegryQuo.items.length > 0) { container.addMediaGalleryComponents(gallegryQuo); }
             container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(BottomTxt)).setAccentColor(0x000055)
                 .setSpoiler(spoiler);
 
             components.push(container);
 
-            return { ok: true, pack: [{ [xId]: { files: files, components: components, isV2: true } }] };
+            let outFiles: AttachmentBuilder[] = [];
+            if (files) outFiles.push(...files);
+            if (filesQuo) outFiles.push(...filesQuo);
+
+            return { ok: true, pack: [{ [xId]: { files: outFiles, components: components, isV2: true } }] };
 
         } catch (e) {
             error(`[xTwitterCustom] Error al enviar:`);
@@ -125,6 +165,11 @@ interface twitterData {
     urlPost: string, showName: string, userName: string,
     likes: string, resp: string, reTwi: string, views: string, avatarPic: string,
     hasMedias: boolean, tweetDesc?: string, tweetTl?: { oTxT: string, oLng: string },
+    tweetQuotes: {
+        txt?: string, author?: string, url?: string, name?: string,
+        kcheMedia: { rawLink: string[], imQuo: Buffer[], vidQuo: Buffer[], gifQuo: Buffer[] },
+        stdst: { likes: string, resp: string, reTwi: string, views: string }
+    },
     rawUrl: string[], bufferPics: Buffer[], bufferVideo: Buffer[], bufferGifs: Buffer[]
 }
 
@@ -136,13 +181,6 @@ interface ApiFxVido {
 
 interface ApiFxResponse {
     code: number;
-    author?: {
-        name: string;
-        screen_name: string;
-        url: string;
-        description: string;
-        avatar_url?: string;
-    };
     status?: {
         url: string;
         text?: string;
@@ -157,7 +195,33 @@ interface ApiFxResponse {
         translation?: {
             text?: string
         }
+        // autor
+        author?: {
+            name: string;
+            screen_name: string;
+            url: string;
+            description: string;
+            avatar_url?: string;
+        };
+        // quote
+        quote?: {
+            url: string;
+            text: string;
+            author: {
+                screen_name: string;
+                name: string;
+            }
+            likes?: number;
+            replies?: number;
+            reposts?: number;
+            views?: number;
+            media?: {
+                photos?: Array<{ url: string; }>;
+                videos?: ApiFxVido[];
+            }
+        }
     };
+
 }
 
 interface tlInt { txt?: string, lang?: string }
@@ -173,9 +237,13 @@ class xTwitter {
             const Data = await call.json() as ApiFxResponse;
             if (!Data || Data.code !== 200) return null;
             let imageBuffers: Buffer[] = [], videoBuffers: Buffer[] = [], gifBuffers: Buffer[] = [], rawLinks: string[] = [], hasMedia = false;
+            let imQuo: Buffer[] = [], vidQuo: Buffer[] = [], gifQuo: Buffer[] = [], rawLink: string[] = []
 
-            const picURLs = Data.status?.media?.photos?.map(p => p.url);
             const videoURLs = Data.status?.media?.videos?.map(v => v);
+            const picURLs = Data.status?.media?.photos?.map(p => p.url);
+
+            const quoVideoURLs = Data.status?.quote?.media?.videos?.map(v => v);
+            const quoPicURLs = Data.status?.quote?.media?.photos?.map(p => p.url);
 
             let txtOut: string | undefined = undefined, txtTlOut: string | undefined = undefined;
             let TlData: { oTxT: string, oLng: string } | undefined = undefined;
@@ -194,26 +262,36 @@ class xTwitter {
             }
 
             const gets = await this.downMedias(videoURLs, picURLs);
-            if (gets) {
-                gifBuffers = gets.gifs;
-                videoBuffers = gets.videos;
-                imageBuffers = gets.imagenes;
-                rawLinks = gets.links;
-            }
+            if (gets) { gifBuffers = gets.gifs; videoBuffers = gets.videos; imageBuffers = gets.imagenes; rawLinks = gets.links; }
+
+            const getsQuo = await this.downMedias(quoVideoURLs, quoPicURLs);
+            if (getsQuo) { imQuo = getsQuo.gifs; vidQuo = getsQuo.videos; gifQuo = getsQuo.imagenes; rawLink = getsQuo.links; }
+
+
 
             if (imageBuffers.length > 0 || videoBuffers.length > 0 || gifBuffers.length > 0 || rawLinks.length > 0) hasMedia = true;
 
             return {
                 urlPost: Data.status?.url || "https://x.com",
-                showName: Data.author?.screen_name || "Usuario desconocido",
-                userName: Data.author?.name || "Usuario desconocido",
+                showName: Data.status?.author?.screen_name || "Usuario desconocido",
+                userName: Data.status?.author?.name || "Usuario desconocido",
                 likes: this.numShort(Data.status?.likes),
                 reTwi: this.numShort(Data.status?.reposts),
                 resp: this.numShort(Data.status?.replies),
                 views: this.numShort(Data.status?.views),
                 tweetDesc: txtOut,
+                tweetQuotes: {
+                    txt: Data.status?.quote?.text, author: Data.status?.quote?.author?.screen_name, name: Data.status?.quote?.author.name, url: Data.status?.quote?.url,
+                    kcheMedia: { imQuo, vidQuo, gifQuo, rawLink },
+                    stdst: {
+                        likes: this.numShort(Data.status?.quote?.likes),
+                        reTwi: this.numShort(Data.status?.quote?.reposts),
+                        resp: this.numShort(Data.status?.quote?.replies),
+                        views: this.numShort(Data.status?.quote?.views)
+                    }
+                },
                 tweetTl: TlData, //fixDes.Tl ? { oTxT: tlReq, oLng: fixDes.Tl.oLng } : undefined, //fixDes.Tl.oTxt
-                avatarPic: Data.author?.avatar_url || 'https://abs.twimg.com/favicons/twitter.ico',
+                avatarPic: Data.status?.author?.avatar_url || 'https://abs.twimg.com/favicons/twitter.ico',
                 hasMedias: hasMedia,
                 rawUrl: rawLinks,
                 bufferPics: imageBuffers,
