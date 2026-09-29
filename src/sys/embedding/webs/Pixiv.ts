@@ -9,5 +9,16 @@ export default class Pixiv extends Ruler {
       /(\w+\.)?(pixiv\.net\/)/,
       false,
     );
+
+    const originalReplace = this.replaceURLs;
+    this.replaceURLs = (messageContent: string, domainFilter?: string) => {
+      const replaced = originalReplace(messageContent, domainFilter);
+      if (!replaced) return null;
+
+      return replaced
+        .split("\n")
+        .map((url) => /\/\d+\/\d+(-\d+)?$/.test(url) ? url : `${url}/1-4`)
+        .join("\n");
+    };
   }
 }

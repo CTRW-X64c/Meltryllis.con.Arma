@@ -14,6 +14,8 @@ import { deleteAllYoutubeConfig } from "../DB-Engine/links/Youtube";
 import { removButton } from "../DB-Engine/links/roleButtons";
 import { deleteAllCronPosts } from "../DB-Engine/links/Cronpost";
 import { removeGuildLimits } from "../DB-Engine/links/noRules";
+import { delBD } from "../DB-Engine/links/KancolleBD";
+import { deleteFollowTweetByGuild } from "../DB-Engine/links/followTweet";
 
 
 /* ================================================ Inicializacion de cliente ================================================ */
@@ -119,10 +121,12 @@ export async function deleteGuildConfig(guild: Guild): Promise<boolean> {
       deleteAllYoutubeConfig(guild.id),
       removButton(guild.id),
       deleteAllCronPosts(guild.id),
-      removeGuildLimits(guild.id)
+      removeGuildLimits(guild.id),
+      delBD(guild.id),
+      deleteFollowTweetByGuild(guild.id)
     ]);
 
-    const sistemas = ['JoinToVoice', 'Permisos', 'Welcome', 'Embed', 'Mangadex', 'Reddit', 'ReplyBots', 'Rolemoji', 'Youtube', 'Buttons', 'Cronpost', 'Limits'];
+    const sistemas = ['JoinToVoice', 'Permisos', 'Welcome', 'Embed', 'Mangadex', 'Reddit', 'ReplyBots', 'Rolemoji', 'Youtube', 'Buttons', 'Cronpost', 'Limits', 'Kancolle', 'Twitter'];
     resultados.forEach((resultado, index) => {
       if (resultado.status === 'rejected') {
         error(`Fallo al borrar configuración de ${sistemas[index]} para el guild ${guild.id}: ${resultado.reason}`, "GuildCleanup");

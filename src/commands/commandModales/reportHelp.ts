@@ -1,40 +1,29 @@
 // src/Events-Commands/commandModales/reportHelp.ts
-import { ActionRowBuilder, ButtonInteraction, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, TextChannel, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, TextChannel, TextInputBuilder, TextInputStyle, LabelBuilder } from "discord.js";
 import i18next from "i18next";
 import { adminChannel, checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
 
 /* ============================================= Report ============================================= */
 
-export async function Report(interaction: ChatInputCommandInteraction): Promise<void> {
-  const isAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.Administrator) || interaction.guild?.ownerId === interaction.user.id;
-  const idGuild = interaction.guildId;
+export async function Report(i: ChatInputCommandInteraction): Promise<void> {
+  const isAdmin = i.memberPermissions?.has(PermissionFlagsBits.Administrator) || i.guild?.ownerId === i.user.id;
+  const idGuild = i.guildId;
   const idCooldown = "repCommand"
-  if (!idGuild) {
-    await interaction.reply({ content: (i18next.t("botones:reportHelp.modal_no_guild")), flags: MessageFlags.Ephemeral }); return;
-  } else if (!isAdmin) {
-    await interaction.reply({ content: i18next.t("botones:reportHelp.no_admin"), flags: MessageFlags.Ephemeral }); return;
-  }
+
+  if (!idGuild) { await i.reply({ content: (i18next.t("botones:reportHelp.modal_no_guild")) }); return; }
+  if (!isAdmin) { await i.reply({ content: i18next.t("botones:reportHelp.no_admin") }); return; }
 
   const cooldown = checkCooldown(idGuild, idCooldown);
-  if (cooldown.onCooldown) {
-    await interaction.reply({ content: i18next.t("botones:reportHelp.onCooldown", { a1: cooldown.timeLeft }), flags: MessageFlags.Ephemeral }); return;
-  }
-  startCooldown(idGuild, idCooldown);
+  if (cooldown.onCooldown) { await i.reply({ content: i18next.t("botones:reportHelp.onCooldown", { a1: cooldown.timeLeft }) }); return; }
 
-  const modal = new ModalBuilder()
-    .setCustomId('helpRepo')
-    .setTitle(i18next.t("botones:reportHelp.modal_title"));
-  const reportIn = new TextInputBuilder()
-    .setCustomId('report_content')
-    .setLabel(i18next.t("botones:reportHelp.modal_label"))
-    .setPlaceholder(i18next.t("botones:reportHelp.modal_pholder"))
-    .setStyle(TextInputStyle.Paragraph)
-    .setMinLength(10)
-    .setMaxLength(500)
-    .setRequired(true);
-  const eMod = new ActionRowBuilder<TextInputBuilder>().addComponents(reportIn);
-  modal.addComponents(eMod);
-  await interaction.showModal(modal);
+  startCooldown(idGuild, idCooldown);
+  const modal = new ModalBuilder().setCustomId(`helpRepo_${i.user.id}`).setTitle(i18next.t("botones:reportHelp.modal_title"));
+  const eMod = new LabelBuilder().setLabel(i18next.t("botones:reportHelp.modal_label")).setTextInputComponent(
+    new TextInputBuilder().setCustomId('report_content').setPlaceholder(i18next.t("botones:reportHelp.modal_pholder"))
+      .setStyle(TextInputStyle.Paragraph).setMinLength(10).setMaxLength(500).setRequired(true)
+  );
+  modal.addLabelComponents(eMod);
+  await i.showModal(modal);
 }
 
 /* ============================================= /help report ============================================= */
@@ -85,12 +74,14 @@ export async function handleReportResponseButton(interaction: ButtonInteraction)
 
     const repIn = new TextInputBuilder()
       .setCustomId(`reportcont`)
-      .setLabel("Escribe tu respuesta:")
+
       .setStyle(TextInputStyle.Paragraph)
       .setRequired(true);
 
-    const rMod = new ActionRowBuilder<TextInputBuilder>().addComponents(repIn);
-    reportModal.addComponents(rMod);
+    const rMod = new LabelBuilder()
+      .setLabel("Escribe tu respuesta:")
+      .setTextInputComponent(repIn)
+    reportModal.addLabelComponents(rMod);
 
     await interaction.showModal(reportModal);
   }

@@ -20,7 +20,9 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
     { name: "/cleanup", value: "01" },
     { name: "/cronpost", value: "16" },
     { name: "/embed", value: "02" },
+    { name: "/follow_twitter", value: "20" },
     { name: "/jointovoice", value: "03" },
+    { name: "/kancolle", value: "19" },
     { name: "/mangadex", value: "04" },
     { name: "/noeveryone", value: "18" },
     { name: "/permisos", value: "06" },
@@ -32,6 +34,7 @@ export async function helpAutocomplete(interaction: AutocompleteInteraction) {
     { name: "/welcome", value: "11" },
     { name: "/work", value: "12" },
     { name: "/youtube", value: "13" },
+
   ];
 
   const focusedValue = interaction.options.getFocused();
@@ -69,6 +72,7 @@ interface hField { name: string; value: string; inline?: boolean }
 interface hRole { data: string, id?: string }
 interface hLinks { data0: { link: string, text: string }; data1?: { link: string, text: string }; data2?: { link: string, text: string }; data3?: { link: string, text: string }; data4?: { link: string, text: string } };
 async function embedMaker(interaction: ChatInputCommandInteraction, data: hData): Promise<void> {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const rngColor = (): string => { const color = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase(); return `0x${color.padStart(6, '0')}` };
   const { command, title, description, color, imageUrl, fields = [], footer, srvPerm, chPerm, roles, URLs } = data;
   const Meltryllis = interaction.guild?.members.me;
@@ -131,9 +135,8 @@ async function embedMaker(interaction: ChatInputCommandInteraction, data: hData)
 // ============================================= Handler principal ============================================= //
 
 export async function handleHelpCommand(interaction: ChatInputCommandInteraction): Promise<void> {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const guild = interaction.guild;
-  if (!guild) { await interaction.editReply({ content: i18next.t(i18next.t("common:Errores.noGuild")) }); return; }
+  if (!guild) await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral });
   try {
     const opHelp = interaction.options.getString("command") || "00";
     switch (opHelp) {
@@ -378,9 +381,46 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
         srvPerm: "viewCh|readMsg|msgManager|moderateMembers",
         roles: { data: i18next.t("help:noeveryone.roles"), id: "moderateMembers" }
       }); break;
+      /* ======================== kancolle ======================== */
+      case "19": await embedMaker(interaction, {
+        command: "kancolle",
+        title: i18next.t("help:kancolle.title"),
+        description: i18next.t("help:kancolle.description"),
+        footer: i18next.t("help:kancolle.footer"),
+        fields: [
+          { name: i18next.t("help:kancolle.name_1"), value: i18next.t("help:kancolle.value_1") },
+          { name: i18next.t("help:kancolle.name_2"), value: i18next.t("help:kancolle.value_2") }
+        ],
+        srvPerm: "viewCh|readMsg|msgManager",
+        URLs: {
+          data0: {
+            link: "https://en.kancollewiki.net/Kancolle_Wiki",
+            text: i18next.t("help:kancolle.boton_0")
+          },
+          data1: {
+            link: "https://en.kancollewiki.net/Template:Maintenance/Times",
+            text: i18next.t("help:kancolle.boton_1")
+          }
+        }
+      }); break;
+
+      /* ======================== followx ======================== */
+      case "20": await embedMaker(interaction, {
+        command: "followx",
+        title: i18next.t("help:followx.title"),
+        description: i18next.t("help:followx.description"),
+        footer: i18next.t("help:followx.footer"),
+        fields: [
+          { name: i18next.t("help:followx.name_1"), value: i18next.t("help:followx.value_1") },
+          { name: i18next.t("help:followx.name_2"), value: i18next.t("help:followx.value_2") },
+          { name: i18next.t("help:followx.name_3"), value: i18next.t("help:followx.value_3") }
+        ],
+        srvPerm: "viewCh|readMsg|sendMsg",
+        chPerm: "viewCh|readMsg|sendMsg",
+      }); break;
       /* ======================== default ======================== */
       default:
-        await interaction.editReply({ content: i18next.t("help:comBuild.default_switch_error") });
+        await interaction.reply({ content: i18next.t("help:comBuild.default_switch_error") });
         break;
     }
   } catch (e) {

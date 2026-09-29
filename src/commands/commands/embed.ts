@@ -2,18 +2,19 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, AutocompleteInteraction } from "discord.js";
 import i18next from "i18next";
 import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
-import { replacementMetaList } from "../../sys/embedding/embedingConfig";
+import { rMetaList } from "../../sys/embedding/embedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
-import { embedezSFW, embedezNSFW } from "../../sys/embedding/domainChecker";
+import { embedezSFW, embedezNSFW, meltrillisApi } from "../../sys/embedding/domainChecker";
 
 // --- Cambio para autocompletar 
 export async function embedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const L = replacementMetaList.map((meta) => ({ name: "Local: " + meta.name, value: meta.name }));
+    const L = rMetaList.map((meta) => ({ name: "Remplacer: " + meta.name, value: meta.name }));
     const eS = embedezSFW.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
     const eN = embedezNSFW.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
+    const mel = meltrillisApi.map((domain) => ({ name: "Meltryllis.Api: " + domain, value: domain }));
     const X = interaction.options.getFocused().toLowerCase();
-    const list = [...L, ...eS, ...eN].filter(y => y.name.toLowerCase().includes(X));
+    const list = [...L, ...eS, ...eN, ...mel].filter(y => y.name.toLowerCase().includes(X));
     await interaction.respond(list.slice(0, 25).map(c => ({ name: c.name, value: c.value })));
 }
 
@@ -72,7 +73,7 @@ export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promis
     const site = i.options.getString("sitio", true);
     const modo = i.options.getString("modo", true);
     const url = i.options.getString("personalizar", false);
-    const isApi = embedezNSFW.includes(site) || embedezSFW.includes(site);
+    const isApi = embedezNSFW.includes(site) || embedezSFW.includes(site) || meltrillisApi.includes(site);
 
     let customUrl: string | null = null;
     let enabled = true;
@@ -105,7 +106,7 @@ export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promis
                     let hostname = parsedUrl.hostname.startsWith("www.") ? parsedUrl.hostname.substring(4) : parsedUrl.hostname;
                     customUrl = hostname; enabled = true; userId = i.user.id;
                 } catch (e) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_url_custom") }); return; }
-                respuesta = i18next.t("commands:embed.interacciones.custom_description", { a1: `<@${i.user.id}>`, a2: site })
+                respuesta = i18next.t("commands:embed.interacciones.custom_description", { a1: `<@${i.user.id}>`, a2: site, a3: customUrl })
                 break;
 
             default:

@@ -1,5 +1,5 @@
 // src/Events-Commands/upCommands.ts
-import { error, info } from "../sys/logging";
+import { error, info, debug } from "../sys/logging";
 import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags, ButtonInteraction } from "discord.js";
 import { handleReportResponseButton, helpRepo } from "./commandModales/reportHelp";
 import { registerTestCommand, handleTestCommand } from "./commands/test";
@@ -13,17 +13,21 @@ import { registerYouTubeCommand, handleYouTubeCommand } from "./commands/youtube
 import { registerRedditCommand, handleRedditCommand } from "./commands/reddit";
 import { registerPostCommand, handlePostCommand } from "./commands/post";
 import { registerCleanUpCommand, handleCleanUpCommand } from "./commands/cleanup";
-import { registerJoinToCreateCommand, handleJoinToCreateCommand } from "./commands/jointovoice";
+import { registerJoinToCreateCommand, handleJoinToCreateCommand, cleanupChannels } from "./commands/jointovoice";
 import { registerMangadexCommand, handleMangadexCommand } from "./commands/mangadex";
 import { registerPermissionsCommand, handlePermissionsCommand, permisosAutocomplete } from "./commands/permission";
 import { registerMusicCommands, handleMusicInteraction } from "./commands/music";
 import { registerRoleButtonCommand, handleRoleButtonCommand, roleButton } from "./commandButtons/roleButton";
 import { registerButtonLinkCommand, handleButtonLinkCommand } from "./commandButtons/buttonLink";
 import { registerCronpostCommand, handleCronPost } from "./commands/cronpost";
-import { handleLimitsModal } from "./commandModales/modalLimits";
+import { handleLimitsModalA, handleLimitsModalB } from "./commandModales/modalLimits";
 import { handleLimitsButton } from "./commandButtons/NewLimits";
 import { handleMypermissionsCommand, registerMypermissionsCommands } from "./commands/chkperm";
 import { handleNoEveryoneCommand, registernoEveryoneCommand } from "../bgProcess/noEvery";
+import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "./commands/kancolle";
+import { handleFollowXCommand, registerFollowXCommand } from "./commands/followX";
+import { handlePixiFollowCommand, registerFollowPixiCommand } from "./commands/pixiFollow";
+import { handleBSkyCommand, registerBSkyCommand } from "./commands/blueSky";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -47,7 +51,11 @@ export async function sysUpRegister(client: Client) {
     ...(await registerButtonLinkCommand()),
     ...(await registerCronpostCommand()),
     ...(await registerMypermissionsCommands()),
-    ...(await registernoEveryoneCommand())
+    ...(await registernoEveryoneCommand()),
+    ...(await registerKantaiCollectionCommand()),
+    ...(await registerFollowXCommand()),
+    ...(await registerFollowPixiCommand()),
+    ...(await registerBSkyCommand())
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
@@ -109,6 +117,14 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handleMypermissionsCommand(interaction); break;
     case 'noeveryone':
       await handleNoEveryoneCommand(interaction); break;
+    case 'kancolle':
+      await handleKantaiCollectionCommand(interaction); break;
+    case 'twitter':
+      await handleFollowXCommand(interaction); break;
+    case 'pixiv':
+      await handlePixiFollowCommand(interaction); break;
+    case 'bsky':
+      await handleBSkyCommand(interaction); break;
     default:
       fail(interaction); break;
   }
@@ -134,33 +150,20 @@ export async function sysUpAutoComplete(interaction: AutocompleteInteraction) {
 /* ================================= Formularios ================================= */
 
 export async function sysUpModals(interaction: ModalSubmitInteraction) {
-  switch (true) {
-    case interaction.customId === "helpRepo":
-      await helpRepo(interaction); break;
-    case interaction.customId.startsWith("respondReport_"):
-      await respondReportModal(interaction); break;
-    case interaction.customId.startsWith("modal_lim_"):
-      await handleLimitsModal(interaction); break;
-    case interaction.customId.startsWith("token_verify_"):
-      await modalTkn(interaction); break;
-    default:
-      if (interaction.customId && interaction.customId.startsWith("modal_")) { return; }
-      error(`Modal (${interaction.customId}) no manejado!!`, "upCommands.Modals"); break;
-  }
+  if (interaction.customId.startsWith("helpRepo_")) await helpRepo(interaction);
+  else if (interaction.customId.startsWith("respondReport_")) await respondReportModal(interaction);
+  else if (interaction.customId.startsWith("modal_lim_A_")) await handleLimitsModalA(interaction);
+  else if (interaction.customId.startsWith("modal_lim_B_")) await handleLimitsModalB(interaction);
+  else if (interaction.customId.startsWith("token_verify_")) await modalTkn(interaction);
+  debug(`Modal (${interaction.customId}) no manejado!!`, "upCommands.Modals");
 }
 
 /* ================================= Botones ================================= */
 
 export async function sysUpButtons(interaction: ButtonInteraction) {
-  switch (true) {
-    case interaction.customId.startsWith("roleButton_"):
-      await roleButton(interaction); break;
-    case interaction.customId.startsWith("lim_"):
-      await handleLimitsButton(interaction); break;
-    case interaction.customId.startsWith("btn_openreport_"):
-      await handleReportResponseButton(interaction); break;
-    default:
-      if (interaction.customId && (interaction.customId.startsWith("btn_"))) { return; }
-      error(`Boton (${interaction.customId}) no manejado!!`, "upCommands.Buttons"); break;
-  }
-}
+  if (interaction.customId.startsWith("roleButton_")) await roleButton(interaction);
+  else if (interaction.customId.startsWith("lim_")) await handleLimitsButton(interaction);
+  else if (interaction.customId.startsWith("btn_openreport_")) await handleReportResponseButton(interaction);
+  else if (interaction.customId.startsWith("joinToV_delTemp_")) await cleanupChannels(interaction);
+  debug(`Boton (${interaction.customId}) no manejado!!`, "upCommands.Buttons");
+} 

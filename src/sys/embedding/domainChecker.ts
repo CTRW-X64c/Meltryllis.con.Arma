@@ -1,5 +1,5 @@
 import { warn, info, error, debug } from "../logging";
-import { replacementMetaList } from "./embedingConfig";
+import { rMetaList } from "./embedingConfig";
 import getPool from "../DB-Engine/database";
 
 export let embedingList: { [key: string]: string } = {};
@@ -10,7 +10,7 @@ let autoRunChecks: NodeJS.Timeout | null = null;
 let wait: NodeJS.Timeout | null = null;
 
 // ======== Api ======== //
-export const ApiList = () => {
+const ApiList = () => {
     embedezSFW = embedingList["API_SFW"]
         ? embedingList["API_SFW"].split('|').map(x => x.trim())
         : [];
@@ -19,6 +19,12 @@ export const ApiList = () => {
         : [];
     info(`Embedez Api ready con ${embedezSFW.length} SFW y ${embedezNSFW.length} NSFW sitios!!`, "embedingService");
 }
+
+// ======== local Api ======== //
+export const meltrillisApi: string[] = [
+    "Meltrys.Pixiv",
+    "Meltrys.xTwitter"
+];
 
 // ======== core ======== //
 export const updateList = (s: string, d?: string) => {
@@ -110,7 +116,7 @@ class UrlStatusManager {
 
     private async runChecks() {
         const targets = [
-            ...replacementMetaList.map(map => ({ name: map.name, dbKey: map.dbKey })),
+            ...rMetaList.map(map => ({ name: map.name, dbKey: map.dbKey })),
             { name: "Api", dbKey: "Api" }
         ];
 

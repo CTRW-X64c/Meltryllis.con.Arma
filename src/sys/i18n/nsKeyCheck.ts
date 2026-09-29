@@ -27,7 +27,9 @@ const TRANSLATIONS_TO_VALIDATE: TranslationConfig = {
         "work.slashBuilder.*",
         "embed.slashBuilder.*",
         "cronpost.slashBuilder.*",
-        "chkPerm.slashBuilder.*"
+        "chkPerm.slashBuilder.*",
+        "noeveryone.slashBuilder.*",
+        "kancolle.slashBuilder.*"
     ],
     "botones": [
         "buttonLink.slashbuilder.*",

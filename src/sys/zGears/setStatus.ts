@@ -22,7 +22,7 @@ const setRandom = () => {
     type: ActivityType.Custom,
     state: randomStatus.name,
   });
-  info(`Estado establecido: ${randomStatus.name}`, "setStatus");
+  info(`💭 Estado establecido: ${randomStatus.name}`, "setStatus");
 };
 
 export async function startStatusRotation(client: Client): Promise<void> {

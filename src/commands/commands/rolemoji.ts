@@ -1,9 +1,10 @@
 // src/Events-Commands/commands/rolemoji.ts
-import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder, MessageFlags, TextChannel, Guild, GuildBasedChannel } from "discord.js";
 import i18next from "i18next";
 import { debug, error } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { setRoleAssignment, getRoleAssignments, removeRoleAssignment } from "../../sys/DB-Engine/links/Rolemoji";
+import { masterPerm } from "../../sys/zGears/auxiliares";
 
 function getEmojiKey(emojiString: string): string {
     const customEmojiRegex = /<a?:[a-zA-Z0-9_]+:(\d+)>$/;
@@ -73,7 +74,7 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
             return;
         }
 
-        const guildId = interaction.guildId;
+        const guildId = interaction.guild;
         if (!guildId) {
             await interaction.reply({ content: i18next.t("commands:rolemoji.interacciones.guild_only_error"), flags: MessageFlags.Ephemeral });
             return;
@@ -86,15 +87,15 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
             case "set":
                 await ComSet(interaction, guildId);
                 break;
-            
+
             case "remove":
-                await ComRemove(interaction, guildId);
+                await ComRemove(interaction, guildId.id);
                 break;
-            
+
             case "list":
-                await ComList(interaction, guildId);
+                await ComList(interaction, guildId.id);
                 break;
-            
+
             default:
                 await interaction.reply({
                     content: i18next.t("commands:rolemoji.interacciones.subcommand_not_found"),
@@ -114,22 +115,28 @@ export async function handleRolemojiCommand(interaction: ChatInputCommandInterac
 }
 
 //Subcomando "Set"
-async function ComSet(interaction: ChatInputCommandInteraction, guildId: string): Promise<void> {
+async function ComSet(interaction: ChatInputCommandInteraction, guildId: Guild): Promise<void> {
     const role = interaction.options.getRole("role", true);
     const messageId = interaction.options.getString("message_id", true);
     const emoji = interaction.options.getString("emoji", true);
-    const channelId = interaction.channelId;
+    const channelId = interaction.channel! as GuildBasedChannel;
 
     const emojiKey = getEmojiKey(emoji);
 
-    await setRoleAssignment(guildId, messageId, channelId, emojiKey, role.id);
-    
+    const srvPerm = masterPerm(guildId, "roles")
+    if (!srvPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions_server", { a2: srvPerm.msg.join('\n') }) }); return; }
+
+    const chPerm = masterPerm(channelId, "viewCh|reactions|emojis")
+    if (!chPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${channelId}>`, a2: chPerm.msg.join('\n') }) }); return; }
+
+    await setRoleAssignment(guildId.id, messageId, channelId.id, emojiKey, role.id);
+
     try {
         const channel = interaction.channel as TextChannel;
         const message = await channel.messages.fetch(messageId);
         const roleMention = `<@&${role.id}>`;
         await message.react(emoji);
-        
+
         await interaction.reply({
             content: i18next.t("commands:rolemoji.interacciones.assign_success", { role: roleMention, emoji: emoji }),
             flags: MessageFlags.Ephemeral
@@ -147,7 +154,7 @@ async function ComSet(interaction: ChatInputCommandInteraction, guildId: string)
 async function ComRemove(interaction: ChatInputCommandInteraction, guildId: string): Promise<void> {
     const id = interaction.options.getInteger("id", true);
     const success = await removeRoleAssignment(guildId, id);
-    
+
     if (success) {
         await interaction.reply({
             content: i18next.t("commands:rolemoji.interacciones.remove_success", { id: id }),
@@ -178,10 +185,10 @@ async function ComList(interaction: ChatInputCommandInteraction, guildId: string
             const roleName = role ? role.name : i18next.t("commands:rolemoji.interacciones.role_not_found");
             const emojiObject = guild.emojis.cache.get(assignment.emoji);
             const emojiDisplay = emojiObject ? emojiObject.toString() : assignment.emoji;
-            
+
             // Usar el channelId de la base de datos para el enlace
             const messageUrl = `https://discord.com/channels/${guildId}/${assignment.channelId}/${assignment.messageId}`;
-            
+
             description += i18next.t("commands:rolemoji.interacciones.list_entry", {
                 ns: "rolemoji",
                 id: assignment.id,

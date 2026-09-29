@@ -1,9 +1,10 @@
 // src/bgProcess/exeCron.ts
 import * as cron from 'node-cron';
-import { Client, TextChannel } from 'discord.js';
+import { Client, GuildTextBasedChannel } from 'discord.js';
 import getPool from '../sys/DB-Engine/database';
 import { info, debug, error } from '../sys/logging';
 import { countExecUpdate, removeCronpost } from '../sys/DB-Engine/links/Cronpost';
+import { stillOn } from '../sys/zGears/auxiliares';
 
 /* ======================================= Cron Manager ======================================= */
 /* ====== Cron Client ====== */
@@ -32,11 +33,16 @@ export function programarTarea(client: Client, dbRow: any) {
 
     const tarea = cron.schedule(dbRow.cron, async () => {
         try {
-            const guild = client.guilds.cache.get(dbRow.guild_id);
-            if (!guild) return;
-
-            const channel = guild.channels.cache.get(dbRow.channel_id) as TextChannel;
-            if (!channel) return;
+            let channel: GuildTextBasedChannel
+            const chekChGuld = await stillOn({ cli: client, chkGuiId: dbRow.guild_id, chkChID: dbRow.channel_id })
+            if (!chekChGuld.ok) {
+                if (chekChGuld.erase) {
+                    detenerTarea(dbRow.id);
+                    await removeCronpost(dbRow.guild_id, dbRow.id);
+                    return;
+                }
+                return;
+            } else { channel = chekChGuld.canale as GuildTextBasedChannel; }
 
             const mensajeData = JSON.parse(dbRow.mensaje_data);
             const msgContent: any = {};
@@ -147,7 +153,7 @@ async function deleTimmer(channelId: string, messageId: string, client: Client) 
         await pool.query("DELETE FROM cron_timeout WHERE message_id = ?", [messageId]);
 
         if (!client) { error(`${messageId} no cuenta con cliente para ser borrado.`); return; }
-        const channel = client.channels.cache.get(channelId) as TextChannel;
+        const channel = client.channels.cache.get(channelId) as GuildTextBasedChannel;
         if (channel) {
             const msg = await channel.messages.fetch(messageId).catch(() => null);
             if (msg && msg.deletable) {

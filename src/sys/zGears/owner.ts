@@ -1,5 +1,5 @@
 // src/Events-Commands/commands/owner.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, ModalSubmitInteraction, EmbedBuilder, PresenceStatusData } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ButtonInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, ModalSubmitInteraction, EmbedBuilder, PresenceStatusData, LabelBuilder } from "discord.js";
 import { debug, error, warn, } from "../logging";
 import { Buffer } from 'node:buffer';
 import { checkAllDomains, buildDomainStatusEmbed } from "./neTools";
@@ -10,6 +10,7 @@ import { adminChannel } from "./auxiliares";
 import { addStatusBD, addTempStatus, changeTimmer, clerTempStatus, deleteStatusBD, listStatus, setiState } from "./setStatus";
 import { addSite, deleteSite, deletLast, editDomain, embedingList } from "../embedding/domainChecker";
 import lavalinkManager, { addNodeBD, removeNodeBD, listNode } from "../../bgProcess/lavalinkConnect";
+import { chkServices, list, newTimmerService, restartService, restore } from "./_managerServices";
 
 
 /* ================================================================== Listado de comandos ================================================================== */
@@ -19,6 +20,7 @@ const listCom = [
     { name: "Dominios", value: "dominios" },
     { name: "Lavalink", value: "lavalink" },
     { name: "Revisar dominios (embedServices)", value: "checkdomains" },
+    { name: "Cambiar timmers", value: "timmer" },
     { name: "Lista de servidores", value: "list" },
     { name: "Parametros de Servers", value: "rules" },
     { name: "Reiniciar", value: "restart" },
@@ -32,27 +34,10 @@ export async function registerOwnerCommands(): Promise<SlashCommandBuilder[]> {
         .setName("owner")
         .setDefaultMemberPermissions(0)
         .setDescription("Comandos de uso exclusivo del Hoster")
-        .addStringOption(op =>
-            op.setName("funcion")
-                .setDescription("Herramienta de administración")
-                .setRequired(true)
-                .addChoices(listCom)
-        )
-        .addStringOption(op =>
-            op.setName("server_id")
-                .setDescription("ID del servidor a abandonar")
-                .setRequired(false)
-        )
-        .addStringOption(op =>
-            op.setName("id_usr")
-                .setDescription("ID del mensaje a responder")
-                .setRequired(false)
-        )
-        .addStringOption(op =>
-            op.setName("data")
-                .setDescription("Información adicional para el comando")
-                .setRequired(false)
-        )
+        .addStringOption(op => op.setName("funcion").setDescription("Herramienta de administración").setRequired(true).addChoices(listCom))
+        .addStringOption(op => op.setName("server_id").setDescription("ID del servidor a abandonar").setRequired(false))
+        .addStringOption(op => op.setName("id_usr").setDescription("ID del mensaje a responder").setRequired(false))
+        .addStringOption(op => op.setName("data").setDescription("Información adicional para el comando").setRequired(false))
     return [leaveServerCommand] as SlashCommandBuilder[];
 }
 
@@ -81,7 +66,7 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
         }); return
     }
 
-    const noTkn = ["restart", "checkdomains", "list", "status", "dominios", "lavalink"];
+    const noTkn = ["restart", "checkdomains", "list", "status", "dominios", "lavalink", "timmer"];
     if (noTkn.includes(subcommand)) {
         await runCommand(interaction, subcommand, serverId, idUsr, data);
         return;
@@ -110,17 +95,18 @@ export async function handleOwnerCommands(interaction: ChatInputCommandInteracti
     const authModal = new ModalBuilder()
         .setCustomId(`token_verify_${idCommands}`)
         .setTitle("🔐 Verificación de Seguridad")
-        .addComponents(
-            new ActionRowBuilder<TextInputBuilder>().addComponents(
-                new TextInputBuilder()
-                    .setCustomId("token_input")
-                    .setLabel("Revisa la consola e ingresa el token:")
-                    .setStyle(TextInputStyle.Short)
-                    .setPlaceholder("Ej: 1A2B3C4D5E6F")
-                    .setRequired(true)
-                    .setMinLength(1)
-                    .setMaxLength(16)
-            )
+        .addLabelComponents(
+            new LabelBuilder()
+                .setLabel("Revisa la consola e ingresa el token:") // El Label ahora pertenece al LabelBuilder
+                .setTextInputComponent(
+                    new TextInputBuilder()
+                        .setCustomId("token_input")
+                        .setStyle(TextInputStyle.Short)
+                        .setPlaceholder("Ej: 1A2B3C4D5E6F")
+                        .setRequired(true)
+                        .setMinLength(1)
+                        .setMaxLength(16)
+                )
         );
     await interaction.showModal(authModal);
 }
@@ -196,6 +182,8 @@ async function runCommand(integrations: any, subcommand: string, serverId: strin
             await domainManager(integrations, data); break
         case "lavalink":
             await lavalinkTools(integrations, data); break
+        case "timmer":
+            await timmerServices(integrations, data); break
         default:
             await integrations.reply({ content: "Subcomando no reconocido.", flags: MessageFlags.Ephemeral });
     }
@@ -518,35 +506,41 @@ export async function sendLimitsDashboard(interaction: ChatInputCommandInteracti
         if (!interaction.deferred) await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     }
 
+    if (idGuild === "nosrv") { interaction.editReply({ content: "❌ No se proporcionó el ID del servidor a limitar." }); return }
     const guild = await interaction.client.guilds.fetch(idGuild).catch(() => null);
     const limits = await getGuildLimits(idGuild);
     const embed = new EmbedBuilder()
         .setTitle(`🛠️ Panel de Límites | Servidor: ${guild?.name || idGuild}`)
         .setColor('Blue')
         .addFields(
-            { name: '📊 Límites Numéricos', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}` },
+            { name: '📊 Limites A', value: `> **Cronjobs:** ${limits.cronLimited}\n> **MangaDex:** ${limits.dexMax}\n> **Reddit:** ${limits.redMax}\n> **YouTube:** ${limits.ytMax}\n> **Twitter:** ${limits.tweetMax}` },
+            { name: '📊 Limites B', value: `> **Pixiv:** ${limits.pixiMax}\n> **BlueSky:** ${limits.bskyMax}` },
             { name: '⚙️ Permisos Especiales', value: `> **Check Domain:** ${limits.chkDomain ? '✅' : '❌'}\n> **No Wait Node:** ${limits.noWaitNode ? '✅' : '❌'}` }
         );
 
-    const btnEdit = new ButtonBuilder()
-        .setCustomId(`lim_edit_${idGuild}`)
-        .setLabel('Editar Números')
-        .setEmoji('📝')
+    const btnEditA = new ButtonBuilder()
+        .setCustomId(`lim_edit_A_${idGuild}`)
+        .setLabel('⏰ | 📚 | 🌚 | 📽️ |💬')
+        .setStyle(ButtonStyle.Primary);
+    const btnEditB = new ButtonBuilder()
+        .setCustomId(`lim_edit_B_${idGuild}`)
+        .setLabel('🖼️ | 🦋')
         .setStyle(ButtonStyle.Primary);
     const btnDomain = new ButtonBuilder()
-        .setCustomId(`lim_togdom_${idGuild}`)
+        .setCustomId(`lim_tog_dom_${idGuild}`)
         .setLabel('Toggle Domain')
         .setStyle(ButtonStyle.Secondary);
     const btnNode = new ButtonBuilder()
-        .setCustomId(`lim_tognode_${idGuild}`)
+        .setCustomId(`lim_tog_node_${idGuild}`)
         .setLabel('Toggle Node')
         .setStyle(ButtonStyle.Secondary);
     const btnReset = new ButtonBuilder()
-        .setCustomId(`lim_reset_${idGuild}`)
+        .setCustomId(`lim_reset_default_${idGuild}`)
         .setLabel('Reiniciar Límites')
         .setStyle(ButtonStyle.Danger);
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(btnEdit, btnDomain, btnNode, btnReset);
-    await interaction.editReply({ embeds: [embed], components: [row] });
+    const rowA = new ActionRowBuilder<ButtonBuilder>().addComponents(btnEditA, btnEditB);
+    const rowB = new ActionRowBuilder<ButtonBuilder>().addComponents(btnDomain, btnNode, btnReset);
+    await interaction.editReply({ embeds: [embed], components: [rowA, rowB] });
 }
 
 /* ================================================================== Status ================================================================== */
@@ -800,4 +794,60 @@ async function lavalinkTools(interaction: ChatInputCommandInteraction, data: str
     } catch { await interaction.editReply("Error al procesar el comando!!") }
 }
 
-/* ================================================================== noting ================================================================== */
+/* ================================================================== Timers Services ================================================================== */
+
+async function timmerServices(interaction: ChatInputCommandInteraction, data: string): Promise<void> {
+    if (!interaction.deferred) { await interaction.deferReply({ flags: MessageFlags.Ephemeral }); }
+    try {
+        const emb = new EmbedBuilder()
+            .setTitle("Timmer Services").setColor(0x00FF00)
+            .setDescription("Esta seccion permite cambiar los tiempo de ejecucuion de los servicios. \n Servicios: youtube, mangadex, reddit \n El tiempo se maneja en minutos, min: 10min; con 0 se desactivan")
+            .addFields(
+                { name: "Cambiar timmer:", value: "data = servicio=tiempo", inline: false },
+                { name: "Reiniciar", value: "data = reset=servicio", inline: false },
+                { name: "Restaurar timmer", value: "data = restore=servicio", inline: false },
+                { name: "Listar Timers", value: "data = list", inline: false }
+            );
+
+        const p1 = data.split("=");
+        const sub = p1[0] || "nodata";
+        const tim = p1[1] || "nodata";
+        const validServices = ["youtube", "mangadex", "reddit", "twitter"];
+
+        if (sub === "nodata") { await interaction.editReply({ content: "Formato incorrecto", embeds: [emb] }); return; }
+        switch (sub) {
+            case "youtube": case "mangadex": case "reddit": case "twitter": {
+                const timeNum = parseInt(tim, 10);
+                if (!validServices.includes(sub)) { await interaction.editReply({ content: "❌ No existe el servicio seleccionado", embeds: [emb] }); return; }
+                if (tim === "nodata" || isNaN(timeNum)) { await interaction.editReply({ content: "❌ Por favor incluya el tiempo en minutos.", embeds: [emb] }); return; }
+                const newTimmer = await newTimmerService(sub, timeNum, interaction.client);
+                await interaction.editReply(newTimmer); return;
+            }
+
+            case "reset": {
+                if (!validServices.includes(tim)) { await interaction.editReply({ content: "❌ ¡No existe un servicio registrado con ese nombre!", embeds: [emb] }); return; }
+                const timmerRest = await restartService(tim as chkServices, interaction.client);
+                await interaction.editReply(timmerRest); return;
+            }
+
+            case "restore": {
+                if (!validServices.includes(tim)) { await interaction.editReply({ content: "❌ ¡No existe un servicio registrado con ese nombre!", embeds: [emb] }); return; }
+                const timmerRes = await restore(tim as chkServices, interaction.client);
+                await interaction.editReply(timmerRes); return;
+            }
+
+            case "list": {
+                const listTimers = list();
+                const embList = new EmbedBuilder().setTitle("Timmer Services").setColor(0x00FF00)
+                    .setDescription(`Servicios activos:` + `\n${listTimers.join("\n")}`);
+                await interaction.editReply({ embeds: [embList] }); return;
+            }
+
+            default: {
+                await interaction.editReply({ embeds: [emb] }); return;
+            }
+        }
+    } catch { await interaction.editReply("Error al procesar el comando!!") }
+}
+
+/* ================================================================== Nada ================================================================== */

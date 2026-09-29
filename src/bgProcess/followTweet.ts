@@ -1,0 +1,170 @@
+import { Client, GuildTextBasedChannel, MessageFlags, } from "discord.js"
+import { deleteFollowTweet, getAllFollowTweet, updateFollowTweet } from "../sys/DB-Engine/links/followTweet"
+import { debug, error } from "../sys/logging";
+import urlStatusManager from "../sys/embedding/domainChecker";
+import { getGuildReplacementConfig } from "../sys/DB-Engine/links/Embed";
+import { bskyEngine } from "./blusky";
+import { xTwitterCustom } from "../sys/embedding/Apis/Alttwitter";
+import { stillOn } from "../sys/zGears/auxiliares";
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export async function initFolloX(C: Client): Promise<void> {
+    await wait(30_000);
+    tweEngine(C)
+}
+
+// ===================== Engine ===================== //
+export async function tweEngine(cli: Client): Promise<void> {
+    try {
+        const dta = await getAllFollowTweet();
+        if (!dta) return;
+        // Kche
+        const kacheCh: Record<string, GuildTextBasedChannel | null> = {};
+        const kacheDom: Record<string, string | null> = {};
+        // BDelepa
+        const depurBD = async (guildy: string, idBDpos: number, idDelKach: string) => {
+            kacheCh[idDelKach] = null;
+            try {
+                await deleteFollowTweet({ gremio: guildy, id: idBDpos });
+                debug(`Borrando de la BD el X/Twitter con ID: ${idBDpos} del server: ${guildy}`, "BG.TwitterFollow");
+            } catch (e) { error(`Algo fallo en la BD ${e}`, "BG.TwitterFollow"); }
+        };
+        // work
+        for (const X of dta) {
+            const { id, guild_id, canal, xUser, lastPost, Domain, lang, onlyMedia } = X;
+            const idKch = `${guild_id}-${canal}`;
+
+            let chToSend: GuildTextBasedChannel | null = null, dominio: string | null;
+            if (idKch in kacheCh) { chToSend = kacheCh[idKch]; }
+            else {
+                const chekSrvCh = await stillOn({ cli, chkGuiId: guild_id, chkChID: canal });
+                if (!chekSrvCh.ok) {
+                    if (chekSrvCh.erase) { await depurBD(guild_id, id, idKch); }
+                    continue;
+                }
+
+                const ch = chekSrvCh.canale as GuildTextBasedChannel;
+                kacheCh[idKch] = ch;
+                chToSend = ch;
+            }
+
+            if (!chToSend) continue;
+
+            if (guild_id in kacheDom) { dominio = kacheDom[guild_id]; }
+            else {
+                const gldCnfDom = await getGuildReplacementConfig(guild_id);
+                const hasCustom = Domain ? Domain : (gldCnfDom.get("Twitter | X")?.custom_url ?? null);
+                const localDomain = urlStatusManager.getActiveUrl("twitter") ?? null;
+                const outDom = hasCustom ? hasCustom : localDomain;
+                kacheDom[guild_id] = outDom; dominio = outDom;
+            }
+
+            await wait(100);
+            const newPost = await getting({ gremio: guild_id, userX: xUser, typeUserX: onlyMedia, lPost: lastPost });
+            msgSend({ Api: newPost, channel: chToSend, guild: guild_id, xUser: xUser, domain: dominio, tl: lang }).catch(e => error(e, "BG.TwitterFollow"));
+        }
+    } catch (e) { error(`Fallo el checkTwitterFollow ${e}`, "BG.TwitterFollow") }
+    await bskyEngine(cli)
+}
+
+// === msgSender === //
+interface msgSendIn { Api: { lisTweets: string[], lastPosID: string } | null, channel: GuildTextBasedChannel, guild: string, xUser: string, domain: string | null, tl: string | null }
+async function msgSend(out: msgSendIn): Promise<void> {
+    try {
+        if (!out.Api || out.Api.lisTweets.length === 0) return;
+        const { Api, channel, guild, xUser, domain, tl } = out
+        const { lisTweets, lastPosID } = Api;
+
+        for (let i = lisTweets.length - 1; i >= 0; i--) {
+            let outLink = lisTweets[i];
+            if (domain) outLink = outLink.replace(/:?(?:twitter\.com|x\.com)/g, domain);
+            if (tl) outLink = (outLink + `/${tl}`);
+
+            const msgEmb = await channel.send({ content: `> ## Nuevo [tweet](${outLink}) de @${xUser}` }).catch(() => null);
+            await wait(3_000);
+
+            if (msgEmb && msgEmb.embeds.length === 0) {
+                let freshMsg = await channel.messages.fetch(msgEmb.id).catch(() => null);
+                if (!freshMsg) continue;
+                if (freshMsg.embeds.length > 0) continue;
+
+                let embOk = false;
+                for (let att = 1; att <= 2; att++) {
+                    await freshMsg.edit({ content: "⏳" }).catch(() => { });
+                    await wait(2_000 * att);
+
+                    await freshMsg.edit({ content: `> ## Nuevo [tweet](${outLink}) de @${xUser}` }).catch(() => { });
+                    await wait(3_000 * att);
+
+                    freshMsg = await freshMsg.channel.messages.fetch(freshMsg.id).catch(() => null);
+
+                    if (!freshMsg) break;
+                    if (freshMsg.embeds.length > 0) { embOk = true; break }
+                }
+
+                if (freshMsg && !embOk) {
+                    const x = new xTwitterCustom();
+                    const useUrl = lisTweets[i];
+                    const tryMeltrys = await x.process((tl ? `${useUrl}/${tl}` : useUrl), freshMsg);
+                    try {
+                        if (!tryMeltrys.ok || !tryMeltrys.pack) throw new Error("Fallo en respuesta de xTwitterCustom");
+                        const packData = Object.values(tryMeltrys.pack[0])[0];
+                        if (!packData.components || packData.components.length === 0) throw new Error("No data Pack xTwitterCustom");
+                        await freshMsg.delete().catch(() => { });
+                        if (packData) {
+                            const preMsg = await channel.send(`> ## Nuevo tweet de @${xUser} \n ***Usando Meltryllis Api***`)
+                            preMsg ? await preMsg.reply({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 }) :
+                                await channel.send({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 });
+                        };
+                    } catch (e) {
+                        debug(`Fallo al usar MeltrysApi ${e}`, "BG.TwitterFollow")
+                        await freshMsg.delete().catch(() => { });
+                        await channel.send({ content: `> ## Nuevo [tweet](${useUrl}) de @${xUser} \n> ***No genero embed, devuelto link original***` }).catch(() => { });
+                    }
+                }
+            }
+        }
+
+        await updateFollowTweet(guild, channel.id, xUser, lastPosID);
+        debug(`Se enviaron ${lisTweets.length} tweets del gremio: ${guild} para @${xUser}`, "BG.TwitterFollow")
+
+    } catch (e) { error(`Error en el envio del mensaje del gremio: ${out.guild}`, "BG.TwitterFollow") }
+}
+
+// === apiSolver === //
+interface todoInt { gremio: string, userX: string, typeUserX: boolean, lPost: string | null }
+async function getting(dta: todoInt): Promise<{ lisTweets: string[]; lastPosID: string; } | null> {
+    try {
+        let typePostGet = dta.typeUserX ? "media" : "statuses";
+        const response = await fetch(`https://api.fxtwitter.com/2/profile/${dta.userX}/${typePostGet}?count=15`, { method: 'GET' });
+        if (!response.ok) return null;
+
+        interface tweetData { code?: number, results?: { id?: string, url?: string }[] };
+        const data = await response.json() as tweetData;
+        if (!data || data.code !== 200 || !data.results || data.results.length === 0) {
+            error(`Error en el fetch a @${dta.userX} del gremio: ${dta.gremio}`, "BG.TwitterFollow");
+            return null;
+        }
+
+        const lisTweets: string[] = [];
+        const ids = dta.lPost?.split("#") ?? [];
+
+        for (const x of data.results) {
+            if (x.url && x.id) {
+                if (ids.includes(x.id)) break;
+                if (!dta.lPost && lisTweets.length >= 2) break;
+                lisTweets.push(x.url);
+            }
+        }
+
+        const topIds = data.results.slice(0, 4).map(r => r.id).filter(Boolean);
+        const lastPosID = topIds.length ? topIds.join('#') : "noLastPost";
+
+        debug(`Se termino de verificar los post de: ${dta.userX} del gremio: ${dta.gremio}`, "BG.TwitterFollow")
+        return { lisTweets, lastPosID };
+
+    } catch (e: any) {
+        error(`Error al processar el follow del gremio: ${dta.gremio} | User: ${dta.userX} | Error: ${e.message}`, "BG.TwitterFollow");
+        return null;
+    }
+}
