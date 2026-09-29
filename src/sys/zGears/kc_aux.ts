@@ -353,7 +353,16 @@ interface presetsKC {
 
 export function rawPreset(type: notifyType): presetsKC | null {
     const rst = allLefts(), minuts = 60 * 1_000;
-    const vlueTxt = i18next.t("commands:kancolle.bgProsses.siwtchNotify_vText", { a1: rst.pvp, a2: rst.oem, a3: rst.mExp, a4: rst.dQuest, a5: rst.wQuest, a6: rst.mQuest, a7: rst.qQuest, a8: rst.dPtCutof, a9: rst.mPtCutof });
+    let vlueTxt = i18next.t("commands:kancolle.bgProsses.siwtchNotify_vText", { a1: rst.pvp, a2: rst.oem, a3: rst.mExp, a4: rst.dQuest, a5: rst.wQuest, a6: rst.mQuest, a7: rst.qQuest, a8: rst.dPtCutof, a9: rst.mPtCutof });
+    if (ntfMantData.MaintDate && (ntfMantData.MaintDate.getTime() > getNowJST())) {
+        const tim = mantDates(ntfMantData.MaintDate, ntfMantData.endMantDate)
+        const mantData = "\n" + "***Mantenimiento:***" + "\n" +
+            "> ***🇯🇵 JST*** | ***GMT+9***" + "\n" + `📅 INICIO: \`${tim.sJP}\` \n📅 TERMINO: \`${tim.eJP}\`` + "\n" +
+            "> ***🌐 UTC***" + "\n" + `📅 INICIO: \`${tim.sUTC}\` \n📅 TERMINO: \`${tim.eUTC}\`` + "\n" +
+            "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***" + "\n" + `📅 INICIO: \`${tim.sMX}\` \n📅 TERMINO: \`${tim.eMX}\``
+        if (type !== "maintStart") vlueTxt += mantData;
+    }
+    // ===== switch ===== //
     switch (type) {
         case "pvp":
             const timePvp = leftTimeConv({ type: 'daily', hours: [3, 15] });
@@ -365,7 +374,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_desc_15"),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_uDesc"),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: `${vlueTxt}` }],
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
                 mTimmer: timePvp,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/rhaHOhq.png" }

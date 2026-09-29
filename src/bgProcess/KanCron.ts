@@ -240,7 +240,7 @@ async function msgMgr(dat: msgBuild) {
     if (dat.rol) { rMnt = `AVISO: ${dat.rol}!`; del30 = (30 * minuts) - 20_000; del15 = (15 * minuts) - 20_000; }
     if (dat.type === "mntEnd") del30 = hours;
     const preNtfy = (["loem", "lmExp", "qQuest"] as notifyType[]).includes(dat.type);
-    if (preNtfy) del30 = 24 * hours;
+    if (preNtfy) del30 = 23 * hours;
     /* Now */
     await msgSnd({ ch: dat.ch, title: prst.title.A, fields: prst.field, desc: prst.desc.ini, pic: prst.urlPic.A, rolOn: rMnt, color: 0xFFA500, url: prst.url, delAft: del30 });
     /* 30 min */

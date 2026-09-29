@@ -77,9 +77,9 @@ export class xTwitterCustom implements ApiHandler {
             let outTxtQuote: string | undefined = undefined;
             if (xData.tweetQuotes && (xData.tweetQuotes.author || xData.tweetQuotes.url || xData.tweetQuotes.txt)) {
                 const statTxtQuo = `> ❤️: **${xData.tweetQuotes.stdst.likes}** | 🔁: **${xData.tweetQuotes.stdst.reTwi}** | 💬: **${xData.tweetQuotes.stdst.resp}** | 👀: **${xData.tweetQuotes.stdst.views}**`
-                const urlPro = (xData.tweetQuotes.url && xData.tweetQuotes.name && xData.tweetQuotes.author) ? (`> ** 👤 ${xData.tweetQuotes.author.length > 28 ? xData.tweetQuotes.author.slice(0, 25) + `...` : xData.tweetQuotes.author} ([@${xData.tweetQuotes.name}](${xData.tweetQuotes.url}))**`) : "Usuario desconocido!!";
-                const txtQuo = xData.tweetQuotes.txt ? xData.tweetQuotes.txt : "...";
-                outTxtQuote = `**Citado:** \n ${urlPro} \n ${statTxtQuo} \n\n ${txtQuo}`;
+                const quoUser = xData.tweetQuotes.name ? (xData.tweetQuotes.name.length > 28 ? xData.tweetQuotes.name.slice(0, 25) + `...` : xData.tweetQuotes.name) : "Usuario desconocido!!";
+                const quoUrl = (xData.tweetQuotes.url && xData.tweetQuotes.author) ? `**([@${xData.tweetQuotes.author}](${xData.tweetQuotes.url}))**` : `URL no encontrada!`
+                outTxtQuote = `**Citado:** \n ${`> ** 👤 ${quoUser} ${quoUrl}** \n ${statTxtQuo}`} \n\n ${xData.tweetQuotes.txt ? xData.tweetQuotes.txt : "..."}`;
             }
 
             // originalMedia
@@ -205,11 +205,11 @@ interface ApiFxResponse {
         };
         // quote
         quote?: {
-            url: string;
-            text: string;
-            author: {
-                screen_name: string;
-                name: string;
+            url?: string;
+            text?: string;
+            author?: {
+                screen_name?: string;
+                name?: string;
             }
             likes?: number;
             replies?: number;
@@ -281,7 +281,7 @@ class xTwitter {
                 views: this.numShort(Data.status?.views),
                 tweetDesc: txtOut,
                 tweetQuotes: {
-                    txt: Data.status?.quote?.text, author: Data.status?.quote?.author?.screen_name, name: Data.status?.quote?.author.name, url: Data.status?.quote?.url,
+                    txt: Data.status?.quote?.text, author: Data.status?.quote?.author?.screen_name, name: Data.status?.quote?.author?.name, url: Data.status?.quote?.url,
                     kcheMedia: { imQuo, vidQuo, gifQuo, rawLink },
                     stdst: {
                         likes: this.numShort(Data.status?.quote?.likes),
@@ -396,14 +396,8 @@ class xTwitter {
 
         if (pic) {
             for (const url of pic) {
-                const downUrl = url.replace(/([?&])name=orig/, '$1name=large')
-                const liks = [url, downUrl]
-                let foDown = false
-                for (const dliks of liks) {
-                    const downPic = await downMedia(dliks)
-                    if (downPic) { downData.imagenes.push(downPic); foDown = true; break; }
-                }
-                if (!foDown) { downData.links.push(`[.](${url})`); }
+                const fixUrl = url.replace(/([?&])name=orig/, '$1name=large')
+                downData.links.push(fixUrl)
             }
         }
         return downData;
