@@ -236,7 +236,10 @@ async function poolManager(): Promise<void> {
       no_wait_node BOOLEAN DEFAULT FALSE,
       dex_max INT DEFAULT 10,
       red_max INT DEFAULT 10,
-      yt_max INT DEFAULT 10
+      yt_max INT DEFAULT 10,
+      tweet_max INT DEFAULT 10,
+      pixi_max INT DEFAULT 10,
+      bsky_max INT DEFAULT 10
     )
   `);
 
@@ -275,6 +278,106 @@ async function poolManager(): Promise<void> {
     )
   `);
 
+  //Tabla TimmerServices
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS timmersServices (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      service VARCHAR(255) NOT NULL,
+      timmer INT NOT NULL
+    )
+  `);
+
+  //Tabla kancolle
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kc_conf (
+      guild_id VARCHAR(50) NOT NULL,
+      role VARCHAR(50),
+      channel VARCHAR(50) NOT NULL,
+      pvp TEXT,
+      quest TEXT,
+      oem TEXT,
+      mnt TEXT,
+      mExp TEXT,
+      UNIQUE KEY unique_guild_kancolle (guild_id)
+    )
+  `);
+
+  //Tabla kancolle Mantenimiento
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kc_maint(
+      id INT PRIMARY KEY DEFAULT 1,
+      lastMaintStart DATETIME NOT NULL,
+      maintNotified BOOLEAN DEFAULT FALSE,
+      lastNotificationTime DATETIME,
+      MaintEnd DATETIME
+    )
+  `);
+
+  //Tabla kancolle rtcmsg
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kc_temp_msg(
+      guild_id VARCHAR(50) NOT NULL,
+      id_key VARCHAR(100) NOT NULL,
+      id_msg VARCHAR(50) NOT NULL,
+      id_ch VARCHAR(50) NOT NULL,
+      sup_time DATETIME NOT NULL,
+      UNIQUE INDEX idx_unique_key_msg (id_key, guild_id)
+    )
+  `);
+
+  //Tabla FollowTwetter
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS followTweetX(
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      guild_id VARCHAR(50) NOT NULL,
+      canal VARCHAR(50) NOT NULL,
+      xUser VARCHAR(50) NOT NULL,
+      lastPost VARCHAR(255),
+      lang VARCHAR(255),
+      Domain VARCHAR(255),
+      addBy VARCHAR(50) NOT NULL,
+      onlyMedia BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE INDEX idx_unique_follow_xUser (guild_id, xUser)
+    )
+  `);
+
+  //Tabla pixivData
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS pixivdata (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      guild_id VARCHAR(50) NOT NULL,
+      chGuild VARCHAR(50) NOT NULL,
+      pixiUser VARCHAR(50) NOT NULL,
+      pixiUserName VARCHAR(50) NOT NULL,
+      illustOn BOOLEAN DEFAULT FALSE,
+      lstPostIllust VARCHAR(100),
+      mangaOn BOOLEAN DEFAULT FALSE,
+      lstPostManga VARCHAR(100),
+      novelOn BOOLEAN DEFAULT FALSE,
+      lstPostNovel VARCHAR(100),
+      addby VARCHAR(50) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE INDEX idx_unique_pixiUser (guild_id, pixiUser)
+    )
+  `);
+
+  // Tabla BSky
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS blueskya (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      guild_id VARCHAR(50) NOT NULL,
+      chanel VARCHAR(50) NOT NULL,
+      bskyUserId VARCHAR(50) NOT NULL,
+      bskyUserName VARCHAR(50) NOT NULL,
+      lastPost VARCHAR(255),
+      addby VARCHAR(50) NOT NULL,
+      modo BOOLEAN DEFAULT FALSE,
+      lang VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE INDEX idx_unique_bskyUser (guild_id, bskyUserId)
+    )
+  `);
 
   const [tables] = await pool.query(`SHOW TABLES`);
   const tableCount = Array.isArray(tables) ? tables.length : 0;
@@ -340,7 +443,7 @@ export async function closeBD(): Promise<boolean> {
 }
 
 // Otros
-type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config';
+type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config' | 'followTweetX' | 'pixivData' | `blueskya`;
 export async function countItems(guildId: string, table: FeedTables): Promise<number> {
   try {
     const pool = await getPool();

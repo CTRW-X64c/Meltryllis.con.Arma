@@ -1,30 +1,31 @@
 // src/services/voicEvent.ts 
-import { Client, VoiceState, VoiceChannel, Guild} from "discord.js";
+import { Client, VoiceState, VoiceChannel, Guild } from "discord.js";
 import { error, debug, info } from "../sys/logging";
 import { getVoiceConfig, addTempVoiceChannel, removeTempVoiceChannel, isTempVoiceChannel, getAllTempVoiceChannels } from "../sys/DB-Engine/links/JointoVoice";
 import { checkVoiceEmptyShoukaku } from "../commands/commands/music";
 
 export class VoiceChannelService {
     private client: Client;
-    private activeTempChannels: Map<string, string> = new Map(); 
+    private activeTempChannels: Map<string, string> = new Map();
     private readonly GRACE_PERIOD = 5000; // <= tiempo de gracia
     private deletionTimers: Map<string, NodeJS.Timeout> = new Map(); // Gestor de los tiempos de gracia
     private readonly MAX_CHANNELS_PER_USER = 2 // Limite de canales por usuario
-    
+    private me;
 
     constructor(client: Client) {
         this.client = client;
+        this.me = this.client.user?.id;
         this.initializeFromDatabase();
     }
 
     private async initializeFromDatabase(): Promise<void> {
         try {
             const tempChannels = await getAllTempVoiceChannels();
-            
+
             for (const tempChannel of tempChannels) {
                 this.activeTempChannels.set(tempChannel.channelId, tempChannel.ownerId);
             }
-            
+
             debug(`Cargados ${tempChannels.length} canales temporales desde BD`);
         } catch (err) {
             error(`Error inicializando canales desde BD: ${err}`);
@@ -33,7 +34,7 @@ export class VoiceChannelService {
 
     async handleVoiceStateUpdate(oldState: VoiceState, newState: VoiceState): Promise<void> {
         try {
-         
+
             await checkVoiceEmptyShoukaku(oldState); // Verificar si se queda sola en el canal.
 
             const guildId = newState.guild.id;
@@ -44,15 +45,14 @@ export class VoiceChannelService {
             if (!oldState.channelId && newState.channelId) {
                 await this.handleJoinVoice(newState, config.channelId);
             }
-            
+
             else if (oldState.channelId && !newState.channelId) {
                 await this.handleLeaveVoice(oldState);
             }
-            
+
             else if (oldState.channelId !== newState.channelId) {
                 await this.handleSwitchVoice(oldState, newState, config.channelId);
             }
-
         } catch (err) {
             error(`Error en handleVoiceStateUpdate: ${err}`);
         }
@@ -79,11 +79,11 @@ export class VoiceChannelService {
     private async createTempChannel(state: VoiceState): Promise<void> {
         const user = state.member;
         const guild = state.guild;
-        
+
         if (!user) return;
 
         const userTempChannels = await this.getUserTempChannelCount(user.id, guild.id);
-        
+
         if (userTempChannels >= this.MAX_CHANNELS_PER_USER) {
             try {
                 await user.voice.disconnect("Límite de canales alcanzado");
@@ -114,7 +114,7 @@ export class VoiceChannelService {
 
             await user.voice.setChannel(tempChannel);
             await addTempVoiceChannel(tempChannel.id, guild.id, user.id);
-            
+
             this.activeTempChannels.set(tempChannel.id, user.id);
             debug(`Canal temporal creado: ${tempChannel.name} (${tempChannel.id}) para ${user.user.tag}`);
         } catch (err) {
@@ -125,7 +125,7 @@ export class VoiceChannelService {
     private async getUserTempChannelCount(userId: string, guildId: string): Promise<number> {
         try {
             const allTempChannels = await getAllTempVoiceChannels();
-            return allTempChannels.filter(ch => 
+            return allTempChannels.filter(ch =>
                 ch.guildId === guildId && ch.ownerId === userId
             ).length;
         } catch (err) {
@@ -144,7 +144,7 @@ export class VoiceChannelService {
         const channel = await state.guild.channels.fetch(channelId) as VoiceChannel;
         if (!channel) return;
 
-        if (channel.members.size === 0) {
+        if (channel.members.filter(m => !m.user.bot || m.id === this.me).size === 0) {
             this.scheduleChannelDeletion(channel);
         }
     }
@@ -157,7 +157,7 @@ export class VoiceChannelService {
             const isOldTemp = await isTempVoiceChannel(oldChannelId);
             if (isOldTemp) {
                 const oldChannel = await oldState.guild.channels.fetch(oldChannelId) as VoiceChannel;
-                if (oldChannel && oldChannel.members.size === 0) {
+                if (oldChannel && oldChannel.members.filter(m => !m.user.bot || m.id === this.me).size === 0) {
                     this.scheduleChannelDeletion(oldChannel);
                 } else {
                     this.cancelDeletionTimer(oldChannelId);
@@ -172,16 +172,16 @@ export class VoiceChannelService {
 
     private scheduleChannelDeletion(channel: VoiceChannel): void {
         const channelId = channel.id;
-        
+
         this.cancelDeletionTimer(channelId);
-        
+
         debug(`Programando eliminación de canal ${channel.name} en ${this.GRACE_PERIOD}ms`);
-        
+
         const timer = setTimeout(async () => {
             try {
                 // Verificar nuevamente si el canal está vacío
                 const currentChannel = await channel.guild.channels.fetch(channelId) as VoiceChannel;
-                if (currentChannel && currentChannel.members.size === 0) {
+                if (currentChannel && currentChannel.members.filter(m => !m.user.bot || m.id === this.me).size === 0) {
                     await this.deleteTempChannel(currentChannel);
                 } else {
                     debug(`Canal ${channel.name} ya no está vacío, cancelando eliminación`);
@@ -192,7 +192,7 @@ export class VoiceChannelService {
                 this.deletionTimers.delete(channelId);
             }
         }, this.GRACE_PERIOD);
-        
+
         this.deletionTimers.set(channelId, timer);
     }
 
@@ -208,11 +208,11 @@ export class VoiceChannelService {
     private async deleteTempChannel(channel: VoiceChannel): Promise<void> {
         try {
             this.cancelDeletionTimer(channel.id);
-            
-            const ownerId = this.activeTempChannels.get(channel.id);            
-            await removeTempVoiceChannel(channel.id);   
+
+            const ownerId = this.activeTempChannels.get(channel.id);
+            await removeTempVoiceChannel(channel.id);
             this.activeTempChannels.delete(channel.id);
-            
+
             await channel.delete(`Canal temporal vacío (propietario: ${ownerId || 'desconocido'})`);
             debug(`Canal temporal eliminado: ${channel.name} (${channel.id})`);
         } catch (err) {
@@ -222,11 +222,11 @@ export class VoiceChannelService {
 
     async cleanupGuildTempChannels(guild: Guild): Promise<{ deleted: number; errors: number }> {
         const results = { deleted: 0, errors: 0 };
-        
+
         try {
             const allTempChannels = await getAllTempVoiceChannels();
             const guildTempChannels = allTempChannels.filter(ch => ch.guildId === guild.id);
-            
+
             for (const tempChannel of guildTempChannels) {
                 this.cancelDeletionTimer(tempChannel.channelId);
             }
@@ -236,10 +236,10 @@ export class VoiceChannelService {
                     const channel = await guild.channels.fetch(tempChannel.channelId);
                     if (channel && channel.isVoiceBased()) {
                         await channel.delete("Limpieza manual de canales temporales");
-                        
+
                         await removeTempVoiceChannel(tempChannel.channelId);
                         this.activeTempChannels.delete(tempChannel.channelId);
-                        
+
                         results.deleted++;
                     }
                 } catch (err) {
@@ -259,19 +259,23 @@ export class VoiceChannelService {
     async cleanupEmptyTempChannels(): Promise<void> {
         try {
             const allTempChannels = await getAllTempVoiceChannels();
-            
+
             for (const tempChannel of allTempChannels) {
                 try {
                     const guild = this.client.guilds.cache.get(tempChannel.guildId);
                     if (!guild) continue;
-
-                    const channel = await guild.channels.fetch(tempChannel.channelId).catch(() => null);                    
-                    if (!channel || (channel.isVoiceBased() && (channel as VoiceChannel).members.size === 0)) {
+                    const channel = await guild.channels.fetch(tempChannel.channelId).catch(() => null) ?? null;
+                    if (channel && channel.isVoiceBased()) {
                         const voiceChannel = channel as VoiceChannel;
-                        if (voiceChannel) {
+                        if (voiceChannel && (voiceChannel.members.filter(m => !m.user.bot || m.id === this.me).size === 0)) {
                             this.cancelDeletionTimer(voiceChannel.id);
                             await this.deleteTempChannel(voiceChannel);
                         }
+                    }
+
+                    if (channel === null || undefined) {
+                        await removeTempVoiceChannel(tempChannel.channelId);
+                        info(`Canal "${tempChannel.channelId}" eliminado de la bd, el canal ya no existe o es inaccesible!!`);
                     }
                 } catch (err) {
                     debug(`Error verificando canal ${tempChannel.channelId}: ${err}`);
@@ -307,11 +311,15 @@ export class VoiceChannelService {
 export function startVoiceChannelService(client: Client): void {
     const voiceChannelService = new VoiceChannelService(client);
     const ClenTiemer = 8 * 60 * 60 * 1000;
-    
+
     client.on('voiceStateUpdate', (oldState, newState) => {
         voiceChannelService.handleVoiceStateUpdate(oldState, newState).catch(err => {
             error(`Error en voiceStateUpdate: ${err}`);
         });
+    });
+
+    voiceChannelService.cleanupEmptyTempChannels().catch(err => {
+        error(`Error en limpieza de canales: ${err}`);
     });
 
     setInterval(() => {

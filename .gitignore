@@ -9,6 +9,7 @@ tsconfig.prod.json
 .env
 Intirko.txt
 i18n-unused.config.js
+testFun.ts
 
 # Archivos compilados y logs
 logs/

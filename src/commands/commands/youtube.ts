@@ -1,12 +1,12 @@
 // src/Events-Commands/commands/youtube.ts
-import { ChannelType, Guild, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
+import { Guild, GuildBasedChannel, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
 import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/DB-Engine/links/Youtube";
 import { extractVideoId } from "../../bgProcess/youtubeCheck";
 import { error, debug } from "../../sys/logging";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import i18next from "i18next"
 import Parser from "rss-parser";
-import { testPermisos } from "../../sys/zGears/auxiliares";
+import { masterPerm } from "../../sys/zGears/auxiliares";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
 import { countItems } from "../../sys/DB-Engine/database";
 
@@ -26,7 +26,7 @@ export async function registerYouTubeCommand() {
         )
         .addChannelOption(option =>
           option.setName("canal")
-            .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+            .addChannelTypes(0, 5, 10, 11, 12)
             .setDescription(i18next.t("commands:youtube.slashBuilder.canal"))
             .setRequired(true)
         )
@@ -111,6 +111,7 @@ async function seguirCanal(interaction: any, guild: Guild) {
     return;
   }
 
+  const ch = discordChannel as GuildBasedChannel;
   const conty = await countItems(guild.id, "youtube_feeds");
   const limit = await getGuildLimits(guild.id);
   if ((conty >= limit.dexMax)) {
@@ -118,12 +119,8 @@ async function seguirCanal(interaction: any, guild: Guild) {
     return;
   }
 
-  const me = discordChannel.permissionsFor(guild.members.me!);
-  const perChTo = testPermisos(me, "viewCh|sendMsg|addlink");
-  if (perChTo.some(p => p.includes("❌"))) {
-    await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo[0] }) });
-    return;
-  }
+  const testPerm = masterPerm(ch, "viewCh|sendMsg|addlink")
+  if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 
   if (!rssUrl.includes("youtube.com/feeds/videos.xml") || !rssUrl.includes("channel_id=")) {
     await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.rss_error"), flags: MessageFlags.Ephemeral });
@@ -171,7 +168,7 @@ async function seguirCanal(interaction: any, guild: Guild) {
 
     await addYouTubeFeed({
       guild_id: guild.id,
-      channel_id: discordChannel.id,
+      channel_id: ch.id,
       youtube_channel_id: channelId,
       youtube_channel_name: vChName,
       rss_url: rssUrl,

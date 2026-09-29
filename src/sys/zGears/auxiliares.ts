@@ -1,10 +1,9 @@
-// sc/sys/auxiliares.ts
-import { Client, Guild, GuildMember, PermissionFlagsBits } from "discord.js";
+// src/sys/zGears/auxiliares.ts
+import { Client, Guild, GuildBasedChannel, GuildMember, Message, PermissionFlagsBits, PermissionsBitField, Role } from "discord.js";
 import { error } from "../logging";
 import i18next from "i18next";
 
 /* ======================================== TIMMERS ======================================== */
-
 const minutos = 60 * 1000;
 const hrs = 60 * minutos;
 const cooldownsMap = new Map<string, number>();
@@ -14,6 +13,7 @@ const COOLDOWN_TIMES: Record<string, number> = {
     "netCommand": 30 * minutos,
     "playMusic": 5 * minutos,
     "netCommandNoWait": 5 * minutos,
+    "Kancolle": 15 * minutos,
     "skip": 2_500,
 };
 
@@ -177,7 +177,7 @@ const listBits = (lis?: string): { id: string, name: string, bit: bigint }[] => 
     return [...mngrBits, ...commonBits];
 }
 
-export function testPermisos(chkPerm: any, idComamnd: string): string[] {
+export function testPermisos(chkPerm: Readonly<PermissionsBitField>, idComamnd: string): string[] {
     let bits: { id: string, name: string, bit: bigint }[] = [];
     switch (idComamnd) {
         case "meltrys":
@@ -207,23 +207,19 @@ export function testPermisos(chkPerm: any, idComamnd: string): string[] {
     return chunks;
 }
 
-// Nota: Modulo para llamar el check 
-/* Tipo por canal!!
-    const me = canalDestino.permissionsFor(guild.members.me!);
-    const perChTo = testPermisos(me, "viewCh|sendMsg|addlink|addfiles");
-    if (perChTo.some(p => p.includes("❌"))) {
-        await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: perChTo[0] }) });
-        return;
-    }
-*/ /* Tipo General!!
-    const im = interaction.guild?.members.me?.permissions;
-    const serPrm = testPermisos(im, "viewCh|sendMsg|addlink|addfiles");
-    if (serPrm.some(p => p.includes("❌"))) {
-        await interaction.editReply({ content: `❌ El bot no tiene permisos suficientes en <#${canalDestino.id}>:\n${serPrm.join[0]}` });
-        return;
-    }
-*/
+export function masterPerm(iMe: Guild | GuildBasedChannel, toTest: string): { ok: boolean, msg: string[] } {
+    let im: Readonly<PermissionsBitField>
+    if (iMe instanceof Guild) im = iMe.members.me!.permissions
+    else im = iMe.permissionsFor(iMe.guild.members.me!)
 
+    const testing = testPermisos(im, toTest);
+    if (testing.some(p => p.includes("❌"))) { return { ok: false, msg: testing } }
+    else { return { ok: true, msg: testing } }
+}
+/*
+const testPerm = masterPerm(im, "test")
+if (!testPerm.ok) { await i.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${inCh.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
+*/
 /* ======================================== Check Permisos ======================================== */
 export async function topRol(guild: Guild, chkPerm: GuildMember, permIds?: string): Promise<string[]> {
     try {
@@ -261,3 +257,64 @@ export async function topRol(guild: Guild, chkPerm: GuildMember, permIds?: strin
         return chunks;
     } catch (e) { error(`Error en generar topRol, Error: ${e}`); return [`ERROR AL GENERAR LISTA DE ROLES`]; };
 }
+
+/* ======================================== msgDelete ======================================== */
+interface msgDeletINT { msg: Message, userId: string }
+export async function msgDeleter(dta: msgDeletINT) {
+    if (!dta.msg.channel.isSendable() || !dta.msg.deletable || !dta.msg.author) return;
+    try {
+        await dta.msg.react('🗑️');
+        const collector = dta.msg.createReactionCollector({
+            filter: (reaction, user) => reaction.emoji.name === '🗑️' && user.id === dta.userId,
+            max: 1,
+            time: 60_000
+        });
+
+        collector.on('collect', async () => {
+            await dta.msg.delete().catch(() => { });
+            collector.stop();
+        });
+
+        collector.on('end', async (_, reason) => {
+            if (reason === 'time' && dta.msg.reactions.cache.has('🗑️')) {
+                const reaction = dta.msg.reactions.cache.get('🗑️');
+                if (reaction?.me) { await reaction.users.remove(dta.msg.client.user?.id).catch(() => { }); }
+            }
+        });
+
+    } catch (e: any) {
+        if (e.message.includes("Missing Permissions") && dta.msg.channel.isSendable()) {
+            await dta.msg.channel.send({ content: i18next.t("common:embedService.emojErr"), allowedMentions: { repliedUser: false } }).catch(() => { });
+        }
+        if (!e.message.includes("Missing Access")) { error(`Error en msgDeleter: ${e.message}, Guild: ${dta.msg.guild?.name}`, "msgAuxDelet"); }
+    }
+};
+
+/* ======================================== stilOn ======================================== */
+interface stillOnInt { cli: Client, chkChID: string, chkGuiId: string, roley?: string | null }
+interface StillOnR { ok: boolean, erase: boolean, msg?: string, gremio: Guild | null, canale: GuildBasedChannel | null, rolito: Role | null }
+// === engine === //
+export async function stillOn(dta: stillOnInt): Promise<StillOnR> {
+    let guildy: Guild, canalito: GuildBasedChannel | null, rolito: Role | null = null;
+    // === Server === //
+    try { guildy = dta.cli.guilds.cache.get(dta.chkGuiId) ?? await dta.cli.guilds.fetch(dta.chkGuiId) }
+    catch (e: any) { // 10004: Unknown Guild | 50001: Missing Access
+        if (e.code === 10004 || e.code === 50001) return { ok: false, erase: true, msg: `No tengo acceso al servidor ${dta.chkGuiId}, ${e.code}`, gremio: null, canale: null, rolito: null }
+        else return { ok: false, erase: false, msg: `Error al buscar el servidor ${dta.chkGuiId}, ${e.code}`, gremio: null, canale: null, rolito: null }
+    }
+    // === Canal === //
+    try {
+        canalito = guildy.channels.cache.get(dta.chkChID) ?? await guildy.channels.fetch(dta.chkChID);
+        if (!canalito) { return { ok: false, erase: true, msg: `El canal ${dta.chkChID} no existe en ${guildy.name}`, gremio: guildy, canale: null, rolito: null }; }
+    }
+    catch (e: any) { // 404: Not Found | 10003: Unknown Channel | 50001: Missing Access 
+        if (e.code === 404 || e.code === 10003 || e.code === 50001) return { ok: false, erase: true, msg: `No tengo acceso al canal ${dta.chkChID} en el servidor ${guildy.name}, ${e.code}`, gremio: null, canale: null, rolito: null }
+        else return { ok: false, erase: false, msg: `Error al buscar el canal ${dta.chkChID} en el servidor ${guildy.name}, ${e.code}`, gremio: null, canale: null, rolito: null }
+    }
+    // === Rol === //
+    if (dta.roley) { rolito = guildy.roles.cache.get(dta.roley) ?? await guildy.roles.fetch(dta.roley).catch(() => null) }
+    // === OUT === //
+    return { ok: true, erase: false, gremio: guildy, canale: canalito, rolito: rolito }
+}
+
+/* ======================================== NEXT ======================================== */

@@ -11,15 +11,15 @@ import { initI18n } from "./i18n";
 import { validateAllTranslations } from "./i18n/nsKeyCheck";
 import { startWelcomeEvents } from "../bgProcess/welcomeEvents";
 import { registerRolemojiEvents, preloadRolemojiMessages } from "../bgProcess/rolemojiEvents";
-import { startYoutubeService } from "../bgProcess/youtubeCheck";
-import { startRedditChecker } from "../bgProcess/redditCheck";
-import { startMangadexChecker } from "../bgProcess/mangadexChek";
 import { startVoiceChannelService } from "../bgProcess/voicEvent";
 import { startCronpost } from "../bgProcess/exeCron";
 import lavalinkManager, { loadNodes } from "../bgProcess/lavalinkConnect";
 import registerIOevent from "./zGears/IO-Server";
 import { initNoEveryone } from "../bgProcess/noEvery";
-
+import { startServices } from "./zGears/_managerServices";
+import { initKC } from "../bgProcess/KanCron";
+import { startProxyChecker } from "./zGears/newAux";
+import { initPixivCheck } from "../bgProcess/pixivCheck";
 
 /*========= Inicializadores =========*/
 
@@ -37,6 +37,7 @@ async function main(): Promise<void> {
         sysUpRegister(client);
         await registerIOevent(client);
         registerRolemojiEvents(client);
+        startProxyChecker()
         if (BDready) {
             info("💽​ Base de datos lista, iniciando servicios...")
             const sld = await startListDomains()
@@ -45,15 +46,15 @@ async function main(): Promise<void> {
                 startEmbedService(client);
                 info("Servicio de embed inicializado")
             } else { error("❌ ERROR AL INICIAR EL SISTEMA DE EMBEDDING!!") }
-            loadNodes()
+            await loadNodes()
             startVoiceChannelService(client);
-            startMangadexChecker(client);
-            startYoutubeService(client); // by nep  
-            startRedditChecker(client);  // by nowa
             await startWelcomeEvents(client);
             startCronpost(client);
-            startStatusRotation(client);
-            initNoEveryone(client);
+            await startStatusRotation(client);
+            await initNoEveryone(client);
+            initKC(client)
+            startServices(client)
+            initPixivCheck(client)
         } else {
             error("❌ La BD no arranco, bye bye~");
             process.exit(1);
