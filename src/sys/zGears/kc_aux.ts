@@ -356,8 +356,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
     let vlueTxt = i18next.t("commands:kancolle.bgProsses.siwtchNotify_vText", { a1: rst.pvp, a2: rst.oem, a3: rst.mExp, a4: rst.dQuest, a5: rst.wQuest, a6: rst.mQuest, a7: rst.qQuest, a8: rst.dPtCutof, a9: rst.mPtCutof });
     if (maint.lastMaintStart && (maint.lastMaintStart.getTime() > getNowJST())) {
         const resTime = maint.lastMaintStart.getTime() - getNowJST();
-        const mantData = "\n" + "> Mantenimiento:" + "\n" +
-            `**⏰ INICIA EN:** ${turnDate(resTime)}` + "\n\n"
+        const mantData = "\n" + "> Mantenimiento:" + "\n" + `**⏰ INICIA EN:** ${turnDate(resTime)}` + "\n\n"
         if (type !== "maintStart") vlueTxt += mantData;
     }
     // ===== switch ===== //

@@ -84,9 +84,8 @@ const chkType = new Map<notifyType, (cfg: any) => boolean>([
     /*Mante*/['newMante', cfg => cfg.mnt.av], ['maintStart', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av]]);
 
 const chkRole = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf], ['lQuest', cfg => cfg.quest.ntf],
-    /*OEM*/['oem', cfg => cfg.oem.ntf], ['loem', cfg => cfg.oem.ntf],
-    /*EXP*/['mExp', cfg => cfg.mExp.ntf], ['lmExp', cfg => cfg.mExp.ntf],
+    ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf],
+    /*OEM*/['oem', cfg => cfg.oem.ntf], /*EXP*/['mExp', cfg => cfg.mExp.ntf],
     /*Mante*/['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
 
 /* === Core === */
@@ -239,6 +238,7 @@ async function msgMgr(dat: msgBuild) {
     let rMnt: string | undefined = undefined, del30 = 0, del15 = 0;
     if (dat.rol) { rMnt = `AVISO: ${dat.rol}!`; del30 = (30 * minuts) - 20_000; del15 = (15 * minuts) - 20_000; }
     if (dat.type === "mntEnd") del30 = hours;
+    const rtfRol = rMnt ? "..." : undefined;
     const preNtfy = (["loem", "lmExp", "qQuest"] as notifyType[]).includes(dat.type);
     if (preNtfy) del30 = 23 * hours;
     /* Now */
@@ -249,7 +249,7 @@ async function msgMgr(dat: msgBuild) {
             if (isStale()) return;
             const p = rawPreset(dat.type);
             if (!p) return;
-            await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l30, pic: p.urlPic.A, rolOn: rMnt, color: 0xFFA500, url: p.url, delAft: del15 });
+            await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l30, pic: p.urlPic.A, rolOn: rtfRol, color: 0xFFA500, url: p.url, delAft: del15 });
         }, prst.mTimmer - (30 * minuts));
     }
     /* 15 min */
@@ -258,7 +258,7 @@ async function msgMgr(dat: msgBuild) {
             if (isStale()) return;
             const p = rawPreset(dat.type);
             if (!p) return;
-            await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l15, pic: p.urlPic.A, rolOn: rMnt, color: 0xFFA500, url: p.url, delAft: del15 });
+            await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l15, pic: p.urlPic.A, rolOn: rtfRol, color: 0xFFA500, url: p.url, delAft: del15 });
         }, prst.mTimmer - (15 * minuts));
     }
     /* Fin */
@@ -267,7 +267,7 @@ async function msgMgr(dat: msgBuild) {
             if (isStale()) return;
             const p = rawPreset(dat.type);
             if (!p) return;
-            await msgSnd({ ch: dat.ch, title: p.title.B, fields: p.field, desc: p.desc.fn, pic: p.urlPic.B, rolOn: rMnt, color: 0x00AA00, url: p.url, delAft: hours });
+            await msgSnd({ ch: dat.ch, title: p.title.B, fields: p.field, desc: p.desc.fn, pic: p.urlPic.B, rolOn: rtfRol, color: 0x00AA00, url: p.url, delAft: hours });
         }, prst.mTimmer);
     }
 }
