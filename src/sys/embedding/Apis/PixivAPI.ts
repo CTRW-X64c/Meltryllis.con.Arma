@@ -1,5 +1,5 @@
 // src/sys/embedding/Apis/PixivAPI.ts
-import { Message, AttachmentBuilder, TextChannel, EmbedBuilder } from "discord.js";
+import { Message, AttachmentBuilder, TextChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, ContainerBuilder, SeparatorSpacingSize, TextDisplayBuilder } from "discord.js";
 import { ApiHandler, pResult } from "../embedingSwitch"
 import { debug, error } from "../../logging";
 
@@ -20,7 +20,7 @@ export class apiPixivCustom implements ApiHandler {
         return true;
     }
 
-    async process(url: string, message?: Message): Promise<pResult> {
+    async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
         if (!message) return { ok: false };
         if (!message.channel || !message.channel.isTextBased()) return { ok: false };
 
@@ -44,31 +44,39 @@ export class apiPixivCustom implements ApiHandler {
         }
 
         try {
-            const embeds: EmbedBuilder[] = [];
             const files: AttachmentBuilder[] = [];
+            const gallegry = new MediaGalleryBuilder();
+            const components: any[] = []
+            const spoiler = isSpoiler === true;
+
+            let desc = `> 👤 [${pixivData.author}](${pixivData.url})`;
+            if (pixivData.stats) desc += `\n> ❤️ **${pixivData.stats.likes}** | 👁️ **${pixivData.stats.view}** | 💬 **${pixivData.stats.comments}** | 🔖 **${pixivData.stats.guardados}**`;
+            if (pixivData.sizePag > 10) desc += `\n> 🖼️ **Mostrando 10 de ${pixivData.sizePag} imagenes!**`
+            else desc += `\n> 🖼️ **Galeria de ${pixivData.sizePag === 1 ? 'una imagen!' : `${pixivData.buffers.length} imagenes`}**`;
+            if (pixivData.isIA) desc += `\n> 🤖 **Esta galeria esta marcada como generada por IA**`;
+
+            let midleTxt: string | undefined = undefined;
+            if (pixivData.title) midleTxt = `**${pixivData.title}**`
+            if (pixivData.descripcion) midleTxt += "\n\n" + pixivData.descripcion;
+            if (pixivData.tags) midleTxt += "\n\n" + pixivData.tags;
 
             pixivData.buffers.forEach((buffer, index) => {
                 const fileName = `PXimg_${illustId}_${index}.png`;
-                const attachment = new AttachmentBuilder(buffer, { name: fileName });
-                let desc = `🖼️ **Galeria de ${pixivData.sizePag === 1 ? 'una imagen!' : `${pixivData.buffers.length} imagenes`}**`
-                if (pixivData.sizePag > 5) desc = `🖼️ **Mostrando 5 de ${pixivData.sizePag} imagenes!**`
-                files.push(attachment);
-                const embed = new EmbedBuilder()
-                    .setURL(pixivData.url)
-                    .setImage(`attachment://${fileName}`);
-                if (index === 0) {
-                    embed.setTitle(pixivData.title)
-                        .setAuthor({ name: `👤 ${pixivData.author}` })
-                        .setDescription(desc)
-                        .setColor('#0096fa')
-                        .setFooter({
-                            text: `Pixiv • by Meltryllis Api`,
-                            iconURL: 'https://s.pximg.net/common/images/apple-touch-icon.png'
-                        });
-                }
-                embeds.push(embed);
-            });
-            return { ok: true, pack: [{ [illustId]: { embeds: embeds, files: files } }] };
+                files.push(new AttachmentBuilder(buffer, { name: fileName }));
+            })
+
+            for (const fol of files) { gallegry.addItems(new MediaGalleryItemBuilder().setURL(`attachment://${fol.name}`)); }
+
+            const container = new ContainerBuilder();
+            const parte = new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small);
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(desc)).setAccentColor(0x0096FA).setSpoiler(spoiler).addSeparatorComponents(parte);
+            if (midleTxt) container.addTextDisplayComponents(new TextDisplayBuilder().setContent(midleTxt));
+            if (gallegry.items.length > 0) container.addSeparatorComponents(parte).addMediaGalleryComponents(gallegry);
+            container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(`> Pixiv • by Meltryllis Api`))
+
+            components.push(container);
+            return { ok: true, pack: [{ [pixivData.author]: { components: components, files: files, isV2: true } }] };
+
         } catch (e) {
             error(`[apiPixivCustom] Error al enviar embeds: ${e}`);
             return { ok: false };
@@ -85,6 +93,10 @@ interface PixivPostData {
     sizePag: number;
     isNSFW: boolean;
     fPic: number;
+    isIA: boolean;
+    stats: { view: string, comments: string, likes: string, guardados: string };
+    descripcion?: string;
+    tags?: string;
 }
 
 interface PixivInfoResponse {
@@ -94,6 +106,13 @@ interface PixivInfoResponse {
         userName: string;
         xRestrict: number;
         illustType: number;
+        aiType?: number;
+        description?: string;
+        viewCount?: number;
+        likeCount?: number;
+        commentCount?: number;
+        bookmarkCount?: number;
+        tags: { tags: Array<{ tag: string }> }
     };
 }
 
@@ -121,7 +140,7 @@ export class PixivAPI {
         try {
             const infoRes = await fetch(`https://www.pixiv.net/ajax/illust/${illustId}`, { headers: this.headers });
             const infoData = await infoRes.json() as PixivInfoResponse;
-            const maxPics = 5;
+            const maxPics = 10;
 
             if (infoData.error || !infoData.body) {
                 debug(`[PixivAPI] Post borrado o inaccesible. ID: ${illustId}`);
@@ -150,6 +169,9 @@ export class PixivAPI {
             }
 
             const imageBuffers = await Promise.all(fetchPromises);
+            const listTag: string[] = infoData.body.tags?.tags.map(t => t.tag) || [];
+            const tageos = listTag.length > 0 ? this.buildTageo(listTag) : undefined;
+
             return {
                 title: infoData.body.title || 'Pixiv Art',
                 author: infoData.body.userName || 'Autor Desconocido',
@@ -157,11 +179,49 @@ export class PixivAPI {
                 buffers: imageBuffers,
                 sizePag: pagesData.body.length,
                 isNSFW: isNsfwContent,
-                fPic: typePic
+                fPic: typePic,
+                isIA: infoData.body.aiType === 2,
+                stats: { view: this.numShort(infoData.body.viewCount), comments: this.numShort(infoData.body.commentCount), likes: this.numShort(infoData.body.likeCount), guardados: this.numShort(infoData.body.bookmarkCount) },
+                descripcion: infoData.body.description ? this.clenDesc(infoData.body.description) : undefined,
+                tags: tageos ? tageos.join(" ") : undefined,
             };
+
         } catch (e) {
             error(`[PixivAPI] Error interno al obtener ilustracion ${illustId}: ${e}`);
             return null;
         }
     }
+
+    private static numShort(total?: number | null): string {
+        if (!total) return "0";
+        if (total >= 1_000_000_000) return `${(total / 1_000_000_000).toFixed(1)}B`;
+        if (total >= 1_000_000) return `${(total / 1_000_000).toFixed(1)}M`;
+        if (total >= 1_000) return `${(total / 1_000).toFixed(1)}K`;
+        return total.toString();
+    }
+
+    private static buildTageo(list: string[]): string[] {
+        const stgTags = [];
+        for (const t of list) {
+            stgTags.push(`[#${t}](https://www.pixiv.net/tags/${t})`);
+        }
+        return stgTags;
+    }
+
+    private static clenDesc(texto: string) {
+        return texto
+            .replace(/<\s*br\s*\/?\s*>/gi, '\n')
+            .replace(/<\/(p|div|h[1-6]|li|tr)>/gi, '\n')
+            .replace(/<[^>]+>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/[ \t]+/g, ' ')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+    }
 }
+
