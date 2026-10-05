@@ -17,16 +17,14 @@ export class apiEmbedez implements ApiHandler {
         return embedezSFW.some(d => domain.endsWith(d)) || embedezNSFW.some(d => domain.endsWith(d));
     }
 
-    async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
+    async guildChk(domain: string, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
         const matchingDomain = embedezSFW.find(d => domain.endsWith(d)) || embedezNSFW.find(d => domain.endsWith(d));
         if (!matchingDomain) return false;
 
         const apiDomainConfig = guildConfigs.get(matchingDomain);
-        if (apiDomainConfig && apiDomainConfig.enabled === false) {
-            debug(`El uso del API EmbedEz está deshabilitado para el dominio: ${matchingDomain} en el gremio: ${guildId}`, "Events.MessageCreate");
-            return false;
-        } return true;
+        if (apiDomainConfig && apiDomainConfig.enabled === false) return false;
+        return true;
     }
 
     async process(originalUrl: string): Promise<pResult> {

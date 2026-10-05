@@ -16,13 +16,10 @@ export class xTwitterCustom implements ApiHandler {
 
     isAvailable(): boolean { return true; }
     isDomain(domain: string): boolean { return /(^|:\/\/|\.)(x|twitter)\.com/.test(domain); }
-    async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
+    async guildChk(domain: string, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
         const aDom = "Meltrys.xTwitter", albe = guildConfigs.get(aDom);
-        if (!albe || (albe && albe.enabled === false)) {
-            debug(`El uso de Meltrys xTwitter no está habilitado en este gremio: ${guildId}`, "ApiReplacement");
-            return false;
-        }
+        if (!albe || (albe && albe.enabled === false)) return false;
         return true;
     }
 

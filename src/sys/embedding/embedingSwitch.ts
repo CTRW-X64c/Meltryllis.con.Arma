@@ -16,7 +16,7 @@ export interface ApiHandler {
     name: string;
     isAvailable(): boolean;
     isDomain(domain: string): boolean;
-    guildChk(domain: string, guildId: string, guildConfigs: Map<string, any>): Promise<boolean>;
+    guildChk(domain: string, guildConfigs: Map<string, any>, guildId?: string): Promise<boolean>;
     process(url: string, message?: Message, spoiler?: boolean): Promise<pResult>;
 }
 
@@ -35,7 +35,7 @@ export async function urlProcess(dta: urlData): Promise<pResult> {
         if (!apiHandler.isAvailable()) continue;
         if (!apiHandler.isDomain(dta.domain)) continue;
 
-        const shouldUse = await apiHandler.guildChk(dta.domain, dta.guild, dta.gConf);
+        const shouldUse = await apiHandler.guildChk(dta.domain, dta.gConf, dta.guild);
         if (!shouldUse) continue;
 
         try {
