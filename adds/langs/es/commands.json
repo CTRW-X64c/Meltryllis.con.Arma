@@ -49,7 +49,7 @@
       "before": "antes",
       "after": "después",
       "filtered_by": "Filtrado por: **{{a1}}**",
-      "old_messages_warning": "No se pudieron borrar algunos mensaje muy viejos!!",
+      "old_messages_warning": "No se pudieron borrar algunos mensajes!! \n Antigüedad máxima de 14 días!!",
       "breakdown": "👤 **Usuarios**: {{a1}}\n🤖 **Bots**: {{a2}}",
       "error": "❌ Ocurrió un error al intentar eliminar los mensajes."
     }

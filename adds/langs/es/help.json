@@ -135,8 +135,8 @@
     "title": "Comando /cleanup",
     "description": "Herramienta para el borrado masivo de mensajes en canales.",
     "name_1": "Uso y limitaciones:",
-    "value_1": "Este comando permite borrar mensajes en canales específicos usando un mensaje de referencia, ya sea para borrar los que están antes o después de él por medio de su id. También puede borrar mensajes solo de bots o usuarios; por defecto, borra sin revisar el autor. \n\n Por limitaciones de la API de Discord, solo se pueden borrar 100 mensajes a la vez con un máximo de 3 semanas de antigüedad. \n\n Puedes usar la opcion `edit` para modificar los mensajes de /buttonrole y /buttonlink",
-    "footer": "/cleanup start:<valor> mesanje_id:<id> count:<1-100> type:<bot/user/all>"
+    "value_1": "Este comando permite borrar mensajes en canales específicos usando un mensaje de referencia, ya sea para borrar los que están antes o después de él por medio de su id. También puede borrar mensajes solo de bots o usuarios; por defecto, borra sin revisar el autor. \n\n Por limitaciones de la API de Discord, solo se pueden borrar 1000 mensajes a la vez con un máximo de 2 semanas de antigüedad. \n\n Puedes usar la opcion `edit` para modificar los mensajes de /buttonrole y /buttonlink",
+    "footer": "/cleanup start:<valor> mesanje_id:<id> count:<1-1000> type:<bot/user/all>"
   },
   "embed": {
     "title": "Comando /embed configurar",

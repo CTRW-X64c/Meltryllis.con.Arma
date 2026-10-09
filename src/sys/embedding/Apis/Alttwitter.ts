@@ -24,21 +24,23 @@ export class xTwitterCustom implements ApiHandler {
     }
 
     public async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
-        const matchLang = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/.*\/([a-z]+)/i);
+        const matchLang = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/\d+\/([a-z]+)(?:\/|$)/i);
         const lang = matchLang ? matchLang[1].toLowerCase() : undefined;
-        if (lang && !["es", "en", "pt", "it"].includes(lang)) return { ok: false };
-
+        let iLang: string | undefined = undefined;
+        if (lang && ["es", "en", "pt", "it", "ja", "ru"].includes(lang)) iLang = lang;
+        let wQuote = false;
+        if (url.endsWith("/q") || url.endsWith("/Q")) wQuote = true;
+        // msg
         if (!message) return { ok: false };
         if (!message.channel || !message.channel.isTextBased()) return { ok: false };
-
         const tx = message.channel as TextChannel;
         await tx.sendTyping();
-
+        // chk
         const match = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
         if (!match) return { ok: false };
         const xId = match[1];
-
-        const xData = await xTwitter.getTweetData(xId, lang);
+        // get dta
+        const xData = await xTwitter.getTweetData(xId, iLang);
         if (!xData) return { ok: false };
         if (!xData.hasMedias && !xData.tweetDesc) return { ok: false };
         try {
@@ -53,7 +55,7 @@ export class xTwitterCustom implements ApiHandler {
             if (xData.tweetDesc) {
                 tweDes = xData.tweetDesc;
                 if (!xData.tweetTl && tweDes.length > 2000) tweDes = tweDes.slice(0, 2000) + "...";
-                if (xData.tweetTl && tweDes.length > 500) tweDes = tweDes.slice(0, 500) + "...";
+                if (xData.tweetTl && tweDes.length > 400) tweDes = tweDes.slice(0, 387) + "...";
             }
 
             if (xData.tweetTl && xData.tweetTl.oTxT) {
@@ -71,14 +73,6 @@ export class xTwitterCustom implements ApiHandler {
 
             const outText = textBlocks.length > 0 ? textBlocks.join("\n\n") : undefined;
 
-            let outTxtQuote: string | undefined = undefined;
-            if (xData.tweetQuotes && (xData.tweetQuotes.author || xData.tweetQuotes.url || xData.tweetQuotes.txt)) {
-                const statTxtQuo = `> ❤️: **${xData.tweetQuotes.stdst.likes}** | 🔁: **${xData.tweetQuotes.stdst.reTwi}** | 💬: **${xData.tweetQuotes.stdst.resp}** | 👀: **${xData.tweetQuotes.stdst.views}**`
-                const quoUser = xData.tweetQuotes.name ? (xData.tweetQuotes.name.length > 28 ? xData.tweetQuotes.name.slice(0, 25) + `...` : xData.tweetQuotes.name) : "Usuario desconocido!!";
-                const quoUrl = (xData.tweetQuotes.url && xData.tweetQuotes.author) ? `**([@${xData.tweetQuotes.author}](${xData.tweetQuotes.url}))**` : `URL no encontrada!`
-                outTxtQuote = `**Citado:** \n ${`> ** 👤 ${quoUser} ${quoUrl}** \n ${statTxtQuo}`} \n\n ${xData.tweetQuotes.txt ? xData.tweetQuotes.txt : "..."}`;
-            }
-
             // originalMedia
             const gallegry = new MediaGalleryBuilder();
             xData.bufferVideo.forEach((buffer, index) => {
@@ -94,39 +88,43 @@ export class xTwitterCustom implements ApiHandler {
                 files.push(new AttachmentBuilder(buffer, { name: fileName }));
             });
             // todo esto se hizo porque alguien reporto que no respetaba el modo spoiler 
-
-            for (const file of files) {
-                gallegry.addItems(new MediaGalleryItemBuilder().setURL(`attachment://${file.name}`))
-            }
+            for (const file of files) { gallegry.addItems(new MediaGalleryItemBuilder().setURL(`attachment://${file.name}`)) }
 
             if (xData.rawUrl && xData.rawUrl.length > 0) {
-                for (const url of xData.rawUrl) {
-                    gallegry.addItems(new MediaGalleryItemBuilder().setURL(url));
-                }
+                for (const url of xData.rawUrl) { gallegry.addItems(new MediaGalleryItemBuilder().setURL(url)) }
             }
 
-            // QuoMedia
+            // === QuoMedia == //
+            let outTxtQuote: string | undefined = undefined;
             const gallegryQuo = new MediaGalleryBuilder();
-            xData.tweetQuotes.kcheMedia.vidQuo.forEach((buffer, index) => {
+
+            xData.tQuote.kcheMedia.vidQuo.forEach((buffer, index) => {
                 const fileName = `Xvideo_Quo_${xId}_${index}.mp4`;
                 filesQuo.push(new AttachmentBuilder(buffer, { name: fileName }));
             });
-            xData.tweetQuotes.kcheMedia.gifQuo.forEach((buffer, index) => {
+            xData.tQuote.kcheMedia.gifQuo.forEach((buffer, index) => {
                 const fileName = `Xgif_Quo_${xId}_${index}.webp`;
                 filesQuo.push(new AttachmentBuilder(buffer, { name: fileName }));
             });
-            xData.tweetQuotes.kcheMedia.imQuo.forEach((buffer, index) => {
+            xData.tQuote.kcheMedia.imQuo.forEach((buffer, index) => {
                 const fileName = `Ximg_Quo_${xId}_${index}.jpg`;
                 filesQuo.push(new AttachmentBuilder(buffer, { name: fileName }));
             });
 
-            for (const file of filesQuo) {
-                gallegryQuo.addItems(new MediaGalleryItemBuilder().setURL(`attachment://${file.name}`))
+            for (const file of filesQuo) { gallegryQuo.addItems(new MediaGalleryItemBuilder().setURL(`attachment://${file.name}`)) }
+
+            if (xData.tQuote?.kcheMedia.rawLink && xData.tQuote?.kcheMedia.rawLink.length > 0) {
+                for (const url of xData.tQuote?.kcheMedia.rawLink) { gallegryQuo.addItems(new MediaGalleryItemBuilder().setURL(url)) };
             }
 
-            if (xData.tweetQuotes?.kcheMedia.rawLink && xData.tweetQuotes?.kcheMedia.rawLink.length > 0) {
-                for (const url of xData.tweetQuotes?.kcheMedia.rawLink) {
-                    gallegryQuo.addItems(new MediaGalleryItemBuilder().setURL(url));
+            if (gallegryQuo.items.length > 0 && gallegry.items.length === 0) wQuote = true;
+            if (wQuote) {
+                if (xData.tQuote && (xData.tQuote.author || xData.tQuote.url || xData.tQuote.txt)) {
+                    const statTxtQuo = `> ❤️: ${xData.tQuote.stdst.likes} | 🔁: ${xData.tQuote.stdst.reTwi} | 💬: ${xData.tQuote.stdst.resp} | 👀: ${xData.tQuote.stdst.views}`
+                    const quoUser = xData.tQuote.name ? (xData.tQuote.name.length > 28 ? xData.tQuote.name.slice(0, 25) + `...` : xData.tQuote.name) : "Usuario desconocido!!";
+                    const quoUrl = (xData.tQuote.url && xData.tQuote.author) ? `([@${xData.tQuote.author}](${xData.tQuote.url}))` : `URL no encontrada!`
+                    const citTxt = xData.tQuote?.txt ?? "...";
+                    outTxtQuote = `**Citado:** \n ${`> ** 👤 ${quoUser} ${quoUrl}** \n ${statTxtQuo}`} \n\n ${(outText && outText.length > 2000) ? citTxt.slice(0, 1000) + "..." : citTxt}`;
                 }
             }
 
@@ -137,17 +135,19 @@ export class xTwitterCustom implements ApiHandler {
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(TopTxt)).addSeparatorComponents(parte);
             if (outText) { container.addTextDisplayComponents(new TextDisplayBuilder().setContent(outText)) };
             if (gallegry.items.length > 0) container.addMediaGalleryComponents(gallegry);
-            if (outTxtQuote) { container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(outTxtQuote)); }
-            if (gallegryQuo.items.length > 0) { container.addMediaGalleryComponents(gallegryQuo); }
+            if (wQuote) {
+                if (outTxtQuote) { container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(outTxtQuote)); }
+                if (gallegryQuo.items.length > 0) { container.addMediaGalleryComponents(gallegryQuo); }
+            }
             container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(BottomTxt)).setAccentColor(0x000055)
                 .setSpoiler(spoiler);
 
             components.push(container);
-
+            // filesitos
             let outFiles: AttachmentBuilder[] = [];
             if (files) outFiles.push(...files);
-            if (filesQuo) outFiles.push(...filesQuo);
-
+            if (wQuote && filesQuo) outFiles.push(...filesQuo);
+            // out
             return { ok: true, pack: [{ [xId]: { files: outFiles, components: components, isV2: true } }] };
 
         } catch (e) {
@@ -162,7 +162,7 @@ interface twitterData {
     urlPost: string, showName: string, userName: string,
     likes: string, resp: string, reTwi: string, views: string, avatarPic: string,
     hasMedias: boolean, tweetDesc?: string, tweetTl?: { oTxT: string, oLng: string },
-    tweetQuotes: {
+    tQuote: {
         txt?: string, author?: string, url?: string, name?: string,
         kcheMedia: { rawLink: string[], imQuo: Buffer[], vidQuo: Buffer[], gifQuo: Buffer[] },
         stdst: { likes: string, resp: string, reTwi: string, views: string }
@@ -215,6 +215,9 @@ interface ApiFxResponse {
             media?: {
                 photos?: Array<{ url: string; }>;
                 videos?: ApiFxVido[];
+            }
+            translation?: {
+                text: string
             }
         }
     };
@@ -277,8 +280,11 @@ class xTwitter {
                 resp: this.numShort(Data.status?.replies),
                 views: this.numShort(Data.status?.views),
                 tweetDesc: txtOut,
-                tweetQuotes: {
-                    txt: Data.status?.quote?.text, author: Data.status?.quote?.author?.screen_name, name: Data.status?.quote?.author?.name, url: Data.status?.quote?.url,
+                tQuote: {
+                    txt: tlLang ? ((Data.status?.quote?.translation?.text && Data.status?.quote?.translation?.text.length > 0) ? (`📄 Traducido al ${this.wereLang(tlLang)}: \n\n ${Data.status?.quote?.translation?.text}`) : Data.status?.quote?.text) : Data.status?.quote?.text,
+                    author: Data.status?.quote?.author?.screen_name,
+                    name: Data.status?.quote?.author?.name,
+                    url: Data.status?.quote?.url,
                     kcheMedia: { imQuo, vidQuo, gifQuo, rawLink },
                     stdst: {
                         likes: this.numShort(Data.status?.quote?.likes),
@@ -378,15 +384,17 @@ class xTwitter {
                         catch (e) { error(`ERROR EN FETCH REVISAR POR BLOQUEO DE HEAD!!: ${e}`); }
                         downUrl = (chk && chk.ok) ? chk.url : inf.url;
                     }
-                    const downGif = await downMedia(downUrl)
-                    if (downGif) {
-                        if (this.isWebp(downGif)) { downData.gifs.push(downGif); }
-                        else {
-                            const convert = await this.turnMp4ToWebp(downGif);
-                            if (convert) { downData.gifs.push(convert); }
-                            else { downData.links.push(downUrl); }
-                        }
-                    } else { downData.links.push(downUrl) };
+                    if (downUrl === inf.url) { // verifi el Gif
+                        const downGif = await downMedia(downUrl)
+                        if (downGif) {
+                            if (this.isWebp(downGif)) { downData.gifs.push(downGif); }
+                            else {
+                                const convert = await this.turnMp4ToWebp(downGif);
+                                if (convert) { downData.gifs.push(convert); }
+                                else { downData.links.push(downUrl); }
+                            }
+                        } else { downData.links.push(downUrl) };
+                    } else { downData.links.push(downUrl) }
                 }
             }
         }
@@ -418,8 +426,8 @@ class xTwitter {
         }
 
         const fromApi = await googleTranslate();
-        if (!fromApi) return undefined;
-        else outTl = fromApi;
+        if (fromApi) outTl = fromApi
+        else return undefined;
 
         if (hashtags.length > 0) { outTl = outTl.replace(/__H(\d+)__/g, (_, index) => hashtags[parseInt(index)]); }
         if (links.length > 0) { outTl = outTl.replace(/__L(\d+)__/g, (_, index) => links[parseInt(index)]); }
@@ -430,7 +438,16 @@ class xTwitter {
     }
 
     private static wereLang(lang: string) {
-        const langName: Record<string, string> = { "en": "Inglés", "es": "Español", "pt": "Portugués", "it": "Italiano" };
+        const langName: Record<string, string> = {
+            "en": "Inglés", "es": "Español", "pt": "Portugués", "it": "Italiano",
+            "ja": "Japones", "ru": "Ruso", "hi": "Hindi", "ar": "Árabe",
+            "zh": "Chino", "fr": "Francés", "de": "Alemán", "ko": "Coreano",
+            "tr": "Turco", "nl": "Holandés", "sv": "Sueco", "fi": "Finlandés",
+            "da": "Danés", "no": "Noruego", "pl": "Polaco", "cs": "Checo",
+            "el": "Griego", "he": "Hebreo", "th": "Tailandés", "id": "Indonesio",
+            "vi": "Vietnamita", "ms": "Malayo", "uk": "Ucraniano", "ro": "Rumano",
+            "hu": "Húngaro"
+        };
         const nLang = langName[lang];
         if (!nLang) return lang;
         return nLang;

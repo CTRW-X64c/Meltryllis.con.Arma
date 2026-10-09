@@ -15,6 +15,7 @@ const COOLDOWN_TIMES: Record<string, number> = {
     "netCommandNoWait": 5 * minutos,
     "Kancolle": 15 * minutos,
     "skip": 2_500,
+    "cleanUp": 3 * minutos,
 };
 
 const left = (time: number): string => {
