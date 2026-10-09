@@ -24,12 +24,12 @@ export class xTwitterCustom implements ApiHandler {
     }
 
     public async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
-        const matchLang = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/\d+\/([a-z]+)(?:\/|$)/i);
+        const matchLang = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/\d+.*?\/([a-z]+)(?:\/|$)/i);
         const lang = matchLang ? matchLang[1].toLowerCase() : undefined;
         let iLang: string | undefined = undefined;
         if (lang && ["es", "en", "pt", "it", "ja", "ru"].includes(lang)) iLang = lang;
-        let wQuote = false;
-        if (url.endsWith("/q") || url.endsWith("/Q")) wQuote = true;
+        let wQuote = true;
+        if (url.endsWith("/q") || url.endsWith("/Q")) wQuote = false;
         // msg
         if (!message) return { ok: false };
         if (!message.channel || !message.channel.isTextBased()) return { ok: false };
@@ -95,9 +95,7 @@ export class xTwitterCustom implements ApiHandler {
             }
 
             // === QuoMedia == //
-            let outTxtQuote: string | undefined = undefined;
             const gallegryQuo = new MediaGalleryBuilder();
-
             xData.tQuote.kcheMedia.vidQuo.forEach((buffer, index) => {
                 const fileName = `Xvideo_Quo_${xId}_${index}.mp4`;
                 filesQuo.push(new AttachmentBuilder(buffer, { name: fileName }));
@@ -116,9 +114,16 @@ export class xTwitterCustom implements ApiHandler {
             if (xData.tQuote?.kcheMedia.rawLink && xData.tQuote?.kcheMedia.rawLink.length > 0) {
                 for (const url of xData.tQuote?.kcheMedia.rawLink) { gallegryQuo.addItems(new MediaGalleryItemBuilder().setURL(url)) };
             }
-
-            if (gallegryQuo.items.length > 0 && gallegry.items.length === 0) wQuote = true;
+            // ensambler
+            const parte = new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small);
+            const spoiler = isSpoiler === true;
+            const container = new ContainerBuilder();
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(TopTxt)).addSeparatorComponents(parte);
+            if (outText) { container.addTextDisplayComponents(new TextDisplayBuilder().setContent(outText)) };
+            if (gallegry.items.length > 0) container.addMediaGalleryComponents(gallegry);
+            // txtQue
             if (wQuote) {
+                let outTxtQuote: string | undefined = undefined;
                 if (xData.tQuote && (xData.tQuote.author || xData.tQuote.url || xData.tQuote.txt)) {
                     const statTxtQuo = `> ❤️: ${xData.tQuote.stdst.likes} | 🔁: ${xData.tQuote.stdst.reTwi} | 💬: ${xData.tQuote.stdst.resp} | 👀: ${xData.tQuote.stdst.views}`
                     const quoUser = xData.tQuote.name ? (xData.tQuote.name.length > 28 ? xData.tQuote.name.slice(0, 25) + `...` : xData.tQuote.name) : "Usuario desconocido!!";
@@ -126,24 +131,15 @@ export class xTwitterCustom implements ApiHandler {
                     const citTxt = xData.tQuote?.txt ?? "...";
                     outTxtQuote = `**Citado:** \n ${`> ** 👤 ${quoUser} ${quoUrl}** \n ${statTxtQuo}`} \n\n ${(outText && outText.length > 2000) ? citTxt.slice(0, 1000) + "..." : citTxt}`;
                 }
-            }
-
-            //ensambler
-            const parte = new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small);
-            const spoiler = isSpoiler === true;
-            const container = new ContainerBuilder();
-            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(TopTxt)).addSeparatorComponents(parte);
-            if (outText) { container.addTextDisplayComponents(new TextDisplayBuilder().setContent(outText)) };
-            if (gallegry.items.length > 0) container.addMediaGalleryComponents(gallegry);
-            if (wQuote) {
                 if (outTxtQuote) { container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(outTxtQuote)); }
                 if (gallegryQuo.items.length > 0) { container.addMediaGalleryComponents(gallegryQuo); }
-            }
+            };
+            // close
             container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(BottomTxt)).setAccentColor(0x000055)
                 .setSpoiler(spoiler);
 
             components.push(container);
-            // filesitos
+            // === filesitos === //
             let outFiles: AttachmentBuilder[] = [];
             if (files) outFiles.push(...files);
             if (wQuote && filesQuo) outFiles.push(...filesQuo);
