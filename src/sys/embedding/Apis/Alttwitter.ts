@@ -1,5 +1,5 @@
 // src/sys/embedding/Apis/PixivAPI.ts
-import { Message, AttachmentBuilder, TextChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize } from "discord.js";
+import { Message, AttachmentBuilder, GuildTextBasedChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize } from "discord.js";
 import { ApiHandler, pResult } from "../embedingSwitch"
 import { debug, error } from "../../logging";
 import { translate } from '@vitalets/google-translate-api';
@@ -33,7 +33,7 @@ export class xTwitterCustom implements ApiHandler {
         // msg
         if (!message) return { ok: false };
         if (!message.channel || !message.channel.isTextBased()) return { ok: false };
-        const tx = message.channel as TextChannel;
+        const tx = message.channel as GuildTextBasedChannel;
         await tx.sendTyping();
         // chk
         const match = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
