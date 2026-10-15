@@ -335,7 +335,7 @@
     "interacciones": {
       "subreddit_error": "❌ Pega la URL completa o r/subreddit",
       "duplicado": "`❌ Subreddir **{{a1}}** duplicado!!",
-      "seguir_success": "✅ ¡Siguiendo **{{a1}}**! en el canal {{a2}} Modo: {{a3}}. \n⚠️Canal SFW, los post NSFW seran marcado como espoiler! \nSi cambias el canal a NSFW deberas dar de alta de nuevo el subreddit|user para que los posts NSFW se publiquen sin espoiler.",
+      "seguir_success": "✅ ¡Siguiendo **{{a1}}**! en el canal {{a2}} Modo: {{a3}}. \n⚠️ Canal no NSFW, el contenido NSFW sera enviando como espoiler.",
       "seguir_success_nsfw": "✅ ¡Siguiendo **{{a1}}**! en el canal {{a2}} Modo: {{a3}}.",
       "seguir_error": "❌ Error al seguir, cehca el nombre del subreddit/user.\n Intenta copiar y pegar directamente la URL del navegador.",
       "url_invalida": "❌ URL o nombre de subreddit no válido.",

@@ -32,7 +32,7 @@ export async function initKC(cli: Client) {
 };
 
 // ========================================================= engineTimmers ========================================================= //
-export type notifyType = 'pvp' | 'quest' | 'lQuest' | 'oem' | 'loem' | 'mExp' | 'lmExp' | 'newMante' | 'maintStart' | 'mntEnd';
+export type notifyType = 'pvp' | 'quest' | 'lQuest' | 'oem' | 'loem' | 'mExp' | 'lmExp' | 'newMante' | 'maintStart' | 'maintlStart' | 'mntEnd';
 let notifyTimers = new Map<notifyType, NodeJS.Timeout>();
 async function timmerAv() {
     /* =============== pvp =============== */
@@ -81,12 +81,12 @@ const chkType = new Map<notifyType, (cfg: any) => boolean>([
     ['pvp', cfg => cfg.pvp.av], /*QUEST*/['quest', cfg => cfg.quest.av], ['lQuest', cfg => cfg.quest.av],
     /*OEM*/['oem', cfg => cfg.oem.av], ['loem', cfg => cfg.oem.av],
     /*EXP*/['mExp', cfg => cfg.mExp.av], ['lmExp', cfg => cfg.mExp.av],
-    /*Mante*/['newMante', cfg => cfg.mnt.av], ['maintStart', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av]]);
+    /*Mante*/['newMante', cfg => cfg.mnt.av], ['maintStart', cfg => cfg.mnt.av], ['maintlStart', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av]]);
 
 const chkRole = new Map<notifyType, (cfg: any) => boolean>([
     ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf],
     /*OEM*/['oem', cfg => cfg.oem.ntf], /*EXP*/['mExp', cfg => cfg.mExp.ntf],
-    /*Mante*/['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
+    /*Mante*/['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['maintlStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
 
 /* === Core === */
 export async function notifyKC(type: notifyType) {
@@ -239,7 +239,7 @@ async function msgMgr(dat: msgBuild) {
     if (dat.rol) { rMnt = `AVISO: ${dat.rol}!`; del30 = (30 * minuts) - 20_000; del15 = (15 * minuts) - 20_000; }
     if (dat.type === "mntEnd") del30 = hours;
     const rtfRol = rMnt ? "..." : undefined;
-    const preNtfy = (["loem", "lmExp", "qQuest"] as notifyType[]).includes(dat.type);
+    const preNtfy = (["loem", "lmExp", "qQuest", "maintlStart"] as notifyType[]).includes(dat.type);
     if (preNtfy) del30 = 23 * hours;
     /* Now */
     await msgSnd({ ch: dat.ch, title: prst.title.A, fields: prst.field, desc: prst.desc.ini, pic: prst.urlPic.A, rolOn: rMnt, color: 0xFFA500, url: prst.url, delAft: del30 });

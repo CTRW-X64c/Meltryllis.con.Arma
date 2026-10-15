@@ -9,7 +9,7 @@ import emojis from '../../../adds/otros/emojis.json'
 // ========================================================= fetchMaint ========================================================= //
 let kcTimmers = new Map<string, NodeJS.Timeout>();
 let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
-const idStart = `maintStart`, idEnd = `mntEnd`;
+const idStart = `maintStart`, idStarPre = 'maintlStart', idEnd = `mntEnd`;
 const minuts = 60 * 1_000;
 
 interface TweetInfoTl { Orginal: string; isoES: string; isoEN: string }
@@ -124,6 +124,16 @@ async function startMant() {
                     kcTimmers.delete(idStart);
                 }, leftStart - HORA);
                 kcTimmers.set(idStart, timer1h);
+            }
+        }
+
+        if (leftStart > 0 && leftStart < (24 * HORA)) { // pre Start24h
+            if (leftStart > 24 * HORA && !kcTimmers.has(idStarPre)) {
+                const timer24hS = setTimeout(() => {
+                    notifyKC(idStarPre);
+                    kcTimmers.delete(idStarPre);
+                }, leftStart - (24 * HORA));
+                kcTimmers.set(idStarPre, timer24hS);
             }
         }
 
@@ -361,7 +371,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
     }
     // ===== switch ===== //
     switch (type) {
-        case "pvp":
+        case "pvp": // Aviso PvPs
             const timePvp = leftTimeConv({ type: 'daily', hours: [3, 15] });
             return {
                 title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_title"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_uTitle"), },
@@ -377,7 +387,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
                 urlPic: { A: "https://i.imgur.com/rhaHOhq.png" }
             };
         // ======================================== QUEST ======================================== //
-        case "quest":
+        case "quest": // Aviso Diarias
             const timeQuest = leftTimeConv({ type: 'daily', hours: 5 });
             const tx = aQuest();
             return {
@@ -393,7 +403,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/pJZdK4i.jpeg" }
             };
-        case "lQuest": // pre aviso lQuest
+        case "lQuest": // Aviso Mensuales/Quaterly
             const reset = lQusty()
             return {
                 title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_title"), B: "TBA" },
@@ -463,7 +473,35 @@ export function rawPreset(type: notifyType): presetsKC | null {
                 urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
             }
         // ======================================== Mantenimiento ======================================== //
-        case "newMante":
+        case "maintlStart": // preaviso 24hrs
+            return {
+                title: { A: "MANTENIMIENTO!!", B: "TBA" },
+                desc: {
+                    ini: `# EL MANTENIMIENTO INICIA EN 24 HRS!!`,
+                    l30: "TBA", l15: "TBA", fn: "TBA"
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }],
+                mTimmer: 0,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                urlPic: { A: "https://i.imgur.com/zTF3hlZ.png" }
+            };
+        case "maintStart": // aviso inico
+            const endRawDate = JSTtoUTC(maint.MaintEnd);
+            const endDate = endRawDate ? new Date(endRawDate).toLocaleString('es-MX', { hour12: false }) : `\`TBA!\``;
+            return {
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle") },
+                desc: {
+                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart", { a1: endDate }),
+                    l30: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart_30"),
+                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart_15"),
+                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uDesc", { a1: endDate }),
+                },
+                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }],
+                mTimmer: 60 * minuts,
+                ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
+                urlPic: { A: "https://i.imgur.com/zTF3hlZ.png", B: "https://i.imgur.com/ed3cVTh.png" }
+            };
+        case "newMante": // aviso de nuevo mante
             if (!ntfMantData.MaintDate) return null;
             const tokyoDate = getNowJST(), INItime = JSTtoUTC(ntfMantData.MaintDate), ENDtime = JSTtoUTC(ntfMantData.endMantDate);;
             const left2start = INItime ? turnDate(INItime.getTime() - tokyoDate) : "TBA";
@@ -488,23 +526,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
                 urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" },
                 url: ntfMantData.url ? ntfMantData.url : undefined
             }
-        case "maintStart":
-            const endRawDate = JSTtoUTC(maint.MaintEnd);
-            const endDate = endRawDate ? new Date(endRawDate).toLocaleString('es-MX', { hour12: false }) : `\`TBA!\``;
-            return {
-                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle") },
-                desc: {
-                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart", { a1: endDate }),
-                    l30: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart_30"),
-                    l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart_15"),
-                    fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uDesc", { a1: endDate }),
-                },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }],
-                mTimmer: 60 * minuts,
-                ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
-                urlPic: { A: "https://i.imgur.com/zTF3hlZ.png", B: "https://i.imgur.com/ed3cVTh.png" }
-            };
-        case "mntEnd":
+        case "mntEnd": // aviso fin mante
             return {
                 title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: "TBA" },
                 desc: {
@@ -516,6 +538,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" }
             };
+        // ======================================== END ======================================== //
         default:
             return null;
     }

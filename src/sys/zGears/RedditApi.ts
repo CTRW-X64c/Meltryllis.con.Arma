@@ -1,7 +1,7 @@
 // src/sys/RedditApi.ts
 import { error, debug } from '../logging';
 
-interface RedditApiResponse {
+export interface RedditApiResponse {
     data: {
         children: {
             data: RedditPost;
@@ -24,6 +24,8 @@ interface RedditPost {
 
 const REDDIT_API_BASE = 'https://oauth.reddit.com';
 const REDDIT_AUTH_URL = 'https://www.reddit.com/api/v1/access_token';
+
+export type reddSouceApi = 'user' | 'subreddit';
 
 export class RedditApiClient {
     private clientId: string;
@@ -93,17 +95,26 @@ export class RedditApiClient {
         return response;
     }
 
-    public async getPosts(resourceName: string, resourceType: 'subreddit' | 'user' = 'subreddit', limit: number = 20): Promise<RedditApiResponse> {
+    public async getFeed(dta: { souce: string, type: reddSouceApi, limit: number }): Promise<RedditApiResponse> {
         let endpoint: string;
 
-        if (resourceType === 'user') {
-            endpoint = `/user/${resourceName}/submitted.json?limit=${limit}`;
+        if (dta.type === 'user') {
+            endpoint = `/user/${dta.souce}/submitted.json?limit=${dta.limit}`;
         } else {
-            endpoint = `/r/${resourceName}/new.json?limit=${limit}`;
+            endpoint = `/r/${dta.souce}/new.json?limit=${dta.limit}`;
         }
 
         const response = await this.fetchAuthenticated(endpoint);
+        if (!response) { throw new Error('Fallo al obtener el feed') };
         return response.json() as Promise<RedditApiResponse>;
+    }
+
+    public async getPost(dta: { souce: string, posUrl: string }): Promise<RedditApiResponse> {
+        const endpoint = `/r/${dta.souce}/comments/${dta.posUrl}.json`;
+        const response = await this.fetchAuthenticated(endpoint);
+        const arrayRespond = await response.json() as RedditApiResponse[];
+        if (!arrayRespond || arrayRespond.length === 0) { throw new Error('No se encontro el post') }
+        return arrayRespond[0];
     }
 }
 

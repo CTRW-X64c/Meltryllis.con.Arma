@@ -1,5 +1,5 @@
 // src/sys/embedding/Apis/PixivAPI.ts
-import { Message, AttachmentBuilder, TextChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, ContainerBuilder, SeparatorSpacingSize, TextDisplayBuilder } from "discord.js";
+import { Message, AttachmentBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, ContainerBuilder, SeparatorSpacingSize, TextDisplayBuilder, GuildTextBasedChannel } from "discord.js";
 import { ApiHandler, pResult } from "../embedingSwitch"
 import { debug, error } from "../../logging";
 
@@ -21,12 +21,12 @@ export class apiPixivCustom implements ApiHandler {
         if (!message) return { ok: false };
         if (!message.channel || !message.channel.isTextBased()) return { ok: false };
 
-        const textChannel = message.channel as TextChannel;
+        const ch = message.channel as GuildTextBasedChannel;
         const match = url.match(/pixiv\.net\/(?:en\/)?artworks\/(\d+)/i);
         if (!match) return { ok: false };
 
         const illustId = match[1];
-        await textChannel.sendTyping();
+        await ch.sendTyping();
 
         const pixivData = await PixivAPI.getIllustData(illustId);
         if (!pixivData || pixivData.buffers.length === 0) return { ok: false };
@@ -34,8 +34,12 @@ export class apiPixivCustom implements ApiHandler {
 
         if (pixivData.fPic === 2) return { ok: false };
 
-        if (pixivData.isNSFW && !textChannel.nsfw) {
-            const delN = await message.reply({ content: `⚠️ Por normas de Discord nuestra API no publica contenido NSFW en canales no NSFW!! \nUsando metodo externo...`, allowedMentions: { repliedUser: false } });
+        const isChannelNSFW = ch.isThread() ? ch.parent?.nsfw : ch.nsfw;
+        if (pixivData.isNSFW && !isChannelNSFW) {
+            const delN = await message.reply({
+                content: `⚠️ Por normas de Discord nuestra API no publica contenido NSFW en canales no NSFW!! \nUsando metodo externo...`,
+                allowedMentions: { repliedUser: false }
+            });
             setTimeout(async () => { await delN.delete() }, delet);
             return { ok: false };
         }

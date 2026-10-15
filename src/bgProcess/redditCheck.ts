@@ -65,7 +65,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
 
         const isUser = feed.subreddit_url.includes('/user/') || feed.subreddit_url.startsWith('/u/');
         const resourceType = isUser ? 'user' : 'subreddit';
-        const jsonData = await redditApi.getPosts(resourceName, resourceType, 20);
+        const jsonData = await redditApi.getFeed({ souce: resourceName, type: resourceType, limit: 20 });
 
         /* ====================================== CHEQUEO DE DISPONIBILIDAD ====================================== */
 
@@ -138,7 +138,7 @@ async function processSingleFeed(client: Client, feed: RedditFeed) {
 
                 // Hyperlink Fix & procesamiento de link
                 const nsfwPost = !!post.over_18;
-                const nsfwCh = feed.nsfw_protect;
+                const nsfwCh = ch.isThread() ? ch.parent?.nsfw : ch.nsfw;
                 const nsfwCheck = nsfwPost && !nsfwCh;
                 const pLink = post.permalink;
                 const postLink = `https://${baseUrl}${pLink}`;
