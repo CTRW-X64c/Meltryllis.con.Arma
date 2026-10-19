@@ -1,7 +1,7 @@
 // src/sys/RedditApi.ts
 import { error, debug } from '../logging';
 
-export interface RedditApiResponse {
+interface RedditApiResponse {
     data: {
         children: {
             data: RedditPost;
@@ -9,17 +9,56 @@ export interface RedditApiResponse {
     };
     reason?: string;
 }
+// =========== add RedditPost =========== //
+interface RedditMMI {
+    status: string,
+    e: string, // 'Image' | 'AnimatedImage'
+    m: string, // 'image/jpg', 'image/png', 'image/gif'
+    id: string,
+    s: { x: number; y: number; u?: string; gif?: string; }
+}
 
-interface RedditPost {
-    title: string;
-    permalink: string;
-    post_hint?: string;
-    is_gallery?: boolean;
-    is_video?: boolean;
-    name: string;
-    pinned?: boolean;
-    stickied?: boolean;
-    over_18?: boolean;
+interface itemOrd {
+    media_id: string;
+    id: number
+}
+
+interface souceMedia {
+    oembed?: {
+        provider_url: string
+    },
+    reddit_video?: {
+        fallback_url?: string,
+        has_audio?: boolean,
+        is_gif?: boolean
+    },
+    type?: string
+}
+
+// =========== out Json =========== //
+export interface RedditPost {
+    title: string,
+    permalink: string,
+    post_hint?: string,
+    is_gallery?: boolean,
+    is_video?: boolean,
+    name: string,
+    pinned?: boolean,
+    stickied?: boolean,
+    over_18?: boolean,
+    /// ===== ///
+    ups?: number,
+    downs?: number,
+    upvote_ratio?: number,
+    selftext?: string,
+    subreddit_name_prefixed?: string,
+    url_overridden_by_dest?: string,
+    subreddit?: string,
+    media_metadata?: Record<string, RedditMMI>,
+    author?: string,
+    url?: string,
+    gallery_data?: { items: itemOrd[] },
+    secure_media?: souceMedia | null,
 }
 
 const REDDIT_API_BASE = 'https://oauth.reddit.com';
@@ -109,8 +148,13 @@ export class RedditApiClient {
         return response.json() as Promise<RedditApiResponse>;
     }
 
-    public async getPost(dta: { souce: string, posUrl: string }): Promise<RedditApiResponse> {
-        const endpoint = `/r/${dta.souce}/comments/${dta.posUrl}.json`;
+    public async getPost(dta: { souce: string, posUrl: string, type: reddSouceApi }): Promise<RedditApiResponse> {
+        let endpoint: string;
+        if (dta.type === 'user') {
+            endpoint = `/user/${dta.souce}/comments/${dta.posUrl}.json`;
+        } else {
+            endpoint = `/r/${dta.souce}/comments/${dta.posUrl}.json`;
+        }
         const response = await this.fetchAuthenticated(endpoint);
         const arrayRespond = await response.json() as RedditApiResponse[];
         if (!arrayRespond || arrayRespond.length === 0) { throw new Error('No se encontro el post') }

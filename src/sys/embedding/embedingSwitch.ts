@@ -4,6 +4,7 @@ import { apiEmbedez } from "./Apis/embedez"
 import { apiPixivCustom } from "./Apis/PixivAPI"
 import { fakeApiFB } from "./Apis/fbFakeApi"
 import { xTwitterCustom } from "./Apis/Alttwitter"
+import { redditMeltrys } from "./Apis/reddita"
 
 export interface contPack { [key: string]: { content?: string, embeds?: EmbedBuilder[], files?: AttachmentBuilder[], components?: ContainerBuilder[], isV2?: boolean } }
 export interface pResult {
@@ -22,10 +23,11 @@ export interface ApiHandler {
 
 // =========== Registro de APIs =========== //
 const apiHandlers: ApiHandler[] = [
+    new redditMeltrys(),
     new apiEmbedez(),
     new apiPixivCustom(),
     new fakeApiFB(),
-    new xTwitterCustom()
+    new xTwitterCustom(),
 ];
 
 // =========== Procesador principal =========== //
