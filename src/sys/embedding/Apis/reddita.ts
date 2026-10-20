@@ -158,7 +158,7 @@ class RedditSolve {
     private static async medios(dta: RedditPost): Promise<string[]> {
         let rawLink: string[] = [];
         // ======= pics ======= //
-        if (dta.is_gallery && dta.media_metadata && dta.gallery_data?.items) { // odenador de galeria
+        if (dta.media_metadata && dta.gallery_data?.items) { // ordenador de galeria
             for (const item of dta.gallery_data.items) {
                 const gen = dta.media_metadata[item.media_id];
                 if (gen && gen.status === 'valid') {
@@ -175,11 +175,11 @@ class RedditSolve {
                     rawLink.push(urlBuil);
                 }
             }
-        } else if (dta.post_hint === "image" && dta.url_overridden_by_dest) { // solo una imagen
-            const onePic = dta.url_overridden_by_dest;
-            if (onePic && (onePic.endsWith(".gif") || onePic.endsWith(".jpg") || onePic.endsWith(".png") || onePic.endsWith(".jpeg"))) {
-                rawLink.push(onePic);
-            }
+        }
+        // ======= singlePic ======= //
+        const onePic = dta.url_overridden_by_dest;
+        if (onePic && (onePic.endsWith(".gif") || onePic.endsWith(".jpg") || onePic.endsWith(".png") || onePic.endsWith(".jpeg"))) {
+            rawLink.push(onePic);
         }
         // ======= singleGif ======= //
         if (dta.secure_media) {

@@ -18,30 +18,30 @@ export class apiPixivCustom implements ApiHandler {
     }
 
     async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
-        if (!message) return { ok: false };
-        if (!message.channel || !message.channel.isTextBased()) return { ok: false };
+        let ch: GuildTextBasedChannel | undefined = undefined;
+        if (message && !message.channel.isDMBased()) {
+            ch = message.channel;
+            await ch.sendTyping();
+        }
 
-        const ch = message.channel as GuildTextBasedChannel;
         const match = url.match(/pixiv\.net\/(?:en\/)?artworks\/(\d+)/i);
         if (!match) return { ok: false };
 
         const illustId = match[1];
-        await ch.sendTyping();
-
         const pixivData = await PixivAPI.getIllustData(illustId);
         if (!pixivData || pixivData.buffers.length === 0) return { ok: false };
-        const delet = 15 * 1_000
-
         if (pixivData.fPic === 2) return { ok: false };
 
-        const isChannelNSFW = ch.isThread() ? ch.parent?.nsfw : ch.nsfw;
-        if (pixivData.isNSFW && !isChannelNSFW) {
-            const delN = await message.reply({
-                content: `⚠️ Por normas de Discord nuestra API no publica contenido NSFW en canales no NSFW!! \nUsando metodo externo...`,
-                allowedMentions: { repliedUser: false }
-            });
-            setTimeout(async () => { await delN.delete() }, delet);
-            return { ok: false };
+        if (ch) {
+            const isChannelNSFW = ch.isThread() ? ch.parent?.nsfw : ch.nsfw;
+            if (pixivData.isNSFW && !isChannelNSFW) {
+                const delN = await message!.reply({
+                    content: `⚠️ Por normas de Discord nuestra API no publica contenido NSFW en canales no NSFW!! \nUsando metodo externo...`,
+                    allowedMentions: { repliedUser: false }
+                });
+                setTimeout(async () => { await delN.delete() }, 15 * 1_000);
+                return { ok: false };
+            }
         }
 
         try {

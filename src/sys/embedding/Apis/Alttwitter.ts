@@ -24,17 +24,18 @@ export class xTwitterCustom implements ApiHandler {
     }
 
     public async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
+        let ch: GuildTextBasedChannel | undefined = undefined;
+        if (message && !message.channel.isDMBased()) {
+            ch = message.channel;
+            await ch.sendTyping();
+        }
+        // url para
         const matchLang = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/\d+.*?\/([a-z]+)(?:\/|$)/i);
         const lang = matchLang ? matchLang[1].toLowerCase() : undefined;
         let iLang: string | undefined = undefined;
         if (lang && ["es", "en", "pt", "it", "ja", "ru"].includes(lang)) iLang = lang;
         let wQuote = true;
         if (url.endsWith("/q") || url.endsWith("/Q")) wQuote = false;
-        // msg
-        if (!message) return { ok: false };
-        if (!message.channel || !message.channel.isTextBased()) return { ok: false };
-        const tx = message.channel as GuildTextBasedChannel;
-        await tx.sendTyping();
         // chk
         const match = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
         if (!match) return { ok: false };
