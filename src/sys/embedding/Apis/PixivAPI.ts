@@ -1,6 +1,6 @@
 // src/sys/embedding/Apis/PixivAPI.ts
-import { Message, AttachmentBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, ContainerBuilder, SeparatorSpacingSize, TextDisplayBuilder, GuildTextBasedChannel } from "discord.js";
-import { ApiHandler, pResult } from "../embedingSwitch"
+import { AttachmentBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, ContainerBuilder, SeparatorSpacingSize, TextDisplayBuilder, GuildTextBasedChannel } from "discord.js";
+import { ApiHandler, pMSGin, pResult } from "../embedingSwitch"
 import { debug, error } from "../../logging";
 
 // ================================= APi: Pixiv Meltrys ================================= //
@@ -17,14 +17,14 @@ export class apiPixivCustom implements ApiHandler {
         return true;
     }
 
-    async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
+    async process(pMsg: pMSGin): Promise<pResult> {
         let ch: GuildTextBasedChannel | undefined = undefined;
-        if (message && !message.channel.isDMBased()) {
-            ch = message.channel;
+        if (pMsg.message && !pMsg.message.channel.isDMBased()) {
+            ch = pMsg.message.channel;
             await ch.sendTyping();
         }
 
-        const match = url.match(/pixiv\.net\/(?:en\/)?artworks\/(\d+)/i);
+        const match = pMsg.url.match(/pixiv\.net\/(?:en\/)?artworks\/(\d+)/i);
         if (!match) return { ok: false };
 
         const illustId = match[1];
@@ -35,7 +35,7 @@ export class apiPixivCustom implements ApiHandler {
         if (ch) {
             const isChannelNSFW = ch.isThread() ? ch.parent?.nsfw : ch.nsfw;
             if (pixivData.isNSFW && !isChannelNSFW) {
-                const delN = await message!.reply({
+                const delN = await pMsg.message!.reply({
                     content: `⚠️ Por normas de Discord nuestra API no publica contenido NSFW en canales no NSFW!! \nUsando metodo externo...`,
                     allowedMentions: { repliedUser: false }
                 });
@@ -48,7 +48,7 @@ export class apiPixivCustom implements ApiHandler {
             const files: AttachmentBuilder[] = [];
             const gallegry = new MediaGalleryBuilder();
             const components: any[] = []
-            const spoiler = isSpoiler === true;
+            const spoiler = pMsg.isSpoiler === true;
 
             let desc = `> 👤 [${pixivData.author}](${pixivData.url})`;
             if (pixivData.stats) desc += `\n> ❤️ **${pixivData.stats.likes}** | 👁️ **${pixivData.stats.view}** | 💬 **${pixivData.stats.comments}** | 🔖 **${pixivData.stats.guardados}**`;

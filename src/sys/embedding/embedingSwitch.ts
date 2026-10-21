@@ -13,12 +13,13 @@ export interface pResult {
     pack?: contPack[]
 }
 
+export interface pMSGin { url: string, message?: Message, isSpoiler?: boolean, intCall?: boolean }
 export interface ApiHandler {
     name: string;
     isAvailable(): boolean;
     isDomain(domain: string): boolean;
     guildChk(domain: string, guildConfigs: Map<string, any>, guildId?: string): Promise<boolean>;
-    process(url: string, message?: Message, spoiler?: boolean): Promise<pResult>;
+    process(pMsg: pMSGin): Promise<pResult>;
 }
 
 // =========== Registro de APIs =========== //
@@ -41,7 +42,7 @@ export async function urlProcess(dta: urlData): Promise<pResult> {
         if (!shouldUse) continue;
 
         try {
-            const apiResult = await apiHandler.process(dta.oURL, dta.msg, dta.isSpoiler);
+            const apiResult = await apiHandler.process({ url: dta.oURL, message: dta.msg, isSpoiler: dta.isSpoiler });
             if (apiResult.ok === true) return apiResult;
         } catch (err) {
             debug(`Error crítico en API ${apiHandler.name}: ${(err as Error).message}`, "Events.MessageCreate");

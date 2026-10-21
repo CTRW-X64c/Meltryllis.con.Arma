@@ -1,13 +1,13 @@
 // src/sys/embedding/Apis/reddita.ts
-import { AttachmentBuilder, ContainerBuilder, GuildTextBasedChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, Message, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder } from "discord.js";
-import { ApiHandler, pResult } from "../embedingSwitch";
-import { RedditApiClient, RedditPost } from "../../zGears/RedditApi";
+import { ContainerBuilder, GuildTextBasedChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder } from "discord.js";
+import { ApiHandler, pMSGin, pResult } from "../embedingSwitch";
+import { RedditPost } from "../../zGears/RedditApi";
 import { error } from "../../logging";
 import { redditApi, reddSouceApi } from "../../zGears/RedditApi";
 
 // ================================= APi: Reddit Meltrys ================================= //
 
-export class redditMeltrys extends RedditApiClient implements ApiHandler {
+export class redditMeltrys implements ApiHandler {
     name = "redditMeltrys";
 
     isAvailable(): boolean { return true; }
@@ -19,20 +19,20 @@ export class redditMeltrys extends RedditApiClient implements ApiHandler {
         return true;
     }
 
-    public async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
+    public async process(pMsg: pMSGin): Promise<pResult> {
         let ch: GuildTextBasedChannel | undefined = undefined;
-        if (message && !message.channel.isDMBased()) {
-            ch = message.channel;
+        if (pMsg.message && !pMsg.message.channel.isDMBased()) {
+            ch = pMsg.message.channel;
             await ch.sendTyping();
         }
 
-        const dta = await RedditSolve.prossesPost(url)
+        const dta = await RedditSolve.prossesPost(pMsg.url)
         if (!dta) return { ok: false }
 
         if (ch) {
             const chNSFW = ch.isThread() ? ch.parent?.nsfw : ch.nsfw;
             if (dta.is18Pin && !chNSFW) {
-                const delN = await message!.reply({
+                const delN = await pMsg.message!.reply({
                     content: `⚠️ Por normas de Discord nuestra API no publica contenido NSFW en canales no NSFW!! \nUsando metodo externo...`,
                     allowedMentions: { repliedUser: false }
                 });
@@ -41,8 +41,8 @@ export class redditMeltrys extends RedditApiClient implements ApiHandler {
             }
         }
 
-        const spoiler = isSpoiler === true;
-        const files: AttachmentBuilder[] = [], itemPack: any[] = []
+        const spoiler = pMsg.isSpoiler === true;
+        const itemPack: any[] = []
 
         let text = `> ### ${dta.title}`, toptxt = "";
         if (dta.desc) { text += ("\n\n" + dta.desc) }
@@ -70,6 +70,8 @@ export class redditMeltrys extends RedditApiClient implements ApiHandler {
         }
 
         const box = new ContainerBuilder();
+        const inCall = `> ## Nuevo post en Reddit ${dta.from ? ` de ${dta.from}` : ""}` + (pMsg.isSpoiler ? "\n NSFW POST EN CANAL NO NSFW" : "");
+        if (pMsg.intCall) box.addTextDisplayComponents(new TextDisplayBuilder().setContent(inCall)).addSeparatorComponents(parte);
         if (dta.from) box.addTextDisplayComponents(new TextDisplayBuilder().setContent(toptxt)).addSeparatorComponents(parte)
         box.addTextDisplayComponents(new TextDisplayBuilder().setContent(text)).addSeparatorComponents(parte);
         box.addMediaGalleryComponents(gallery);
@@ -78,7 +80,7 @@ export class redditMeltrys extends RedditApiClient implements ApiHandler {
 
         itemPack.push(box);
 
-        return { ok: true, pack: [{ [dta.exitPostId]: { files: files, components: itemPack, isV2: true } }] }
+        return { ok: true, pack: [{ [dta.exitPostId]: { components: itemPack, isV2: true } }] }
     }
 }
 

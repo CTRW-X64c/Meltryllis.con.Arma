@@ -1,6 +1,6 @@
 // src/sys/embedding/Apis/PixivAPI.ts
-import { Message, AttachmentBuilder, GuildTextBasedChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize } from "discord.js";
-import { ApiHandler, pResult } from "../embedingSwitch"
+import { AttachmentBuilder, GuildTextBasedChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize } from "discord.js";
+import { ApiHandler, pMSGin, pResult } from "../embedingSwitch"
 import { debug, error } from "../../logging";
 import { translate } from '@vitalets/google-translate-api';
 import ffmpeg from 'fluent-ffmpeg';
@@ -23,21 +23,21 @@ export class xTwitterCustom implements ApiHandler {
         return true;
     }
 
-    public async process(url: string, message?: Message, isSpoiler?: boolean): Promise<pResult> {
+    public async process(pMsg: pMSGin): Promise<pResult> {
         let ch: GuildTextBasedChannel | undefined = undefined;
-        if (message && !message.channel.isDMBased()) {
-            ch = message.channel;
+        if (pMsg.message && !pMsg.message.channel.isDMBased()) {
+            ch = pMsg.message.channel;
             await ch.sendTyping();
         }
         // url para
-        const matchLang = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/\d+.*?\/([a-z]+)(?:\/|$)/i);
+        const matchLang = pMsg.url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/\d+.*?\/([a-z]+)(?:\/|$)/i);
         const lang = matchLang ? matchLang[1].toLowerCase() : undefined;
         let iLang: string | undefined = undefined;
         if (lang && ["es", "en", "pt", "it", "ja", "ru"].includes(lang)) iLang = lang;
         let wQuote = true;
-        if (url.endsWith("/q") || url.endsWith("/Q")) wQuote = false;
+        if (pMsg.url.endsWith("/q") || pMsg.url.endsWith("/Q")) wQuote = false;
         // chk
-        const match = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
+        const match = pMsg.url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
         if (!match) return { ok: false };
         const xId = match[1];
         // get dta
@@ -117,8 +117,9 @@ export class xTwitterCustom implements ApiHandler {
             }
             // ensambler
             const parte = new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small);
-            const spoiler = isSpoiler === true;
+            const spoiler = pMsg.isSpoiler === true;
             const container = new ContainerBuilder();
+            if (pMsg.intCall) container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`> ## Nuevo Post de @${xData.showName}`)).addSeparatorComponents(parte)
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(TopTxt)).addSeparatorComponents(parte);
             if (outText) { container.addTextDisplayComponents(new TextDisplayBuilder().setContent(outText)) };
             if (gallegry.items.length > 0) container.addMediaGalleryComponents(gallegry);

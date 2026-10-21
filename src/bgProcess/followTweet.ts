@@ -105,16 +105,15 @@ async function msgSend(out: msgSendIn): Promise<void> {
                 if (freshMsg && !embOk) {
                     const x = new xTwitterCustom();
                     const useUrl = lisTweets[i];
-                    const tryMeltrys = await x.process((tl ? `${useUrl}/${tl}` : useUrl), freshMsg);
+                    const tryMeltrys = await x.process({ url: (tl ? `${useUrl}/${tl}` : useUrl), intCall: true });
                     try {
                         if (!tryMeltrys.ok || !tryMeltrys.pack) throw new Error("Fallo en respuesta de xTwitterCustom");
                         const packData = Object.values(tryMeltrys.pack[0])[0];
                         if (!packData.components || packData.components.length === 0) throw new Error("No data Pack xTwitterCustom");
                         await freshMsg.delete().catch(() => { });
                         if (packData) {
-                            const preMsg = await channel.send(`> ## Nuevo tweet de @${xUser} \n ***Usando Meltryllis Api***`)
-                            preMsg ? await preMsg.reply({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 }) :
-                                await channel.send({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 });
+                            const aMsg = await channel.send({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 })
+                            if (!aMsg) throw new Error("Fallo en respuesta de xTwitterCustom");
                         };
                     } catch (e) {
                         debug(`Fallo al usar MeltrysApi ${e}`, "BG.TwitterFollow")

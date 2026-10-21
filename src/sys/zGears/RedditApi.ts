@@ -66,7 +66,7 @@ const REDDIT_AUTH_URL = 'https://www.reddit.com/api/v1/access_token';
 
 export type reddSouceApi = 'user' | 'subreddit';
 
-export class RedditApiClient {
+class RedditApiClient {
     private clientId: string;
     private clientSecret: string;
     private userAgent: string;

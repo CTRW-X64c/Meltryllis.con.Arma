@@ -1,4 +1,4 @@
-import { ApiHandler, pResult } from "../embedingSwitch";
+import { ApiHandler, pMSGin, pResult } from "../embedingSwitch";
 import urlStatusManager from "../domainChecker";
 import { error } from "../../logging";
 
@@ -18,13 +18,13 @@ export class fakeApiFB implements ApiHandler {
         return true;
     }
 
-    async process(url: string): Promise<pResult> {
+    async process(pMsg: pMSGin): Promise<pResult> {
         try {
-            if (!url.includes("/share/")) { return { ok: false }; }
+            if (!pMsg.url.includes("/share/")) { return { ok: false }; }
             let fbDom = this.cDom || urlStatusManager.getActiveUrl("facebook");
             if (!fbDom) return { ok: false };
             fbDom = fbDom.replace(/^https?:\/\//, '');
-            const response = await fetch(url, {
+            const response = await fetch(pMsg.url, {
                 method: 'GET',
                 redirect: 'follow',
                 headers: {

@@ -1,7 +1,7 @@
 // src/sys/embedding/Apis/embedez.ts
 import { debug, error } from "../../logging";
 import urlStatusManager, { embedezNSFW, embedezSFW } from "../domainChecker";
-import { ApiHandler, pResult } from "../embedingSwitch";
+import { ApiHandler, pMSGin, pResult } from "../embedingSwitch";
 
 // ================================= APi: Embedez ================================= //
 export class apiEmbedez implements ApiHandler {
@@ -27,14 +27,14 @@ export class apiEmbedez implements ApiHandler {
         return true;
     }
 
-    async process(originalUrl: string): Promise<pResult> {
+    async process(pMsg: pMSGin): Promise<pResult> {
         const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
         interface embedezApi { success: boolean; shareUrl?: string; }
         const MAX_ATTEMPTS = 2;
 
         for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
-                const encodedUrl = encodeURIComponent(originalUrl);
+                const encodedUrl = encodeURIComponent(pMsg.url);
                 const apiUrl = `https://embedez.com/api/v1/providers/combined?q=${encodedUrl}`;
                 const response = await fetch(apiUrl);
 
@@ -48,15 +48,15 @@ export class apiEmbedez implements ApiHandler {
 
                 const data = (await response.json()) as embedezApi;
                 if (!data?.success) {
-                    debug(`API de Embedez falló para la URL: ${originalUrl}. Respuesta: ${JSON.stringify(data)}`, "ApiReplacement");
+                    debug(`API de Embedez falló para la URL: ${pMsg.url}. Respuesta: ${JSON.stringify(data)}`, "ApiReplacement");
                     return { ok: false };
                 }
 
-                debug(`API de Embedez exitosa: ${originalUrl} -> https://embedez.com/download?q=${originalUrl}`, "ApiReplacement");
-                return { ok: true, fix: `https://embedez.com/download?q=${originalUrl}` };
+                debug(`API de Embedez exitosa: ${pMsg.url} -> https://embedez.com/download?q=${pMsg.url}`, "ApiReplacement");
+                return { ok: true, fix: `https://embedez.com/download?q=${pMsg.url}` };
 
             } catch (err) {
-                error(`[Intento ${attempt}/${MAX_ATTEMPTS}] Error de red al llamar a la API de Embedez para ${originalUrl}: ${err}`, "ApiReplacement");
+                error(`[Intento ${attempt}/${MAX_ATTEMPTS}] Error de red al llamar a la API de Embedez para ${pMsg.url}: ${err}`, "ApiReplacement");
                 if (attempt === MAX_ATTEMPTS) return { ok: false };
                 await wait(1000);
             }

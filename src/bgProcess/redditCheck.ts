@@ -1,5 +1,5 @@
 // src/client/coreCommands/redditCheck.ts
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, GuildTextBasedChannel } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, GuildTextBasedChannel, MessageFlags } from 'discord.js';
 import { getAllRedditFeeds, updateRedditFeedLastPost, RedditFeed, removeRedditFeed } from '../sys/DB-Engine/links/Reddit';
 import { debug, error } from '../sys/logging';
 import i18next from 'i18next';
@@ -7,6 +7,7 @@ import { redditApi } from '../sys/zGears/RedditApi';
 import urlStatusManager from '../sys/embedding/domainChecker';
 import { badEmbed } from '../sys/embedding/embedService';
 import { stillOn } from '../sys/zGears/auxiliares';
+import { redditMeltrys } from '../sys/embedding/Apis/reddita';
 
 const BATCH_SIZE = 99;
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -168,6 +169,19 @@ interface data { dch: GuildTextBasedChannel; dlink: string; dnsfw: boolean; }
 const publisher = async (msg: string, ch: GuildTextBasedChannel, link: string, idPost: string, nsfw: boolean) => {
     try {
         const URL = `https://www.reddit.com${link}`;
+        try {
+            const localAPI = new redditMeltrys()
+            const porcessApi = await localAPI.process({ url: URL, isSpoiler: nsfw, intCall: true })
+            if (porcessApi.ok && porcessApi.pack) {
+                const packData = Object.values(porcessApi.pack[0])[0];
+                if (!packData.components || packData.components.length === 0) throw new Error("No data Pack RedditCustom");
+                else {
+                    const aMsg = await ch.send({ components: packData.components, flags: MessageFlags.IsComponentsV2 });
+                    if (aMsg) return;
+                }
+            }
+        } catch (e) { debug(`[Reddit Publisher]: Error al publicar con Meltryllis Api en RdditFollow: ${e} `) }
+
         const boton = new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setLabel("Original Link").setStyle(ButtonStyle.Link).setURL(URL));
         const sMsg = await ch.send({ content: msg, components: [boton] });
         await wait(4_000);
