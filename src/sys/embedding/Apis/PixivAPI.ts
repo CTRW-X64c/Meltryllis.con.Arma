@@ -2,6 +2,7 @@
 import { AttachmentBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, ContainerBuilder, SeparatorSpacingSize, TextDisplayBuilder, GuildTextBasedChannel } from "discord.js";
 import { ApiHandler, pMSGin, pResult } from "../embedingSwitch"
 import { debug, error } from "../../logging";
+import emojis from '../../../../adds/otros/emojis.json'
 
 // ================================= APi: Pixiv Meltrys ================================= //
 export class apiPixivCustom implements ApiHandler {
@@ -50,11 +51,11 @@ export class apiPixivCustom implements ApiHandler {
             const components: any[] = []
             const spoiler = pMsg.isSpoiler === true;
 
-            let desc = `> 👤 [${pixivData.author}](${pixivData.url})`;
-            if (pixivData.stats) desc += `\n> ❤️ **${pixivData.stats.likes}** | 👁️ **${pixivData.stats.view}** | 💬 **${pixivData.stats.comments}** | 🔖 **${pixivData.stats.guardados}**`;
-            if (pixivData.sizePag > 10) desc += `\n> 🖼️ **Mostrando 10 de ${pixivData.sizePag} imagenes!**`
-            else desc += `\n> 🖼️ **Galeria de ${pixivData.sizePag === 1 ? 'una imagen!' : `${pixivData.buffers.length} imagenes`}**`;
-            if (pixivData.isIA) desc += `\n> 🤖 **Esta galeria esta marcada como generada por IA**`;
+            let desc = `> ${emojis.int.user} [${pixivData.author}](${pixivData.url})`;
+            if (pixivData.stats) desc += `\n> ${emojis.int.like} **${pixivData.stats.likes}** ${emojis.pipe} ${emojis.int.see} **${pixivData.stats.view}** ${emojis.pipe} ${emojis.int.comento} **${pixivData.stats.comments}** ${emojis.pipe} ${emojis.int.bookmarks} **${pixivData.stats.guardados}**`;
+            if (pixivData.sizePag > 10) desc += `\n> ${emojis.msc.gallery} **Mostrando 10 de ${pixivData.sizePag} imagenes!**`
+            else desc += `\n> ${emojis.msc.gallery} **Galeria de ${pixivData.sizePag === 1 ? 'una imagen!' : `${pixivData.buffers.length} imagenes`}**`;
+            if (pixivData.isIA) desc += `\n> ${emojis.msc.bot} **Esta galeria esta marcada como generada por IA**`;
 
             let midleTxt: string | undefined = undefined;
             if (pixivData.title) midleTxt = `**${pixivData.title}**`
@@ -73,7 +74,7 @@ export class apiPixivCustom implements ApiHandler {
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(desc)).setAccentColor(0x0096FA).setSpoiler(spoiler).addSeparatorComponents(parte);
             if (midleTxt) container.addTextDisplayComponents(new TextDisplayBuilder().setContent(midleTxt));
             if (gallegry.items.length > 0) container.addSeparatorComponents(parte).addMediaGalleryComponents(gallegry);
-            container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(`> Pixiv • by Meltryllis Api`))
+            container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(`${emojis.logos.pixiv} Pixiv • by Meltryllis Api`))
 
             components.push(container);
             return { ok: true, pack: [{ [pixivData.author]: { components: components, files: files, isV2: true } }] };

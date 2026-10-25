@@ -57,11 +57,11 @@ async function enableModal(i: ChatInputCommandInteraction) {
     const roleMod = new LabelBuilder().setLabel('Rol a mencionar al notificar!').setRoleSelectMenuComponent(roleOp)
 
     const KancolleToDo = [
-        { label: "Mantenimientos", value: "mnt", default: false, emoji: emojis.mante },
-        { label: "PvPs, Ejercicios!", value: "pvp", default: false, emoji: emojis.pvp },
-        { label: "Misiones", value: "quest", default: false, emoji: emojis.quest },
-        { label: "Extra Operaciones", value: "oem", default: false, emoji: emojis.oem },
-        { label: "Expediciones Mensuales", value: "mExp", default: false, emoji: emojis.mexp },
+        { label: "Mantenimientos", value: "mnt", default: false, emoji: emojis.KC.mante },
+        { label: "PvPs, Ejercicios!", value: "pvp", default: false, emoji: emojis.KC.pvp },
+        { label: "Misiones", value: "quest", default: false, emoji: emojis.KC.quest },
+        { label: "Extra Operaciones", value: "oem", default: false, emoji: emojis.KC.oem },
+        { label: "Expediciones Mensuales", value: "mExp", default: false, emoji: emojis.KC.mexp },
     ];
 
     const msgSendTypes = new StringSelectMenuBuilder().setCustomId("msgSendTypes")
@@ -130,11 +130,11 @@ async function enableModal(i: ChatInputCommandInteraction) {
             .addFields(
                 { name: "Canal:", value: `<#${cnfKC.channel}>` },
                 { name: "Rol a notificar:", value: `${cnfKC.role ? `<@&${cnfKC.role}>` : "No asignado!!"}` },
-                { name: `${emojis.mante} Mantenimientos:`, value: `Aviso: ${cnfKC.mnt.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mnt.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.pvp} PvP, Ejercicios:`, value: `Aviso: ${cnfKC.pvp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.pvp.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.quest} Misiones:`, value: `Aviso: ${cnfKC.quest.av ? "✅" : "❌"} | Notificacion: ${cnfKC.quest.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.oem} Extra Operaciones:`, value: `Aviso: ${cnfKC.oem.av ? "✅" : "❌"} | Notificacion: ${cnfKC.oem.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.mexp} Expediciones Mensuales:`, value: `Aviso: ${cnfKC.mExp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mExp.ntf ? "✅" : "❌"}` },
+                { name: `${emojis.KC.mante} Mantenimientos:`, value: `Aviso: ${cnfKC.mnt.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mnt.ntf ? "✅" : "❌"}` },
+                { name: `${emojis.KC.pvp} PvP, Ejercicios:`, value: `Aviso: ${cnfKC.pvp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.pvp.ntf ? "✅" : "❌"}` },
+                { name: `${emojis.KC.quest} Misiones:`, value: `Aviso: ${cnfKC.quest.av ? "✅" : "❌"} | Notificacion: ${cnfKC.quest.ntf ? "✅" : "❌"}` },
+                { name: `${emojis.KC.oem} Extra Operaciones:`, value: `Aviso: ${cnfKC.oem.av ? "✅" : "❌"} | Notificacion: ${cnfKC.oem.ntf ? "✅" : "❌"}` },
+                { name: `${emojis.KC.mexp} Expediciones Mensuales:`, value: `Aviso: ${cnfKC.mExp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mExp.ntf ? "✅" : "❌"}` },
             );
 
         await submitInt.editReply({ embeds: [emb] });

@@ -184,10 +184,10 @@ function aQuest() {
     const numDay = tokyoDate.getDate(); // 1 - 31
     const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
     // === msg === //
-    let aviso = `\n## ${emojis.Daily} DIARIAS!!`
-    if (dayOfWeek === 1) aviso += `\n## ${emojis.Weekly} SEMANALES!!`
-    if (numDay === 1) aviso += `\n## ${emojis.Monthly} MENSUALES!!`
-    if (numDay === 1 && [2, 5, 8, 11].includes(month)) aviso += `\n## ${emojis.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre
+    let aviso = `\n## ${emojis.KC.Daily} DIARIAS!!`
+    if (dayOfWeek === 1) aviso += `\n## ${emojis.KC.Weekly} SEMANALES!!`
+    if (numDay === 1) aviso += `\n## ${emojis.KC.Monthly} MENSUALES!!`
+    if (numDay === 1 && [2, 5, 8, 11].includes(month)) aviso += `\n## ${emojis.KC.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre
     return aviso;
 }
 
@@ -196,8 +196,8 @@ function lQusty() {
     const now = getNowJST() + cmpDay, tokyoDate = new Date(now);
     const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
     // === msg === //
-    let aviso = `## PREAVISO DE RESET DE MISONES: \n\n# ${emojis.Monthly} MENSUALES!!`
-    if ([2, 5, 8, 11].includes(month)) aviso += `\n# ${emojis.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre 
+    let aviso = `## PREAVISO DE RESET DE MISONES: \n\n# ${emojis.KC.Monthly} MENSUALES!!`
+    if ([2, 5, 8, 11].includes(month)) aviso += `\n# ${emojis.KC.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre 
     return aviso;
 }
 

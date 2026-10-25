@@ -8,6 +8,7 @@ import { PassThrough } from 'stream';
 import ffmpegStatic from 'ffmpeg-static';
 import axios from "axios";
 import { Proxy } from "../../zGears/newAux";
+import emojis from '../../../../adds/otros/emojis.json'
 
 // ================================= APi: xTwitter Meltrys ================================= //
 
@@ -47,9 +48,8 @@ export class xTwitterCustom implements ApiHandler {
         try {
             let files: AttachmentBuilder[] = [], filesQuo: AttachmentBuilder[] = [], components: any[] = [];
             // Formato plano
-            const statTxt = `❤️: **${xData.likes}** | 🔁: **${xData.reTwi}** | 💬: **${xData.resp}** | 👀: **${xData.views}**`
-            const TopTxt = `> ### 👤 ${xData.userName.length > 28 ? xData.userName.slice(0, 25) + `...` : xData.userName} ([@${xData.showName}](${xData.urlPost})) \n> ${statTxt}`
-            const BottomTxt = `> *** X | Twitter • by Meltryllis Api *** `;
+            const TopTxt = `> ### ${emojis.int.user} ${xData.userName.length > 28 ? xData.userName.slice(0, 25) + `...` : xData.userName} ([@${xData.showName}](${xData.urlPost})) \n${xData.stats}`
+            const BottomTxt = `${emojis.logos.twitter} ***X|Twitter • by Meltryllis Api *** `;
 
             let tweDes = "";
             let tweTl = "";
@@ -127,11 +127,10 @@ export class xTwitterCustom implements ApiHandler {
             if (wQuote) {
                 let outTxtQuote: string | undefined = undefined;
                 if (xData.tQuote && (xData.tQuote.author || xData.tQuote.url || xData.tQuote.txt)) {
-                    const statTxtQuo = `> ❤️: ${xData.tQuote.stdst.likes} | 🔁: ${xData.tQuote.stdst.reTwi} | 💬: ${xData.tQuote.stdst.resp} | 👀: ${xData.tQuote.stdst.views}`
                     const quoUser = xData.tQuote.name ? (xData.tQuote.name.length > 28 ? xData.tQuote.name.slice(0, 25) + `...` : xData.tQuote.name) : "Usuario desconocido!!";
                     const quoUrl = (xData.tQuote.url && xData.tQuote.author) ? `([@${xData.tQuote.author}](${xData.tQuote.url}))` : `URL no encontrada!`
                     const citTxt = xData.tQuote?.txt ?? "...";
-                    outTxtQuote = `**Citado:** \n ${`> ** 👤 ${quoUser} ${quoUrl}** \n ${statTxtQuo}`} \n\n ${(outText && outText.length > 2000) ? citTxt.slice(0, 1000) + "..." : citTxt}`;
+                    outTxtQuote = `**Citado:** \n ${`> ** ${emojis.int.user} ${quoUser} ${quoUrl}** \n ${xData.tQuote.stats}`} \n\n ${(outText && outText.length > 2000) ? citTxt.slice(0, 1000) + "..." : citTxt}`;
                 }
                 if (outTxtQuote) { container.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(outTxtQuote)); }
                 if (gallegryQuo.items.length > 0) { container.addMediaGalleryComponents(gallegryQuo); }
@@ -157,13 +156,12 @@ export class xTwitterCustom implements ApiHandler {
 
 // ================================= xTwitter Process ================================= //
 interface twitterData {
-    urlPost: string, showName: string, userName: string,
-    likes: string, resp: string, reTwi: string, views: string, avatarPic: string,
+    urlPost: string, showName: string, userName: string, avatarPic: string, stats: string,
     hasMedias: boolean, tweetDesc?: string, tweetTl?: { oTxT: string, oLng: string },
     tQuote: {
         txt?: string, author?: string, url?: string, name?: string,
         kcheMedia: { rawLink: string[], imQuo: Buffer[], vidQuo: Buffer[], gifQuo: Buffer[] },
-        stdst: { likes: string, resp: string, reTwi: string, views: string }
+        stats: string
     },
     rawUrl: string[], bufferPics: Buffer[], bufferVideo: Buffer[], bufferGifs: Buffer[]
 }
@@ -183,6 +181,7 @@ interface ApiFxResponse {
         replies?: number;
         reposts?: number;
         views?: number;
+        bookmarks?: number;
         media?: {
             photos?: Array<{ url: string; }>;
             videos?: ApiFxVido[];
@@ -210,6 +209,7 @@ interface ApiFxResponse {
             replies?: number;
             reposts?: number;
             views?: number;
+            bookmarks?: number;
             media?: {
                 photos?: Array<{ url: string; }>;
                 videos?: ApiFxVido[];
@@ -273,10 +273,7 @@ class xTwitter {
                 urlPost: Data.status?.url || "https://x.com",
                 showName: Data.status?.author?.screen_name || "Usuario desconocido",
                 userName: Data.status?.author?.name || "Usuario desconocido",
-                likes: this.numShort(Data.status?.likes),
-                reTwi: this.numShort(Data.status?.reposts),
-                resp: this.numShort(Data.status?.replies),
-                views: this.numShort(Data.status?.views),
+                stats: this.numShort({ likes: Data.status?.likes, reTwi: Data.status?.reposts, resp: Data.status?.replies, views: Data.status?.views, book: Data.status?.bookmarks }),
                 tweetDesc: txtOut,
                 tQuote: {
                     txt: tlLang ? ((Data.status?.quote?.translation?.text && Data.status?.quote?.translation?.text.length > 0) ? (`📄 Traducido al ${this.wereLang(tlLang)}: \n\n ${Data.status?.quote?.translation?.text}`) : Data.status?.quote?.text) : Data.status?.quote?.text,
@@ -284,12 +281,7 @@ class xTwitter {
                     name: Data.status?.quote?.author?.name,
                     url: Data.status?.quote?.url,
                     kcheMedia: { imQuo, vidQuo, gifQuo, rawLink },
-                    stdst: {
-                        likes: this.numShort(Data.status?.quote?.likes),
-                        reTwi: this.numShort(Data.status?.quote?.reposts),
-                        resp: this.numShort(Data.status?.quote?.replies),
-                        views: this.numShort(Data.status?.quote?.views)
-                    }
+                    stats: this.numShort({ likes: Data.status?.quote?.likes, reTwi: Data.status?.quote?.reposts, resp: Data.status?.quote?.replies, views: Data.status?.quote?.views, book: Data.status?.quote?.bookmarks }),
                 },
                 tweetTl: TlData, //fixDes.Tl ? { oTxT: tlReq, oLng: fixDes.Tl.oLng } : undefined, //fixDes.Tl.oTxt
                 avatarPic: Data.status?.author?.avatar_url || 'https://abs.twimg.com/favicons/twitter.ico',
@@ -306,12 +298,17 @@ class xTwitter {
         }
     }
 
-    private static numShort(total?: number | null): string {
-        if (!total) return "0";
-        if (total >= 1_000_000_000) return `${(total / 1_000_000_000).toFixed(1)}B`;
-        if (total >= 1_000_000) return `${(total / 1_000_000).toFixed(1)}M`;
-        if (total >= 1_000) return `${(total / 1_000).toFixed(1)}K`;
-        return total.toString();
+    private static numShort(dta: { likes?: number, reTwi?: number, resp?: number, views?: number, book?: number }): string {
+        const pipe = emojis.pipe;
+        const doIt = (pNumber: number | null | undefined) => {
+            if (!pNumber) return "0";
+            else if (pNumber >= 1_000_000_000) return `${(pNumber / 1_000_000_000).toFixed(1)}B`;
+            else if (pNumber >= 1_000_000) return `${(pNumber / 1_000_000).toFixed(1)}M`;
+            else if (pNumber >= 1_000) return `${(pNumber / 1_000).toFixed(1)}K`;
+            else return pNumber.toString();
+        }
+
+        return (`> ${emojis.int.like}: ${doIt(dta.likes)} ${pipe} ${emojis.int.bookmarks}: ${doIt(dta.book)} ${pipe} ${emojis.int.rtweet}: ${doIt(dta.reTwi)} ${pipe} ${emojis.int.comento}: ${doIt(dta.resp)} ${pipe} ${emojis.int.see}: ${doIt(dta.views)}`)
     }
 
     private static async downMedias(vid?: ApiFxVido[], pic?: string[]): Promise<{ links: string[]; imagenes: Buffer[]; gifs: Buffer[]; videos: Buffer[]; } | null> {

@@ -57,6 +57,7 @@ export interface RedditPost {
     media_metadata?: Record<string, RedditMMI>,
     author?: string,
     url?: string,
+    num_comments?: number,
     gallery_data?: { items: itemOrd[] },
     secure_media?: souceMedia | null,
 }

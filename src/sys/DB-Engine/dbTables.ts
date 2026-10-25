@@ -1,7 +1,9 @@
 // src/sys/DB-Engine/bdTables.ts
 import { Pool } from "mysql2/promise";
+import { info } from "../logging";
 
 export async function mngrTables(pool: Pool) {
+  info("🔧 Verificando/Creando todas las tablas necesarias...", "Database");
   // Tabla de comando /replybots
   await pool.query(`
     CREATE TABLE IF NOT EXISTS channel_configs (

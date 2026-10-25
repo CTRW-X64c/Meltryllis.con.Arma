@@ -20,6 +20,15 @@ export async function initializeDatabase(): Promise<void> {
       try {
         info(`Intentando conectar a la base de datos (Intento ${attempt}/${maxRetries})...`, "Database");
 
+        if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PASSWORD || !process.env.DB_DATABASE) {
+          error(`⚡🔌 FALTAN CONFIGURACIONES PARA LA CONEXION!!`
+            + `${process.env.DB_HOST ? "" : "\nFALTA HOST"} `
+            + `${process.env.DB_USER ? "" : "\nFALTA USER"} `
+            + `${process.env.DB_PASSWORD ? "" : "\nFALTA PASSWORD"} `
+            + `${process.env.DB_DATABASE ? "" : "\nFALTA DATABASE"}`, "Database");
+          process.exit(1);
+        }
+
         const InitPools = createPool({
           host: process.env.DB_HOST,
           user: process.env.DB_USER,
@@ -36,7 +45,14 @@ export async function initializeDatabase(): Promise<void> {
         pool = InitPools;
         info(`✅ Conectado a la base de datos: ${process.env.DB_DATABASE}`, "Database");
 
-        await poolManager();
+        if (!pool) throw new Error("Pool no inicializado");
+
+        await mngrTables(pool);
+
+        const [tables] = await pool.query(`SHOW TABLES`);
+        const tableCount = Array.isArray(tables) ? tables.length : 0;
+        info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");
+        if (getEnvironmentMode() === "development") debug(`📊 Tablas disponibles: ${JSON.stringify(tables)}`, "Database");
 
         return;
       } catch (err) {
@@ -53,21 +69,6 @@ export async function initializeDatabase(): Promise<void> {
   })();
 
   return initializationPromise;
-}
-
-// Generador de Tablas
-async function poolManager(): Promise<void> {
-  if (!pool) throw new Error("Pool no inicializado");
-  info("🔧 Verificando/Creando todas las tablas necesarias...", "Database");
-
-  await mngrTables(pool);
-
-  const [tables] = await pool.query(`SHOW TABLES`);
-  const tableCount = Array.isArray(tables) ? tables.length : 0;
-  info(`✅ ${tableCount} tablas verificadas / creadas exitosamente`, "Database");
-  if (getEnvironmentMode() === "development") {
-    debug(`📊 Tablas disponibles: ${JSON.stringify(tables)}`, "Database");
-  }
 }
 
 // Intermedio BD <=> Code

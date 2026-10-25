@@ -1,9 +1,10 @@
 // src/sys/embedding/Apis/reddita.ts
-import { ContainerBuilder, GuildTextBasedChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, GuildTextBasedChannel, MediaGalleryBuilder, MediaGalleryItemBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder } from "discord.js";
 import { ApiHandler, pMSGin, pResult } from "../embedingSwitch";
 import { RedditPost } from "../../zGears/RedditApi";
 import { error } from "../../logging";
 import { redditApi, reddSouceApi } from "../../zGears/RedditApi";
+import emojis from '../../../../adds/otros/emojis.json'
 
 // ================================= APi: Reddit Meltrys ================================= //
 
@@ -47,11 +48,9 @@ export class redditMeltrys implements ApiHandler {
         let text = `> ### ${dta.title}`, toptxt = "";
         if (dta.desc) { text += ("\n\n" + dta.desc) }
         // === //
-        toptxt += dta.autor ? (`### Publicado por ${dta.autor} en ${dta.from}`) : (`### Publicado por ${dta.from}`);
-        if (dta.score) { toptxt += `\n **${dta.score}**` };
-        const urli = dta.url ? `\n[***Post Link***](${dta.url})` : undefined;
-        if (urli) { toptxt += ("\n" + urli) };
-        const BottomTxt = `> *** Reddit Gallery • by Meltryllis Api *** `;
+        toptxt += dta.autor ? (`### Publicado por ${dta.autor} en ${dta.from}`) : (`### Publicado en ${dta.from}`);
+        if (dta.score) toptxt += ("\n" + `**${dta.score}**`);
+        const BottomTxt = `${emojis.logos.reddit} *** Reddit Gallery • by Meltryllis Api *** `;
         // === //
         const parte = new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small);
         const gallery = new MediaGalleryBuilder(), galleryExt = new MediaGalleryBuilder();
@@ -71,11 +70,14 @@ export class redditMeltrys implements ApiHandler {
 
         const box = new ContainerBuilder();
         const inCall = `> ## Nuevo post en Reddit ${dta.from ? ` de ${dta.from}` : ""}` + (pMsg.isSpoiler ? "\n NSFW POST EN CANAL NO NSFW" : "");
+        const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setLabel("URL Post").setURL(dta.url).setStyle(ButtonStyle.Link));
+        // dataComp
         if (pMsg.intCall) box.addTextDisplayComponents(new TextDisplayBuilder().setContent(inCall)).addSeparatorComponents(parte);
         if (dta.from) box.addTextDisplayComponents(new TextDisplayBuilder().setContent(toptxt)).addSeparatorComponents(parte)
         box.addTextDisplayComponents(new TextDisplayBuilder().setContent(text)).addSeparatorComponents(parte);
         box.addMediaGalleryComponents(gallery);
         if (galleryExt.items.length > 0) { box.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent("> **Galeria parte 2**")).addMediaGalleryComponents(galleryExt) }
+        box.addActionRowComponents(actionRow);
         box.addSeparatorComponents(parte).addTextDisplayComponents(new TextDisplayBuilder().setContent(BottomTxt)).setAccentColor(0xFF4500).setSpoiler(spoiler);
 
         itemPack.push(box);
@@ -90,7 +92,7 @@ interface outRedditSolve {
     desc: string | undefined,
     from: string | undefined,
     autor: string | undefined,
-    url: string | undefined,
+    url: string,
     score: string | undefined,
     is18Pin: boolean,
     media: string[],
@@ -117,14 +119,15 @@ class RedditSolve {
         if (urlMedia.length === 0) return null;
         // ======= other ======= //
         const isNSFW = !!dta.over_18
-        const getScore = this.karmeter({ up: dta.ups ?? 0, down: dta.downs ?? 0, ratio: dta.upvote_ratio ?? 0 })
+        const getScore = this.karmeter({ up: dta.ups ?? 0, down: dta.downs ?? 0, ratio: dta.upvote_ratio ?? 0, comento: dta.num_comments ?? 0 })
+        const urlPost = `https://www.reddit.com` + dta.permalink;
         // ======= out ======= // 
         return {
             exitPostId: `${varPost.id}-${varPost.name}`, // id-Nomover
             title: dta.title,
             desc: dta.selftext,
             from: dta.subreddit_name_prefixed ?? dta.subreddit,
-            url: dta.url,
+            url: urlPost,
             autor: dta.author,
             score: getScore,
             is18Pin: isNSFW,
@@ -197,21 +200,24 @@ class RedditSolve {
         return rawLink
     }
     // === BUILD STATS === //
-    private static karmeter(dta: { up: number, down: number, ratio: number }): string | undefined {
+    private static karmeter(dta: { up: number, down: number, ratio: number, comento: number }): string | undefined {
         if (dta.up === 0 && dta.down === 0) return undefined
-        let workNum: number, flow: string, outNum: string
-        if (dta.up > dta.down) { workNum = dta.up; flow = '▲' }
-        else { workNum = dta.down; flow = '▼' }
 
-        if (workNum >= 1_000_000_000) outNum = `${(workNum / 1_000_000_000).toFixed(1)}B`;
-        else if (workNum >= 1_000_000) outNum = `${(workNum / 1_000_000).toFixed(1)}M`;
-        else if (workNum >= 1_000) outNum = `${(workNum / 1_000).toFixed(1)}K`;
-        else outNum = workNum.toString();
+        let workNum: number, flow: string;
+        if (dta.up > dta.down) { workNum = dta.up; flow = emojis.int.up }
+        else { workNum = dta.down; flow = emojis.int.down }
+
+        const abrNum = (count: number) => {
+            let outNum: string
+            if (count >= 1_000_000_000) outNum = `${(count / 1_000_000_000).toFixed(1)}B`;
+            else if (count >= 1_000_000) outNum = `${(count / 1_000_000).toFixed(1)}M`;
+            else if (count >= 1_000) outNum = `${(count / 1_000).toFixed(1)}K`;
+            else outNum = count.toString();
+            return outNum
+        }
 
         const rat = (dta.ratio * 100).toFixed(0);
-
-        return `Karma: ${outNum} ${flow} | Ratio: ${rat}%`
+        return `${flow} ${abrNum(workNum)} ${emojis.pipe} ${emojis.int.yy} ${rat}% ${emojis.pipe} ${emojis.int.comento} ${abrNum(dta.comento)}`
     }
 }
-
 
