@@ -51,7 +51,7 @@ async function main(): Promise<void> {
             await startWelcomeEvents(client);
             startCronpost(client);
             await startStatusRotation(client);
-            await initNoEveryone(client);
+            await initNoEveryone();
             initKC(client)
             startServices(client)
             initPixivCheck(client)

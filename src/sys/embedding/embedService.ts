@@ -1,21 +1,32 @@
 // src/sys/embeding/embedService.ts
-import { Client, Events, Message, MessageFlags } from "discord.js";
+import { Client, Events, Message, MessageFlags, PermissionFlagsBits } from "discord.js";
 import { getGuildReplacementConfig } from "../DB-Engine/links/Embed";
 import { getConfigMap } from "../DB-Engine/links/ReplyBots";
 import localEmb from "./index";
 import { debug, error } from "../logging";
 import i18next from "i18next";
 import { contPack, urlProcess } from "./embedingSwitch";
+import { noEveryone, noEveryKche } from "../../bgProcess/noEvery"
+
+function isEveryone(msg: Message): boolean {
+    if (!msg.mentions.everyone) return false;
+    if (msg.author.id === msg.guild!.ownerId || msg.member?.permissions.has(PermissionFlagsBits.Administrator)) return false;
+    const cnf = noEveryKche[msg.guild!.id];
+    if (!cnf || !cnf.state) return false;
+    if (cnf && cnf.rol && msg.member?.roles.cache.has(cnf.rol)) return false;
+    noEveryone(msg).catch(() => { });
+    return true;
+}
 
 const urlRegex = /(?:\[[^\]]*\]\()?(https?:\/\/[^\s\)]+)/g;
 export default function startEmbedService(client: Client): void {
     client.on(Events.MessageCreate, async (message) => {
         if (!client.user || message.author.id === client.user.id) return;
+        const gld = message.guild;
+        if (!gld) return;
+        if (isEveryone(message)) return;
         if (message.content.startsWith("$$")) return;
         if (message.content.includes("https://embedez.com")) return;
-
-        const gld = message.guild?.id;
-        if (!gld) return
 
         const extractedUrls = [...message.content.matchAll(urlRegex)].map(match => {
             const rawUrl = match[1];
@@ -32,11 +43,11 @@ export default function startEmbedService(client: Client): void {
 
         if (extractedUrls.length === 0) return;
 
-        const chConfig = (await getConfigMap()).get(gld)?.get(message.channel.id);
+        const chConfig = (await getConfigMap()).get(gld.id)?.get(message.channel.id);
         if (chConfig?.enabled === false) return;
         if (message.author.bot && chConfig?.replyBots !== true) return;
 
-        const gConfigs = await getGuildReplacementConfig(gld)
+        const gConfigs = await getGuildReplacementConfig(gld.id)
         const rmpLocal = localEmb.getParam(gConfigs);
 
         const iFix: string[] = [], iPack: contPack[] = [];
@@ -48,7 +59,7 @@ export default function startEmbedService(client: Client): void {
                 domainSite = urlObject.hostname.replace('www.', '');
             } catch (err) { debug(`URL Invalida: ${originalUrl}`, "Events.MessageCreate"); continue }
 
-            const apiResult = await urlProcess({ oURL: originalUrl, domain: domainSite, guild: gld, gConf: gConfigs, remp: rmpLocal, msg: message, isSpoiler: item.isSpoiler });
+            const apiResult = await urlProcess({ oURL: originalUrl, domain: domainSite, guild: gld.id, gConf: gConfigs, remp: rmpLocal, msg: message, isSpoiler: item.isSpoiler });
             if (apiResult.ok) {
                 if (apiResult.fix) {
                     let messageContent = i18next.t("common:embedService.format_link", { Site: domainSite, RemUrl: apiResult.fix });
