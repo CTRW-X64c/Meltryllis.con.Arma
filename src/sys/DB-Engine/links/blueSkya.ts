@@ -45,6 +45,15 @@ export async function updateBskyLastPost(dta: updatePost) {
     } catch (e: any) { error(`Error al actualizar el último post de blueskya: ${e.message}`, "DB.blueskya") }
 }
 
+export async function bdEraseBlueSky(guildo: string) {
+    const pool = await getPool();
+    try {
+        await pool.query(`DELETE FROM blueskya WHERE guild_id = ?`, [guildo])
+    } catch (e) {
+        error(`Fallo borrar los seguidores de bsky del servidor: ${guildo} ${e} `)
+    }
+}
+
 // ============================================ commandas ============================================ //
 
 export async function addFollowBSky(dta: Omit<bsky, "id" | "created_at" | "lastPost">) {

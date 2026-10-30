@@ -81,7 +81,7 @@ export async function addBD(guildId: string, kcData: Kancolle) {
     }
 }
 
-export async function delBD(guildId: string) {
+export async function delKCBD(guildId: string) {
     try {
         const pool = await getPool();
         await pool.query(`DELETE FROM kc_conf WHERE guild_id = ?`, [guildId]);

@@ -1,5 +1,5 @@
 import { ChannelSelectMenuBuilder, ChatInputCommandInteraction, EmbedBuilder, Guild, LabelBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, RoleSelectMenuBuilder, SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextChannel } from 'discord.js';
-import { addBD, delBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/KancolleBD';
+import { addBD, delKCBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/KancolleBD';
 import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { debug, error } from '../../sys/logging';
@@ -153,7 +153,7 @@ async function disable(interacciones: ChatInputCommandInteraction, guild: Guild)
             await interacciones.editReply(i18next.t("commands:kancolle.interacciones.error_no_config"));
             return;
         }
-        await delBD(guild.id);
+        await delKCBD(guild.id);
         interacciones.editReply(i18next.t("commands:kancolle.interacciones.activar_success"));
     } catch (err) {
         error(`Error ejecutando comando Kancolle: ${err}`);

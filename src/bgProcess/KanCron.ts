@@ -1,7 +1,7 @@
 // src/bgProcess/KanCron.ts
 import { Client, EmbedBuilder, GuildTextBasedChannel, Message, Role } from 'discord.js';
 import { debug, error, info } from '../sys/logging';
-import { startKC, data, kcheMaint, kchTempMSg, loadKchMsg, delKchTemp, delBD } from '../sys/DB-Engine/links/KancolleBD';
+import { startKC, data, kcheMaint, kchTempMSg, loadKchMsg, delKchTemp, delKCBD } from '../sys/DB-Engine/links/KancolleBD';
 import { leftTimeConv, mantChk, rawPreset } from "../sys/zGears/kc_aux";
 import { stillOn } from '../sys/zGears/auxiliares';
 
@@ -99,7 +99,7 @@ export async function notifyKC(type: notifyType) {
                 let chkRol: Role | null = null, channel: GuildTextBasedChannel;
                 const chkSout = await stillOn({ cli: CLIENTE!, chkChID: cfg.channel, chkGuiId: cfg.guild, roley: cfg.role });
                 if (!chkSout.ok) {
-                    if (chkSout.erase) { delBD(cfg.guild).catch((ex: any) => { debug(`Error al borrar el feed ${cfg.guild}: ${ex.message}`, "KanCron") }); }
+                    if (chkSout.erase) { delKCBD(cfg.guild).catch((ex: any) => { debug(`Error al borrar el feed ${cfg.guild}: ${ex.message}`, "KanCron") }); }
                     debug(`${chkSout.msg}`, "KanCron");
                     continue;
                 }

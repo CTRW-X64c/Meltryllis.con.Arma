@@ -14,8 +14,10 @@ import { deleteAllYoutubeConfig } from "../DB-Engine/links/Youtube";
 import { removButton } from "../DB-Engine/links/roleButtons";
 import { deleteAllCronPosts } from "../DB-Engine/links/Cronpost";
 import { removeGuildLimits } from "../DB-Engine/links/noRules";
-import { delBD } from "../DB-Engine/links/KancolleBD";
+import { delKCBD } from "../DB-Engine/links/KancolleBD";
 import { deleteFollowTweetByGuild } from "../DB-Engine/links/followTweet";
+import { bdEraseBlueSky } from "../DB-Engine/links/blueSkya";
+import { erasePixi } from "../DB-Engine/links/PixivData";
 
 
 /* ================================================ Inicializacion de cliente ================================================ */
@@ -87,15 +89,16 @@ async function handleGuildDelete(guild: Guild): Promise<void> {
       .setColor(0xFF0000)
       .setThumbnail(guild.iconURL() || guild.client.user.displayAvatarURL())
       .setTitle(`❌ Expulsada del servidor!! ${guild.name} (ID: ${guild.id})`)
-      .addFields({ name: "Maid Cleaning:", value: maid ? "✅ No quedo rastro de configuraciones" : "❌ Error al limpiar", inline: true })
+      .addFields({ name: "Maid Cleaning:", value: maid.join("\n"), inline: true })
       .setFooter({ text: `Total servidores: ${guild.client.guilds.cache.size}` })
       .setTimestamp();
 
     if (reportConfig.upChannel) {
-      const channel = await guild.client.channels.fetch(reportConfig.channelId).catch(() => null) as TextChannel | null;
-      if (channel) await channel.send({ embeds: [embed] });
+      const ch = guild.channels.cache.get(reportConfig.channelId) ?? await guild.client.channels.fetch(reportConfig.channelId).catch(() => null);
+      if (ch && ch.isSendable()) await ch.send({ embeds: [embed] });
     } else {
-      const ownerUser = await guild.client.users.fetch(process.env.OWNER_ID!).catch(() => null);
+      const userOwn = process.env.OWNER_ID!
+      const ownerUser = guild.client.users.cache.get(userOwn) ?? await guild.client.users.fetch(userOwn).catch(() => null);
       if (ownerUser) await ownerUser.send({ embeds: [embed] });
     }
 
@@ -105,7 +108,7 @@ async function handleGuildDelete(guild: Guild): Promise<void> {
 }
 
 /* ================================================ Borrador de configuraciones ================================================ */
-export async function deleteGuildConfig(guild: Guild): Promise<boolean> {
+export async function deleteGuildConfig(guild: Guild): Promise<string[]> {
   try {
     info(`🧹 Iniciando limpieza de base de datos para el gremio: ${guild.name}`, "GuildCleanup");
 
@@ -122,22 +125,26 @@ export async function deleteGuildConfig(guild: Guild): Promise<boolean> {
       removButton(guild.id),
       deleteAllCronPosts(guild.id),
       removeGuildLimits(guild.id),
-      delBD(guild.id),
-      deleteFollowTweetByGuild(guild.id)
+      delKCBD(guild.id),
+      deleteFollowTweetByGuild(guild.id),
+      bdEraseBlueSky(guild.id),
+      erasePixi(guild.id)
     ]);
 
-    const sistemas = ['JoinToVoice', 'Permisos', 'Welcome', 'Embed', 'Mangadex', 'Reddit', 'ReplyBots', 'Rolemoji', 'Youtube', 'Buttons', 'Cronpost', 'Limits', 'Kancolle', 'Twitter'];
+    const sistemas = ['/JoinToVoice', '/Permisos', '/Welcome', '/Embed', '/Mangadex', '/Reddit', '/ReplyBots', '/Rolemoji', '/Youtube', '/Buttons', '/Cronpost', '/Limits', '/Kancolle', '/Twitter', `/BlueSkya`, `/Pixiv`];
+    const resulOut: string[] = [];
+    resulOut.push(`Borrado de configuraciones del server: ${guild.id}`)
     resultados.forEach((resultado, index) => {
       if (resultado.status === 'rejected') {
-        error(`Fallo al borrar configuración de ${sistemas[index]} para el guild ${guild.id}: ${resultado.reason}`, "GuildCleanup");
+        resulOut.push(`> ❌ ${sistemas[index]}`);
       } else {
-        info(`✅ Configuración de ${sistemas[index]} borrada para el guild ${guild.id}`, "GuildCleanup");
+        resulOut.push(`> ✅ ${sistemas[index]}`);
       }
+      info(`Finalizo la limpieza de configuracion del server ${guild.id} de la BD`, "GuildCleanup")
     });
-    info(`✅ Proceso de limpieza finalizado para: ${guild.name} (ID: ${guild.id})`, "GuildCleanup");
-    return resultados.every(r => r.status === 'fulfilled');
-  } catch (err) {
-    error("Error al realizar limpieza!!", "GuildCleanup")
-    return false;
+    return resulOut;
+  } catch (e) {
+    error(`Error al realizar limpieza!! Error: ${e}`, "GuildCleanup")
+    return [];
   }
 }
