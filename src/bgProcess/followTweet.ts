@@ -31,7 +31,7 @@ export async function tweEngine(cli: Client): Promise<void> {
         };
         // work
         for (const X of dta) {
-            const { id, guild_id, canal, xUser, lastPost, Domain, lang, onlyMedia } = X;
+            const { id, guild_id, canal, xUser, lastPost, lang, onlyMedia } = X;
             const idKch = `${guild_id}-${canal}`;
 
             let chToSend: GuildTextBasedChannel | null = null, dominio: string | null;
@@ -53,7 +53,7 @@ export async function tweEngine(cli: Client): Promise<void> {
             if (guild_id in kacheDom) { dominio = kacheDom[guild_id]; }
             else {
                 const gldCnfDom = await getGuildReplacementConfig(guild_id);
-                const hasCustom = Domain ? Domain : (gldCnfDom.get("Twitter | X")?.custom_url ?? null);
+                const hasCustom = gldCnfDom.get("Twitter | X")?.custom_url ?? null;
                 const localDomain = urlStatusManager.getActiveUrl("twitter") ?? null;
                 const outDom = hasCustom ? hasCustom : localDomain;
                 kacheDom[guild_id] = outDom; dominio = outDom;
