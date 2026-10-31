@@ -7,7 +7,7 @@ let statusList: { id: number, name: string }[] = [];
 let iClient: Client | null = null;
 let inter: NodeJS.Timeout | null = null; // master timmer 
 let tempTimeout: NodeJS.Timeout | null = null, actualStado: string | null = null; // estado ESCRITO temporal
-let actualGYRI: PresenceStatusData | null = null, timmGYRI: NodeJS.Timeout | null = null; // estado PRESENCIA temporal
+let timmGYRI: NodeJS.Timeout | null = null, actualGYRI: PresenceStatusData | null = null; // estado PRESENCIA temporal
 let timmer = Number(process.env.STATUS_TIME_MINUTOS) * 60 * 1000 || 30 * 60 * 1000;
 let defaultList = false;
 let countStatus = 0;
