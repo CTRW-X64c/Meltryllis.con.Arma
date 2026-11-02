@@ -39,6 +39,7 @@ export async function registerMusicCommands() {
     ];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handleMusicInteraction(interaction: ChatInputCommandInteraction) {
     if (!lavalinkManager) {
         await interaction.reply({ content: i18next.t("commands:mussic.interacciones.error_01"), flags: MessageFlags.Ephemeral });
@@ -46,31 +47,36 @@ export async function handleMusicInteraction(interaction: ChatInputCommandIntera
         return;
     }
 
+    const guild = interaction.guild;
+    if (!guild) { await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return; }
+
     const isAllowed = await hasPermission(interaction, "play /stop /skip /queue");
-    if (!isAllowed) {
-        await interaction.reply({
-            content: i18next.t("common:Errores.isAllowed"),
-            flags: MessageFlags.Ephemeral
-        });
-        return;
-    }
+    if (!isAllowed) { await interaction.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral }); return; }
 
-    const { commandName } = interaction;
+    try {
+        if (isRunning.get(guild.id)) { await interaction.reply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); return; };
+        isRunning.set(guild.id, true)
 
-    switch (commandName) {
-        case "play":
-            await handlePlay(interaction, lavalinkManager);
-            break;
-        case "stop":
-            await handleStop(interaction, lavalinkManager);
-            break;
-        case "skip":
-            await handleSkip(interaction, lavalinkManager);
-            break;
-        case "queue":
-            await handleQueue(interaction);
-            break;
-    }
+        const commandName = interaction.commandName;
+        switch (commandName) {
+            case "play":
+                await handlePlay(interaction, lavalinkManager);
+                break;
+            case "stop":
+                await handleStop(interaction, lavalinkManager);
+                break;
+            case "skip":
+                await handleSkip(interaction, lavalinkManager);
+                break;
+            case "queue":
+                await handleQueue(interaction);
+                break;
+        }
+    } catch (e) {
+        error(`Error ejecutando comando music: ${e}`);
+        if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+        else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guild.id) }
 }
 
 /* ========================= PLAY ========================= */

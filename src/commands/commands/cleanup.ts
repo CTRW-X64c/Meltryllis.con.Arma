@@ -29,15 +29,16 @@ export async function registerCleanUpCommand(): Promise<SlashCommandBuilder[]> {
     return [cleanupCommand] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handleCleanUpCommand(interaction: ChatInputCommandInteraction): Promise<void> {
-    try {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-        const guild = interaction.guild;
-        if (!guild) {
-            await interaction.editReply(i18next.t("common:Errores.noGuild"));
-            return;
-        }
+    const guild = interaction.guild;
+    if (!guild) { await interaction.editReply(i18next.t("common:Errores.noGuild")); return }
+
+    try {
+        if (isRunning.get(guild.id)) { await interaction.editReply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }) }); return; };
+        isRunning.set(guild.id, true)
 
         const CD = checkCooldown(guild.id, "cleanUp");
         if (CD.onCooldown) { await interaction.editReply({ content: i18next.t("botones:reportHelp.onCooldown", { a1: CD.timeLeft }) }); return; }
@@ -125,13 +126,9 @@ export async function handleCleanUpCommand(interaction: ChatInputCommandInteract
 
     } catch (err) {
         error(`Error en comando cleanup: ${err}`);
-
-        if (interaction.replied || interaction.deferred) {
-            await interaction.editReply(i18next.t("commands:cleanup.interacciones.error"));
-        } else {
-            await interaction.reply({ content: i18next.t("commands:cleanup.interacciones.error"), flags: MessageFlags.Ephemeral });
-        }
-    }
+        if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+        else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guild.id) }
 }
 
 interface deletMSGint { ch: GuildTextBasedChannel; msg: Message; mode: string; tipe: string; size: number }

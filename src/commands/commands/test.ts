@@ -1,7 +1,7 @@
 // src/Events-Commands/commands/test.ts
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, TextChannel, PermissionFlagsBits } from "discord.js";
 import i18next from "i18next";
-import { error, debug } from "../../sys/logging";
+import { error } from "../../sys/logging";
 import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
 import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { rMetaList } from "../../sys/embedding/embedingConfig";
@@ -16,78 +16,58 @@ export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
     .setName("test")
     .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("commands:test.slashBuilder.test_description"))
-    .addStringOption((option) =>
-      option
-        .setName("mode")
-        .setDescription(i18next.t("commands:test.slashBuilder.mode_description"))
-        .setRequired(false)
-        .addChoices(
-          { name: i18next.t("commands:test.slashBuilder.guild"), value: "channel" },
-          { name: i18next.t("commands:test.slashBuilder.channel"), value: "guild" },
-          { name: i18next.t("commands:test.slashBuilder.embed_config"), value: "embed" },
-          { name: i18next.t("commands:test.slashBuilder.mode_domainds"), value: "chekdimains" }
-        )
+    .addStringOption((o) => o.setName("mode").setDescription(i18next.t("commands:test.slashBuilder.mode_description")).setRequired(false)
+      .addChoices(
+        { name: i18next.t("commands:test.slashBuilder.guild"), value: "channel" },
+        { name: i18next.t("commands:test.slashBuilder.channel"), value: "guild" },
+        { name: i18next.t("commands:test.slashBuilder.embed_config"), value: "embed" },
+        { name: i18next.t("commands:test.slashBuilder.mode_domainds"), value: "chekdimains" }
+      )
     ) as SlashCommandBuilder;
-
   return [testCommand];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handleTestCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+  const guild = interaction.guild;
+  if (!guild) { await interaction.reply(i18next.t("common:Errores.noGuild")); return; }
+
   try {
     const isAllowed = await hasPermission(interaction, interaction.commandName);
-    if (!isAllowed) {
-      await interaction.reply({
-        content: i18next.t("common:Errores.isAllowed"),
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
+    if (!isAllowed) { await interaction.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral, }); return; }
 
-    const mode = interaction.options.getString("mode") ?? "channel";
+    if (isRunning.get(guild.id)) { await interaction.reply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); return; };
+    isRunning.set(guild.id, true)
+
     const configMap = await getConfigMap();
-    const baseEmbed = new EmbedBuilder()
-      .setTitle(i18next.t("commands:test.interacciones.title"));
+    const baseEmbed = new EmbedBuilder().setTitle(i18next.t("commands:test.interacciones.title"));
     const embeds: EmbedBuilder[] = [baseEmbed];
 
-    // Inicio de seccion switch para subcomandos
+    const mode = interaction.options.getString("mode") ?? "channel";
     switch (mode) {
       case "channel":
         await guildPermision(interaction, baseEmbed);
         break;
-
       case "guild":
         await allChannels(interaction, embeds, configMap);
         break;
-
       case "embed":
         await ComEmbed(interaction, baseEmbed);
         break;
-
       case "chekdimains":
         await ChekDomainsTest(interaction);
         return;
-
       default:
-        baseEmbed.setDescription(i18next.t("commands:test.interacciones.test_command_invalid_mode"))
-          .setColor("#ff0000");
+        baseEmbed.setDescription(i18next.t("commands:test.interacciones.test_command_invalid_mode")).setColor("#ff0000");
         break;
     }
-    // Termino de seccion switch para subcomandos
+
     await interaction.reply({ embeds: embeds, flags: MessageFlags.Ephemeral });
-    debug(`Comando /test ejecutado en modo: ${mode}`); //<=
   } catch (err) {
-    error(`Error al ejecutar comando /test: ${err}`); //<=
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({
-        content: i18next.t("commands:test.interacciones.test_command_invalid_mode"),
-        flags: MessageFlags.Ephemeral,
-      });
-    } else if (!interaction.replied) {
-      await interaction.editReply({
-        content: i18next.t("commands:test.interacciones.test_command_invalid_mode"),
-      });
-    }
-  }
+    error(`Error al ejecutar comando /test: ${err}`);
+    if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+    else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+  } finally { isRunning.delete(guild.id) }
 }
 
 /* ========================= Permisos Generales ========================= */

@@ -133,11 +133,15 @@ async function embedMaker(interaction: ChatInputCommandInteraction, data: hData)
 }
 
 // ============================================= Handler principal ============================================= //
-
+const isRunning = new Map<string, boolean>()
 export async function handleHelpCommand(interaction: ChatInputCommandInteraction): Promise<void> {
   const guild = interaction.guild;
-  if (!guild) await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral });
+  if (!guild) { await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return }
+
   try {
+    if (isRunning.get(guild.id)) { await interaction.editReply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }) }); return; };
+    isRunning.set(guild.id, true)
+
     const opHelp = interaction.options.getString("command") || "00";
     switch (opHelp) {
       case "0X": await Report(interaction); break;
@@ -425,5 +429,7 @@ export async function handleHelpCommand(interaction: ChatInputCommandInteraction
     }
   } catch (e) {
     error(`Error al ejecutar comando /help "switch": ${e}`);
-  }
+    if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+    else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+  } finally { isRunning.delete(guild.id) }
 }

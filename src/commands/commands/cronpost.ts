@@ -36,114 +36,58 @@ const mont = [
 ];
 
 export async function registerCronpostCommand(): Promise<SlashCommandBuilder[]> {
-    const cronpost = new SlashCommandBuilder()
-        .setName("cronpost")
-        .setDescription(i18next.t("commands:cronpost.slashBuilder.command_descripcion"))
-        .addSubcommand(sub => sub
-            .setName("crear")
-            .setDescription(i18next.t("commands:cronpost.slashBuilder.command_cronpost_crear"))
-            .addChannelOption(op =>
-                op.setName("canal")
-                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_canal"))
-                    .setRequired(true)
-                    .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement))
-            .addStringOption(op =>
-                op.setName("mansaje_id")
-                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_id_mensaje"))
-                    .setRequired(true))
-            .addIntegerOption(op =>
-                op.setName("hora")
-                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_hora"))
-                    .setRequired(true)
-                    .setMinValue(0)
-                    .setMaxValue(23))
-            .addIntegerOption(op =>
-                op.setName("minuto")
-                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_minuto"))
-                    .setRequired(true)
-                    .setMinValue(0)
-                    .setMaxValue(59))
-            .addStringOption(op =>
-                op.setName("dia_semana")
-                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_dia_semana"))
-                    .setRequired(false)
-                    .setChoices(diaList))
-            .addStringOption(op =>
-                op.setName("mes")
-                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_mes"))
-                    .setRequired(false)
-                    .addChoices(mont))
-            .addIntegerOption(op =>
-                op.setName("dia_mes")
-                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_dia_mes"))
-                    .setRequired(false)
-                    .setMinValue(1)
-                    .setMaxValue(31))
-            .addIntegerOption(op =>
-                op.setName("repetir")
-                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_veces_repetir"))
-                    .setRequired(false)
-                    .setMinValue(0)
-                    .setMaxValue(365))
-            .addIntegerOption(op =>
-                op.setName("delete_msg")
-                    .setDescription(i18next.t("commands:cronpost.slashBuilder.command_veces_dlt_msg"))
-                    .setRequired(false)
-                    .setMinValue(0)
-                    .setMaxValue(1440))
+    const cronpost = new SlashCommandBuilder().setName("cronpost").setDescription(i18next.t("commands:cronpost.slashBuilder.command_descripcion"))
+        .addSubcommand(sub => sub.setName("crear").setDescription(i18next.t("commands:cronpost.slashBuilder.command_cronpost_crear"))
+            .addChannelOption(op => op.setName("canal").setRequired(true).addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)).setDescription(i18next.t("commands:cronpost.slashBuilder.command_canal"))
+            .addStringOption(op => op.setName("mansaje_id").setRequired(true).setDescription(i18next.t("commands:cronpost.slashBuilder.command_id_mensaje")))
+            .addIntegerOption(op => op.setName("hora").setRequired(true).setMinValue(0).setMaxValue(23).setDescription(i18next.t("commands:cronpost.slashBuilder.command_hora")))
+            .addIntegerOption(op => op.setName("minuto").setRequired(true).setMinValue(0).setMaxValue(59).setDescription(i18next.t("commands:cronpost.slashBuilder.command_minuto")))
+            .addStringOption(op => op.setName("dia_semana").setRequired(false).setChoices(diaList).setDescription(i18next.t("commands:cronpost.slashBuilder.command_dia_semana")))
+            .addStringOption(op => op.setName("mes").setRequired(false).addChoices(mont).setDescription(i18next.t("commands:cronpost.slashBuilder.command_mes")))
+            .addIntegerOption(op => op.setName("dia_mes").setRequired(false).setMinValue(1).setMaxValue(31).setDescription(i18next.t("commands:cronpost.slashBuilder.command_dia_mes")))
+            .addIntegerOption(op => op.setName("repetir").setRequired(false).setMinValue(0).setMaxValue(365).setDescription(i18next.t("commands:cronpost.slashBuilder.command_veces_repetir")))
+            .addIntegerOption(op => op.setName("delete_msg").setRequired(false).setMinValue(0).setMaxValue(1440).setDescription(i18next.t("commands:cronpost.slashBuilder.command_veces_dlt_msg")))
         )
-        .addSubcommand(sub => sub
-            .setName("lista")
-            .setDescription(i18next.t("commands:cronpost.slashBuilder.command_lista"))
+        .addSubcommand(sub => sub.setName("lista").setDescription(i18next.t("commands:cronpost.slashBuilder.command_lista")))
+        .addSubcommand(sub => sub.setName("borrar").setDescription(i18next.t("commands:cronpost.slashBuilder.command_borrar"))
+            .addIntegerOption(op => op.setName("id").setRequired(true).setDescription(i18next.t("commands:cronpost.slashBuilder.command_id")))
         )
-        .addSubcommand(sub => sub
-            .setName("borrar")
-            .setDescription(i18next.t("commands:cronpost.slashBuilder.command_borrar"))
-            .addIntegerOption(op => op
-                .setName("id")
-                .setDescription(i18next.t("commands:cronpost.slashBuilder.command_id"))
-                .setRequired(true)
-            )
-        )
-        .addSubcommand(sub => sub
-            .setName("showpost")
-            .setDescription(i18next.t("commands:cronpost.slashBuilder.command_showpost"))
-            .addIntegerOption(op => op
-                .setName("id")
-                .setDescription(i18next.t("commands:cronpost.slashBuilder.command_id_showpost"))
-                .setRequired(true)
-            )
+        .addSubcommand(sub => sub.setName("showpost").setDescription(i18next.t("commands:cronpost.slashBuilder.command_showpost"))
+            .addIntegerOption(op => op.setName("id").setRequired(true).setDescription(i18next.t("commands:cronpost.slashBuilder.command_id_showpost")))
         );
-
     return [cronpost] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handleCronPost(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const guild = interaction.guild;
-    if (!guild) {
-        await interaction.editReply(i18next.t("common:Errores.noGuild"));
-        return;
-    }
+    if (!guild) { await interaction.editReply(i18next.t("common:Errores.noGuild")); return; }
 
-    const isAllowed = await hasPermission(interaction, interaction.commandName);
-    if (!isAllowed) {
-        await interaction.editReply({ content: i18next.t("common:Errores.isAllowed") });
-        return;
-    }
+    try {
+        const isAllowed = await hasPermission(interaction, interaction.commandName);
+        if (!isAllowed) { await interaction.editReply({ content: i18next.t("common:Errores.isAllowed") }); return; }
 
-    const subcomando = interaction.options.getSubcommand();
-    switch (subcomando) {
-        case "crear":
-            await cronPost(interaction, guild); break;
-        case "lista":
-            await lista(interaction, guild); break;
-        case "borrar":
-            await borrar(interaction, guild); break;
-        case "showpost":
-            await showPost(interaction, guild); break;
-    }
+        if (isRunning.get(guild.id)) { await interaction.editReply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }) }); return; };
+        isRunning.set(guild.id, true)
+
+        const subcomando = interaction.options.getSubcommand();
+        switch (subcomando) {
+            case "crear":
+                await cronPost(interaction, guild); break;
+            case "lista":
+                await lista(interaction, guild); break;
+            case "borrar":
+                await borrar(interaction, guild); break;
+            case "showpost":
+                await showPost(interaction, guild); break;
+        }
+    } catch (e) {
+        error(`Error ejecutando comando cronpost: ${e}`);
+        if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+        else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guild.id) }
 }
 
 // =============== Add =============== //

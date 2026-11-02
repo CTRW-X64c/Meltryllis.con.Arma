@@ -18,6 +18,7 @@ export async function registerBSkyCommand(): Promise<SlashCommandBuilder[]> {
     return [BSky] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handleBSkyCommand(inter: ChatInputCommandInteraction) {
     const guild = inter.guild;
     if (!guild) { await inter.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return };
@@ -26,6 +27,9 @@ export async function handleBSkyCommand(inter: ChatInputCommandInteraction) {
     if (!isAllowed) { await inter.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral }); return };
 
     try {
+        if (isRunning.get(guild.id)) { await inter.reply({ content: i18next.t("common:Errores.isRunning", { a1: inter.commandName }), flags: MessageFlags.Ephemeral }); return; };
+        isRunning.set(guild.id, true)
+
         const subcommand = inter.options.getSubcommand();
         switch (subcommand) {
             case "seguir":
@@ -39,7 +43,9 @@ export async function handleBSkyCommand(inter: ChatInputCommandInteraction) {
         }
     } catch (e: any) {
         error(`Comando: /bsky SWITCH | Guild: ${inter.guild!.id} | Error: ${e.message}`);
-    }
+        if (inter.replied || inter.deferred) { await inter.editReply(i18next.t("common:Errores.switch_catch_err", { a1: inter.commandName })); }
+        else { await inter.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: inter.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guild.id) }
 }
 
 // =================================================== addFollowX ===================================================

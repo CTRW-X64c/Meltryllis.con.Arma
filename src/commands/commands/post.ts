@@ -10,58 +10,35 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
         .setName("post")
         .setDescription(i18next.t("commands:post.slashBuilder.description"))
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
-        .addSubcommand(s => s
-            .setName("msg")
-            .setDescription(i18next.t("commands:post.slashBuilder.msg_description"))
-            .addChannelOption(o =>
-                o.setName("canal").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.canal_description"))
-                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+        .addSubcommand(s => s.setName("msg").setDescription(i18next.t("commands:post.slashBuilder.msg_description"))
+            .addChannelOption(o => o.setName("canal").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.canal_description"))
+                .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
             )
-            .addBooleanOption(o =>
-                o.setName("borrar").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.borrar_msg_description"))
-            )
+            .addBooleanOption(o => o.setName("borrar").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.borrar_msg_description")))
         )
-        .addSubcommand(s => s
-            .setName("copy")
-            .setDescription(i18next.t("commands:post.slashBuilder.copy_description"))
-            .addStringOption(o =>
-                o.setName("mensaje_id").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.mensaje_description"))
-            )
-            .addChannelOption(o =>
-                o.setName("canal_destino").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.canal_description"))
-                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+        .addSubcommand(s => s.setName("copy").setDescription(i18next.t("commands:post.slashBuilder.copy_description"))
+            .addStringOption(o => o.setName("mensaje_id").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.mensaje_description")))
+            .addChannelOption(o => o.setName("canal_destino").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.canal_description"))
+                .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
             )
             .addChannelOption(o =>
                 o.setName("canal_origen").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.canal_origen_description"))
-                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
-            )
-            .addBooleanOption(o =>
-                o.setName("borrar").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.borrar_copy_description"))
-            )
+                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement))
+            .addBooleanOption(o => o.setName("borrar").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.borrar_copy_description")))
         )
         .addSubcommand(s => s
             .setName("edit")
             .setDescription(i18next.t("commands:post.slashBuilder.edit_description"))
-            .addStringOption(o =>
-                o.setName("mensaje_id").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.mensaje_edit_description"))
+            .addStringOption(o => o.setName("mensaje_id").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.mensaje_edit_description")))
+            .addChannelOption(o => o.setName("canal_mensaje").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.nuevo_mensaje_description"))
+                .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
             )
-            .addChannelOption(o =>
-                o.setName("canal_mensaje").setRequired(true).setDescription(i18next.t("commands:post.slashBuilder.nuevo_mensaje_description"))
-                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
+            .addBooleanOption(o => o.setName("edit_from_msg").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.edit_from_msg_description")))
+            .addChannelOption(o => o.setName("canal_origen").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.edit_from_msg_channel_description"))
+                .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
             )
-            .addBooleanOption(o =>
-                o.setName("edit_from_msg").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.edit_from_msg_description"))
-            )
-            .addChannelOption(o =>
-                o.setName("canal_origen").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.edit_from_msg_channel_description"))
-                    .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
-            )
-            .addStringOption(o =>
-                o.setName("msg_origen").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.edit_from_msg_message_description"))
-            )
-            .addBooleanOption(o =>
-                o.setName("borrar").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.borrar_edit_description"))
-            )
+            .addStringOption(o => o.setName("msg_origen").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.edit_from_msg_message_description")))
+            .addBooleanOption(o => o.setName("borrar").setRequired(false).setDescription(i18next.t("commands:post.slashBuilder.borrar_edit_description")))
         )
         .addSubcommand(s => s
             .setName("reply")
@@ -86,53 +63,52 @@ export async function registerPostCommand(): Promise<SlashCommandBuilder[]> {
             .addChannelOption(o => o.setName("canal").setDescription(i18next.t("commands:post.slashBuilder.embed_channel_description")).setRequired(true)
                 .addChannelTypes(ChannelType.GuildText, ChannelType.PrivateThread, ChannelType.PublicThread, ChannelType.GuildAnnouncement)
             )
-            .addBooleanOption(o =>
-                o.setName("borrar").setDescription("Borrar el mensaje con el JSON después de publicar").setRequired(false)
-            )
+            .addBooleanOption(o => o.setName("borrar").setDescription("Borrar el mensaje con el JSON después de publicar").setRequired(false))
         );
     return [postCommand] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handlePostCommand(interaction: ChatInputCommandInteraction): Promise<void> {
     const guild = interaction.guild;
-    if (!guild) {
-        await interaction.reply(i18next.t("common:Errores.noGuild"));
-        return;
-    }
+    if (!guild) { await interaction.reply(i18next.t("common:Errores.noGuild")); return; }
 
     const isAllowed = await hasPermission(interaction, interaction.commandName);
-    if (!isAllowed) {
-        await interaction.reply({
-            content: i18next.t("common:Errores.isAllowed"),
-            flags: MessageFlags.Ephemeral
-        });
-        return;
-    }
+    if (!isAllowed) { await interaction.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral }); return; }
 
-    const subcommand = interaction.options.getSubcommand();
-    switch (subcommand) {
-        case "msg":
-            await PostMsg(interaction);
-            break;
-        case "copy":
-            await PostCopy(interaction);
-            break;
-        case "edit":
-            await PostEdit(interaction);
-            break;
-        case "reply":
-            await PostReply(interaction);
-            break;
-        case "embed":
-            await PostEmbed(interaction);
-            break;
-        default:
-            await interaction.reply({
-                content: i18next.t("commands:post.interacciones.not_found"),
-                flags: MessageFlags.Ephemeral
-            });
-            break;
-    }
+    try {
+        if (isRunning.get(guild.id)) { await interaction.reply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); return; };
+        isRunning.set(guild.id, true)
+
+        const subcommand = interaction.options.getSubcommand();
+        switch (subcommand) {
+            case "msg":
+                await PostMsg(interaction);
+                break;
+            case "copy":
+                await PostCopy(interaction);
+                break;
+            case "edit":
+                await PostEdit(interaction);
+                break;
+            case "reply":
+                await PostReply(interaction);
+                break;
+            case "embed":
+                await PostEmbed(interaction);
+                break;
+            default:
+                await interaction.reply({
+                    content: i18next.t("commands:post.interacciones.not_found"),
+                    flags: MessageFlags.Ephemeral
+                });
+                break;
+        }
+    } catch (e) {
+        error(`Error ejecutando comando post: ${e}`);
+        if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+        else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guild.id) }
 }
 
 /////////////////// AUTODELETE ///////////////////

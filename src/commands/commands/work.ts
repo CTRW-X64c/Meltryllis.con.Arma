@@ -10,29 +10,26 @@ export async function registerWorkCommand(): Promise<SlashCommandBuilder[]> {
     .setName("work")
     .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("commands:work.slashBuilder.description"))
-    .addStringOption((option) => option
-        .setName("mode").setDescription(i18next.t("commands:work.slashBuilder.state_description"))
-        .setRequired(true)
-        .addChoices({ name: "workhere", value: "where" }, { name: "replybots", value: "rbots" })
-      )
-    .addStringOption((option) => option
-        .setName("turn").setDescription(i18next.t("commands:work.slashBuilder.mode_description"))
-        .setRequired(true)
-        .addChoices({ name: "on", value: "on" }, { name: "off", value: "off" }));
-
+    .addStringOption((o) => o.setName("mode").setDescription(i18next.t("commands:work.slashBuilder.state_description")).setRequired(true)
+      .addChoices({ name: "workhere", value: "where" }, { name: "replybots", value: "rbots" })
+    )
+    .addStringOption((o) => o.setName("turn").setDescription(i18next.t("commands:work.slashBuilder.mode_description")).setRequired(true)
+      .addChoices({ name: "on", value: "on" }, { name: "off", value: "off" })
+    )
   return [workCommand] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handleWorkCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+  const guild = interaction.guild;
+  if (!guild) { await interaction.reply(i18next.t("common:Errores.noGuild")); return; }
+
+  const isAllowed = await hasPermission(interaction, interaction.commandName);
+  if (!isAllowed) { await interaction.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral, }); return; }
+
   try {
-    const isAllowed = await hasPermission(interaction, interaction.commandName);
-    if (!isAllowed) {
-      await interaction.reply({
-        content: i18next.t("common:Errores.isAllowed"),
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
+    if (isRunning.get(guild.id)) { await interaction.editReply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }) }); return; };
+    isRunning.set(guild.id, true)
 
     const state = interaction.options.getString("mode");
     switch (state) {
@@ -43,15 +40,14 @@ export async function handleWorkCommand(interaction: ChatInputCommandInteraction
         await replybots(interaction);
         break;
       default:
-        await interaction.reply({
-          content: i18next.t("commands:work.interacciones.command_error"),
-          flags: MessageFlags.Ephemeral,
-        });
+        await interaction.reply({ content: i18next.t("commands:work.interacciones.command_error"), flags: MessageFlags.Ephemeral, });
         break;
     }
   } catch (err) {
     error(`Error en handleWorkCommand: ${err}`);
-  }
+    if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+    else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+  } finally { isRunning.delete(guild.id) }
 }
 
 /* =============== INTERFAZ =============== */
@@ -126,11 +122,11 @@ async function replybots(interaction: ChatInputCommandInteraction): Promise<void
       throw new Error(i18next.t("commands:work.interaccionesRole.identifying_server"));
     }
 
-    const configMap = await getConfigMap(); 
+    const configMap = await getConfigMap();
     let guildConfig = configMap.get(guildId);
     if (!guildConfig) {
       guildConfig = new Map<string, ChannelConfig>();
-      configMap.set(guildId, guildConfig); 
+      configMap.set(guildId, guildConfig);
     }
 
     const isReplyBots = state === "on";
@@ -157,9 +153,9 @@ async function replybots(interaction: ChatInputCommandInteraction): Promise<void
       content: response,
       flags: MessageFlags.Ephemeral,
     });
-    debug(`Comando /replybots ejecutado. Estado: ${isReplyBots ? "On" : "Off"}, Canal: ${channelId}`); 
+    debug(`Comando /replybots ejecutado. Estado: ${isReplyBots ? "On" : "Off"}, Canal: ${channelId}`);
   } catch (err) {
-    error(`Error al ejecutar comando /replybots: ${err}`); 
+    error(`Error al ejecutar comando /replybots: ${err}`);
     await interaction.reply({
       content: i18next.t("commands:work.interacciones.command_error"),
       flags: MessageFlags.Ephemeral,

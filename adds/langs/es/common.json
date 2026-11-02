@@ -15,9 +15,10 @@
     "noGuild": "⛔⛔ Este comando solo funciona en servidores!! ⛔⛔",
     "missing_permissions": "❌ No tengo los permisos requeridos para hacer esto 🥺​\n Permisos faltantes para el Canal: **{{a1}}:** \n{{a2}}",
     "missing_permissions_server": "❌ No tengo los permisos requeridos para hacer esto 🥺​ Necesito los sigueintes permisos: \n{{a1}}",
-    "missing_permissions_origen": "❌ Me faltan permisos en el canal de origen {{a1}}: \n {{a2}}",
     "servLimit": "⛔ Se alcanzó el límite de este comando. {{a1}}/{{a2}} ⛔",
-    "nochannelFind": "❌ No pude encontrar el canal seleccionado!!"
+    "nochannelFind": "❌ No pude encontrar el canal seleccionado!!",
+    "isRunning": "⚙️ Se esta ejecutando alguna instancia de /{{a1}}, espera a que finalice!",
+    "switch_catch_err": "⛔⛔ OCURRIÓ UN ERROR MAYOR DURANTE LA EJECUCIÓN DEL COMANDO: /{{a1}}!! ⛔⛔"
   },
   "neTools": {
     "embed_title": "🌐 Estado de los  **dominios** de Embedding",

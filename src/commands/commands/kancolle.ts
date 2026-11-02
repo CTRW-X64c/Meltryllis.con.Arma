@@ -55,7 +55,7 @@ export async function handleKantaiCollectionCommand(interaction: ChatInputComman
     const ch: GuildTextBasedChannel | null = (channel && !channel.isDMBased() && channel.isSendable()) ? channel : null;
 
     try {
-        if (isRunning.get(guild.id)) { await interaction.reply({ content: "Se esta ejecutando alguna instancia de /kancolle", flags: MessageFlags.Ephemeral }); return; };
+        if (isRunning.get(guild.id)) { await interaction.reply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); return; };
         isRunning.set(guild.id, true)
 
         const isAllowed = await hasPermission(interaction, interaction.commandName);
@@ -79,7 +79,8 @@ export async function handleKantaiCollectionCommand(interaction: ChatInputComman
         }
     } catch (err) {
         error(`Error ejecutando comando Kancolle: ${err}`);
-        await interaction.reply({ content: i18next.t("commands:mangadex.interacciones.command_error") });
+        if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+        else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
     } finally { isRunning.delete(guild.id) }
 }
 

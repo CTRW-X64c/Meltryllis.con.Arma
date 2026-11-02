@@ -23,6 +23,7 @@ export async function registerRedditCommand() {
     return [reddit] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handleRedditCommand(interaction: ChatInputCommandInteraction) {
     const guild = interaction.guild;
     if (!guild) { await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return };
@@ -31,6 +32,9 @@ export async function handleRedditCommand(interaction: ChatInputCommandInteracti
     if (!isAllowed) { await interaction.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral }); return };
 
     try {
+        if (isRunning.get(guild.id)) { await interaction.reply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); return; };
+        isRunning.set(guild.id, true)
+
         const subcommand = interaction.options.getSubcommand();
         switch (subcommand) {
             case "seguir":
@@ -48,8 +52,9 @@ export async function handleRedditCommand(interaction: ChatInputCommandInteracti
         }
     } catch (e) {
         error(`Error ejecutando comando Reddit: ${e}`);
-        await interaction.reply({ content: i18next.t("common.Errores.switchGeneral") });
-    }
+        if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+        else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guild.id) }
 }
 
 // =============== SubSeguir =============== //
