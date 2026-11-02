@@ -88,7 +88,7 @@ async function handleGuildDelete(guild: Guild): Promise<void> {
     const embed = new EmbedBuilder()
       .setColor(0xFF0000)
       .setThumbnail(guild.iconURL() || guild.client.user.displayAvatarURL())
-      .setTitle(`❌ Expulsada del servidor!! ${guild.name} (ID: ${guild.id})`)
+      .setTitle(`❌ Expulsada del servidor!! \n Server: ${guild.name} (ID: ${guild.id}) \n Bye bye ${guild.memberCount} usuarios!`)
       .addFields({ name: "Maid Cleaning:", value: maid.join("\n"), inline: true })
       .setFooter({ text: `Total servidores: ${guild.client.guilds.cache.size}` })
       .setTimestamp();
@@ -133,15 +133,14 @@ export async function deleteGuildConfig(guild: Guild): Promise<string[]> {
 
     const sistemas = ['/JoinToVoice', '/Permisos', '/Welcome', '/Embed', '/Mangadex', '/Reddit', '/ReplyBots', '/Rolemoji', '/Youtube', '/Buttons', '/Cronpost', '/Limits', '/Kancolle', '/Twitter', `/BlueSkya`, `/Pixiv`];
     const resulOut: string[] = [];
-    resulOut.push(`Borrado de configuraciones del server: ${guild.id}`)
     resultados.forEach((resultado, index) => {
       if (resultado.status === 'rejected') {
         resulOut.push(`> ❌ ${sistemas[index]}`);
       } else {
         resulOut.push(`> ✅ ${sistemas[index]}`);
       }
-      info(`Finalizo la limpieza de configuracion del server ${guild.id} de la BD`, "GuildCleanup")
     });
+    info(`Finalizo la limpieza de configuracion del server ${guild.id} de la BD`, "GuildCleanup")
     return resulOut;
   } catch (e) {
     error(`Error al realizar limpieza!! Error: ${e}`, "GuildCleanup")

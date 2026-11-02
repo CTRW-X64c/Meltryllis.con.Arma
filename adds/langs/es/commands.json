@@ -634,7 +634,8 @@
       "activar_quest_av": "Mandar notificacion de quest!!",
       "activar_oem_av": "Mandar aviso de Extra operaciones!",
       "activar_expedition_av": "Mandar aviso de expediciones mensuales!!",
-      "activar_mantenimiento_av": "Mandar aviso de mantenimiento!!"
+      "activar_mantenimiento_av": "Mandar aviso de mantenimiento!!",
+      "rank": "Muestra la lista de Rank de los servidores"
     },
     "interacciones": {
       "error_ch_noValido": "❌ Debes especificar un canal valido!",

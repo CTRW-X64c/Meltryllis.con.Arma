@@ -543,3 +543,43 @@ export function rawPreset(type: notifyType): presetsKC | null {
             return null;
     }
 };
+
+// =========================================================== RankData =========================================================== //
+export type RankLevel = '1' | '5' | '20' | '100' | '500';
+type Cutoff = Record<RankLevel, number>;
+export interface RecordEntry {
+    value: number;
+    year: number;
+    month: number;
+}
+
+export interface RankData {
+    number: number;
+    enName: string;
+    jpName: string;
+    cutoff: Cutoff;
+    lastModified: string | Date;
+    updated: boolean;
+    records: {
+        higest: Record<RankLevel, RecordEntry>;
+        lowest: Record<RankLevel, RecordEntry>;
+    };
+}
+
+let kcheRank: RankData[] | null = null
+export async function rankServers(): Promise<{ ok: boolean, data: RankData[] | null, date?: string }> {
+    const urlDta = `https://bonodere.famluro.es/api/misc/serverdata`;
+    const para: RequestInit = { method: 'GET' };
+    const jstDate = new Date().toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+
+    try {
+        const getData = await fetch(urlDta, para);
+        if (!getData.ok) return { ok: false, data: kcheRank ?? null, date: jstDate };
+
+        const data = (await getData.json()) as RankData[];
+        kcheRank = data;
+        return { ok: true, data };
+    } catch (error) {
+        return { ok: false, data: kcheRank ?? null, date: jstDate };
+    }
+}

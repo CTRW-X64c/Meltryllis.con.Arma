@@ -275,14 +275,24 @@ async function userCheck(userX: string): Promise<string | undefined> {
     }
     chekUserX = chekUserX.toLowerCase().trim();
     try {
-        const userFetch = await fetch(`https://api.fxtwitter.com/2/profile/${chekUserX}?about_account=1`)
-        if (userFetch.ok) {
-            const codFe = await userFetch.json() as { code?: number }
-            if (codFe.code === 200) return chekUserX;
-            else return undefined;
+        const userFetch = await fetch(`https://api.fxtwitter.com/2/profile/${chekUserX}?about_account=1`, {
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
+        });
+
+        if (!userFetch.ok) {
+            error(`[userCheck] HTTP error status: ${userFetch.status} - ${userFetch.statusText}`);
+            return undefined;
         }
-        else return undefined
-    } catch { return undefined }
+
+        const codFe = await userFetch.json() as { code?: number };
+        if (codFe.code === 200) return chekUserX;
+
+        debug(`[userCheck] API returned non-200 code: ${codFe}`);
+        return undefined;
+    } catch (e) {
+        error(`[userCheck] Network/Fetch error: ${e}`);
+        return undefined;
+    }
 }
 
 function chekLang(lang: string | null) {
