@@ -17,6 +17,7 @@ const ApiList = () => {
     embedezNSFW = embedingList["API_NSFW"]
         ? embedingList["API_NSFW"].split('|').map(y => y.trim())
         : [];
+    regenList();
     info(`Embedez Api ready con ${embedezSFW.length} SFW y ${embedezNSFW.length} NSFW sitios!!`, "embedingService");
 }
 
@@ -26,6 +27,18 @@ export const meltrillisApi: string[] = [
     "Meltrys.xTwitter",
     "Meltrys.Reddit"
 ];
+
+// ======== lists ======== //
+export let masterList: { name: string, value: string }[] = [];
+export let isApiList: string[] = [];
+const regenList = () => {
+    const hostList = rMetaList.map((itm) => ({ name: "Remplacer: " + itm.name, value: itm.name }));
+    const sfwList = embedezSFW.map((itm) => ({ name: "Api.SFW: " + itm, value: itm }));
+    const nsfwList = embedezNSFW.map((itm) => ({ name: "Api.NSFW: " + itm, value: itm }));
+    const melList = meltrillisApi.map((itm) => ({ name: "Meltryllis.Api: " + itm, value: itm }));
+    masterList = [...hostList, ...sfwList, ...nsfwList, ...melList];
+    isApiList = [...embedezSFW, ...embedezNSFW, ...meltrillisApi];
+}
 
 // ======== core ======== //
 export const updateList = (s: string, d?: string) => {

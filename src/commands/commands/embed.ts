@@ -2,19 +2,14 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, AutocompleteInteraction } from "discord.js";
 import i18next from "i18next";
 import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
-import { rMetaList } from "../../sys/embedding/embedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
+import { masterList, isApiList } from "../../sys/embedding/domainChecker";
 import { error } from "../../sys/logging";
-import { embedezSFW, embedezNSFW, meltrillisApi } from "../../sys/embedding/domainChecker";
 
 // --- Cambio para autocompletar 
 export async function embedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const L = rMetaList.map((meta) => ({ name: "Remplacer: " + meta.name, value: meta.name }));
-    const eS = embedezSFW.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
-    const eN = embedezNSFW.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
-    const mel = meltrillisApi.map((domain) => ({ name: "Meltryllis.Api: " + domain, value: domain }));
     const X = interaction.options.getFocused().toLowerCase();
-    const list = [...L, ...eS, ...eN, ...mel].filter(y => y.name.toLowerCase().includes(X));
+    const list = masterList.filter(y => y.name.toLowerCase().includes(X));
     await interaction.respond(list.slice(0, 25).map(c => ({ name: c.name, value: c.value })));
 }
 
@@ -55,7 +50,7 @@ export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promis
         const site = i.options.getString("sitio", true);
         const modo = i.options.getString("modo", true);
         const url = i.options.getString("personalizar", false);
-        const isApi = embedezNSFW.includes(site) || embedezSFW.includes(site) || meltrillisApi.includes(site);
+        const isApi = isApiList.includes(site);
 
         let customUrl: string | null = null;
         let enabled = true;
