@@ -361,7 +361,7 @@ interface presetsKC {
     url?: string,
 }
 
-export function rawPreset(type: notifyType): presetsKC | null {
+export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
     const rst = allLefts(), minuts = 60 * 1_000;
     let vlueTxt = i18next.t("commands:kancolle.bgProsses.siwtchNotify_vText", { a1: rst.pvp, a2: rst.oem, a3: rst.mExp, a4: rst.dQuest, a5: rst.wQuest, a6: rst.mQuest, a7: rst.qQuest, a8: rst.dPtCutof, a9: rst.mPtCutof });
     if (maint.lastMaintStart && (maint.lastMaintStart.getTime() > getNowJST())) {
@@ -538,6 +538,32 @@ export function rawPreset(type: notifyType): presetsKC | null {
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" }
             };
+        case "rank":
+            const dtaRnk = await rankServers();
+            const jpF = new Date().toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+            let isActual = `> Actualizado: ${jpF} JP Time`;
+            if (!dtaRnk.ok || !dtaRnk.data) {
+                if (dtaRnk.data) { isActual = ` > Cache: ${dtaRnk.date} JP time`; }
+                else { return null }
+            }
+            const newFields: { name: string, value: string, inline?: boolean }[] = [];
+            for (const srv of dtaRnk.data) {
+                const updatedDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+                newFields.push({
+                    name: `> Actual: ${dtaRnk.ok ? (srv.updated ? `✅` : `❌`) : `❌`} | ${updatedDate} JP Time || ID: ${srv.number} | Name: ${srv.jpName} (${srv.enName})`,
+                    value: `** Top 1:** ${srv.cutoff[1]}pts | ** Top 5:** ${srv.cutoff[5]}pts | ** Top 20:** ${srv.cutoff[20]}pts | ** Top 100:** ${srv.cutoff[100]}pts | ** Top 500:** ${srv.cutoff[500]}pts`
+                });
+            }
+
+            return {
+                title: { A: `Senka datos; Rank cutoff!!`, B: "TBA" },
+                desc: { ini: isActual, l30: "TBA", l15: "TBA", fn: "TBA" },
+                field: newFields,
+                mTimmer: 0,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" }
+            }
+
         // ======================================== END ======================================== //
         default:
             return null;

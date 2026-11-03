@@ -60,8 +60,19 @@ export async function sysUpRegister(client: Client) {
 
   const permissionsCommand = await registerPermissionsCommand(commands as any);
   commands.push(...permissionsCommand);
-  const comandList = commands.map((command) => command.name).join(", /");
 
+  for (const cmd of commands) {
+    try {
+      const cmdData = typeof cmd.toJSON === 'function' ? cmd.toJSON() : cmd;
+      debug(`Revisando comando: ${cmdData}`)
+    } catch (err) {
+      error(`❌ ¡ERROR CRÍTICO DETECTADO EN EL COMANDO!`);
+      error(`El objeto del comando problemático es: ${cmd.toJSON()}`);
+      process.exit(1);
+    }
+  }
+
+  const comandList = commands.map((command) => command.name).join(", /");
   client.application?.commands.set(commands)
     .then(() => info(`Comandos registrados (${commands.length}):\n/${comandList}`, "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));

@@ -12,6 +12,7 @@ export interface Kancolle {
     oem: { av: boolean; ntf: boolean };
     mnt: { av: boolean; ntf: boolean };
     mExp: { av: boolean; ntf: boolean };
+    rank: { av: boolean; ntf: boolean };
 }
 
 export async function startKC(): Promise<boolean> {
@@ -29,7 +30,8 @@ export async function startKC(): Promise<boolean> {
                 quest: JSON.parse(db.quest),
                 oem: JSON.parse(db.oem),
                 mnt: JSON.parse(db.mnt),
-                mExp: JSON.parse(db.mExp)
+                mExp: JSON.parse(db.mExp),
+                rank: JSON.parse(db.rank)
             });
         }
         const count = data.size;
@@ -70,9 +72,9 @@ export async function addBD(guildId: string, kcData: Kancolle) {
     try {
         const pool = await getPool();
         await pool.query(
-            `INSERT INTO kc_conf (guild_id, role, channel, pvp, quest, oem, mnt, mExp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE role = VALUES(role), channel = VALUES(channel), pvp = VALUES(pvp), quest = VALUES(quest), oem = VALUES(oem), mnt = VALUES(mnt), mExp = VALUES(mExp)`,
-            [guildId, kcData.role, kcData.channel, JSON.stringify(kcData.pvp), JSON.stringify(kcData.quest), JSON.stringify(kcData.oem), JSON.stringify(kcData.mnt), JSON.stringify(kcData.mExp)]
+            `INSERT INTO kc_conf (guild_id, role, channel, pvp, quest, oem, mnt, mExp, rank) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE role = VALUES(role), channel = VALUES(channel), pvp = VALUES(pvp), quest = VALUES(quest), oem = VALUES(oem), mnt = VALUES(mnt), mExp = VALUES(mExp), rank = VALUES(rank)`,
+            [guildId, kcData.role, kcData.channel, JSON.stringify(kcData.pvp), JSON.stringify(kcData.quest), JSON.stringify(kcData.oem), JSON.stringify(kcData.mnt), JSON.stringify(kcData.mExp), JSON.stringify(kcData.rank)]
         );
         data.set(guildId, [kcData]);
         debug(`Kancolle Config GUARDADA/ACTUALIZADA: Guild ${guildId}`, "KancolleBD");

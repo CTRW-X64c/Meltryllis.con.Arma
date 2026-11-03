@@ -32,8 +32,8 @@ export async function initKC(cli: Client) {
 };
 
 // ========================================================= engineTimmers ========================================================= //
-export type notifyType = 'pvp' | 'quest' | 'lQuest' | 'oem' | 'loem' | 'mExp' | 'lmExp' | 'newMante' | 'maintStart' | 'maintlStart' | 'mntEnd';
-let notifyTimers = new Map<notifyType, NodeJS.Timeout>();
+export type notifyType = 'pvp' | 'quest' | 'lQuest' | 'oem' | 'loem' | 'mExp' | 'lmExp' | 'newMante' | 'maintStart' | 'maintlStart' | 'mntEnd' | 'rank';
+const notifyTimers = new Map<notifyType, NodeJS.Timeout>();
 async function timmerAv() {
     /* =============== pvp =============== */
     const pvpStr = () => { teki("pvp") };
@@ -56,6 +56,9 @@ async function timmerAv() {
     // // long mExp
     const mExpLong = () => { teki("lmExp", true) };
     if (!notifyTimers.has('lmExp')) mExpLong();
+    /* =============== rank =============== */
+    const rankStr = () => { teki("rank") };
+    if (!notifyTimers.has('rank')) rankStr();
 }
 // === setTimmers === //
 function teki(tpy: notifyType, long?: boolean) {
@@ -66,6 +69,7 @@ function teki(tpy: notifyType, long?: boolean) {
         case 'lQuest': { toChk = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5, minutes: 0 }); break };
         case 'oem': case 'loem': { toChk = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0, minutes: 0 }); break };
         case 'mExp': case 'lmExp': { toChk = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12, minutes: 0 }); break };
+        case 'rank': { toChk = leftTimeConv({ type: 'daily', hours: [3, 15], minutes: 30 }); break };
         default: { error(`[KanCron]: Tipo introducido sin parametro: ${tpy}`); return }
     }
     if (toChk > 30 * hours) return;
@@ -78,13 +82,13 @@ function teki(tpy: notifyType, long?: boolean) {
 
 // ========================================================= Main ========================================================= //
 const chkType = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.av], /*QUEST*/['quest', cfg => cfg.quest.av], ['lQuest', cfg => cfg.quest.av],
+    ['pvp', cfg => cfg.pvp.av], /*QUEST*/['quest', cfg => cfg.quest.av], ['lQuest', cfg => cfg.quest.av], /*RANK*/['rank', cfg => cfg.rank.av],
     /*OEM*/['oem', cfg => cfg.oem.av], ['loem', cfg => cfg.oem.av],
     /*EXP*/['mExp', cfg => cfg.mExp.av], ['lmExp', cfg => cfg.mExp.av],
     /*Mante*/['newMante', cfg => cfg.mnt.av], ['maintStart', cfg => cfg.mnt.av], ['maintlStart', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av]]);
 
 const chkRole = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf],
+    ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf], /*RANK*/['rank', cfg => cfg.rank.ntf],
     /*OEM*/['oem', cfg => cfg.oem.ntf], /*EXP*/['mExp', cfg => cfg.mExp.ntf],
     /*Mante*/['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['maintlStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
 
@@ -176,7 +180,7 @@ async function loadingKc(): Promise<boolean> {
 
 /* === msgManager === */
 async function msgMgr(dat: msgBuild) {
-    const prst = rawPreset(dat.type);
+    const prst = await rawPreset(dat.type);
     if (!prst) return;
 
     const key = `${dat.ch.guildId}-${dat.type}`;
@@ -247,7 +251,7 @@ async function msgMgr(dat: msgBuild) {
     if (prst.ntfy.ntf_30 && prst.mTimmer > (30 * minuts)) {
         setTimeout(async () => {
             if (isStale()) return;
-            const p = rawPreset(dat.type);
+            const p = await rawPreset(dat.type);
             if (!p) return;
             await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l30, pic: p.urlPic.A, rolOn: rtfRol, color: 0xFFA500, url: p.url, delAft: del15 });
         }, prst.mTimmer - (30 * minuts));
@@ -256,7 +260,7 @@ async function msgMgr(dat: msgBuild) {
     if (prst.ntfy.ntf_15 && prst.mTimmer > (15 * minuts)) {
         setTimeout(async () => {
             if (isStale()) return;
-            const p = rawPreset(dat.type);
+            const p = await rawPreset(dat.type);
             if (!p) return;
             await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l15, pic: p.urlPic.A, rolOn: rtfRol, color: 0xFFA500, url: p.url, delAft: del15 });
         }, prst.mTimmer - (15 * minuts));
@@ -265,7 +269,7 @@ async function msgMgr(dat: msgBuild) {
     if (prst.ntfy.ntf_end && prst.mTimmer > 0) {
         setTimeout(async () => {
             if (isStale()) return;
-            const p = rawPreset(dat.type);
+            const p = await rawPreset(dat.type);
             if (!p) return;
             await msgSnd({ ch: dat.ch, title: p.title.B, fields: p.field, desc: p.desc.fn, pic: p.urlPic.B, rolOn: rtfRol, color: 0x00AA00, url: p.url, delAft: hours });
         }, prst.mTimmer);

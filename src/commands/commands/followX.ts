@@ -274,29 +274,25 @@ async function removeFollowModal(i: ChatInputCommandInteraction) {
 // =============================== Aux =============================== // 
 
 async function userCheck(userX: string): Promise<string | undefined> {
-    let chekUserX = userX.trim();
-    if (chekUserX.startsWith("http") || chekUserX.startsWith("@")) {
-        const chkXusrTw = chekUserX.match(/(?:twitter\.com|x\.com|@)\/?([a-zA-Z0-9_]{1,15})/)?.[1];
-        if (chkXusrTw) chekUserX = chkXusrTw;
-    }
-    chekUserX = chekUserX.toLowerCase().trim();
-    try {
-        const userFetch = await fetch(`https://api.fxtwitter.com/2/profile/${chekUserX}?about_account=1`, {
-            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
-        });
+    let chekUserX = userX;
 
-        if (!userFetch.ok) {
-            error(`[userCheck] HTTP error status: ${userFetch.status} - ${userFetch.statusText}`);
+    const cleanUsr = chekUserX.match(/(?:https?:\/\/(?:www\.)?(?:twitter|x)\.com\/|@?)([a-zA-Z0-9_]{1,15})/i);
+    if (cleanUsr && cleanUsr[1]) { chekUserX = cleanUsr[1]; }
+    chekUserX = chekUserX.toLowerCase().trim();
+
+    try {
+        const usrFtch = await fetch(`https://api.fxtwitter.com/2/profile/${chekUserX}`, { method: 'GET' });
+        if (!usrFtch.ok) {
+            error(`[followX]: Fallo en fetch: ${usrFtch.status} | input: ${userX} | formated: ${chekUserX} `);
             return undefined;
         }
 
-        const codFe = await userFetch.json() as { code?: number };
+        const codFe = await usrFtch.json() as { code?: number };
         if (codFe.code === 200) return chekUserX;
-
-        debug(`[userCheck] API returned non-200 code: ${codFe}`);
+        error(`[followX]: Api code: ${codFe.code} | input: ${userX} | formated: ${chekUserX} `)
         return undefined;
-    } catch (e) {
-        error(`[userCheck] Network/Fetch error: ${e}`);
+    } catch (e: any) {
+        error(`[followX]: Network/Fetch error: ${e.message}`);
         return undefined;
     }
 }

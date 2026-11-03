@@ -225,6 +225,7 @@ export async function mngrTables(pool: Pool) {
       oem TEXT,
       mnt TEXT,
       mExp TEXT,
+      rank TEXT,
       UNIQUE KEY unique_guild_kancolle (guild_id)
     )
   `);

@@ -612,7 +612,7 @@
       "status_embed_field_active": "Configuracion de Avisos:",
       "status_embed_field_basic": "Configuracion base:",
       "status_embed_field_basic_value": "Canal: {{a1}} \nRol a notificar: {{a2}}",
-      "status_embed_field_active_value": "PvP (Ejercicios): {{a1}} \n Quests: {{a2}} \n Extra Operaciones: {{a3}} \n Mantenimiento: {{a4}} \n Expediciones Mensuales: {{a5}}",
+      "status_embed_field_active_value": "PvP (Ejercicios): {{a1}} \n Quests: {{a2}} \n Extra Operaciones: {{a3}} \n Mantenimiento: {{a4}} \n Expediciones Mensuales: {{a5}} \n Rank: {{a6}}",
       "resrts_let_statusStart": "Finalizado!",
       "resrts_let_statusStart_A": "En curso!!",
       "resrts_let_statusEnd": "Finaliza en {{a1}}",

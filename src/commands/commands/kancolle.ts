@@ -98,15 +98,16 @@ async function enableModal(i: ChatInputCommandInteraction) {
         { label: "Misiones", value: "quest", default: false, emoji: emojis.KC.quest },
         { label: "Extra Operaciones", value: "oem", default: false, emoji: emojis.KC.oem },
         { label: "Expediciones Mensuales", value: "mExp", default: false, emoji: emojis.KC.mexp },
+        { label: "Senka.su Rank cut-off", value: "rank", default: false, emoji: emojis.KC.rank },
     ];
 
     const msgSendTypes = new StringSelectMenuBuilder().setCustomId("msgSendTypes")
-        .setMinValues(1).setMaxValues(5).setPlaceholder("Mantenimiento, PvP, Misiones...").setRequired(false)
+        .setMinValues(1).setMaxValues(6).setPlaceholder("Mantenimiento, PvP, Misiones...").setRequired(false)
         .addOptions(KancolleToDo.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
     const msgSend = new LabelBuilder().setLabel('Aviso silencioso!').setStringSelectMenuComponent(msgSendTypes);
 
     const ntfyTypes = new StringSelectMenuBuilder().setCustomId("ntfyTypes")
-        .setMinValues(1).setMaxValues(5).setPlaceholder("RECUERDA ASIGNAR UN ROL!!").setRequired(false)
+        .setMinValues(1).setMaxValues(6).setPlaceholder("RECUERDA ASIGNAR UN ROL!!").setRequired(false)
         .addOptions(KancolleToDo.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
     const ntfy = new LabelBuilder().setLabel('Aviso con mención: Requiere un Rol!').setStringSelectMenuComponent(ntfyTypes);
 
@@ -154,6 +155,7 @@ async function enableModal(i: ChatInputCommandInteraction) {
             oem: ntfANDsnd(ntfy.oem, snd.oem),
             mnt: ntfANDsnd(ntfy.mnt, snd.mnt),
             mExp: ntfANDsnd(ntfy.mExp, snd.mExp),
+            rank: ntfANDsnd(ntfy.rank, snd.rank)
         };
 
         await addBD(guild.id, cnfKC);
@@ -171,6 +173,7 @@ async function enableModal(i: ChatInputCommandInteraction) {
                 { name: `${emojis.KC.quest} Misiones:`, value: `Aviso: ${cnfKC.quest.av ? "✅" : "❌"} | Notificacion: ${cnfKC.quest.ntf ? "✅" : "❌"}` },
                 { name: `${emojis.KC.oem} Extra Operaciones:`, value: `Aviso: ${cnfKC.oem.av ? "✅" : "❌"} | Notificacion: ${cnfKC.oem.ntf ? "✅" : "❌"}` },
                 { name: `${emojis.KC.mexp} Expediciones Mensuales:`, value: `Aviso: ${cnfKC.mExp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mExp.ntf ? "✅" : "❌"}` },
+                { name: `${emojis.KC.rank} Senka.su Rank cut-off:`, value: `Aviso: ${cnfKC.rank.av ? "✅" : "❌"} | Notificacion: ${cnfKC.rank.ntf ? "✅" : "❌"}` }
             );
 
         await submitInt.editReply({ embeds: [emb] });
@@ -210,9 +213,9 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
         const emb = new EmbedBuilder()
             .setTitle(i18next.t("commands:kancolle.interacciones.status_embed_title"))
             .addFields(
-                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_basic"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_basic_value", { a1: `<#${cnf.channel}>`, a2: cnf.role ? `<@&${cnf.role}>` : "Ninguno!" }) },
-                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.av ? "✅" : "❌", a2: cnf.quest.av ? "✅" : "❌", a3: cnf.oem.av ? "✅" : "❌", a4: cnf.mnt.av ? "✅" : "❌", a5: cnf.mExp.av ? "✅" : "❌" }) },
-                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active_ntf"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.ntf ? "✅" : "❌", a2: cnf.quest.ntf ? "✅" : "❌", a3: cnf.oem.ntf ? "✅" : "❌", a4: cnf.mnt.ntf ? "✅" : "❌", a5: cnf.mExp.ntf ? "✅" : "❌" }) }
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_basic"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_basic_value", { a1: `< #${cnf.channel} > `, a2: cnf.role ? ` < @& ${cnf.role} > ` : "Ninguno!" }) },
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.av ? "✅" : "❌", a2: cnf.quest.av ? "✅" : "❌", a3: cnf.oem.av ? "✅" : "❌", a4: cnf.mnt.av ? "✅" : "❌", a5: cnf.mExp.av ? "✅" : "❌", a6: cnf.rank.av ? "✅" : "❌" }) },
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active_ntf"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.ntf ? "✅" : "❌", a2: cnf.quest.ntf ? "✅" : "❌", a3: cnf.oem.ntf ? "✅" : "❌", a4: cnf.mnt.ntf ? "✅" : "❌", a5: cnf.mExp.ntf ? "✅" : "❌", a6: cnf.rank.ntf ? "✅" : "❌" }) }
             )
             .setColor(0x00FF00);
 
@@ -404,7 +407,7 @@ async function rankServ(int: ChatInputCommandInteraction, isAllowed: boolean, gu
 }
 
 // ===== aux ===== //
-export interface tunBoo { mnt: boolean; pvp: boolean; quest: boolean; oem: boolean; mExp: boolean; }
+export interface tunBoo { mnt: boolean; pvp: boolean; quest: boolean; oem: boolean; mExp: boolean; rank: boolean; }
 export interface exitValue { snd: tunBoo; ntfy: tunBoo; }
 export function turnIntoBoo(listSend: readonly string[] = [], listNtfy: readonly string[] = [], hasRole: boolean): exitValue {
     const mapBools = (lista: readonly string[]): tunBoo => ({
@@ -412,10 +415,11 @@ export function turnIntoBoo(listSend: readonly string[] = [], listNtfy: readonly
         pvp: lista.includes("pvp"),
         quest: lista.includes("quest"),
         oem: lista.includes("oem"),
-        mExp: lista.includes("mExp")
+        mExp: lista.includes("mExp"),
+        rank: lista.includes("rank")
     });
 
-    const ntfyFalse: tunBoo = { mnt: false, pvp: false, quest: false, oem: false, mExp: false };
+    const ntfyFalse: tunBoo = { mnt: false, pvp: false, quest: false, oem: false, mExp: false, rank: false };
     return { snd: mapBools(listSend || []), ntfy: hasRole ? mapBools(listNtfy || []) : ntfyFalse };
 }
 

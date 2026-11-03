@@ -38,7 +38,7 @@ const mont = [
 export async function registerCronpostCommand(): Promise<SlashCommandBuilder[]> {
     const cronpost = new SlashCommandBuilder().setName("cronpost").setDescription(i18next.t("commands:cronpost.slashBuilder.command_descripcion"))
         .addSubcommand(sub => sub.setName("crear").setDescription(i18next.t("commands:cronpost.slashBuilder.command_cronpost_crear"))
-            .addChannelOption(op => op.setName("canal").setRequired(true).addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)).setDescription(i18next.t("commands:cronpost.slashBuilder.command_canal"))
+            .addChannelOption(op => op.setName("canal").setRequired(true).addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement).setDescription(i18next.t("commands:cronpost.slashBuilder.command_canal")))
             .addStringOption(op => op.setName("mansaje_id").setRequired(true).setDescription(i18next.t("commands:cronpost.slashBuilder.command_id_mensaje")))
             .addIntegerOption(op => op.setName("hora").setRequired(true).setMinValue(0).setMaxValue(23).setDescription(i18next.t("commands:cronpost.slashBuilder.command_hora")))
             .addIntegerOption(op => op.setName("minuto").setRequired(true).setMinValue(0).setMaxValue(59).setDescription(i18next.t("commands:cronpost.slashBuilder.command_minuto")))
