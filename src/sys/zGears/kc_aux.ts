@@ -157,23 +157,18 @@ async function startMant() {
 // ========================================================= Euxiliares ========================================================= //
 export function allLefts() {
     // Reglas mes: 1-31, 100 = ultimo dia del mes; Semana: domingo = 0 - sabado = 6, def= 1 lunes (1); Minutos: 0-59 def 0
-    const p0 = leftTimeConv({ type: 'daily', hours: [3, 15] });
-    const p1 = leftTimeConv({ type: 'daily', hours: 3 });
-    const p2 = leftTimeConv({ type: 'daily', hours: 15 });
-    const dQ = leftTimeConv({ type: 'daily', hours: 5 });
-    const wQ = leftTimeConv({ type: 'weekly', targetDay: 1, hours: 5 });
-    const mQ = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5 });
-    const qQ = leftTimeConv({ type: 'quarterly', targetDay: 1, hours: 5 });
-    const oem = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0 });
-    const dPt = leftTimeConv({ type: 'daily', hours: [2, 14] });
-    const mPt = leftTimeConv({ type: 'monthly', targetDay: 100, hours: 22 });
-    const ex = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12 });
-
     return {
-        pvp: turnDate(p0), pvp3h: turnDate(p1), pvp15h: turnDate(p2), oem: turnDate(oem),
-        dQuest: turnDate(dQ), wQuest: turnDate(wQ), mQuest: turnDate(mQ), qQuest: turnDate(qQ),
-        dPtCutof: turnDate(dPt), mPtCutof: turnDate(mPt),
-        mExp: turnDate(ex)
+        pvp: turnDate(leftTimeConv({ type: 'daily', hours: [3, 15] })), // PvP Dual
+        pvp3h: turnDate(leftTimeConv({ type: 'daily', hours: 3 })), // PvP 03:00
+        pvp15h: turnDate(leftTimeConv({ type: 'daily', hours: 15 })), // PvP 15:00
+        oem: turnDate(leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0 })), // Extra Operaciones
+        dQuest: turnDate(leftTimeConv({ type: 'daily', hours: 5 })), // Misiones diarias
+        wQuest: turnDate(leftTimeConv({ type: 'weekly', targetDay: 1, hours: 5 })), // Misiones semanales
+        mQuest: turnDate(leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5 })), // Misiones Mensuales
+        qQuest: turnDate(leftTimeConv({ type: 'quarterly', targetDay: 1, hours: 5 })), // Misiones trimestrales
+        dPtCutof: turnDate(leftTimeConv({ type: 'daily', hours: [2, 14] })), // Rank cutoof
+        mPtCutof: turnDate(leftTimeConv({ type: 'monthly', targetDay: 100, hours: 22 })), // Rank cutoof mensuales
+        mExp: turnDate(leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12 })) // Expediciones mensuales
     };
 }
 
@@ -556,12 +551,12 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
             }
 
             return {
-                title: { A: `Senka datos; Rank cutoff!!`, B: "TBA" },
+                title: { A: `Senka.su datos; Rank cutoff!!`, B: "TBA" },
                 desc: { ini: isActual, l30: "TBA", l15: "TBA", fn: "TBA" },
                 field: newFields,
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
-                urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" }
+                urlPic: { A: "https://i.imgur.com/ZzQLWQ6.png" }
             }
 
         // ======================================== END ======================================== //

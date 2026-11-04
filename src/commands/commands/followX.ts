@@ -272,24 +272,41 @@ async function removeFollowModal(i: ChatInputCommandInteraction) {
 }
 
 // =============================== Aux =============================== // 
-
+interface fCheck { code?: number, user?: fUser }
+interface fUser { screen_name?: string, url?: string }
 async function userCheck(userX: string): Promise<string | undefined> {
-    let chekUserX = userX;
-
-    const cleanUsr = chekUserX.match(/(?:https?:\/\/(?:www\.)?(?:twitter|x)\.com\/|@?)([a-zA-Z0-9_]{1,15})/i);
-    if (cleanUsr && cleanUsr[1]) { chekUserX = cleanUsr[1]; }
-    chekUserX = chekUserX.toLowerCase().trim();
+    const testin = (u: string): string | undefined => {
+        const cleanUsr = u.match(/(?:https?:\/\/(?:www\.)?(?:twitter|x)\.com\/|@?)([a-zA-Z0-9_]{1,15})/i);
+        return cleanUsr ? cleanUsr[1].trim() : undefined
+    }
 
     try {
-        const usrFtch = await fetch(`https://api.fxtwitter.com/2/profile/${chekUserX}`, { method: 'GET' });
-        if (!usrFtch.ok) {
-            error(`[followX]: Fallo en fetch: ${usrFtch.status} | input: ${userX} | formated: ${chekUserX} `);
+        const chekUserX = testin(userX);
+        if (!chekUserX) {
+            error(`[followX]: Fallo test user: ${chekUserX} | input: ${userX}`);
             return undefined;
         }
 
-        const codFe = await usrFtch.json() as { code?: number };
-        if (codFe.code === 200) return chekUserX;
-        error(`[followX]: Api code: ${codFe.code} | input: ${userX} | formated: ${chekUserX} `)
+        let aFetch: fUser | null = null;
+        let attempt = 0;
+        while (!aFetch && attempt < 5) {
+            const xChek = await fetch(`https://api.fxtwitter.com/2/profile/${chekUserX}`, { method: 'GET' }).catch(() => { return null });
+            if (xChek && xChek.ok) {
+                const codFe = await xChek.json() as fCheck;
+                if (codFe.code === 200 && codFe.user) { aFetch = codFe.user };
+            };
+
+            attempt++;
+
+            if (!aFetch && attempt < 5) { await new Promise(resolve => setTimeout(resolve, 200)); }
+        }
+
+        if (aFetch) {
+            if (aFetch.screen_name) return aFetch.screen_name;
+            else if (aFetch.url) { return testin(aFetch.url) }
+        }
+
+        error(`[followX]: Fallo el fetch || input: ${userX} | formated: ${chekUserX} `);
         return undefined;
     } catch (e: any) {
         error(`[followX]: Network/Fetch error: ${e.message}`);

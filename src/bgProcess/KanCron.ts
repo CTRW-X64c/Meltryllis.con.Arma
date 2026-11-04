@@ -121,7 +121,6 @@ export async function notifyKC(type: notifyType) {
 // ========================================================= OutNotify ========================================================= //
 interface msgBuild { ch: GuildTextBasedChannel, rol: Role | null, type: notifyType }
 interface msgSend {
-    ch: GuildTextBasedChannel,
     title: string,
     fields: { name: string, value: string, inline?: boolean }[],
     desc: string,
@@ -129,7 +128,8 @@ interface msgSend {
     rolOn: string | undefined,
     color: number,
     url: string | undefined,
-    delAft: number
+    delAft: number,
+    key: string,
 }
 /* === kchs === */
 interface cachedMsg { msgId: string, chId: string }
@@ -178,7 +178,7 @@ async function loadingKc(): Promise<boolean> {
     return true;
 }
 
-/* === msgManager === */
+/* === msgBuilder === */
 async function msgMgr(dat: msgBuild) {
     const prst = await rawPreset(dat.type);
     if (!prst) return;
@@ -188,72 +188,18 @@ async function msgMgr(dat: msgBuild) {
     msgEpoch.set(key, myEpoch);
     const isStale = () => msgEpoch.get(key) !== myEpoch;
 
-    const msgSnd = async (dta: msgSend) => {
-        try {
-            const emb = new EmbedBuilder().setColor(dta.color).setTitle(dta.title).setDescription(dta.desc).setFooter({ text: "Kantai Collection", iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" }).setTimestamp();
-            if (dta.pic) emb.setImage(dta.pic);
-            if (dta.url) emb.setURL(dta.url);
-            if (dta.fields.length > 0) emb.addFields(dta.fields);
-
-            /* Buscar mensaje */
-            const reUsed = dat.type !== "newMante";
-            let msg: Message | null = null;
-            if (reUsed) {
-                const cached = msgkch.get(key);
-                if (cached) {
-                    if (cached.chId === dta.ch.id) {
-                        msg = await dta.ch.messages.fetch(cached.msgId).catch(() => null);
-                        if (!msg) msgkch.delete(key);
-                    } else { msgkch.delete(key); }
-                }
-            }
-
-            if (msg) {
-                try { await msg.edit({ content: dta.rolOn, embeds: [emb] }); }
-                catch {
-                    msg = await dta.ch.send({ content: dta.rolOn, embeds: [emb] });
-                    msgkch.delete(key);
-                }
-            } else { msg = await dta.ch.send({ content: dta.rolOn, embeds: [emb] }); }
-
-            if (reUsed) msgkch.set(key, { msgId: msg.id, chId: dta.ch.id });
-
-            if (dat.type !== "newMante" && msg.deletable) {
-                const target = msg;
-                const fire = dta.delAft > 10_000 ? dta.delAft : (prst.mTimmer * 2);
-                if (dta.delAft > 10_000) {
-                    const prev = outErase.get(key);
-                    if (prev) { clearTimeout(prev); outErase.delete(key); }
-                    const erase = setTimeout(async () => {
-                        await target.delete().catch(e => error(`Error al borrar msg [${dat.type}]: ${e}`, "KanCron"));
-                        const cur = msgkch.get(key);
-                        if (cur?.msgId === target.id) msgkch.delete(key);
-                        outErase.delete(key);
-                        delKchTemp(key, dta.ch.guildId).catch(e => error(`Erase temp db [${dat.type}]: ${e}`, "KanCron"));
-                    }, fire);
-                    outErase.set(key, erase);
-                }
-                const timeToErase = Date.now() + fire;
-                await kchTempMSg({ guild_id: dta.ch.guildId, id_key: key, id_msg: target.id, id_ch: dta.ch.id, sup_time: new Date(timeToErase) });
-            }
-        } catch (e: any) { error(`Error enviando notificación [${dat.type}]: ${e.message} | ${e.stack}`, "KanCron"); }
-    };
     // ==== timmerDelControl ==== //
-    let rMnt: string | undefined = undefined, del30 = 0, del15 = 0;
-    if (dat.rol) { rMnt = `AVISO: ${dat.rol}!`; del30 = (30 * minuts) - 20_000; del15 = (15 * minuts) - 20_000; }
-    if (dat.type === "mntEnd") del30 = hours;
-    const rtfRol = rMnt ? "..." : undefined;
-    const preNtfy = (["loem", "lmExp", "qQuest", "maintlStart"] as notifyType[]).includes(dat.type);
-    if (preNtfy) del30 = 23 * hours;
+    const fisRol = dat.rol ? `AVISO: ${dat.rol}!` : undefined;
+    const msgVal = msgParam(dat.type, !!dat.rol);
     /* Now */
-    await msgSnd({ ch: dat.ch, title: prst.title.A, fields: prst.field, desc: prst.desc.ini, pic: prst.urlPic.A, rolOn: rMnt, color: 0xFFA500, url: prst.url, delAft: del30 });
+    await msgSnd({ title: prst.title.A, fields: prst.field, desc: prst.desc.ini, pic: prst.urlPic.A, rolOn: fisRol, color: 0xFFA500, url: prst.url, delAft: msgVal.fTimme, key }, dat);
     /* 30 min */
     if (prst.ntfy.ntf_30 && prst.mTimmer > (30 * minuts)) {
         setTimeout(async () => {
             if (isStale()) return;
             const p = await rawPreset(dat.type);
             if (!p) return;
-            await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l30, pic: p.urlPic.A, rolOn: rtfRol, color: 0xFFA500, url: p.url, delAft: del15 });
+            await msgSnd({ title: p.title.A, fields: p.field, desc: p.desc.l30, pic: p.urlPic.A, rolOn: msgVal.Rol, color: 0xFFA500, url: p.url, delAft: msgVal.mTimme, key }, dat);
         }, prst.mTimmer - (30 * minuts));
     }
     /* 15 min */
@@ -262,7 +208,7 @@ async function msgMgr(dat: msgBuild) {
             if (isStale()) return;
             const p = await rawPreset(dat.type);
             if (!p) return;
-            await msgSnd({ ch: dat.ch, title: p.title.A, fields: p.field, desc: p.desc.l15, pic: p.urlPic.A, rolOn: rtfRol, color: 0xFFA500, url: p.url, delAft: del15 });
+            await msgSnd({ title: p.title.A, fields: p.field, desc: p.desc.l15, pic: p.urlPic.A, rolOn: msgVal.Rol, color: 0xFFA500, url: p.url, delAft: msgVal.mTimme, key }, dat);
         }, prst.mTimmer - (15 * minuts));
     }
     /* Fin */
@@ -271,9 +217,77 @@ async function msgMgr(dat: msgBuild) {
             if (isStale()) return;
             const p = await rawPreset(dat.type);
             if (!p) return;
-            await msgSnd({ ch: dat.ch, title: p.title.B, fields: p.field, desc: p.desc.fn, pic: p.urlPic.B, rolOn: rtfRol, color: 0x00AA00, url: p.url, delAft: hours });
+            await msgSnd({ title: p.title.B, fields: p.field, desc: p.desc.fn, pic: p.urlPic.B, rolOn: msgVal.Rol, color: 0x00AA00, url: p.url, delAft: hours, key }, dat);
         }, prst.mTimmer);
     }
 }
 
+/* === msgAux === */
+function msgParam(nt: notifyType, aRol: boolean) {
+    let fTimme: number = hours, mTimme: number = 0;
+    let Rol: string | undefined = undefined;
 
+    if (["loem", "lmExp", "lQuest", "maintlStart"].includes(nt)) fTimme = 23 * hours;
+    else if (["rank"].includes(nt)) fTimme = hours;
+    else if (aRol) fTimme = (30 * minuts) - 20_000;
+
+    if (aRol) {
+        mTimme = (15 * minuts) - 20_000;
+        Rol = "...";
+    }
+
+    return { fTimme, mTimme, Rol }
+}
+
+/* === msgSender === */
+async function msgSnd(dta: msgSend, dat: msgBuild) {
+    try {
+        const emb = new EmbedBuilder().setColor(dta.color).setTitle(dta.title).setDescription(dta.desc);
+        if (dta.pic) emb.setImage(dta.pic);
+        if (dta.url) emb.setURL(dta.url);
+        if (dta.fields.length > 0) emb.addFields(dta.fields);
+        emb.setFooter({ text: "Kantai Collection", iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" }).setTimestamp();
+
+        /* Buscar mensaje */
+        const reUsed = dat.type !== "newMante";
+        let msg: Message | null = null;
+        if (reUsed) {
+            const cached = msgkch.get(dta.key);
+            if (cached) {
+                if (cached.chId === dat.ch.id) {
+                    msg = await dat.ch.messages.fetch(cached.msgId).catch(() => null);
+                    if (!msg) msgkch.delete(dta.key);
+                } else { msgkch.delete(dta.key); }
+            }
+        }
+
+        if (msg) {
+            try { await msg.edit({ content: dta.rolOn, embeds: [emb] }); }
+            catch {
+                msg = await dat.ch.send({ content: dta.rolOn, embeds: [emb] });
+                msgkch.delete(dta.key);
+            }
+        } else { msg = await dat.ch.send({ content: dta.rolOn, embeds: [emb] }); }
+
+        if (reUsed) msgkch.set(dta.key, { msgId: msg.id, chId: dat.ch.id });
+
+        if (dat.type !== "newMante" && msg.deletable) {
+            const target = msg;
+            const fire = dta.delAft > 10_000 ? dta.delAft : (1_000 * 60 * 60);
+            if (dta.delAft > 10_000) {
+                const prev = outErase.get(dta.key);
+                if (prev) { clearTimeout(prev); outErase.delete(dta.key); }
+                const erase = setTimeout(async () => {
+                    await target.delete().catch(e => error(`Error al borrar msg [${dat.type}]: ${e}`, "KanCron"));
+                    const cur = msgkch.get(dta.key);
+                    if (cur?.msgId === target.id) msgkch.delete(dta.key);
+                    outErase.delete(dta.key);
+                    delKchTemp(dta.key, dat.ch.guildId).catch(e => error(`Erase temp db [${dat.type}]: ${e}`, "KanCron"));
+                }, fire);
+                outErase.set(dta.key, erase);
+            }
+            const timeToErase = Date.now() + fire;
+            await kchTempMSg({ guild_id: dat.ch.guildId, id_key: dta.key, id_msg: target.id, id_ch: dat.ch.id, sup_time: new Date(timeToErase) });
+        }
+    } catch (e: any) { error(`Error enviando notificación [${dat.type}]: ${e.message} | ${e.stack}`, "KanCron"); }
+};

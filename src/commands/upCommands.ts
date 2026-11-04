@@ -1,6 +1,6 @@
 // src/Events-Commands/upCommands.ts
 import { error, info, debug } from "../sys/logging";
-import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags, ButtonInteraction } from "discord.js";
+import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags, ButtonInteraction, SlashCommandBuilder } from "discord.js";
 import { handleReportResponseButton, helpRepo } from "./commandModales/reportHelp";
 import { registerTestCommand, handleTestCommand } from "./commands/test";
 import { registerHelpCommand, handleHelpCommand, helpAutocomplete } from "./commands/help";
@@ -58,7 +58,7 @@ export async function sysUpRegister(client: Client) {
     ...(await registerBSkyCommand())
   ];
 
-  const permissionsCommand = await registerPermissionsCommand(commands as any);
+  const permissionsCommand = await registerPermissionsCommand(commands as SlashCommandBuilder[]);
   commands.push(...permissionsCommand);
 
   for (const cmd of commands) {
