@@ -32,65 +32,45 @@ export async function initKC(cli: Client) {
 };
 
 // ========================================================= engineTimmers ========================================================= //
-export type notifyType = 'pvp' | 'quest' | 'lQuest' | 'oem' | 'loem' | 'mExp' | 'lmExp' | 'newMante' | 'maintStart' | 'maintlStart' | 'mntEnd' | 'rank';
+export type notifyType = 'pvp' | 'quest' | 'quest24h' | 'oem' | 'oem24h' | 'mExp' | 'mExp24h' | 'rank' | 'mntAviso' | 'mntStar' | 'mntStar24h' | 'mntEnd';
 const notifyTimers = new Map<notifyType, NodeJS.Timeout>();
-async function timmerAv() {
-    /* =============== pvp =============== */
-    const pvpStr = () => { teki("pvp") };
-    if (!notifyTimers.has('pvp')) pvpStr();
-    /* =============== quest =============== */
-    const questStr = () => { teki("quest") };
-    if (!notifyTimers.has('quest')) questStr();
-    // // qQuest
-    const qQuestStr = () => { teki("lQuest", true) };
-    if (!notifyTimers.has('lQuest')) qQuestStr();
-    /* =============== oem =============== */
-    const oemStr = () => { teki("oem") };
-    if (!notifyTimers.has('oem')) oemStr();
-    // // longOem
-    const oemLong = () => { teki("loem", true) };
-    if (!notifyTimers.has('loem')) oemLong();
-    /* =============== mExp =============== */
-    const mExpStr = () => { teki("mExp") };
-    if (!notifyTimers.has('mExp')) mExpStr();
-    // // long mExp
-    const mExpLong = () => { teki("lmExp", true) };
-    if (!notifyTimers.has('lmExp')) mExpLong();
-    /* =============== rank =============== */
-    const rankStr = () => { teki("rank") };
-    if (!notifyTimers.has('rank')) rankStr();
+function timmerAv() {
+    const ntfList: notifyType[] = ['pvp', 'quest', 'quest24h', 'oem', 'oem24h', 'mExp', 'mExp24h', 'rank'];
+    for (const ntf of ntfList) { if (!notifyTimers.has(ntf)) { teki(ntf) }; }
 }
+
 // === setTimmers === //
-function teki(tpy: notifyType, long?: boolean) {
+function teki(tpy: notifyType) {
     let toChk: number;
     switch (tpy) {
         case 'pvp': { toChk = leftTimeConv({ type: 'daily', hours: [3, 15], minutes: 0 }); break };
         case 'quest': { toChk = leftTimeConv({ type: 'daily', hours: 5, minutes: 0 }); break };
-        case 'lQuest': { toChk = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5, minutes: 0 }); break };
-        case 'oem': case 'loem': { toChk = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0, minutes: 0 }); break };
-        case 'mExp': case 'lmExp': { toChk = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12, minutes: 0 }); break };
-        case 'rank': { toChk = leftTimeConv({ type: 'daily', hours: [3, 15], minutes: 30 }); break };
-        default: { error(`[KanCron]: Tipo introducido sin parametro: ${tpy}`); return }
+        case 'quest24h': { toChk = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5, minutes: 0 }); break };
+        case 'oem': case 'oem24h': { toChk = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0, minutes: 0 }); break };
+        case 'mExp': case 'mExp24h': { toChk = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12, minutes: 0 }); break };
+        case 'rank': { toChk = leftTimeConv({ type: 'daily', hours: [4, 16], minutes: 30 }); break }; //ajustado una hora, se avisa al momento
+        default: { error(`[KanCron]: Tipo introducido sin parametro: ${tpy}`); return };
     }
     if (toChk > 30 * hours) return;
-    toChk = long ? Math.max(0, toChk - (24 * hours)) : Math.max(0, toChk - hours);
-    if (toChk <= 0 || toChk < 4) { debug(`[KanCron]: ${tpy} Paso horario de notificacion`); return }
-    const timer = setTimeout(() => { notifyTimers.delete(tpy); notifyKC(tpy); }, toChk);
+    const is24h = ["quest24h", "oem24h", "mExp24h", "mntStar24h"].includes(tpy);
+    toChk = is24h ? Math.max(0, toChk - (24 * hours)) : Math.max(0, toChk - hours);
+    if (toChk <= 0 || toChk < 4) { debug(`[KanCron]: ${tpy} Paso horario de notificacion`); return };
+    const timer = setTimeout(() => { notifyTimers.delete(tpy); notifyKC(tpy).catch((e) => { error(`[KanCron]: Fallo notifyKC: ${tpy} Err: ${e}`) }); }, toChk);
     notifyTimers.set(tpy, timer);
-    debug(`[KanCron]: Establecido ${tpy} en ${Math.round(toChk / minuts)} min`)
-}
+    debug(`[KanCron]: Establecido ${tpy} en ${Math.round(toChk / minuts)} min`);
+};
 
 // ========================================================= Main ========================================================= //
 const chkType = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.av], /*QUEST*/['quest', cfg => cfg.quest.av], ['lQuest', cfg => cfg.quest.av], /*RANK*/['rank', cfg => cfg.rank.av],
-    /*OEM*/['oem', cfg => cfg.oem.av], ['loem', cfg => cfg.oem.av],
-    /*EXP*/['mExp', cfg => cfg.mExp.av], ['lmExp', cfg => cfg.mExp.av],
-    /*Mante*/['newMante', cfg => cfg.mnt.av], ['maintStart', cfg => cfg.mnt.av], ['maintlStart', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av]]);
+    ['pvp', cfg => cfg.pvp.av], /*QUEST*/['quest', cfg => cfg.quest.av], /*RANK*/['rank', cfg => cfg.rank.av],
+    /*OEM*/['oem', cfg => cfg.oem.av], /*EXP*/['mExp', cfg => cfg.mExp.av],
+    /*Mante*/['mntAviso', cfg => cfg.mnt.av], ['mntStar', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av],
+    /*pre24*/['oem24h', cfg => cfg.oem.av], ['mExp24h', cfg => cfg.mExp.av], ['quest24h', cfg => cfg.quest.av], ['mntStar24h', cfg => cfg.mnt.av]]);
 
 const chkRole = new Map<notifyType, (cfg: any) => boolean>([
     ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf], /*RANK*/['rank', cfg => cfg.rank.ntf],
     /*OEM*/['oem', cfg => cfg.oem.ntf], /*EXP*/['mExp', cfg => cfg.mExp.ntf],
-    /*Mante*/['newMante', cfg => cfg.mnt.ntf], ['maintStart', cfg => cfg.mnt.ntf], ['maintlStart', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
+    /*Mante*/['mntAviso', cfg => cfg.mnt.ntf], ['mntStar', cfg => cfg.mnt.ntf], ['mntStar24h', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
 
 /* === Core === */
 export async function notifyKC(type: notifyType) {
@@ -227,7 +207,7 @@ function msgParam(nt: notifyType, aRol: boolean) {
     let fTimme: number = hours, mTimme: number = 0;
     let Rol: string | undefined = undefined;
 
-    if (["loem", "lmExp", "lQuest", "maintlStart"].includes(nt)) fTimme = 23 * hours;
+    if (["oem24h", "mExp24h", "quest24h", "mntStar24h"].includes(nt)) fTimme = 23 * hours;
     else if (["rank"].includes(nt)) fTimme = hours;
     else if (aRol) fTimme = (30 * minuts) - 20_000;
 
@@ -249,7 +229,7 @@ async function msgSnd(dta: msgSend, dat: msgBuild) {
         emb.setFooter({ text: "Kantai Collection", iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" }).setTimestamp();
 
         /* Buscar mensaje */
-        const reUsed = dat.type !== "newMante";
+        const reUsed = dat.type !== "mntAviso";
         let msg: Message | null = null;
         if (reUsed) {
             const cached = msgkch.get(dta.key);
@@ -271,7 +251,7 @@ async function msgSnd(dta: msgSend, dat: msgBuild) {
 
         if (reUsed) msgkch.set(dta.key, { msgId: msg.id, chId: dat.ch.id });
 
-        if (dat.type !== "newMante" && msg.deletable) {
+        if (dat.type !== "mntAviso" && msg.deletable) {
             const target = msg;
             const fire = dta.delAft > 10_000 ? dta.delAft : (1_000 * 60 * 60);
             if (dta.delAft > 10_000) {

@@ -9,19 +9,19 @@ import emojis from '../../../adds/otros/emojis.json'
 // ========================================================= fetchMaint ========================================================= //
 let kcTimmers = new Map<string, NodeJS.Timeout>();
 let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
-const idStart = `maintStart`, idStarPre = 'maintlStart', idEnd = `mntEnd`;
+const idStart = `mntStar`, idStarPre = 'mntStar24h', idEnd = `mntEnd`;
 const minuts = 60 * 1_000;
 
 interface TweetInfoTl { Orginal: string; isoES: string; isoEN: string }
 interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: TweetInfoTl | null };
-interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
+interface dataGit { MaintInfoLink: string, mntStar: string, MaintEnd?: string }
 
 export async function mantChk() {
     const fData = await fetchData("https://raw.githubusercontent.com/ElectronicObserverEN/Data/refs/heads/master/update.json")
     if (!fData) return;
 
     const processData = await fData.json() as dataGit;
-    const newMaintStartStr = processData.MaintStart ?? null;
+    const newMaintStartStr = processData.mntStar ?? null;
     if (!newMaintStartStr) return;
     const newMaintEndStr = processData.MaintEnd ?? null;
     //startManteTimes
@@ -57,7 +57,7 @@ export async function mantChk() {
         const datTwet = await tweetKC.geTwiitter(processData.MaintInfoLink)
         debug(`🔧 Anunciando nuevo mantenimiento a los servidores: ${newMaintStartStr}`, "KancolleBD");
         ntfMantData = { MaintDate: newMaintDate, endMantDate: endMantDate, url: processData.MaintInfoLink, tweetInfo: datTwet };
-        notifyKC("newMante")
+        notifyKC("mntAviso")
         maint.maintNotified = true;
         await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: new Date(), MaintEnd: endMantDate });
     }
@@ -113,8 +113,8 @@ async function startMant() {
         if (!maint.lastMaintStart) return;
         const now = getNowJST(), INItime = JSTtoUTC(maint.lastMaintStart);
         if (!INItime) return;
-        const maintStart = INItime.getTime();
-        const leftStart = maintStart - now;
+        const mntStar = INItime.getTime();
+        const leftStart = mntStar - now;
         const HORA = 60 * minuts;
 
         if (leftStart > 0 && leftStart < (12 * HORA)) {
@@ -362,7 +362,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
     if (maint.lastMaintStart && (maint.lastMaintStart.getTime() > getNowJST())) {
         const resTime = maint.lastMaintStart.getTime() - getNowJST();
         const mantData = "\n" + "> Mantenimiento:" + "\n" + `**⏰ INICIA EN:** ${turnDate(resTime)}` + "\n\n"
-        if (type !== "maintStart") vlueTxt += mantData;
+        if (type !== "mntStar") vlueTxt += mantData;
     }
     // ===== switch ===== //
     switch (type) {
@@ -398,7 +398,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/pJZdK4i.jpeg" }
             };
-        case "lQuest": // Aviso Mensuales/Quaterly
+        case "quest24h": // Aviso Mensuales/Quaterly
             const reset = lQusty()
             return {
                 title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_title"), B: "TBA" },
@@ -427,7 +427,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/72A2KNE.png", }
             };
-        case "loem": // pre aviso OEM
+        case "oem24h": // pre aviso OEM
             return {
                 title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_title"), B: "TBA" },
                 desc: {
@@ -455,7 +455,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
             };
-        case "lmExp": // pre aviso mExp
+        case "mExp24h": // pre aviso mExp
             return {
                 title: { A: "EXPEDICIONES MENSUALES!", B: "TBA" },
                 desc: {
@@ -468,7 +468,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                 urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
             }
         // ======================================== Mantenimiento ======================================== //
-        case "maintlStart": // preaviso 24hrs
+        case "mntStar24h": // preaviso 24hrs
             return {
                 title: { A: "MANTENIMIENTO!!", B: "TBA" },
                 desc: {
@@ -480,7 +480,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.imgur.com/zTF3hlZ.png" }
             };
-        case "maintStart": // aviso inico
+        case "mntStar": // aviso inico
             const endRawDate = JSTtoUTC(maint.MaintEnd);
             const endDate = endRawDate ? new Date(endRawDate).toLocaleString('es-MX', { hour12: false }) : `\`TBA!\``;
             return {
@@ -496,7 +496,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/zTF3hlZ.png", B: "https://i.imgur.com/ed3cVTh.png" }
             };
-        case "newMante": // aviso de nuevo mante
+        case "mntAviso": // aviso de nuevo mante
             if (!ntfMantData.MaintDate) return null;
             const tokyoDate = getNowJST(), INItime = JSTtoUTC(ntfMantData.MaintDate), ENDtime = JSTtoUTC(ntfMantData.endMantDate);;
             const left2start = INItime ? turnDate(INItime.getTime() - tokyoDate) : "TBA";
