@@ -4,7 +4,7 @@ import { notifyKC, notifyType } from "../../bgProcess/KanCron";
 import { maint, updateKCmant } from "../DB-Engine/links/KancolleBD";
 import { debug, error } from "../logging";
 import { translate } from "@vitalets/google-translate-api";
-import emojis from '../../../adds/otros/emojis.json'
+import emj from '../../../adds/otros/emojis.json'
 
 // ========================================================= fetchMaint ========================================================= //
 let kcTimmers = new Map<string, NodeJS.Timeout>();
@@ -179,10 +179,10 @@ function aQuest() {
     const numDay = tokyoDate.getDate(); // 1 - 31
     const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
     // === msg === //
-    let aviso = `\n## ${emojis.KC.Daily} DIARIAS!!`
-    if (dayOfWeek === 1) aviso += `\n## ${emojis.KC.Weekly} SEMANALES!!`
-    if (numDay === 1) aviso += `\n## ${emojis.KC.Monthly} MENSUALES!!`
-    if (numDay === 1 && [2, 5, 8, 11].includes(month)) aviso += `\n## ${emojis.KC.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre
+    let aviso = `\n## ${emj.KC.Daily} DIARIAS!!`
+    if (dayOfWeek === 1) aviso += `\n## ${emj.KC.Weekly} SEMANALES!!`
+    if (numDay === 1) aviso += `\n## ${emj.KC.Monthly} MENSUALES!!`
+    if (numDay === 1 && [2, 5, 8, 11].includes(month)) aviso += `\n## ${emj.KC.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre
     return aviso;
 }
 
@@ -191,8 +191,8 @@ function lQusty() {
     const now = getNowJST() + cmpDay, tokyoDate = new Date(now);
     const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
     // === msg === //
-    let aviso = `## PREAVISO DE RESET DE MISONES: \n\n# ${emojis.KC.Monthly} MENSUALES!!`
-    if ([2, 5, 8, 11].includes(month)) aviso += `\n# ${emojis.KC.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre 
+    let aviso = `## PREAVISO DE RESET DE MISONES: \n\n# ${emj.KC.Monthly} MENSUALES!!`
+    if ([2, 5, 8, 11].includes(month)) aviso += `\n# ${emj.KC.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre 
     return aviso;
 }
 
@@ -549,14 +549,14 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
             for (const srv of dtaRnk.data) {
                 const upDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
                 newFields.push({
-                    name: `> Actual: ${dtaRnk.ok ? (srv.updated ? emojis.common.grnMark : emojis.common.redMark) : emojis.common.redMark} | ${upDate} JP Time || ID: ${srv.number} | Name: ${srv.jpName} (${srv.enName})`,
+                    name: `> Actual: ${dtaRnk.ok ? (srv.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${upDate} JP Time || ID: ${srv.number} | Name: ${srv.jpName} (${srv.enName})`,
                     value: `** Top 1:** ${srv.cutoff[1]}pts | ** Top 5:** ${srv.cutoff[5]}pts | ** Top 20:** ${srv.cutoff[20]}pts | ** Top 100:** ${srv.cutoff[100]}pts | ** Top 500:** ${srv.cutoff[500]}pts`
                 });
             }
 
             return {
                 title: { A: `**Senka.su - Ranking Cutoff!!**`, B: "**Mostrando actualizacion de pts.**" },
-                desc: { ini: `## Ranking Cutoff!`, l30: "TBA", l15: "TBA", fn: (isActual + `\n **${emojis.common.grnMark} = Puntaje actualizado.**` + `\n \`/kancolle rank\``) },
+                desc: { ini: `## Ranking Cutoff!`, l30: "TBA", l15: "TBA", fn: (isActual + `\n **${emj.cmn.ok} = Puntaje actualizado.**` + `\n \`/kancolle rank\``) },
                 field: { A: [], B: newFields },
                 mTimmer: rank,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: true, },

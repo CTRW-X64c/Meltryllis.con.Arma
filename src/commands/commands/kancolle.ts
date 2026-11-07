@@ -6,7 +6,7 @@ import { debug, error } from '../../sys/logging';
 import { checkCooldown, masterPerm, msgDeleter, startCooldown } from '../../sys/zGears/auxiliares';
 import { allLefts, mantDates, turnDate, JSTtoUTC, getNowJST, rankServers, RankLevel, RecordEntry } from '../../sys/zGears/kc_aux'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
-import emojis from '../../../adds/otros/emojis.json'
+import emj from '../../../adds/otros/emojis.json'
 
 const listServers = [
     { name: "横須賀鎮守府 (Yokosuka Naval District)", value: "1" },
@@ -93,12 +93,12 @@ async function enableModal(i: ChatInputCommandInteraction) {
     const roleMod = new LabelBuilder().setLabel('Rol a mencionar al notificar!').setRoleSelectMenuComponent(roleOp)
 
     const KancolleToDo = [
-        { label: "Mantenimientos", value: "mnt", default: false, emoji: emojis.KC.mante },
-        { label: "PvPs, Ejercicios!", value: "pvp", default: false, emoji: emojis.KC.pvp },
-        { label: "Misiones", value: "quest", default: false, emoji: emojis.KC.quest },
-        { label: "Extra Operaciones", value: "oem", default: false, emoji: emojis.KC.oem },
-        { label: "Expediciones Mensuales", value: "mExp", default: false, emoji: emojis.KC.mexp },
-        { label: "Senka.su Rank cut-off", value: "rank", default: false, emoji: emojis.KC.rank },
+        { label: "Mantenimientos", value: "mnt", default: false, emoji: emj.KC.mante },
+        { label: "PvPs, Ejercicios!", value: "pvp", default: false, emoji: emj.KC.pvp },
+        { label: "Misiones", value: "quest", default: false, emoji: emj.KC.quest },
+        { label: "Extra Operaciones", value: "oem", default: false, emoji: emj.KC.oem },
+        { label: "Expediciones Mensuales", value: "mExp", default: false, emoji: emj.KC.mexp },
+        { label: "Senka.su Rank cut-off", value: "rank", default: false, emoji: emj.KC.rank },
     ];
 
     const msgSendTypes = new StringSelectMenuBuilder().setCustomId("msgSendTypes")
@@ -168,12 +168,12 @@ async function enableModal(i: ChatInputCommandInteraction) {
             .addFields(
                 { name: "Canal:", value: `<#${cnfKC.channel}>` },
                 { name: "Rol a notificar:", value: `${cnfKC.role ? `<@&${cnfKC.role}>` : "No asignado!!"}` },
-                { name: `${emojis.KC.mante} Mantenimientos:`, value: `Aviso: ${cnfKC.mnt.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mnt.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.KC.pvp} PvP, Ejercicios:`, value: `Aviso: ${cnfKC.pvp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.pvp.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.KC.quest} Misiones:`, value: `Aviso: ${cnfKC.quest.av ? "✅" : "❌"} | Notificacion: ${cnfKC.quest.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.KC.oem} Extra Operaciones:`, value: `Aviso: ${cnfKC.oem.av ? "✅" : "❌"} | Notificacion: ${cnfKC.oem.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.KC.mexp} Expediciones Mensuales:`, value: `Aviso: ${cnfKC.mExp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mExp.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.KC.rank} Senka.su Rank cut-off:`, value: `Aviso: ${cnfKC.rank.av ? "✅" : "❌"} | Notificacion: ${cnfKC.rank.ntf ? "✅" : "❌"}` }
+                { name: `${emj.KC.mante} Mantenimientos:`, value: `Aviso: ${cnfKC.mnt.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mnt.ntf ? "✅" : "❌"}` },
+                { name: `${emj.KC.pvp} PvP, Ejercicios:`, value: `Aviso: ${cnfKC.pvp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.pvp.ntf ? "✅" : "❌"}` },
+                { name: `${emj.KC.quest} Misiones:`, value: `Aviso: ${cnfKC.quest.av ? "✅" : "❌"} | Notificacion: ${cnfKC.quest.ntf ? "✅" : "❌"}` },
+                { name: `${emj.KC.oem} Extra Operaciones:`, value: `Aviso: ${cnfKC.oem.av ? "✅" : "❌"} | Notificacion: ${cnfKC.oem.ntf ? "✅" : "❌"}` },
+                { name: `${emj.KC.mexp} Expediciones Mensuales:`, value: `Aviso: ${cnfKC.mExp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mExp.ntf ? "✅" : "❌"}` },
+                { name: `${emj.KC.rank} Senka.su Rank cut-off:`, value: `Aviso: ${cnfKC.rank.av ? "✅" : "❌"} | Notificacion: ${cnfKC.rank.ntf ? "✅" : "❌"}` }
             );
 
         await submitInt.editReply({ embeds: [emb] });
@@ -348,7 +348,7 @@ async function rankServ(int: ChatInputCommandInteraction, isAllowed: boolean, gu
             countField++;
             const updatedDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
             fields.push({
-                name: `> Actualizado: ${waitData.ok ? (srv.updated ? `✅` : `❌`) : `❌`} | ${updatedDate} JP Time \nID: ${srv.number} | Name: ${srv.jpName} (${srv.enName})`,
+                name: `> Actualizado: ${waitData.ok ? (srv.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${updatedDate} JP Time \nID: ${srv.number} | Name: ${srv.jpName} (${srv.enName})`,
                 value: `** Top 1:** ${srv.cutoff[1]} pts | ** Top 5:** ${srv.cutoff[5]} pts \n ** Top 20:** ${srv.cutoff[20]} pts | ** Top 100:** ${srv.cutoff[100]} pts \n ** Top 500:** ${srv.cutoff[500]} pts`
             });
         }
@@ -374,7 +374,7 @@ async function rankServ(int: ChatInputCommandInteraction, isAllowed: boolean, gu
 
         emb.addFields(
             {
-                name: `Actualizado: ${waitData.ok ? (dta.updated ? `✅` : `❌`) : `❌`} | ${updatedDate} JP Time`,
+                name: `Actualizado: ${waitData.ok ? (dta.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${updatedDate} JP Time`,
                 value: `**TOP 1:** ${dta.cutoff[1]} pts\n**TOP 5:** ${dta.cutoff[5]} pts\n**TOP 20:** ${dta.cutoff[20]} pts\n**TOP 100:** ${dta.cutoff[100]} pts\n**TOP 500:** ${dta.cutoff[500]} pts`
             },
             { name: `📈 Histórico más Alto:`, value: highestText, inline: true },
