@@ -28,6 +28,7 @@ import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "
 import { handleFollowXCommand, registerFollowXCommand } from "./commands/followX";
 import { handlePixiFollowCommand, registerFollowPixiCommand } from "./commands/pixiFollow";
 import { handleBSkyCommand, registerBSkyCommand } from "./commands/blueSky";
+import { handleSrvStatsCommand, registerSrvStatsCommand } from "./commands/myStats";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -55,7 +56,8 @@ export async function sysUpRegister(client: Client) {
     ...(await registerKantaiCollectionCommand()),
     ...(await registerFollowXCommand()),
     ...(await registerFollowPixiCommand()),
-    ...(await registerBSkyCommand())
+    ...(await registerBSkyCommand()),
+    ...(await registerSrvStatsCommand())
   ];
 
   const permissionsCommand = await registerPermissionsCommand(commands as SlashCommandBuilder[]);
@@ -136,6 +138,8 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handlePixiFollowCommand(interaction); break;
     case 'bsky':
       await handleBSkyCommand(interaction); break;
+    case 'srv_stats':
+      await handleSrvStatsCommand(interaction); break;
     default:
       fail(interaction); break;
   }

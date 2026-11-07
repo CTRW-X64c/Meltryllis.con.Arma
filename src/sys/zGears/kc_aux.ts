@@ -346,15 +346,16 @@ export async function fetchData(url: string) {
 // =================================================================================================================================== //
 // =========================================================== SitchNotify =========================================================== //
 // =================================================================================================================================== //
+interface fiDo { name: string, value: string, inline?: boolean };
 interface presetsKC {
     title: { A: string, B: string },
     desc: { ini: string, l30: string, l15: string, fn: string },
     urlPic: { A?: string, B?: string },
-    field: { name: string, value: string, inline?: boolean }[],
+    field: { A: fiDo[], B?: fiDo[] },
     mTimmer: number,
     ntfy: { ntf_30: boolean, ntf_15: boolean, ntf_end: boolean },
     url?: string,
-}
+};
 
 export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
     const rst = allLefts(), minuts = 60 * 1_000;
@@ -376,7 +377,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_desc_15"),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_uDesc"),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }] },
                 mTimmer: timePvp,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/rhaHOhq.png" }
@@ -393,7 +394,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_desc_15", { a1: tx }),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_uDesc", { a1: tx }),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }] },
                 mTimmer: timeQuest,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/pJZdK4i.jpeg" }
@@ -406,7 +407,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                     ini: `${reset} \n\n ## > RESET EN 24 HRS`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }] },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.imgur.com/2pCJyiW.jpeg" }
@@ -422,7 +423,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_desc_15"),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_uDesc"),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }] },
                 mTimmer: timeOem,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/72A2KNE.png", }
@@ -434,7 +435,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                     ini: `# REINICIO EN 24 HRS!!`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }] },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://pbs.twimg.com/media/FOqFIkaXIAMbdMy.jpg" }
@@ -450,7 +451,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_desc_15"),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_uDesc"),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }] },
                 mTimmer: timemExp,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
@@ -462,7 +463,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                     ini: `# REINICIO EN 24 HRS!!`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }] },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
@@ -475,7 +476,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                     ini: `# EL MANTENIMIENTO INICIA EN 24 HRS!!`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }] },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.imgur.com/zTF3hlZ.png" }
@@ -491,7 +492,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart_15"),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uDesc", { a1: endDate }),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }] },
                 mTimmer: 60 * minuts,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/zTF3hlZ.png", B: "https://i.imgur.com/ed3cVTh.png" }
@@ -507,15 +508,17 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                 desc: {
                     ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntStart_des"), l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [
-                    { name: '> ***Tiempo restante:***', value: `⏰ INICIO: \`${left2start}\` \n⏰ TERMINO:  \`${lef2end}\`` },
-                    { name: "> ***🇯🇵 JST*** | ***GMT+9***", value: `📅 INICIO: \`${tim.sJP}\` \n📅 TERMINO: \`${tim.eJP}\`` },
-                    { name: "> ***🌐 UTC***", value: `📅 INICIO: \`${tim.sUTC}\` \n📅 TERMINO: \`${tim.eUTC} \`` },
-                    { name: "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***", value: `📅 INICO: \`${tim.sMX}\` \n📅 TERMINO: \`${tim.eMX}\`` },
-                    { name: "> ***Tweet del anuncio:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.Orginal : "No disponible!" },
-                    { name: "> ***Tweet traducido al Español:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoES : "No disponible!" },
-                    { name: "> ***Tweet traducido al Inglés:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoEN : "No disponible!" }
-                ],
+                field: {
+                    A: [
+                        { name: '> ***Tiempo restante:***', value: `⏰ INICIO: \`${left2start}\` \n⏰ TERMINO:  \`${lef2end}\`` },
+                        { name: "> ***🇯🇵 JST*** | ***GMT+9***", value: `📅 INICIO: \`${tim.sJP}\` \n📅 TERMINO: \`${tim.eJP}\`` },
+                        { name: "> ***🌐 UTC***", value: `📅 INICIO: \`${tim.sUTC}\` \n📅 TERMINO: \`${tim.eUTC} \`` },
+                        { name: "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***", value: `📅 INICO: \`${tim.sMX}\` \n📅 TERMINO: \`${tim.eMX}\`` },
+                        { name: "> ***Tweet del anuncio:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.Orginal : "No disponible!" },
+                        { name: "> ***Tweet traducido al Español:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoES : "No disponible!" },
+                        { name: "> ***Tweet traducido al Inglés:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoEN : "No disponible!" }
+                    ]
+                },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" },
@@ -528,34 +531,35 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                     ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_endMant"),
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }] },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" }
             };
         case "rank":
             const dtaRnk = await rankServers();
+            const rank = leftTimeConv({ type: 'daily', hours: [3, 15], minutes: 0 })
             const jpF = new Date().toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
-            let isActual = `> Actualizado: ${jpF} JP Time`;
+            let isActual = `### Hora de actualizacion: ${jpF} JP Time`;
             if (!dtaRnk.ok || !dtaRnk.data) {
                 if (dtaRnk.data) { isActual = ` > Cache: ${dtaRnk.date} JP time`; }
                 else { return null }
             }
             const newFields: { name: string, value: string, inline?: boolean }[] = [];
             for (const srv of dtaRnk.data) {
-                const updatedDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+                const upDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
                 newFields.push({
-                    name: `> Actual: ${dtaRnk.ok ? (srv.updated ? `✅` : `❌`) : `❌`} | ${updatedDate} JP Time || ID: ${srv.number} | Name: ${srv.jpName} (${srv.enName})`,
+                    name: `> Actual: ${dtaRnk.ok ? (srv.updated ? emojis.common.grnMark : emojis.common.redMark) : emojis.common.redMark} | ${upDate} JP Time || ID: ${srv.number} | Name: ${srv.jpName} (${srv.enName})`,
                     value: `** Top 1:** ${srv.cutoff[1]}pts | ** Top 5:** ${srv.cutoff[5]}pts | ** Top 20:** ${srv.cutoff[20]}pts | ** Top 100:** ${srv.cutoff[100]}pts | ** Top 500:** ${srv.cutoff[500]}pts`
                 });
             }
 
             return {
-                title: { A: `Senka.su datos; Rank cutoff!!`, B: "TBA" },
-                desc: { ini: isActual, l30: "TBA", l15: "TBA", fn: "TBA" },
-                field: newFields,
-                mTimmer: 0,
-                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                title: { A: `**Senka.su - Ranking Cutoff!!**`, B: "**Mostrando actualizacion de pts.**" },
+                desc: { ini: `## Ranking Cutoff!`, l30: "TBA", l15: "TBA", fn: (isActual + `\n **${emojis.common.grnMark} = Puntaje actualizado.**` + `\n \`/kancolle rank\``) },
+                field: { A: [], B: newFields },
+                mTimmer: rank,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/ZzQLWQ6.png" }
             }
 

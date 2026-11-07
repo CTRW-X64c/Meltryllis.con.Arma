@@ -88,7 +88,7 @@ async function handleGuildDelete(guild: Guild): Promise<void> {
     const embed = new EmbedBuilder()
       .setColor(0xFF0000)
       .setThumbnail(guild.iconURL() || guild.client.user.displayAvatarURL())
-      .setTitle(`❌ Expulsada del servidor!! \n Server: ${guild.name} (ID: ${guild.id}) \n Bye bye ${guild.memberCount} usuarios!`)
+      .setTitle(`❌ Expulsada del servidor!! \n- Server: ${guild.name} \n- ID: ${guild.id} \n- Bye bye ${guild.memberCount} usuarios!`)
       .addFields({ name: "Maid Cleaning:", value: maid.join("\n"), inline: true })
       .setFooter({ text: `Total servidores: ${guild.client.guilds.cache.size}` })
       .setTimestamp();
