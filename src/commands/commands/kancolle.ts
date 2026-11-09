@@ -4,7 +4,7 @@ import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { debug, error } from '../../sys/logging';
 import { checkCooldown, masterPerm, msgDeleter, startCooldown } from '../../sys/zGears/auxiliares';
-import { allLefts, mantDates, turnDate, JSTtoUTC, getNowJST, rankServers, RankLevel, RecordEntry } from '../../sys/zGears/kc_aux'
+import { allLefts, mantDates, turnDate, JSTtoUTC, getNowJST, rankServers, RankLevel, RecordEntry, senkaTables, gimeName } from '../../sys/zGears/kc_aux'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
 import emj from '../../../adds/otros/emojis.json'
 
@@ -168,12 +168,12 @@ async function enableModal(i: ChatInputCommandInteraction) {
             .addFields(
                 { name: "Canal:", value: `<#${cnfKC.channel}>` },
                 { name: "Rol a notificar:", value: `${cnfKC.role ? `<@&${cnfKC.role}>` : "No asignado!!"}` },
-                { name: `${emj.KC.mante} Mantenimientos:`, value: `Aviso: ${cnfKC.mnt.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mnt.ntf ? "✅" : "❌"}` },
-                { name: `${emj.KC.pvp} PvP, Ejercicios:`, value: `Aviso: ${cnfKC.pvp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.pvp.ntf ? "✅" : "❌"}` },
-                { name: `${emj.KC.quest} Misiones:`, value: `Aviso: ${cnfKC.quest.av ? "✅" : "❌"} | Notificacion: ${cnfKC.quest.ntf ? "✅" : "❌"}` },
-                { name: `${emj.KC.oem} Extra Operaciones:`, value: `Aviso: ${cnfKC.oem.av ? "✅" : "❌"} | Notificacion: ${cnfKC.oem.ntf ? "✅" : "❌"}` },
-                { name: `${emj.KC.mexp} Expediciones Mensuales:`, value: `Aviso: ${cnfKC.mExp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mExp.ntf ? "✅" : "❌"}` },
-                { name: `${emj.KC.rank} Senka.su Rank cut-off:`, value: `Aviso: ${cnfKC.rank.av ? "✅" : "❌"} | Notificacion: ${cnfKC.rank.ntf ? "✅" : "❌"}` }
+                { name: `${emj.KC.mante} Mantenimientos:`, value: `Aviso: ${cnfKC.mnt.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.mnt.ntf ? emj.cmn.ok : emj.cmn.fail}` },
+                { name: `${emj.KC.pvp} PvP, Ejercicios:`, value: `Aviso: ${cnfKC.pvp.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.pvp.ntf ? emj.cmn.ok : emj.cmn.fail}` },
+                { name: `${emj.KC.quest} Misiones:`, value: `Aviso: ${cnfKC.quest.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.quest.ntf ? emj.cmn.ok : emj.cmn.fail}` },
+                { name: `${emj.KC.oem} Extra Operaciones:`, value: `Aviso: ${cnfKC.oem.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.oem.ntf ? emj.cmn.ok : emj.cmn.fail}` },
+                { name: `${emj.KC.mexp} Expediciones Mensuales:`, value: `Aviso: ${cnfKC.mExp.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.mExp.ntf ? emj.cmn.ok : emj.cmn.fail}` },
+                { name: `${emj.KC.rank} Senka.su Rank cut-off:`, value: `Aviso: ${cnfKC.rank.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.rank.ntf ? emj.cmn.ok : emj.cmn.fail}` }
             );
 
         await submitInt.editReply({ embeds: [emb] });
@@ -213,9 +213,9 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
         const emb = new EmbedBuilder()
             .setTitle(i18next.t("commands:kancolle.interacciones.status_embed_title"))
             .addFields(
-                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_basic"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_basic_value", { a1: `< #${cnf.channel} > `, a2: cnf.role ? ` < @& ${cnf.role} > ` : "Ninguno!" }) },
-                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.av ? "✅" : "❌", a2: cnf.quest.av ? "✅" : "❌", a3: cnf.oem.av ? "✅" : "❌", a4: cnf.mnt.av ? "✅" : "❌", a5: cnf.mExp.av ? "✅" : "❌", a6: cnf.rank.av ? "✅" : "❌" }) },
-                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active_ntf"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.ntf ? "✅" : "❌", a2: cnf.quest.ntf ? "✅" : "❌", a3: cnf.oem.ntf ? "✅" : "❌", a4: cnf.mnt.ntf ? "✅" : "❌", a5: cnf.mExp.ntf ? "✅" : "❌", a6: cnf.rank.ntf ? "✅" : "❌" }) }
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_basic"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_basic_value", { a1: `<#${cnf.channel}>`, a2: cnf.role ? `<@&${cnf.role}>` : "Ninguno!" }) },
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.av ? emj.cmn.ok : emj.cmn.fail, a2: cnf.quest.av ? emj.cmn.ok : emj.cmn.fail, a3: cnf.oem.av ? emj.cmn.ok : emj.cmn.fail, a4: cnf.mnt.av ? emj.cmn.ok : emj.cmn.fail, a5: cnf.mExp.av ? emj.cmn.ok : emj.cmn.fail, a6: cnf.rank.av ? emj.cmn.ok : emj.cmn.fail }) },
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active_ntf"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.ntf ? emj.cmn.ok : emj.cmn.fail, a2: cnf.quest.ntf ? emj.cmn.ok : emj.cmn.fail, a3: cnf.oem.ntf ? emj.cmn.ok : emj.cmn.fail, a4: cnf.mnt.ntf ? emj.cmn.ok : emj.cmn.fail, a5: cnf.mExp.ntf ? emj.cmn.ok : emj.cmn.fail, a6: cnf.rank.ntf ? emj.cmn.ok : emj.cmn.fail }) }
             )
             .setColor(0x00FF00);
 
@@ -318,47 +318,53 @@ async function resrts(interacciones: ChatInputCommandInteraction, isAllowed: boo
 }
 
 // ==================================================== Ranks ==================================================== //
-async function rankServ(int: ChatInputCommandInteraction, isAllowed: boolean, guild: Guild, ch: GuildTextBasedChannel | null) {
-    await int.deferReply({ flags: MessageFlags.Ephemeral });
+async function rankServ(interacciones: ChatInputCommandInteraction, isAllowed: boolean, guild: Guild, ch: GuildTextBasedChannel | null) {
+    await interacciones.deferReply({ flags: MessageFlags.Ephemeral });
 
-    const waitData = await rankServers();
     const jstDate = new Date().toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
     let isActual = `## Hora JP actual: ${jstDate}`;
-    if (!waitData.ok || !waitData.data) {
-        if (waitData.data) {
-            isActual = `No pude obtener el mas reciente, JP hora ${waitData.date}`;
-        } else {
-            await int.editReply("No pude obtener la información del Rank|Server.");
-            return;
-        }
-    }
 
     const emb = new EmbedBuilder();
-    const server = int.options.getString("servidor") ?? null;
+    const server = interacciones.options.getString("servidor") ?? null;
     if (!server) {
-        const desc = `# Ranking servers! \n> ${isActual}\n\n Los cutoff son a las 15:00hrs y 03:00hrs! \n Mostrando información de los ${waitData.data.length} servers! \n \`Algunos servers toman su tiempo en actualizar!\``;
+        const dtaSenka = await senkaTables()
+        if (dtaSenka.length === 0) {
+            await interacciones.editReply({ content: "Sorry algo fallo al recuperar los datos de Senku.su :(" })
+            return;
+        }
+
+        const desc = `# Ranking servers! \n> ${isActual}\n\n Los cutoff son a las 15:00hrs y 03:00hrs! \n Mostrando información de los ${dtaSenka.length} servers! \n \`Algunos servers toman su tiempo en actualizar!\``;
         emb.setDescription(desc)
+            .setImage("https://i.imgur.com/ZzQLWQ6.png")
             .setColor(0x00FF00)
             .setFooter({ text: `Kancolle Rank`, iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" });
 
         const fields: { name: string, value: string, inline?: boolean }[] = [];
         let countField = 0;
-        for (const srv of waitData.data) {
+        for (const srv of dtaSenka) {
             if (countField === 25) break;
             countField++;
-            const updatedDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
             fields.push({
-                name: `> Actualizado: ${waitData.ok ? (srv.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${updatedDate} JP Time \nID: ${srv.number} | Name: ${srv.jpName} (${srv.enName})`,
-                value: `** Top 1:** ${srv.cutoff[1]} pts | ** Top 5:** ${srv.cutoff[5]} pts \n ** Top 20:** ${srv.cutoff[20]} pts | ** Top 100:** ${srv.cutoff[100]} pts \n ** Top 500:** ${srv.cutoff[500]} pts`
+                name: `ID: ${srv.num} | Name: ${gimeName(srv.name)} \n> Actualizado: ${srv.isUpdate ? emj.cmn.ok : emj.cmn.fail} | ${srv.updatedIn} JP Time`,
+                value: `**Top 1:** ${srv.top1}pts | **Top 5:** ${srv.top5}pts | **Top 20:** ${srv.top20}pts \n **Top 100:** ${srv.top100}pts | **Top 500:** ${srv.top500}pts`
             });
         }
         emb.addFields(fields)
     }
     else {
+        const waitData = await rankServers();
+        if (!waitData.ok || !waitData.data) {
+            if (waitData.data) { isActual = `No pude obtener el mas reciente, JP hora ${waitData.date}`; }
+            else {
+                await interacciones.editReply("No pude obtener la información del Rank|Server.");
+                return;
+            }
+        }
+
         const idNum = Number(server);
         const dta = waitData.data.find((serv) => serv.number === idNum);
         if (!dta) {
-            await int.editReply("¡No encontré información del servidor especificado!");
+            await interacciones.editReply("¡No encontré información del servidor especificado!");
             return;
         }
 
@@ -382,9 +388,9 @@ async function rankServ(int: ChatInputCommandInteraction, isAllowed: boolean, gu
         );
     }
 
-    const postCh = int.options.getBoolean("post") ?? true;
+    const postCh = interacciones.options.getBoolean("post") ?? true;
     if (postCh) {
-        if (!ch) { await int.editReply({ content: `¡El canal no es válido para enviar el post!`, embeds: [emb] }); return; }
+        if (!ch) { await interacciones.editReply({ content: `¡El canal no es válido para enviar el post!`, embeds: [emb] }); return; }
 
         const tommer = checkCooldown(guild.id, "Kancolle");
         const canSend = isAllowed || !tommer.onCooldown;
@@ -392,24 +398,24 @@ async function rankServ(int: ChatInputCommandInteraction, isAllowed: boolean, gu
             try {
                 const msgSent = await ch.send({ embeds: [emb] });
                 if (!isAllowed) startCooldown(guild.id, "Kancolle");
-                msgDeleter({ msg: msgSent, userId: int.user.id });
-                await int.editReply({ content: "Ranking del servidor enviado al canal." });
+                msgDeleter({ msg: msgSent, userId: interacciones.user.id });
+                await interacciones.editReply({ content: "Ranking del servidor enviado al canal." });
                 return;
             } catch {
-                await int.editReply({ content: `Algo falló al publicar el ranking en el canal. Mostrando respuesta privada:`, embeds: [emb] }); return;
+                await interacciones.editReply({ content: `Algo falló al publicar el ranking en el canal. Mostrando respuesta privada:`, embeds: [emb] }); return;
             }
         } else {
-            await int.editReply({ content: `El comando está en Cooldown (${tommer.timeLeft}). Pide a un Admin que ejecute el comando para omitir el tiempo de espera.`, embeds: [emb] });
+            await interacciones.editReply({ content: `El comando está en Cooldown (${tommer.timeLeft}). Pide a un Admin que ejecute el comando para omitir el tiempo de espera.`, embeds: [emb] });
             return;
         }
     }
-    await int.editReply({ embeds: [emb] });
+    await interacciones.editReply({ embeds: [emb] });
 }
 
 // ===== aux ===== //
 export interface tunBoo { mnt: boolean; pvp: boolean; quest: boolean; oem: boolean; mExp: boolean; rank: boolean; }
 export interface exitValue { snd: tunBoo; ntfy: tunBoo; }
-export function turnIntoBoo(listSend: readonly string[] = [], listNtfy: readonly string[] = [], hasRole: boolean): exitValue {
+function turnIntoBoo(listSend: readonly string[] = [], listNtfy: readonly string[] = [], hasRole: boolean): exitValue {
     const mapBools = (lista: readonly string[]): tunBoo => ({
         mnt: lista.includes("mnt"),
         pvp: lista.includes("pvp"),
@@ -437,3 +443,4 @@ function formatRecords(recordsObj: Record<RankLevel, RecordEntry>): string {
         return `**Top ${level}:** ${item.value.toLocaleString()} pts *(${nombreMes} ${item.year})*`;
     }).join('\n');
 }
+

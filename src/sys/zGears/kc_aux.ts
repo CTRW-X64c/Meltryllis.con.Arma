@@ -4,6 +4,7 @@ import { notifyKC, notifyType } from "../../bgProcess/KanCron";
 import { maint, updateKCmant } from "../DB-Engine/links/KancolleBD";
 import { debug, error } from "../logging";
 import { translate } from "@vitalets/google-translate-api";
+import * as cheerio from 'cheerio';
 import emj from '../../../adds/otros/emojis.json'
 
 // ========================================================= fetchMaint ========================================================= //
@@ -537,21 +538,34 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                 urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" }
             };
         case "rank":
-            const dtaRnk = await rankServers();
             const rank = leftTimeConv({ type: 'daily', hours: [3, 15], minutes: 0 })
             const jpF = new Date().toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
             let isActual = `### Hora de actualizacion: ${jpF} JP Time`;
-            if (!dtaRnk.ok || !dtaRnk.data) {
-                if (dtaRnk.data) { isActual = ` > Cache: ${dtaRnk.date} JP time`; }
-                else { return null }
-            }
             const newFields: { name: string, value: string, inline?: boolean }[] = [];
-            for (const srv of dtaRnk.data) {
-                const upDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
-                newFields.push({
-                    name: `> Actual: ${dtaRnk.ok ? (srv.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${upDate} JP Time || ID: ${srv.number} | Name: ${srv.jpName} (${srv.enName})`,
-                    value: `** Top 1:** ${srv.cutoff[1]}pts | ** Top 5:** ${srv.cutoff[5]}pts | ** Top 20:** ${srv.cutoff[20]}pts | ** Top 100:** ${srv.cutoff[100]}pts | ** Top 500:** ${srv.cutoff[500]}pts`
-                });
+            const senkDta = await senkaTables()
+            if (senkDta.length > 0) {
+                for (const sSnk of senkDta) {
+                    newFields.push(
+                        {
+                            name: `ID: ${sSnk.num} | Name: ${gimeName(sSnk.name)} \n> upDate: ${sSnk.isUpdate ? emj.cmn.ok : emj.cmn.fail} | Hora: ${sSnk.updatedIn}`,
+                            value: `**Top 1:** ${sSnk.top1}pts | **Top 5:** ${sSnk.top5}pts | **Top 20:** ${sSnk.top20}pts \n **Top 100:** ${sSnk.top100}pts | **Top 500:** ${sSnk.top500}pts`
+                        }
+                    )
+                }
+            }
+            else {
+                const dtaRnk = await rankServers();
+                if (!dtaRnk.ok || !dtaRnk.data) {
+                    if (dtaRnk.data) { isActual = ` > Cache: ${dtaRnk.date} JP time`; }
+                    else { return null }
+                }
+                for (const srv of dtaRnk.data) {
+                    const upDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+                    newFields.push({
+                        name: `ID: ${srv.number} | Name: ${srv.jpName} (${srv.enName}) \n> Actual: ${dtaRnk.ok ? (srv.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${upDate} JP Time`,
+                        value: `**Top 1:** ${srv.cutoff[1]}pts | **Top 5:** ${srv.cutoff[5]}pts | **Top 20:** ${srv.cutoff[20]}pts \n **Top 100:** ${srv.cutoff[100]}pts | **Top 500:** ${srv.cutoff[500]}pts`
+                    });
+                }
             }
 
             return {
@@ -569,7 +583,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
     }
 };
 
-// =========================================================== RankData =========================================================== //
+// =========================================================== RankData(bonder) =========================================================== //
 export type RankLevel = '1' | '5' | '20' | '100' | '500';
 type Cutoff = Record<RankLevel, number>;
 export interface RecordEntry {
@@ -608,3 +622,118 @@ export async function rankServers(): Promise<{ ok: boolean, data: RankData[] | n
         return { ok: false, data: kcheRank ?? null, date: jstDate };
     }
 }
+
+
+// =========================================================== RankData(senku) =========================================================== //
+interface ServerStatus {
+    num: number;
+    name: string;
+    updatedIn: string;
+}
+
+interface ServerRanking {
+    serverName: string;
+    isUpdated: boolean;
+    top1: number;
+    top5: number;
+    top20: number;
+    top100: number;
+    top500: number;
+}
+
+export interface SenkaData {
+    num: number;
+    name: string;
+    isUpdate: boolean;
+    updatedIn: string;
+    top1: number;
+    top5: number;
+    top20: number;
+    top100: number;
+    top500: number;
+}
+
+export async function senkaTables(): Promise<SenkaData[]> {
+    const senkData = await fetch("https://senka.su/en").catch(() => null);
+    if (!senkData || !senkData.ok) return [];
+
+    const html = await senkData.text();
+    const $ = cheerio.load(html);
+
+    const serverStatuses: ServerStatus[] = [];
+
+    $('.server-list .ant-table-tbody tr td').each((_, td) => {
+        const $a = $(td).find('.server a');
+        const href = $a.attr('href') || '';
+        const numMatch = href.match(/num=(\d+)/);
+
+        if (numMatch) {
+            const num = parseInt(numMatch[1], 10);
+            const rawText = $a.text().trim();
+            const name = rawText.replace(/^\[\d+\]\s*/, '');
+            const updatedIn = $(td).find('.server-status').text().trim();
+
+            serverStatuses.push({ num, name, updatedIn });
+        }
+    });
+
+    const serverRankings: ServerRanking[] = [];
+
+    $('.server-ranking .ant-table-tbody tr').each((_, tr) => {
+        const cells = $(tr).find('td');
+
+        if (cells.length >= 6) {
+            const firstCell = $(cells[0]);
+            const serverName = firstCell.attr('title')?.trim() || firstCell.text().trim();
+
+            const nameCellDiv = firstCell.find('.cell');
+            const isUpdated = nameCellDiv.hasClass('text-success'); // true si tiene text-success
+
+            const parseVal = (index: number) => {
+                const valText = $(cells[index]).find('.cell.val').text().trim();
+                return parseInt(valText, 10) || 0;
+            };
+
+            serverRankings.push({
+                serverName,
+                isUpdated,
+                top1: parseVal(1),
+                top5: parseVal(2),
+                top20: parseVal(3),
+                top100: parseVal(4),
+                top500: parseVal(5),
+            });
+        }
+    });
+
+    const rankingsByName = new Map(
+        serverRankings.map(r => [r.serverName.toLowerCase().trim(), r])
+    );
+
+    const combinedServers: SenkaData[] = serverStatuses.map((status, index) => {
+        const rank = rankingsByName.get(status.name.toLowerCase().trim()) ?? serverRankings[index];
+        return {
+            ...status,
+            isUpdate: rank?.isUpdated ?? false,
+            top1: rank?.top1 ?? 0,
+            top5: rank?.top5 ?? 0,
+            top20: rank?.top20 ?? 0,
+            top100: rank?.top100 ?? 0,
+            top500: rank?.top500 ?? 0,
+        };
+    });
+
+    return combinedServers;
+}
+
+export function gimeName(name: string) {
+    const srvFixName: Record<string, string> = {
+        /*1*/ "Yokosuka": "横须贺镇守府 (Yokosuka)", /*2*/ "Kure": "呉镇守府 (Kure)", /*3*/ "Sasebo": "佐世保镇守府 (Sasebo)", /*4*/ "Maizuru": " 舞鹤镇守府 (Maizuru)",
+        /*5*/ "Ominato": "大凑警备府 (Ominato)", /*6*/ "Truk": " トラック泊地 (Truk)", /*7*/ "Lingga": "リンガ泊地 (Lingga)", /*8*/ "Rabaul": "ラバウル基地 (Rabaul)",
+        /*9*/ "Shortland": " ショートランド泊地 (Shortland)", /*10*/ "Buin": "ブイン基地 (Buin)", /*11*/ "Tawi-Tawi": " タウイタウイ泊地 (Tawi-Tawi)", /*12*/ "Palau": "パラオ泊地 (Palau)",
+        /*13*/ "Brunei": "ブルネイ泊地 (Brunei)", /*14*/ "Hitokappu": "単冠湾泊地 (Hitokappu)", /*15*/ "Paramushir": "幌筵泊地 (Paramushir)", /*16*/ "Sukumo": "宿毛湾泊地 (Sukumo)",
+        /*17*/ "Kanoya": "鹿屋基地 (Kanoya)", /*18*/ "Iwagawa": "岩川基地 (Iwagawa)", /*19*/ "Saiki": "佐伯湾泊地 (Saiki)", /*20*/ "Hashirajima": "柱岛泊地 (Hashirajima)"
+    };
+    return srvFixName[name] ?? name;
+}
+

@@ -271,15 +271,15 @@ async function chkOldMsg() {
     for (const para of bdResdt) {
         const guild = CLIENTE!.guilds.cache.get(para.guild_id) ?? await CLIENTE!.guilds.fetch(para.guild_id).catch(() => null);
         const rawCh = guild ? (guild.channels.cache.get(para.id_ch) ?? await guild.channels.fetch(para.id_ch).catch(() => null)) : null;
-        const channel = rawCh && rawCh.isTextBased() ? rawCh as GuildTextBasedChannel : null;
+        const channel = rawCh && rawCh.isTextBased() ? rawCh : null;
 
         if (para.sup_time.getTime() <= Date.now()) {
             if (channel) {
                 const oldMsg = channel.messages.cache.get(para.id_msg) ?? await channel.messages.fetch(para.id_msg).catch(() => null);
-                if (oldMsg) await oldMsg.delete().catch();
+                if (oldMsg) await oldMsg.delete().catch(() => null);
             };
-        };
 
-        await delKchTemp(para.id_key, para.guild_id).catch();
+            await delKchTemp(para.id_key, para.guild_id).catch(() => null);
+        };
     }
 }
