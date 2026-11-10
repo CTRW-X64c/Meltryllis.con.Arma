@@ -108,17 +108,23 @@ async function allChannels(interaction: ChatInputCommandInteraction, guild: Guil
 
   const listTxtCh: string[] = [];
   const TxtCh = guild.channels.cache.filter(channel => channel.type === 0); // Canales de Texto, Excluye hilos
-  TxtCh.forEach(async (tch) => {
-    const tCh = masterPerm(tch, "viewCh|sendMsg|addlink|msgManager|readMsg|reactions")
-    if (!tCh.ok) listTxtCh.push(`Canal: <@${tch.id}> le faltan los permisos: \n${tCh.msg.filter((msg => msg.includes(`❌`))).join("\n")}`);
-  });
+  for (const [, tch] of TxtCh) {
+    const tCh = masterPerm(tch, "viewCh|sendMsg|addlink|msgManager|readMsg|reactions");
+    if (!tCh.ok) {
+      const missT = tCh.msg.flatMap(cnk => cnk.split("\n")).filter(x => x.includes("❌")).join("\n");
+      listTxtCh.push(`Canal: <#${tch.id}> le faltan los permisos: \n${missT}`);
+    }
+  }
 
   const listVoiCh: string[] = [];
   const VoiCh = guild.channels.cache.filter(channel => channel.type === 2); // Canales de Voz
-  VoiCh.forEach(async (vch) => {
-    const vCh = masterPerm(vch, "viewCh|voiceConnect")
-    if (!vCh.ok) listVoiCh.push(`Canal: <@${vch.id}> le faltan los permisos: \n${vCh.msg.filter((msg => msg.includes(`❌`))).join("\n")}`);
-  })
+  for (const [, vch] of VoiCh) {
+    const vCh = masterPerm(vch, "viewCh|voiceConnect|chManager");
+    if (!vCh.ok) {
+      const missV = vCh.msg.flatMap(cnk => cnk.split("\n")).filter(x => x.includes("❌")).join("\n");
+      listVoiCh.push(`Canal: <#${vch.id}> le faltan los permisos: \n${missV}`);
+    }
+  }
 
   emb.addFields(
     { name: `Canales de texto:`, value: `${listTxtCh.length > 0 ? listTxtCh.join("\n") : "✅ Todos los canles sin problemas!"}` },
