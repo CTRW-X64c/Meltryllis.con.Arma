@@ -125,7 +125,7 @@ async function allChannels(interaction: ChatInputCommandInteraction, guild: Guil
     { name: `Canales de voz:`, value: `${listVoiCh.length > 0 ? listVoiCh.join("\n") : "✅ Todos los canles sin problemas!"}` }
   );
 
-  emb.setFooter({ text: "Test de permisos de canales" }).setTimestamp().setColor(((listTxtCh.length + listVoiCh.length) > 1) ? 0x00ff00 : 0xff0000);
+  emb.setFooter({ text: "Test de permisos de canales" }).setTimestamp().setColor(((listTxtCh.length + listVoiCh.length) < 1) ? 0x00ff00 : 0xff0000);
 
   await interaction.editReply({ embeds: [emb] })
 }
