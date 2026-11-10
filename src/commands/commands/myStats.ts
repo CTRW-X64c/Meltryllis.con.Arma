@@ -3,6 +3,10 @@ import i18next from "i18next";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { error } from "../../sys/logging";
 import emjs from '../../../adds/otros/emojis.json'
+import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
+import { countItems, FeedTables } from "../../sys/DB-Engine/database";
+import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
+import { getRoleAssignments } from "../../sys/DB-Engine/links/Rolemoji";
 
 export async function registerSrvStatsCommand(): Promise<SlashCommandBuilder[]> {
     const myStsts = new SlashCommandBuilder()
@@ -68,12 +72,26 @@ async function getStats(interaction: ChatInputCommandInteraction, guild: Guild) 
                 `** Roles:** ${roles.cache.size} `,
                 "",
                 `** EMOJIS(${emojisAvi.size}):** ${emojisAvi.size > 0 ? emojisAvi.map(e => e.toString()).join(" ") : 'Sin Emojis'} `,
+                "",
+                `## MIS CONFIGURACIONES!`
             ];
             return txtL.join("\n");
         };
 
-        const dtaFoot = { text: `Solicitado por @${interaction.user.tag} `, iconURL: interaction.user.displayAvatarURL() };
-        const emb = new EmbedBuilder().setDescription(txtDesc()).setTimestamp().setFooter(dtaFoot).setColor(0x5865F2);
+        const embDta = await embed(guild.id)
+        const redSoc = await sociales(guild.id)
+        const workDta = await workHer(guild.id)
+        const roleMoji = await rolEmj(guild.id)
+
+        const fieldSrv = [
+            { name: "> Follow en redes sociales", value: redSoc },
+            { name: "> Configuraciones de /embed", value: embDta },
+            { name: "> Configuraciones de canles /work", value: workDta },
+            { name: "> Configuraciones de /rolemoji", value: roleMoji }
+        ]
+
+        const dtaFoot = { text: `${interaction.user.tag} para mas info usa /help `, iconURL: interaction.user.displayAvatarURL() };
+        const emb = new EmbedBuilder().setDescription(txtDesc()).setTimestamp().setFooter(dtaFoot).setColor(0x5865F2).addFields(fieldSrv);
 
         if (guild.iconURL()) emb.setThumbnail(guild.iconURL());
         if (guild.bannerURL()) emb.setImage(guild.bannerURL());
@@ -82,4 +100,68 @@ async function getStats(interaction: ChatInputCommandInteraction, guild: Guild) 
     } catch (e: any) {
         error(`Fallo al obtener stats del server | Guild: ${guild.id} | Error: ${e.message} `);
     }
+}
+
+
+// ============== Aux ============== //
+async function sociales(guild: string) { // X, Reddit, Youtube, Pixiv...
+    const social: FeedTables[] = ['mangadex_feeds', 'reddit_feeds', 'youtube_feeds', 'followTweetX', 'pixivData', `blueskya`]
+    const AT: Record<string, string> = { "mangadex_feeds": "Mangadex", "reddit_feeds": "Reddit", "youtube_feeds": "Youtube", "followTweetX": "Twitter", "pixivData": "Pixiv", "blueskya": "Bluesky" }
+    const lines: string[] = [];
+
+    for (const sc of social) {
+        const count = await countItems(guild, sc)
+        lines.push(`**${AT[sc]}:** ${count ?? 0} Suscripciones`)
+    }
+
+    return lines.join("\n")
+}
+
+async function embed(guild: string): Promise<string> { // embed
+    const getDta = await getGuildReplacementConfig(guild);
+    if (!getDta || getDta.size === 0) return "No hay configuraciones establecidas!";
+
+    const lines: string[] = [];
+    let count = 0;
+    for (const [key, dta] of getDta) {
+        count++;
+        lines.push(`**Clave:** ${key} | **Enable:** ${dta.enabled ? emjs.cmn.ok : emjs.cmn.fail} | **Custom:** ${dta.custom_url ? dta.custom_url : emjs.cmn.fail}`);
+        if (count >= 8) break;
+    };
+    if (count >= 8) lines.push(`mostrando ${count}/${getDta.size} usa \`/test\` para mas info`)
+
+    return lines.join("\n");
+}
+
+async function workHer(guild: string) { // workhere
+    const dtaWork = await getConfigMap();
+    const guildDta = dtaWork.get(guild)
+    if (!guildDta || guildDta.size === 0) return "Sin configuraciones"
+
+    const lines: string[] = []
+    let count = 0;
+    for (const [ch, dta] of guildDta) {
+        count++;
+        lines.push(`**Canal:** <#${ch}> | **Reply:** ${dta.replyBots ? emjs.cmn.ok : emjs.cmn.fail} | **Work:** ${dta.enabled ? emjs.cmn.ok : emjs.cmn.fail}`);
+        if (count >= 8) break;
+    }
+    if (count >= 8) lines.push(`mostrando ${count}/${guildDta.size} usa \`/test\` para mas info`)
+
+    return lines.join("\n")
+}
+
+async function rolEmj(guil: string) { // rolemoji
+    const emojis = await getRoleAssignments(guil);
+    if (!emojis || emojis.size === 0) return "No existen configuraciones";
+
+    const lines: string[] = [];
+    let count = 0
+    for (const dta of emojis.values()) {
+        count++
+        lines.push(`ID: ${dta.id} | Emoji: ${dta.emoji} | Rol: <@&${dta.roleId}>`);
+        if (count >= 8) break;
+    };
+    if (count >= 8) lines.push(`mostrando ${count}/${emojis.size} usa \`/rolemoji list\` para mas info`)
+
+    return lines.join("\n");
 }

@@ -385,7 +385,7 @@
       "test_description": "Permissos, configuraciones y estado de los dominios",
       "mode_description": "Modo de chequeo",
       "guild": "Permisos generales en el Servidor",
-      "channel": "Funcionamiento por Canal",
+      "channel": "Check de permisos por canal!",
       "embed_config": "Embedding configuraciones",
       "mode_domainds": "Revisa el estado de los dominios"
     },

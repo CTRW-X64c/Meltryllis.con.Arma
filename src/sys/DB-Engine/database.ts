@@ -127,7 +127,7 @@ export async function closeBD(): Promise<boolean> {
 }
 
 // Otros
-type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config' | 'followTweetX' | 'pixivData' | `blueskya`;
+export type FeedTables = 'mangadex_feeds' | 'reddit_feeds' | 'youtube_feeds' | 'cronpost_config' | 'followTweetX' | 'pixivData' | `blueskya`;
 export async function countItems(guildId: string, table: FeedTables): Promise<number> {
   try {
     const pool = await getPool();
