@@ -11,18 +11,18 @@ import emj from '../../../adds/otros/emojis.json'
 let kcTimmers = new Map<string, NodeJS.Timeout>();
 let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
 const idStart = `mntStar`, idStarPre = 'mntStar24h', idEnd = `mntEnd`;
-const minuts = 60 * 1_000;
+const minuts = 60 * 1_000, HORA = 60 * minuts;
 
 interface TweetInfoTl { Orginal: string; isoES: string; isoEN: string }
 interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: TweetInfoTl | null };
-interface dataGit { MaintInfoLink: string, mntStar: string, MaintEnd?: string }
+interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
 
 export async function mantChk() {
     const fData = await fetchData("https://raw.githubusercontent.com/ElectronicObserverEN/Data/refs/heads/master/update.json")
     if (!fData) return;
 
     const processData = await fData.json() as dataGit;
-    const newMaintStartStr = processData.mntStar ?? null;
+    const newMaintStartStr = processData.MaintStart ?? null;
     if (!newMaintStartStr) return;
     const newMaintEndStr = processData.MaintEnd ?? null;
     //startManteTimes
@@ -62,7 +62,7 @@ export async function mantChk() {
         maint.maintNotified = true;
         await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: new Date(), MaintEnd: endMantDate });
     }
-    if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd)) startMant();
+    if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd) || !kcTimmers.has(idStarPre)) startMant();
 }
 
 class tweetKC {
@@ -116,25 +116,40 @@ async function startMant() {
         if (!INItime) return;
         const mntStar = INItime.getTime();
         const leftStart = mntStar - now;
-        const HORA = 60 * minuts;
 
-        if (leftStart > 0 && leftStart < (12 * HORA)) {
+        if (leftStart > 0 && leftStart < (4 * HORA)) {
             if (leftStart > HORA && !kcTimmers.has(idStart)) {
+                const mntStr = leftStart - HORA;
                 const timer1h = setTimeout(() => {
                     notifyKC(idStart);
                     kcTimmers.delete(idStart);
-                }, leftStart - HORA);
+                }, mntStr);
                 kcTimmers.set(idStart, timer1h);
+                debug(`[KanCron]: Establecido ${idStart} en ${Math.round(mntStr / minuts)} min`);
             }
         }
 
-        if (leftStart > 0 && leftStart < (24 * HORA)) { // pre Start24h
-            if (leftStart > 24 * HORA && !kcTimmers.has(idStarPre)) {
+        if (leftStart > 0 && leftStart < (14 * HORA)) { // pre Start12h
+            if (leftStart > (12 * HORA) && !kcTimmers.has(idStarPre)) {
+                const p12StrA = leftStart - (12 * HORA);
                 const timer24hS = setTimeout(() => {
                     notifyKC(idStarPre);
                     kcTimmers.delete(idStarPre);
-                }, leftStart - (24 * HORA));
+                }, p12StrA);
                 kcTimmers.set(idStarPre, timer24hS);
+                debug(`[KanCron]: Establecido ${idStarPre} en ${Math.round(p12StrA / minuts)} min`);
+            }
+        }
+
+        if (leftStart > 0 && leftStart < (8 * HORA)) { // pre Start6h
+            if (leftStart > (6 * HORA) && !kcTimmers.has(idStarPre)) {
+                const p12StrB = leftStart - (6 * HORA);
+                const timer24hS = setTimeout(() => {
+                    notifyKC(idStarPre);
+                    kcTimmers.delete(idStarPre);
+                }, p12StrB);
+                kcTimmers.set(idStarPre, timer24hS);
+                debug(`[KanCron]: Establecido ${idStarPre} en ${Math.round(p12StrB / minuts)} min`);
             }
         }
 
@@ -149,6 +164,7 @@ async function startMant() {
                         kcTimmers.delete(idEnd);
                     }, leftEnd);
                     kcTimmers.set(idEnd, endoMeinto);
+                    debug(`[KanCron]: Establecido ${idEnd} en ${Math.round(leftEnd / minuts)} min`);
                 }
             }
         }
@@ -188,7 +204,7 @@ function aQuest() {
 }
 
 function lQusty() {
-    const cmpDay = 23 * 60 * minuts; // Fix por chek de 24hrs
+    const cmpDay = 23 * HORA; // Fix por chek de 24hrs
     const now = getNowJST() + cmpDay, tokyoDate = new Date(now);
     const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
     // === msg === //
@@ -364,7 +380,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
     if (maint.lastMaintStart && (maint.lastMaintStart.getTime() > getNowJST())) {
         const resTime = maint.lastMaintStart.getTime() - getNowJST();
         const mantData = "\n" + "> Mantenimiento:" + "\n" + `**⏰ INICIA EN:** ${turnDate(resTime)}` + "\n\n"
-        if (type !== "mntStar") vlueTxt += mantData;
+        if (!["mntStar", "mntStar24h"].includes(type)) vlueTxt += mantData;
     }
     // ===== switch ===== //
     switch (type) {
@@ -470,11 +486,17 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                 urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
             }
         // ======================================== Mantenimiento ======================================== //
-        case "mntStar24h": // preaviso 24hrs
+        case "mntStar24h": // preaviso 12hrs
+            const clkStr = JSTtoUTC(maint.lastMaintStart);
+            console.log(`mante pre aviso ${clkStr}`)
+            if (!clkStr) return null;
+            const strLtime = clkStr.getTime() - getNowJST();
+            const outSLT = turnDate(strLtime);
+
             return {
                 title: { A: "MANTENIMIENTO!!", B: "TBA" },
                 desc: {
-                    ini: `# EL MANTENIMIENTO INICIA EN 24 HRS!!`,
+                    ini: `# EL MANTENIMIENTO INICIA EN ${outSLT.toUpperCase()}!!`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
                 field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }] },

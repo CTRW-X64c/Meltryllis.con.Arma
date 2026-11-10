@@ -207,6 +207,11 @@ async function msgMgr(dat: msgBuild) {
 function msgParam(nt: notifyType, aRol: boolean) {
     let aTimm = hours, bTimm = 0;
 
+    if (nt === "mntStar24h") {
+        aTimm = 5 * hours;
+        return { aTimm, bTimm };
+    }
+
     if (nt.endsWith("24h")) {
         aTimm = 23 * hours;
         return { aTimm, bTimm };
