@@ -12,7 +12,7 @@ export class redditMeltrys implements ApiHandler {
     name = "redditMeltrys";
 
     isAvailable(): boolean { return true; }
-    isDomain(domain: string): boolean { return /(^|:\/\/|\.)(reddit.com|redd.it)/.test(domain); }
+    isDomain(domain: string): boolean { return /(^|:\/\/|\.)reddit.com/.test(domain); }
     async guildChk(domain: string, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
         const aDom = "Meltrys.Reddit", albe = guildConfigs.get(aDom);
@@ -114,6 +114,8 @@ class RedditSolve {
         const isGifOnly = !!(dta.secure_media?.reddit_video?.is_gif && !dta.secure_media?.reddit_video?.has_audio);
         if (!hasMMI && !isGallery && !isGifOnly) return null;
 
+        const isVideo = dta.post_hint ? ['rich:video', "hosted:video"].includes(dta.post_hint) : false;
+        if (isVideo) return null;
         // ======= down pics ======= //
         const urlMedia = await this.medios(dta);
         if (urlMedia.length === 0) return null;

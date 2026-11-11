@@ -605,7 +605,11 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
     }
 };
 
-// =========================================================== RankData(bonder) =========================================================== //
+// =========================================================== RankData =========================================================== //
+interface rankKcheInt { date: number, info: SenkaData[] | BonodereData[] }
+const rankKche = new Map<string, rankKcheInt>();
+
+// ================ RankData(bonder) ================ //
 export type RankLevel = '1' | '5' | '20' | '100' | '500';
 type Cutoff = Record<RankLevel, number>;
 export interface RecordEntry {
@@ -614,7 +618,7 @@ export interface RecordEntry {
     month: number;
 }
 
-export interface RankData {
+export interface BonodereData {
     number: number;
     enName: string;
     jpName: string;
@@ -627,26 +631,23 @@ export interface RankData {
     };
 }
 
-let kcheRank: RankData[] | null = null
-export async function rankServers(): Promise<{ ok: boolean, data: RankData[] | null, date?: string }> {
-    const urlDta = `https://bonodere.famluro.es/api/misc/serverdata`;
-    const para: RequestInit = { method: 'GET' };
+export async function rankServers(): Promise<{ ok: boolean, data: BonodereData[] | null, date?: string }> {
+    const namKch = "bonodere", bondTemp = rankKche.get(namKch);
     const jstDate = new Date().toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
 
     try {
-        const getData = await fetch(urlDta, para);
-        if (!getData.ok) return { ok: false, data: kcheRank ?? null, date: jstDate };
+        const getData = await fetch(`https://bonodere.famluro.es/api/misc/serverdata`, { method: 'GET' });
+        if (!getData.ok) return { ok: false, data: bondTemp?.info as BonodereData[] ?? null, date: jstDate };
 
-        const data = (await getData.json()) as RankData[];
-        kcheRank = data;
+        const data = (await getData.json()) as BonodereData[];
+        rankKche.set(namKch, { date: 0, info: data });
         return { ok: true, data };
     } catch (error) {
-        return { ok: false, data: kcheRank ?? null, date: jstDate };
+        return { ok: false, data: bondTemp?.info as BonodereData[] ?? null, date: jstDate };
     }
 }
 
-
-// =========================================================== RankData(senku) =========================================================== //
+// ================ RankData(senku) ================ //
 interface ServerStatus {
     num: number;
     name: string;
@@ -676,6 +677,12 @@ export interface SenkaData {
 }
 
 export async function senkaTables(): Promise<SenkaData[]> {
+    const namKch = "senka", timeGet = Date.now(), senkTemp = rankKche.get(namKch);
+    if (senkTemp) {
+        if (senkTemp.date + (10 * minuts) > timeGet) { return senkTemp.info as SenkaData[]; }
+        rankKche.delete(namKch)
+    }
+
     const senkData = await fetch("https://senka.su/en").catch(() => null);
     if (!senkData || !senkData.ok) return [];
 
@@ -744,6 +751,8 @@ export async function senkaTables(): Promise<SenkaData[]> {
             top500: rank?.top500 ?? 0,
         };
     });
+
+    rankKche.set(namKch, { date: timeGet, info: combinedServers })
 
     return combinedServers;
 }

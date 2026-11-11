@@ -39,7 +39,9 @@ export async function registerKantaiCollectionCommand() {
             .addBooleanOption(o => o.setName('post').setDescription(i18next.t("commands:kancolle.slashBuilder.post_4_all")).setRequired(false)))
         .addSubcommand(s => s.setName('rank').setDescription(i18next.t("commands:kancolle.slashBuilder.rank"))
             .addStringOption(o => o.addChoices(listServers).setName('servidor').setRequired(false).setDescription('Selecciona servidor'))
-            .addBooleanOption(o => o.setName('post').setDescription(i18next.t("commands:kancolle.slashBuilder.post_4_all")).setRequired(false)))
+            .addBooleanOption(o => o.setName('post').setDescription(i18next.t("commands:kancolle.slashBuilder.post_4_all")).setRequired(false))
+            .addStringOption(o => o.setName('sauce').setDescription("Server a consultar").addChoices({ name: "Senka.su", value: "1" }, { name: "bonodere.famluro.es", value: "2" }).setRequired(false))
+        )
         .addSubcommand(s => s.setName('activar').setDescription(i18next.t("commands:kancolle.slashBuilder.activar")))
         .addSubcommand(s => s.setName('desactivar').setDescription(i18next.t("commands:kancolle.slashBuilder.desactivar")))
         .addSubcommand(s => s.setName('status').setDescription(i18next.t("commands:kancolle.slashBuilder.status")))
@@ -324,32 +326,45 @@ async function rankServ(interacciones: ChatInputCommandInteraction, isAllowed: b
     const jstDate = new Date().toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
     let isActual = `## Hora JP actual: ${jstDate}`;
 
-    const emb = new EmbedBuilder();
+    const fields: { name: string, value: string, inline?: boolean }[] = [];
+    const emb = new EmbedBuilder().setImage("https://i.imgur.com/ZzQLWQ6.png").setColor(0x00FF00)
+        .setFooter({ text: `Kancolle Rank`, iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" });
     const server = interacciones.options.getString("servidor") ?? null;
     if (!server) {
-        const dtaSenka = await senkaTables()
-        if (dtaSenka.length === 0) {
-            await interacciones.editReply({ content: "Sorry algo fallo al recuperar los datos de Senku.su :(" })
-            return;
-        }
+        const selServ = interacciones.options.getString("sauce") ?? "1";
+        if (selServ === "1") {
+            const dtaSenka = await senkaTables()
+            if (dtaSenka.length === 0) {
+                await interacciones.editReply({ content: "Sorry algo fallo al recuperar los datos de Senku.su :(" })
+                return;
+            }
 
-        const desc = `# Ranking servers! \n> ${isActual}\n\n Los cutoff son a las 15:00hrs y 03:00hrs! \n Mostrando información de los ${dtaSenka.length} servers! \n \`Algunos servers toman su tiempo en actualizar!\``;
-        emb.setDescription(desc)
-            .setImage("https://i.imgur.com/ZzQLWQ6.png")
-            .setColor(0x00FF00)
-            .setFooter({ text: `Kancolle Rank`, iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" });
+            for (const srv of dtaSenka) {
+                fields.push({
+                    name: `ID: ${srv.num} | Name: ${gimeName(srv.name)} \n> Actualizado: ${srv.isUpdate ? emj.cmn.ok : emj.cmn.fail} | ${srv.updatedIn} JP Time`,
+                    value: `**Top 1:** ${srv.top1}pts | **Top 5:** ${srv.top5}pts | **Top 20:** ${srv.top20}pts \n**Top 100:** ${srv.top100}pts | **Top 500:** ${srv.top500}pts`
+                });
+            };
+            emb.setDescription(`# Ranking servers! \n> ${isActual}\n\n Los cutoff son a las 15:00hrs y 03:00hrs! \nMostrando información de los ${dtaSenka.length} servers! \n \`Algunos servers toman su tiempo en actualizar!\``)
+                .addFields(fields).setTitle("DATOS DE SENKA.SU").setURL("https://senka.su/en");
+        } else {
+            const dtaBono = await rankServers();
+            if (!dtaBono.ok || !dtaBono.data) {
+                if (dtaBono.data) { isActual = `No pude obtener el mas reciente, JP hora ${dtaBono.date}`; }
+                else { await interacciones.editReply("No pude obtener la información de bonodere"); return; }
+            }
 
-        const fields: { name: string, value: string, inline?: boolean }[] = [];
-        let countField = 0;
-        for (const srv of dtaSenka) {
-            if (countField === 25) break;
-            countField++;
-            fields.push({
-                name: `ID: ${srv.num} | Name: ${gimeName(srv.name)} \n> Actualizado: ${srv.isUpdate ? emj.cmn.ok : emj.cmn.fail} | ${srv.updatedIn} JP Time`,
-                value: `**Top 1:** ${srv.top1}pts | **Top 5:** ${srv.top5}pts | **Top 20:** ${srv.top20}pts \n **Top 100:** ${srv.top100}pts | **Top 500:** ${srv.top500}pts`
+            dtaBono.data.forEach((srv) => {
+                const updatedDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+                fields.push({
+                    name: `ID: ${srv.number} | Name: ${srv.jpName} (${srv.jpName}) \n> Actualizado: ${dtaBono.ok ? (srv.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${updatedDate} JP Time`,
+                    value: `**Top 1:** ${srv.cutoff[1]}pts | **Top 5:** ${srv.cutoff[5]}pts | **Top 20:** ${srv.cutoff[20]}pts \n **Top 100:** ${srv.cutoff[100]}pts | **Top 500:** ${srv.cutoff[500]}pts`
+                })
             });
+
+            emb.setDescription(`# Ranking servers! \n> ${isActual}\n\n Los cutoff son a las 15:00hrs y 03:00hrs! \nMostrando información de los ${dtaBono.data.length} servers! \n \`Algunos servers toman su tiempo en actualizar!\``)
+                .addFields(fields).setTitle("DATOS DE BONODERE.FAMLURO.ES").setURL("https://bonodere.famluro.es/");
         }
-        emb.addFields(fields)
     }
     else {
         const waitData = await rankServers();
@@ -371,14 +386,10 @@ async function rankServ(interacciones: ChatInputCommandInteraction, isAllowed: b
         const updatedDate = new Date(dta.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
         const descSingle = `# Ranking de ${dta.jpName} (${dta.enName})! \n> ${isActual}\n\n Los cutoff son a las 15:00hrs y 03:00hrs!\n \`Algunos servers toman su tiempo en actualizar!\``;
 
-        emb.setDescription(descSingle)
-            .setColor(0x00FF00)
-            .setFooter({ text: `Kancolle Rank`, iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" });
-
         const highestText = formatRecords(dta.records.higest);
         const lowestText = formatRecords(dta.records.lowest);
 
-        emb.addFields(
+        emb.setDescription(descSingle).addFields(
             {
                 name: `Actualizado: ${waitData.ok ? (dta.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${updatedDate} JP Time`,
                 value: `**TOP 1:** ${dta.cutoff[1]} pts\n**TOP 5:** ${dta.cutoff[5]} pts\n**TOP 20:** ${dta.cutoff[20]} pts\n**TOP 100:** ${dta.cutoff[100]} pts\n**TOP 500:** ${dta.cutoff[500]} pts`
