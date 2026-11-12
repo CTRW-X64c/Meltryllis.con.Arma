@@ -614,6 +614,7 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
             };
         // ======================================== END ======================================== //
         default:
+            error("[KanCron]: ALGO LLEGO AL DEFAULT DEL SWITCH!!")
             return null;
     }
 };
