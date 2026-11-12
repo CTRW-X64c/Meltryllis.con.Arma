@@ -1,9 +1,8 @@
 import getPool from '../database';
 import { debug, error, info } from '../../logging';
 
-// ========================================================= kChe Loader ========================================================= //
-// ==== regularKche ==== //
-export const data = new Map<string, Kancolle[]>();
+// ========================================================= masterKch ========================================================= //
+export const dataKC = new Map<string, Kancolle[]>();
 export interface Kancolle {
     guild: string; role: string | null;
     channel: string;
@@ -13,16 +12,18 @@ export interface Kancolle {
     mnt: { av: boolean; ntf: boolean };
     mExp: { av: boolean; ntf: boolean };
     rank: { av: boolean; ntf: boolean };
+    ver: { av: boolean; ntf: boolean };
 }
 
+// ==== masterKch load ==== //
 export async function startKC(): Promise<boolean> {
     try {
         const pool = await getPool();
         const [rows]: any = await pool.query("SELECT * FROM kc_conf");
-        data.clear();
+        dataKC.clear();
         for (const db of rows) {
-            if (!data.has(db.guild_id)) data.set(db.guild_id, []);
-            data.get(db.guild_id)!.push({
+            if (!dataKC.has(db.guild_id)) dataKC.set(db.guild_id, []);
+            dataKC.get(db.guild_id)!.push({
                 guild: db.guild_id,
                 role: db.role,
                 channel: db.channel,
@@ -31,10 +32,11 @@ export async function startKC(): Promise<boolean> {
                 oem: JSON.parse(db.oem),
                 mnt: JSON.parse(db.mnt),
                 mExp: JSON.parse(db.mExp),
-                rank: JSON.parse(db.rank)
+                rank: JSON.parse(db.rank),
+                ver: JSON.parse(db.ver)
             });
         }
-        const count = data.size;
+        const count = dataKC.size;
         if (count > 0) info(`Kancolle configuraciones cargadas: ${count}`, "KancolleBD");
         return true;
     } catch (e) {
@@ -43,10 +45,66 @@ export async function startKC(): Promise<boolean> {
     }
 }
 
+// ==== masterKch add ==== //
+export async function addBD(guildId: string, kcData: Kancolle) {
+    try {
+        const pool = await getPool();
+        await pool.query(
+            `INSERT INTO kc_conf (guild_id, role, channel, pvp, quest, oem, mnt, mExp, rank, ver) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE role = VALUES(role), channel = VALUES(channel), pvp = VALUES(pvp), quest = VALUES(quest), oem = VALUES(oem), mnt = VALUES(mnt), mExp = VALUES(mExp), rank = VALUES(rank), ver = VALUES(ver)`,
+            [guildId, kcData.role, kcData.channel, JSON.stringify(kcData.pvp), JSON.stringify(kcData.quest), JSON.stringify(kcData.oem), JSON.stringify(kcData.mnt), JSON.stringify(kcData.mExp), JSON.stringify(kcData.rank), JSON.stringify(kcData.ver)]
+        );
+        dataKC.set(guildId, [kcData]);
+        debug(`Kancolle Config GUARDADA/ACTUALIZADA: Guild ${guildId}`, "KancolleBD");
+    } catch (err) {
+        error(`Error guardando Kancolle Config: ${err}`, "KancolleBD");
+    }
+}
 
-// ==== mantKche ==== //
-export let maint: KCmant = { lastMaintStart: null, maintNotified: false, lastNotificationTime: null, MaintEnd: null };
-export interface KCmant { lastMaintStart: Date | null, maintNotified: boolean, lastNotificationTime: Date | null, MaintEnd: Date | null, }
+// ==== masterKch erase ==== //
+export async function delKCBD(guildId: string) {
+    try {
+        const pool = await getPool();
+        await pool.query(`DELETE FROM kc_conf WHERE guild_id = ?`, [guildId]);
+        dataKC.delete(guildId);
+        debug(`Kancolle Config ELIMINADA para Guild: ${guildId}`, "KancolleBD");
+    } catch (err) {
+        error(`Error eliminando Kancolle Config: ${err}`, "KancolleBD");
+    }
+}
+
+// ==== masterKch list ==== //
+export async function getKCConfig(guild: string): Promise<Kancolle[]> {
+    if (dataKC.has(guild)) return dataKC.get(guild)!;
+    return [];
+}
+
+// ========================================================= mantKche BD data ========================================================= //
+export let maint: KCmant = { lastMaintStart: null, maintNotified: false, lastNotificationTime: null, MaintEnd: null, version: null };
+export interface KCmant {
+    lastMaintStart: Date | null,
+    maintNotified: boolean,
+    lastNotificationTime: Date | null,
+    MaintEnd: Date | null,
+    version: string | null
+}
+
+// ==== mantKche upDate ==== //
+export async function updateKCmant(upD: KCmant) {
+    try {
+        const pool = await getPool();
+        await pool.query(`INSERT INTO kc_maint (id, lastMaintStart, maintNotified, lastNotificationTime, MaintEnd, version) VALUES (1, ?, ?, ?, ?, ?) 
+            ON DUPLICATE KEY UPDATE lastMaintStart = VALUES(lastMaintStart), maintNotified = VALUES(maintNotified), lastNotificationTime = VALUES(lastNotificationTime), MaintEnd = VALUES(MaintEnd), version = VALUES(version)`,
+            [upD.lastMaintStart, upD.maintNotified, upD.lastNotificationTime, upD.MaintEnd, upD.version]);
+
+        maint = { lastMaintStart: upD.lastMaintStart, maintNotified: upD.maintNotified, lastNotificationTime: upD.lastNotificationTime, MaintEnd: upD.MaintEnd, version: upD.version };
+        debug(`Se actualizo la info del mantenimiento Kancolle`, "KancolleBD");
+    } catch (e) {
+        error(`Error al añadir nueva info de mantenimiento Kancolle: ${e}`, "KancolleBD");
+    }
+}
+
+// ==== mantKche load ==== //
 export async function kcheMaint() {
     try {
         const pool = await getPool();
@@ -57,60 +115,14 @@ export async function kcheMaint() {
                 lastMaintStart: r.lastMaintStart ?? null,
                 maintNotified: Boolean(r.maintNotified ?? false),
                 lastNotificationTime: r.lastNotificationTime ?? null,
-                MaintEnd: r.MaintEnd ?? null
+                MaintEnd: r.MaintEnd ?? null,
+                version: r.version ?? null,
             }; debug(`Kancolle maintenance kche cargada`, "KancolleBD");
         } else debug(`Kancolle maintenance usando default kche`, "KancolleBD");
         return true
     } catch (e) {
         error(`Fallo la carga de la maintenance kche: ${e}`, "KancolleBD");
         return false
-    }
-}
-
-// ==== Melt <=> BD ==== //
-export async function addBD(guildId: string, kcData: Kancolle) {
-    try {
-        const pool = await getPool();
-        await pool.query(
-            `INSERT INTO kc_conf (guild_id, role, channel, pvp, quest, oem, mnt, mExp, rank) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE role = VALUES(role), channel = VALUES(channel), pvp = VALUES(pvp), quest = VALUES(quest), oem = VALUES(oem), mnt = VALUES(mnt), mExp = VALUES(mExp), rank = VALUES(rank)`,
-            [guildId, kcData.role, kcData.channel, JSON.stringify(kcData.pvp), JSON.stringify(kcData.quest), JSON.stringify(kcData.oem), JSON.stringify(kcData.mnt), JSON.stringify(kcData.mExp), JSON.stringify(kcData.rank)]
-        );
-        data.set(guildId, [kcData]);
-        debug(`Kancolle Config GUARDADA/ACTUALIZADA: Guild ${guildId}`, "KancolleBD");
-    } catch (err) {
-        error(`Error guardando Kancolle Config: ${err}`, "KancolleBD");
-    }
-}
-
-export async function delKCBD(guildId: string) {
-    try {
-        const pool = await getPool();
-        await pool.query(`DELETE FROM kc_conf WHERE guild_id = ?`, [guildId]);
-        data.delete(guildId);
-        debug(`Kancolle Config ELIMINADA para Guild: ${guildId}`, "KancolleBD");
-    } catch (err) {
-        error(`Error eliminando Kancolle Config: ${err}`, "KancolleBD");
-    }
-}
-
-export async function getKCConfig(guild: string): Promise<Kancolle[]> {
-    if (data.has(guild)) return data.get(guild)!;
-    return [];
-}
-
-// ========================================================= Cheker BD ========================================================= //
-export async function updateKCmant(upD: KCmant) {
-    try {
-        const pool = await getPool();
-        await pool.query(`INSERT INTO kc_maint (id, lastMaintStart, maintNotified, lastNotificationTime, MaintEnd) VALUES (1, ?, ?, ?, ?) 
-            ON DUPLICATE KEY UPDATE lastMaintStart = VALUES(lastMaintStart), maintNotified = VALUES(maintNotified), lastNotificationTime = VALUES(lastNotificationTime), MaintEnd = VALUES(MaintEnd)`,
-            [upD.lastMaintStart, upD.maintNotified, upD.lastNotificationTime, upD.MaintEnd]);
-
-        maint = { lastMaintStart: upD.lastMaintStart, maintNotified: upD.maintNotified, lastNotificationTime: upD.lastNotificationTime, MaintEnd: upD.MaintEnd };
-        debug(`Se actualizo la info del mantenimiento Kancolle`, "KancolleBD");
-    } catch (e) {
-        error(`Error al añadir nueva info de mantenimiento Kancolle: ${e}`, "KancolleBD");
     }
 }
 

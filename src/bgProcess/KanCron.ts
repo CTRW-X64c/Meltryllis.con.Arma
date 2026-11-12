@@ -1,7 +1,7 @@
 // src/bgProcess/KanCron.ts
 import { Client, EmbedBuilder, GuildTextBasedChannel, Role } from 'discord.js';
 import { debug, error, info } from '../sys/logging';
-import { startKC, data, kcheMaint, kchTempMSg, loadKchMsg, delKchTemp, delKCBD } from '../sys/DB-Engine/links/KancolleBD';
+import { startKC, dataKC, kcheMaint, kchTempMSg, loadKchMsg, delKchTemp, delKCBD } from '../sys/DB-Engine/links/KancolleBD';
 import { leftTimeConv, mantChk, rawPreset } from "../sys/zGears/kc_aux";
 import { stillOn } from '../sys/zGears/auxiliares';
 
@@ -33,7 +33,7 @@ export async function initKC(cli: Client) {
 };
 
 // ========================================================= engineTimmers ========================================================= //
-export type notifyType = 'pvp' | 'quest' | 'quest24h' | 'oem' | 'oem24h' | 'mExp' | 'mExp24h' | 'rank' | 'mntAviso' | 'mntStar' | 'mntStar24h' | 'mntEnd';
+export type notifyType = 'pvp' | 'quest' | 'quest24h' | 'oem' | 'oem24h' | 'mExp' | 'mExp24h' | 'rank' | 'verntf' | 'mntAviso' | 'mntStar' | 'mntStar24h' | 'mntEnd';
 const notifyTimers = new Map<notifyType, NodeJS.Timeout>();
 function timmerAv() {
     const ntfList: notifyType[] = ['pvp', 'quest', 'quest24h', 'oem', 'oem24h', 'mExp', 'mExp24h', 'rank'];
@@ -63,20 +63,20 @@ function teki(tpy: notifyType) {
 
 // ========================================================= Main ========================================================= //
 const chkType = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.av], /*QUEST*/['quest', cfg => cfg.quest.av], /*RANK*/['rank', cfg => cfg.rank.av],
+    ['pvp', cfg => cfg.pvp.av], /*QUEST*/['quest', cfg => cfg.quest.av], /*RANK*/['rank', cfg => cfg.rank.av], /*ver*/['verntf', cfg => cfg.rank.av],
     /*OEM*/['oem', cfg => cfg.oem.av], /*EXP*/['mExp', cfg => cfg.mExp.av],
     /*Mante*/['mntAviso', cfg => cfg.mnt.av], ['mntStar', cfg => cfg.mnt.av], ['mntEnd', cfg => cfg.mnt.av],
     /*pre24*/['oem24h', cfg => cfg.oem.av], ['mExp24h', cfg => cfg.mExp.av], ['quest24h', cfg => cfg.quest.av], ['mntStar24h', cfg => cfg.mnt.av]]);
 
 const chkRole = new Map<notifyType, (cfg: any) => boolean>([
-    ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf], /*RANK*/['rank', cfg => cfg.rank.ntf],
+    ['pvp', cfg => cfg.pvp.ntf], /*QUEST*/['quest', cfg => cfg.quest.ntf], /*RANK*/['rank', cfg => cfg.rank.ntf], /*ver*/['verntf', cfg => cfg.rank.ntf],
     /*OEM*/['oem', cfg => cfg.oem.ntf], /*EXP*/['mExp', cfg => cfg.mExp.ntf],
     /*Mante*/['mntAviso', cfg => cfg.mnt.ntf], ['mntStar', cfg => cfg.mnt.ntf], ['mntStar24h', cfg => cfg.mnt.ntf], ['mntEnd', cfg => cfg.mnt.ntf]]);
 
 /* === Core === */
 export async function notifyKC(type: notifyType) {
-    if (data.size === 0) return;
-    for (const [guildId, configs] of data.entries()) {
+    if (dataKC.size === 0) return;
+    for (const [guildId, configs] of dataKC.entries()) {
         for (const cfg of configs) {
             const check = chkType.get(type), checkRol = chkRole.get(type)
             if (!check || !check(cfg)) continue;
@@ -107,7 +107,6 @@ interface msgSend {
     desc: string,
     pic: string | undefined,
     rolOn: string | undefined,
-    color: number,
     url: string | undefined,
     delAft: number,
     key: string,
@@ -173,14 +172,14 @@ async function msgMgr(dat: msgBuild) {
     const fisRol = dat.rol ? `AVISO: ${dat.rol}!` : undefined;
     const msgVal = msgParam(dat.type, !!dat.rol);
     /* Now */
-    await msgSnd({ title: prst.title.A, fields: prst.field.A, desc: prst.desc.ini, pic: prst.urlPic.A, rolOn: fisRol, color: 0xFFA500, url: prst.url, delAft: msgVal.aTimm, key }, dat);
+    await msgSnd({ title: prst.title.A, fields: prst.field.A, desc: prst.desc.ini, pic: prst.urlPic.A, rolOn: fisRol, url: prst.url, delAft: msgVal.aTimm, key }, dat);
     /* 30 min */
     if (prst.ntfy.ntf_30 && prst.mTimmer > (30 * minuts)) {
         setTimeout(async () => {
             if (isStale()) return;
             const p = await rawPreset(dat.type).catch(() => null);
             if (!p) return;
-            await msgSnd({ title: p.title.A, fields: p.field.B ?? p.field.A, desc: p.desc.l30, pic: p.urlPic.A, rolOn: undefined, color: 0xFFA500, url: p.url, delAft: msgVal.bTimm, key }, dat);
+            await msgSnd({ title: p.title.A, fields: p.field.B ?? p.field.A, desc: p.desc.l30, pic: p.urlPic.A, rolOn: undefined, url: p.url, delAft: msgVal.bTimm, key }, dat);
         }, prst.mTimmer - (30 * minuts));
     }
     /* 15 min */
@@ -189,7 +188,7 @@ async function msgMgr(dat: msgBuild) {
             if (isStale()) return;
             const p = await rawPreset(dat.type).catch(() => null);
             if (!p) return;
-            await msgSnd({ title: p.title.A, fields: p.field.B ?? p.field.A, desc: p.desc.l15, pic: p.urlPic.A, rolOn: undefined, color: 0xFFA500, url: p.url, delAft: msgVal.bTimm, key }, dat);
+            await msgSnd({ title: p.title.A, fields: p.field.B ?? p.field.A, desc: p.desc.l15, pic: p.urlPic.A, rolOn: undefined, url: p.url, delAft: msgVal.bTimm, key }, dat);
         }, prst.mTimmer - (15 * minuts));
     }
     /* Fin */
@@ -198,7 +197,7 @@ async function msgMgr(dat: msgBuild) {
             if (isStale()) return;
             const p = await rawPreset(dat.type).catch(() => null);
             if (!p) return;
-            await msgSnd({ title: p.title.B, fields: p.field.B ?? p.field.A, desc: p.desc.fn, pic: p.urlPic.B, rolOn: undefined, color: 0x00AA00, url: p.url, delAft: hours, key }, dat);
+            await msgSnd({ title: p.title.B, fields: p.field.B ?? p.field.A, desc: p.desc.fn, pic: p.urlPic.B, rolOn: undefined, url: p.url, delAft: hours, key }, dat);
         }, prst.mTimmer);
     }
 }
@@ -228,7 +227,7 @@ function msgParam(nt: notifyType, aRol: boolean) {
 /* === msgSender === */
 async function msgSnd(dta: msgSend, dat: msgBuild) {
     try {
-        const emb = new EmbedBuilder().setColor(dta.color).setTitle(dta.title).setDescription(dta.desc);
+        const emb = new EmbedBuilder().setColor(0x00AA00).setTitle(dta.title).setDescription(dta.desc);
         if (dta.pic) emb.setImage(dta.pic);
         if (dta.url) emb.setURL(dta.url);
         if (dta.fields.length > 0) emb.addFields(dta.fields);

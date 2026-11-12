@@ -101,15 +101,16 @@ async function enableModal(i: ChatInputCommandInteraction) {
         { label: "Extra Operaciones", value: "oem", default: false, emoji: emj.KC.oem },
         { label: "Expediciones Mensuales", value: "mExp", default: false, emoji: emj.KC.mexp },
         { label: "Senka.su Rank cut-off", value: "rank", default: false, emoji: emj.KC.rank },
+        { label: "Cambios de version", value: "ver", default: false, emoji: emj.KC.ver }
     ];
 
     const msgSendTypes = new StringSelectMenuBuilder().setCustomId("msgSendTypes")
-        .setMinValues(1).setMaxValues(6).setPlaceholder("Mantenimiento, PvP, Misiones...").setRequired(false)
+        .setMinValues(1).setMaxValues(7).setPlaceholder("Mantenimiento, PvP, Misiones...").setRequired(false)
         .addOptions(KancolleToDo.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
     const msgSend = new LabelBuilder().setLabel('Aviso silencioso!').setStringSelectMenuComponent(msgSendTypes);
 
     const ntfyTypes = new StringSelectMenuBuilder().setCustomId("ntfyTypes")
-        .setMinValues(1).setMaxValues(6).setPlaceholder("RECUERDA ASIGNAR UN ROL!!").setRequired(false)
+        .setMinValues(1).setMaxValues(7).setPlaceholder("RECUERDA ASIGNAR UN ROL!!").setRequired(false)
         .addOptions(KancolleToDo.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
     const ntfy = new LabelBuilder().setLabel('Aviso con mención: Requiere un Rol!').setStringSelectMenuComponent(ntfyTypes);
 
@@ -157,7 +158,8 @@ async function enableModal(i: ChatInputCommandInteraction) {
             oem: ntfANDsnd(ntfy.oem, snd.oem),
             mnt: ntfANDsnd(ntfy.mnt, snd.mnt),
             mExp: ntfANDsnd(ntfy.mExp, snd.mExp),
-            rank: ntfANDsnd(ntfy.rank, snd.rank)
+            rank: ntfANDsnd(ntfy.rank, snd.rank),
+            ver: ntfANDsnd(ntfy.ver, snd.ver)
         };
 
         await addBD(guild.id, cnfKC);
@@ -424,7 +426,7 @@ async function rankServ(interacciones: ChatInputCommandInteraction, isAllowed: b
 }
 
 // ===== aux ===== //
-export interface tunBoo { mnt: boolean; pvp: boolean; quest: boolean; oem: boolean; mExp: boolean; rank: boolean; }
+export interface tunBoo { mnt: boolean; pvp: boolean; quest: boolean; oem: boolean; mExp: boolean; rank: boolean; ver: boolean }
 export interface exitValue { snd: tunBoo; ntfy: tunBoo; }
 function turnIntoBoo(listSend: readonly string[] = [], listNtfy: readonly string[] = [], hasRole: boolean): exitValue {
     const mapBools = (lista: readonly string[]): tunBoo => ({
@@ -433,10 +435,11 @@ function turnIntoBoo(listSend: readonly string[] = [], listNtfy: readonly string
         quest: lista.includes("quest"),
         oem: lista.includes("oem"),
         mExp: lista.includes("mExp"),
-        rank: lista.includes("rank")
+        rank: lista.includes("rank"),
+        ver: lista.includes("ver")
     });
 
-    const ntfyFalse: tunBoo = { mnt: false, pvp: false, quest: false, oem: false, mExp: false, rank: false };
+    const ntfyFalse: tunBoo = { mnt: false, pvp: false, quest: false, oem: false, mExp: false, rank: false, ver: false };
     return { snd: mapBools(listSend || []), ntfy: hasRole ? mapBools(listNtfy || []) : ntfyFalse };
 }
 

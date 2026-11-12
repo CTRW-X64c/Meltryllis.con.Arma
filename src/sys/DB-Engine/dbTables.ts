@@ -226,6 +226,7 @@ export async function mngrTables(pool: Pool) {
       mnt TEXT,
       mExp TEXT,
       rank TEXT,
+      ver TEXT,
       UNIQUE KEY unique_guild_kancolle (guild_id)
     )
   `);
@@ -236,7 +237,8 @@ export async function mngrTables(pool: Pool) {
       lastMaintStart DATETIME NOT NULL,
       maintNotified BOOLEAN DEFAULT FALSE,
       lastNotificationTime DATETIME,
-      MaintEnd DATETIME
+      MaintEnd DATETIME,
+      version VARCHAR(10)
     )
   `);
   //Tabla kancolle rtcmsg

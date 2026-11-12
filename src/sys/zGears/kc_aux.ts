@@ -2,19 +2,19 @@
 import i18next from "i18next";
 import { notifyKC, notifyType } from "../../bgProcess/KanCron";
 import { maint, updateKCmant } from "../DB-Engine/links/KancolleBD";
-import { debug, error } from "../logging";
+import { debug, error, warn } from "../logging";
 import { translate } from "@vitalets/google-translate-api";
 import * as cheerio from 'cheerio';
 import emj from '../../../adds/otros/emojis.json'
 
 // ========================================================= fetchMaint ========================================================= //
 let kcTimmers = new Map<string, NodeJS.Timeout>();
-let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
+let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null, version: null };
 const idStart = `mntStar`, idStarPre = 'mntStar24h', idEnd = `mntEnd`;
 const minuts = 60 * 1_000, HORA = 60 * minuts;
 
 interface TweetInfoTl { Orginal: string; isoES: string; isoEN: string }
-interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: TweetInfoTl | null };
+interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: TweetInfoTl | null, version: string | null };
 interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
 
 export async function mantChk() {
@@ -38,31 +38,32 @@ export async function mantChk() {
         maint.lastMaintStart = newMaintDate;
         maint.MaintEnd = endMantDate;
         maint.maintNotified = false;
-        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: false, lastNotificationTime: null, MaintEnd: endMantDate });
+        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: false, lastNotificationTime: null, MaintEnd: endMantDate, version: maint.version });
     }
 
     if ((lastEndTime && endMantTime) && lastEndTime !== endMantTime) {
         if (kcTimmers.has(idEnd)) kcTimmers.delete(idEnd)
         maint.MaintEnd = endMantDate;
-        await updateKCmant({ lastMaintStart: maint.lastMaintStart, maintNotified: maint.maintNotified, lastNotificationTime: maint.lastNotificationTime, MaintEnd: endMantDate });
+        await updateKCmant({ lastMaintStart: maint.lastMaintStart, maintNotified: maint.maintNotified, lastNotificationTime: maint.lastNotificationTime, MaintEnd: endMantDate, version: maint.version });
     }
 
     if (maint.maintNotified === false) {
         if (newMantTime < Date.now()) {
             debug(`🔧 Mantenimiento pasado detectado en BD. Marcando como notificado silenciosamente.`, "KancolleBD");
             maint.maintNotified = true;
-            await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: null, MaintEnd: endMantDate });
+            await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: null, MaintEnd: endMantDate, version: maint.version });
             return;
         }
 
-        const datTwet = await tweetKC.geTwiitter(processData.MaintInfoLink)
+        const datTwet = await tweetKC.geTwiitter(processData.MaintInfoLink);
         debug(`🔧 Anunciando nuevo mantenimiento a los servidores: ${newMaintStartStr}`, "KancolleBD");
-        ntfMantData = { MaintDate: newMaintDate, endMantDate: endMantDate, url: processData.MaintInfoLink, tweetInfo: datTwet };
-        notifyKC("mntAviso")
+        ntfMantData.MaintDate = newMaintDate; ntfMantData.endMantDate = endMantDate; ntfMantData.url = processData.MaintInfoLink; ntfMantData.tweetInfo = datTwet;
+        notifyKC("mntAviso");
         maint.maintNotified = true;
-        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: new Date(), MaintEnd: endMantDate });
+        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: new Date(), MaintEnd: endMantDate, version: maint.version });
     }
-    if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd) || !kcTimmers.has(idStarPre)) startMant();
+    if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd) || !kcTimmers.has(idStarPre)) { startMant().catch(() => null); }
+    getConstInfo().catch(() => null);
 }
 
 class tweetKC {
@@ -597,8 +598,20 @@ export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
                 mTimmer: rank,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/ZzQLWQ6.png" }
-            }
-
+            };
+        case "verntf":
+            if (!maint.version) return null
+            return {
+                title: { A: `**SE DETECTÓ UN CAMBIO DE VERSIÓN:** `, B: "TBA" },
+                desc: {
+                    ini: ntfMantData.version ? `## Nueva version: ${ntfMantData.version} ${emj.cmn.arrowR} ${maint.version}` : `## Nueva version: ${maint.version}`,
+                    l30: "TBA", l15: "TBA", fn: "TBA"
+                },
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }] },
+                mTimmer: 0,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                urlPic: {}
+            };
         // ======================================== END ======================================== //
         default:
             return null;
@@ -757,6 +770,55 @@ export async function senkaTables(): Promise<SenkaData[]> {
     return combinedServers;
 }
 
+// ================ vers ================ //
+async function getConstInfo() {
+    const res = await fetch("https://w00g.kancolle-server.com/gadget_html5/js/kcs_const.js").catch(() => null);
+    if (!res || !res.ok) return;
+
+    const src = await res.text();
+    const raw = (obj: string, key: string) => { // find dta
+        const m = src.match(new RegExp(`${obj}\\.${key}\\s*=\\s*([^;]+);`));
+        return m ? m[1].trim() : undefined;
+    };
+
+    const value = (obj: string, key: string) => { // extractor de dtos
+        const rw = raw(obj, key);
+        if (rw === undefined) return undefined;
+        if ((rw.startsWith('"') && rw.endsWith('"')) || (rw.startsWith("'") && rw.endsWith("'"))) { return rw.slice(1, -1); }
+
+        const nu = Number(rw);
+        return Number.isNaN(nu) ? rw : nu;
+    };
+
+    const flag = (obj: string, key: string) => { // bolaños
+        const vl = value(obj, key);
+        if (vl === undefined) return undefined;
+        return Number(vl) > 0;
+    };
+
+    const chkEmrg = flag("MaintenanceInfo", "IsEmergency")
+    const chkMante = flag("MaintenanceInfo", "IsDoing")
+    const chkDta = value("MaintenanceInfo", "EndDateTime")
+
+    const stngMante = chkMante ? `Aviso de mantenimiento ${chkEmrg ? " de emergencia!!" : "!!"}` : null;
+    if (stngMante) warn(`Out: ${stngMante} || Date: ${chkDta}`);
+
+    const verOut = value("VersionInfo", "scriptVesion")?.toString()
+    if (verOut !== undefined && verOut !== maint.version) {
+        ntfMantData.version = maint.version;
+        await updateKCmant({
+            lastMaintStart: maint.lastMaintStart,
+            maintNotified: maint.maintNotified,
+            lastNotificationTime: maint.lastNotificationTime,
+            MaintEnd: maint.MaintEnd,
+            version: verOut
+        });
+        notifyKC('verntf').catch(() => null)
+        debug(`[KanCron]: Se envio avios de "verntf"`);
+    }
+}
+
+// === aux === //
 export function gimeName(name: string) {
     const srvFixName: Record<string, string> = {
         /*1*/ "Yokosuka": "横须贺镇守府 (Yokosuka)", /*2*/ "Kure": "呉镇守府 (Kure)", /*3*/ "Sasebo": "佐世保镇守府 (Sasebo)", /*4*/ "Maizuru": " 舞鹤镇守府 (Maizuru)",
@@ -767,4 +829,3 @@ export function gimeName(name: string) {
     };
     return srvFixName[name] ?? name;
 }
-
