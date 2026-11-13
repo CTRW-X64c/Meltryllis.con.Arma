@@ -18,6 +18,7 @@ export async function registerFollowXCommand(): Promise<SlashCommandBuilder[]> {
     return [followX] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handleFollowXCommand(inter: ChatInputCommandInteraction) {
     const guild = inter.guild;
     if (!guild) { await inter.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return };
@@ -26,6 +27,9 @@ export async function handleFollowXCommand(inter: ChatInputCommandInteraction) {
     if (!isAllowed) { await inter.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral }); return };
 
     try {
+        if (isRunning.get(guild.id)) { await inter.reply({ content: i18next.t("common:Errores.isRunning", { a1: inter.commandName }), flags: MessageFlags.Ephemeral }); return; };
+        isRunning.set(guild.id, true)
+
         const subcommand = inter.options.getSubcommand();
         switch (subcommand) {
             case "seguir":
@@ -39,7 +43,9 @@ export async function handleFollowXCommand(inter: ChatInputCommandInteraction) {
         }
     } catch (e: any) {
         error(`Comando: /followX SWITCH | Guild: ${inter.guild!.id} | Error: ${e.message}`);
-    }
+        if (inter.replied || inter.deferred) { await inter.editReply(i18next.t("common:Errores.switch_catch_err", { a1: inter.commandName })); }
+        else { await inter.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: inter.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guild.id) }
 }
 
 // =================================================== addFollowX ===================================================
@@ -58,11 +64,8 @@ async function followXModal(i: ChatInputCommandInteraction) {
     // Lang
     const langOp1 = new TextInputBuilder().setCustomId('traducir').setPlaceholder(`ej: "es", "en" ...`).setStyle(TextInputStyle.Short).setRequired(false);
     const langIn = new LabelBuilder().setLabel('Escribe clave ISO de idioma').setTextInputComponent(langOp1);
-    // Domain
-    const domainOp1 = new TextInputBuilder().setCustomId('dominio').setPlaceholder(`ej: d.fxtwitter.com`).setStyle(TextInputStyle.Short).setRequired(false);
-    const domainIn = new LabelBuilder().setLabel('Dominio alterno al server').setTextInputComponent(domainOp1);
     // Out
-    const modal = new ModalBuilder().setCustomId(`followX_${i.id}`).setTitle('Configurar X/Twitter').addLabelComponents(userIn, chIn, oMediaIn, langIn, domainIn);
+    const modal = new ModalBuilder().setCustomId(`followX_${i.id}`).setTitle('Configurar X/Twitter').addLabelComponents(userIn, chIn, oMediaIn, langIn);
     await i.showModal(modal);
     // == // == // FINAL MODAL // == // == //
     const submitInt = await i.awaitModalSubmit({
@@ -81,14 +84,12 @@ async function followXModal(i: ChatInputCommandInteraction) {
         const rawinCh = submitInt.fields.getSelectedChannels("canal")?.first() || null;
         const rawOnlyMedia = submitInt.fields.getStringSelectValues("onlymedia");
         const inTranslate = submitInt.fields.getTextInputValue("traducir") || null;
-        const inDomain = submitInt.fields.getTextInputValue("dominio") || null;
         // converts
         const inCh = rawinCh ? (await guild.channels.fetch(rawinCh.id).catch(() => null)) : null;
         // validUser
         const isValiUser = await userCheck(userX);
         if (!isValiUser) { await submitInt.editReply("¡Algo falló al añadir el usuario, puede ser privado o estar mal escrito!"); return; }
         const langChk = chekLang(inTranslate);
-        const dominChk = chekDomain(inDomain);
         // emb build
         const embed = new EmbedBuilder().setTitle("Follow Twitter").setColor(0xff0000).setTimestamp();
 
@@ -106,14 +107,13 @@ async function followXModal(i: ChatInputCommandInteraction) {
                 return;
             }
 
-            const verify = await addFollowTweet({ guild_id: guild.id, canal: inCh.id, xUser: isValiUser, lang: langChk, Domain: dominChk, lastPost: null, addBy: i.user.id, onlyMedia: inoMedia });
+            const verify = await addFollowTweet({ guild_id: guild.id, canal: inCh.id, xUser: isValiUser, lang: langChk, Domain: null, lastPost: null, addBy: i.user.id, onlyMedia: inoMedia });
             if (verify) {
                 embed.setDescription(`Se añadio correctamente el usuario: **@${isValiUser}**` + `\n` + `Follows restantes: ${(limit.tweetMax - 1) - conty}/${limit.tweetMax}`)
                     .addFields(
                         { name: "Usuario", value: `@${isValiUser}`, inline: false },
                         { name: "Tipo de contenido:", value: inoMedia ? "Solo post con multimedia." : "Cualquier post.", inline: false },
                         { name: "Canal donde postear:", value: `<#${inCh.id}>`, inline: false },
-                        { name: "Dominio", value: dominChk || "No definido", inline: false },
                         { name: "Idioma", value: langChk || "No definido", inline: false }
                     )
                     .setFooter({ text: `Total de follows: ${conty + 1}` });
@@ -121,10 +121,10 @@ async function followXModal(i: ChatInputCommandInteraction) {
             } else { await submitInt.editReply(`Ocurrio un erro al seguir **${isValiUser}**`); }
         }
         else {
-            const { canal, lang, Domain, onlyMedia, addBy, xUser, created_at } = oldyData[0];
-            let channelo = canal, domando = Domain, lango = lang, onlyMediaO = onlyMedia;
+            const { canal, lang, onlyMedia, addBy, xUser, created_at } = oldyData[0];
+            let channelo = canal, lango = lang, onlyMediaO = onlyMedia;
             const inoMediaX = (rawOnlyMedia.length === 0) ? onlyMedia : rawOnlyMedia[0] === "true";
-            if (!inCh && !inDomain && inoMediaX === onlyMedia && !inTranslate) {
+            if (!inCh && inoMediaX === onlyMedia && !inTranslate) {
                 await submitInt.editReply({ content: `No proporcionaste ninguna actualizacion para @${xUser}` });
                 return;
             }
@@ -135,17 +135,15 @@ async function followXModal(i: ChatInputCommandInteraction) {
                 channelo = inCh.id;
             }
 
-            if (inDomain) domando = dominChk;
             if (inoMediaX) onlyMediaO = inoMediaX;
             if (inTranslate) lango = langChk;
 
-            const verify = await addFollowTweet({ guild_id: guild.id, canal: channelo, xUser: xUser, lang: lango, Domain: domando, lastPost: null, addBy: addBy, onlyMedia: onlyMediaO });
+            const verify = await addFollowTweet({ guild_id: guild.id, canal: channelo, xUser: xUser, lang: lango, Domain: null, lastPost: null, addBy: addBy, onlyMedia: onlyMediaO });
             if (verify) {
                 embed.setDescription(`Se actualizo correctamente el usuario: **@${xUser}**`)
                     .addFields(
                         { name: "Tipo de contenido:", value: onlyMediaO ? "Solo post con multimedia." : "Cualquier post.", inline: false },
                         { name: "Canal donde postear:", value: `<#${channelo}>`, inline: false },
-                        { name: "Dominio:", value: domando || "Default", inline: false },
                         { name: "Idioma:", value: lango || "No traducir", inline: false },
                         { name: "Informacion del usuario:", value: `Fue añadido por <@${addBy}> el ${created_at.toLocaleString('es-MX', { dateStyle: 'short', })}` }
                     )
@@ -179,11 +177,10 @@ async function listFollow(i: ChatInputCommandInteraction, guild: Guild) {
         for (const flw of follow) {
             if (!byCh[flw.canal]) byCh[flw.canal] = [];
 
-            const F1 = flw.Domain ?? "Default";
             const F2 = flw.lang ? flagsMap[flw.lang] : '`No traducir!`';
             const F3 = new Date(flw.created_at).toLocaleString('es-MX', { dateStyle: 'short' });
 
-            byCh[flw.canal].push(`🆔: \`${flw.id}\` | 🗣️: [@${flw.xUser}](https://x.com/${flw.xUser}) | 👤: <@${flw.addBy}>\n📅: \`${F3}\` | 🔗: \`${F1}\` | 🌐: ${F2} | 🎥: ${flw.onlyMedia ? "`Media`" : "`Todo`"}`);
+            byCh[flw.canal].push(`🆔: \`${flw.id}\` | 🗣️: [@${flw.xUser}](https://x.com/${flw.xUser}) | 👤: <@${flw.addBy}>\n📅: \`${F3}\` | 🌐: ${F2} | 🎥: ${flw.onlyMedia ? "`Media`" : "`Todo`"}`);
         }
 
         const chunks: string[] = [];
@@ -275,23 +272,46 @@ async function removeFollowModal(i: ChatInputCommandInteraction) {
 }
 
 // =============================== Aux =============================== // 
-
+interface fCheck { code?: number, user?: fUser }
+interface fUser { screen_name?: string, url?: string }
 async function userCheck(userX: string): Promise<string | undefined> {
-    let chekUserX = userX.trim();
-    if (chekUserX.startsWith("http") || chekUserX.startsWith("@")) {
-        const chkXusrTw = chekUserX.match(/(?:twitter\.com|x\.com|@)\/?([a-zA-Z0-9_]{1,15})/)?.[1];
-        if (chkXusrTw) chekUserX = chkXusrTw;
+    const testin = (u: string): string | undefined => {
+        const cleanUsr = u.match(/(?:https?:\/\/(?:www\.)?(?:twitter|x)\.com\/|@?)([a-zA-Z0-9_]{1,15})/i);
+        return cleanUsr ? cleanUsr[1].trim() : undefined
     }
-    chekUserX = chekUserX.toLowerCase().trim();
+
     try {
-        const userFetch = await fetch(`https://api.fxtwitter.com/2/profile/${chekUserX}?about_account=1`)
-        if (userFetch.ok) {
-            const codFe = await userFetch.json() as { code?: number }
-            if (codFe.code === 200) return chekUserX;
-            else return undefined;
+        const chekUserX = testin(userX);
+        if (!chekUserX) {
+            error(`[followX]: Fallo test user: ${chekUserX} | input: ${userX}`);
+            return undefined;
         }
-        else return undefined
-    } catch { return undefined }
+
+        let aFetch: fUser | null = null;
+        let attempt = 0;
+        while (!aFetch && attempt < 5) {
+            const xChek = await fetch(`https://api.fxtwitter.com/2/profile/${chekUserX}`, { method: 'GET' }).catch(() => { return null });
+            if (xChek && xChek.ok) {
+                const codFe = await xChek.json() as fCheck;
+                if (codFe.code === 200 && codFe.user) { aFetch = codFe.user };
+            };
+
+            attempt++;
+
+            if (!aFetch && attempt < 5) { await new Promise(resolve => setTimeout(resolve, 200)); }
+        }
+
+        if (aFetch) {
+            if (aFetch.screen_name) return aFetch.screen_name;
+            else if (aFetch.url) { return testin(aFetch.url) }
+        }
+
+        error(`[followX]: Fallo el fetch || input: ${userX} | formated: ${chekUserX} `);
+        return undefined;
+    } catch (e: any) {
+        error(`[followX]: Network/Fetch error: ${e.message}`);
+        return undefined;
+    }
 }
 
 function chekLang(lang: string | null) {
@@ -301,6 +321,7 @@ function chekLang(lang: string | null) {
     return tlChk
 }
 
+/*
 function chekDomain(domain: string | null) {
     if (domain) {
         const AAYY = domain?.match(/(?:https?:\/\/)?(?:www\.)?([^\/\?#]+)/)?.[1]
@@ -308,5 +329,6 @@ function chekDomain(domain: string | null) {
         else return null
     } else return null;
 }
+*/
 
 

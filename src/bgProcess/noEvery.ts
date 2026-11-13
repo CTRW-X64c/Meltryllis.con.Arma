@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Client, EmbedBuilder, Events, GuildMember, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, Message, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { error } from "../sys/logging";
 import getPool from "../sys/DB-Engine/database";
 import i18next from "i18next";
@@ -47,29 +47,25 @@ const banSpam = (m: GuildMember): string | null => {
     } catch { return null }
 }
 
-let kchG: { [key: string]: { state: boolean, penality: boolean, rol: string | null } } = {};
-const mr = /@(here|everyone)\b/i;
-function noEveryone(cli: Client): void {
-    cli.on(Events.MessageCreate, async (msg) => {
-        if (!mr.test(msg.content)) return;
-        if (!cli.user || msg.author.bot) return;
-        if (!msg.deletable) return;
-        if (!msg.guild?.id || !msg.member) return;
+export let noEveryKche: { [key: string]: { state: boolean, penality: boolean, rol: string | null } } = {};
+export async function noEveryone(msg: Message): Promise<void> {
+    try {
+        if (!msg.channel.isTextBased() || msg.channel.isDMBased() || !msg.deletable) return;
 
-        const gc = kchG[msg.guild.id];
-        if (!gc || !gc.state) return;
-        if (gc.rol && msg.member.roles.cache.has(gc.rol)) return;
+        let rsp = i18next.t("commands:test.interacciones.del_msg", { a1: `<@${msg.author.id}>` });
+        await msg.delete().catch(() => { });
 
-        try {
-            let rsp = i18next.t("commands:test.interacciones.del_msg", { a1: `<@${msg.author.id}>` });
-            await msg.delete().catch(() => { });
-            if (gc.penality && !msg.member.permissions.has(PermissionFlagsBits.Administrator)) { const x = banSpam(msg.member); if (x) rsp = x; }
-            const y = await msg.channel.send(rsp); setTimeout(async () => { if (y.deletable) await y.delete().catch(() => { }); }, 10_000);
-        } catch (e) {
-            const err = (e as Error).message;
-            if (!err.includes("Missing Permissions") && !err.includes("Missing Access")) { error(`Error en sistema anti-menciones, Guild: ${msg.guild.name}, Error: ${e}`) }
+        const neKche = noEveryKche[msg.guild!.id];
+        if (neKche?.penality && msg.member) { const x = banSpam(msg.member); if (x) rsp = x; }
+
+        const y = await msg.channel.send(rsp);
+        setTimeout(async () => { if (y.deletable) await y.delete().catch(() => { }); }, 10_000);
+    } catch (e) {
+        const err = (e as Error).message;
+        if (!err.includes("Missing Permissions") && !err.includes("Missing Access")) {
+            error(`Error en sistema anti-menciones, Guild: ${msg.guild?.name}, Error: ${e}`);
         }
-    });
+    }
 }
 
 /* ======================================== commandos ======================================== */
@@ -89,7 +85,7 @@ export async function handleNoEveryoneCommand(interaction: ChatInputCommandInter
         const state = interaction.options.getBoolean("activado");
         const role = interaction.options.getRole("rol");
         const punish = interaction.options.getBoolean("penalizar");
-        const actual = kchG[guild.id];
+        const actual = noEveryKche[guild.id];
         let tRole = role ? role.id : (actual?.rol ?? null);
         const tState = state !== null ? state : (actual?.state ?? false);
         let castigo = punish !== null ? punish : (actual?.penality ?? false);
@@ -119,9 +115,9 @@ async function genCache(): Promise<boolean> {
     try {
         const pool = await getPool();
         const [rows]: any = await pool.query("SELECT guild_id, state, penality, role FROM noeveryone");
-        kchG = {};
+        noEveryKche = {};
         for (const config of rows) {
-            kchG[config.guild_id] = { state: Boolean(config.state), penality: Boolean(config.penality), rol: config.role || null };
+            noEveryKche[config.guild_id] = { state: Boolean(config.state), penality: Boolean(config.penality), rol: config.role || null };
         } return true;
     } catch (e) { error(`Error cargando cache de anti-menciones: ${e}`); return false }
 }
@@ -130,13 +126,12 @@ async function updateCache(guildId: string, state: boolean, penality: boolean, r
     try {
         const pool = await getPool();
         await pool.query("INSERT INTO noeveryone (guild_id, state, penality, role) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE state = ?, penality = ?, role = ? ", [guildId, state, penality, role, state, penality, role]);
-        kchG[guildId] = { state, penality, rol: role };
+        noEveryKche[guildId] = { state, penality, rol: role };
     } catch (e) { error(`Error actualizando cache de anti-menciones: ${e}`) }
 }
 
 /* ======================================== Init ======================================== */
-export async function initNoEveryone(client: Client) {
+export async function initNoEveryone() {
     const rdy = await genCache();
     if (!rdy) error("¡No se pudo cargar la cache de anti-menciones!");
-    noEveryone(client);
 }

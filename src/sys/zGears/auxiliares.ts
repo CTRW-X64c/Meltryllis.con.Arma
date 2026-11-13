@@ -15,6 +15,7 @@ const COOLDOWN_TIMES: Record<string, number> = {
     "netCommandNoWait": 5 * minutos,
     "Kancolle": 15 * minutos,
     "skip": 2_500,
+    "cleanUp": 3 * minutos,
 };
 
 const left = (time: number): string => {
@@ -78,13 +79,13 @@ export async function adminChannel(client: Client): Promise<{ upChannel: boolean
         return cachedReportConfig;
     }
     try {
-        const guild = await client.guilds.fetch(guildId); /* Chek de server*/
-        if (guild.ownerId !== ownerId) {
+        const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId).catch(() => null); /* Chek de server*/
+        if (!guild || guild.ownerId !== ownerId) {
             error("El dueño del bot no es el dueño del servidor especificado.");
             cachedReportConfig = { upChannel: false, channelId: '' };
             return cachedReportConfig;
         }
-        const channel = await guild.channels.fetch(channelId); /* Check de canal */
+        const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId).catch(() => null); /* Check de canal */
         if (!channel) {
             error(`El canal con ID ${channelId} no se encontró en el servidor.`);
             cachedReportConfig = { upChannel: false, channelId: '' };

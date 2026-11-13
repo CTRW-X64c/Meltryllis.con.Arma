@@ -1,6 +1,6 @@
 // src/Events-Commands/upCommands.ts
 import { error, info, debug } from "../sys/logging";
-import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags, ButtonInteraction } from "discord.js";
+import { Client, ChatInputCommandInteraction, AutocompleteInteraction, ModalSubmitInteraction, MessageFlags, ButtonInteraction, SlashCommandBuilder } from "discord.js";
 import { handleReportResponseButton, helpRepo } from "./commandModales/reportHelp";
 import { registerTestCommand, handleTestCommand } from "./commands/test";
 import { registerHelpCommand, handleHelpCommand, helpAutocomplete } from "./commands/help";
@@ -28,6 +28,7 @@ import { handleKantaiCollectionCommand, registerKantaiCollectionCommand } from "
 import { handleFollowXCommand, registerFollowXCommand } from "./commands/followX";
 import { handlePixiFollowCommand, registerFollowPixiCommand } from "./commands/pixiFollow";
 import { handleBSkyCommand, registerBSkyCommand } from "./commands/blueSky";
+import { handleSrvStatsCommand, registerSrvStatsCommand } from "./commands/myStats";
 
 /* ================================= Registro de comandos ================================= */
 
@@ -55,13 +56,25 @@ export async function sysUpRegister(client: Client) {
     ...(await registerKantaiCollectionCommand()),
     ...(await registerFollowXCommand()),
     ...(await registerFollowPixiCommand()),
-    ...(await registerBSkyCommand())
+    ...(await registerBSkyCommand()),
+    ...(await registerSrvStatsCommand())
   ];
 
-  const permissionsCommand = await registerPermissionsCommand(commands as any);
+  const permissionsCommand = await registerPermissionsCommand(commands as SlashCommandBuilder[]);
   commands.push(...permissionsCommand);
-  const comandList = commands.map((command) => command.name).join(", /");
 
+  for (const cmd of commands) {
+    try {
+      const cmdData = typeof cmd.toJSON === 'function' ? cmd.toJSON() : cmd;
+      debug(`Revisando comando: ${cmdData}`)
+    } catch (err) {
+      error(`❌ ¡ERROR CRÍTICO DETECTADO EN EL COMANDO!`);
+      error(`El objeto del comando problemático es: ${cmd.toJSON()}`);
+      process.exit(1);
+    }
+  }
+
+  const comandList = commands.map((command) => command.name).join(", /");
   client.application?.commands.set(commands)
     .then(() => info(`Comandos registrados (${commands.length}):\n/${comandList}`, "Commands.Register"))
     .catch((err) => error(`Error al registrar comandos: ${err}`, "Commands.Register"));
@@ -125,6 +138,8 @@ export async function sysUpCommands(interaction: ChatInputCommandInteraction) {
       await handlePixiFollowCommand(interaction); break;
     case 'bsky':
       await handleBSkyCommand(interaction); break;
+    case 'srv_stats':
+      await handleSrvStatsCommand(interaction); break;
     default:
       fail(interaction); break;
   }

@@ -1,34 +1,71 @@
-import { ChannelSelectMenuBuilder, ChatInputCommandInteraction, EmbedBuilder, Guild, LabelBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, RoleSelectMenuBuilder, SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextChannel } from 'discord.js';
-import { addBD, delBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/KancolleBD';
+import { ChannelSelectMenuBuilder, ChatInputCommandInteraction, EmbedBuilder, Guild, GuildTextBasedChannel, LabelBuilder, MessageFlags, ModalBuilder, ModalSubmitInteraction, RoleSelectMenuBuilder, SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextChannel } from 'discord.js';
+import { addBD, delKCBD, getKCConfig, Kancolle } from '../../sys/DB-Engine/links/KancolleBD';
 import i18next from 'i18next';
 import { hasPermission } from '../../sys/zGears/mPermission';
 import { debug, error } from '../../sys/logging';
 import { checkCooldown, masterPerm, msgDeleter, startCooldown } from '../../sys/zGears/auxiliares';
-import { allLefts, mantDates, turnDate, JSTtoUTC, getNowJST } from '../../sys/zGears/kc_aux'
+import { allLefts, mantDates, turnDate, JSTtoUTC, getNowJST, rankServers, RankLevel, RecordEntry, senkaTables, gimeName } from '../../sys/zGears/kc_aux'
 import { maint } from '../../sys/DB-Engine/links/KancolleBD'
-import emojis from '../../../adds/otros/emojis.json'
+import emj from '../../../adds/otros/emojis.json'
+
+const listServers = [
+    { name: "横須賀鎮守府 (Yokosuka Naval District)", value: "1" },
+    { name: "呉鎮守府 (Kure Naval District)", value: "2" },
+    { name: "佐世保鎮守府 (Sasebo Naval District)", value: "3" },
+    { name: "舞鶴鎮守府 (Maizuru Naval District)", value: "4" },
+    { name: "大湊警備府 (Ominato Guard District)", value: "5" },
+    { name: "トラック泊地 (Truk Anchorage)", value: "6" },
+    { name: "リンガ泊地 (Lingga Anchorage)", value: "7" },
+    { name: "ラバウル基地 (Rabaul Naval Base)", value: "8" },
+    { name: "ショートランド泊地 (Shortland Anchorage)", value: "9" },
+    { name: "ブイン基地 (Buin Naval Base)", value: "10" },
+    { name: "タウイタウイ泊地 (Tawi-Tawi Anchorage)", value: "11" },
+    { name: "パラオ泊地 (Palau Anchorage)", value: "12" },
+    { name: "ブルネイ泊地 (Brunei Anchorage)", value: "13" },
+    { name: "単冠湾泊地 (Hitokappu Bay Anchorage)", value: "14" },
+    { name: "幌筵泊地 (Paramushir Anchorage)", value: "15" },
+    { name: "宿毛湾泊地 (Sukumo Bay Anchorage)", value: "16" },
+    { name: "鹿屋基地 (Kanoya Naval Base)", value: "17" },
+    { name: "岩川基地 (Iwagawa Naval Base)", value: "18" },
+    { name: "佐伯湾泊地 (Saiki Bay Anchorage)", value: "19" },
+    { name: "柱島泊地 (Hashirajima Anchorage)", value: "20" }
+]
 
 export async function registerKantaiCollectionCommand() {
     const kancolle = new SlashCommandBuilder()
         .setName('kancolle')
         .setDescription('Kantai Collection')
         .addSubcommand(s => s.setName('resets').setDescription(i18next.t("commands:kancolle.slashBuilder.resets"))
-            .addBooleanOption(o => o.setName('all').setDescription(i18next.t("commands:kancolle.slashBuilder.post_4_all")).setRequired(false)))
+            .addBooleanOption(o => o.setName('post').setDescription(i18next.t("commands:kancolle.slashBuilder.post_4_all")).setRequired(false)))
+        .addSubcommand(s => s.setName('rank').setDescription(i18next.t("commands:kancolle.slashBuilder.rank"))
+            .addStringOption(o => o.addChoices(listServers).setName('servidor').setRequired(false).setDescription('Selecciona servidor'))
+            .addBooleanOption(o => o.setName('post').setDescription(i18next.t("commands:kancolle.slashBuilder.post_4_all")).setRequired(false))
+            .addStringOption(o => o.setName('sauce').setDescription("Server a consultar").addChoices({ name: "Senka.su", value: "1" }, { name: "bonodere.famluro.es", value: "2" }).setRequired(false))
+        )
         .addSubcommand(s => s.setName('activar').setDescription(i18next.t("commands:kancolle.slashBuilder.activar")))
         .addSubcommand(s => s.setName('desactivar').setDescription(i18next.t("commands:kancolle.slashBuilder.desactivar")))
         .addSubcommand(s => s.setName('status').setDescription(i18next.t("commands:kancolle.slashBuilder.status")))
     return [kancolle] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>();
 export async function handleKantaiCollectionCommand(interaction: ChatInputCommandInteraction) {
-    try {
-        const guild = interaction.guild;
-        if (!guild) { await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return };
+    const guild = interaction.guild;
+    if (!guild) { await interaction.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return };
 
-        const command = interaction.options.getSubcommand();
-        if (command === "resets") { await resrts(interaction); return; }
+    const channel = interaction.channel
+    const ch: GuildTextBasedChannel | null = (channel && !channel.isDMBased() && channel.isSendable()) ? channel : null;
+
+    try {
+        if (isRunning.get(guild.id)) { await interaction.reply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); return; };
+        isRunning.set(guild.id, true)
 
         const isAllowed = await hasPermission(interaction, interaction.commandName);
+        const command = interaction.options.getSubcommand();
+
+        if (command === "resets") { await resrts(interaction, isAllowed, guild, ch); return }
+        if (command === "rank") { await rankServ(interaction, isAllowed, guild, ch); return }
+
         if (!isAllowed) { await interaction.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral }); return };
 
         switch (command) {
@@ -44,8 +81,9 @@ export async function handleKantaiCollectionCommand(interaction: ChatInputComman
         }
     } catch (err) {
         error(`Error ejecutando comando Kancolle: ${err}`);
-        await interaction.editReply({ content: i18next.t("commands:mangadex.interacciones.command_error") });
-    }
+        if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+        else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guild.id) }
 }
 
 // ==================================================== activar ==================================================== //
@@ -57,20 +95,22 @@ async function enableModal(i: ChatInputCommandInteraction) {
     const roleMod = new LabelBuilder().setLabel('Rol a mencionar al notificar!').setRoleSelectMenuComponent(roleOp)
 
     const KancolleToDo = [
-        { label: "Mantenimientos", value: "mnt", default: false, emoji: emojis.mante },
-        { label: "PvPs, Ejercicios!", value: "pvp", default: false, emoji: emojis.pvp },
-        { label: "Misiones", value: "quest", default: false, emoji: emojis.quest },
-        { label: "Extra Operaciones", value: "oem", default: false, emoji: emojis.oem },
-        { label: "Expediciones Mensuales", value: "mExp", default: false, emoji: emojis.mexp },
+        { label: "Mantenimientos", value: "mnt", default: false, emoji: emj.KC.mante },
+        { label: "PvPs, Ejercicios!", value: "pvp", default: false, emoji: emj.KC.pvp },
+        { label: "Misiones", value: "quest", default: false, emoji: emj.KC.quest },
+        { label: "Extra Operaciones", value: "oem", default: false, emoji: emj.KC.oem },
+        { label: "Expediciones Mensuales", value: "mExp", default: false, emoji: emj.KC.mexp },
+        { label: "Senka.su Rank cut-off", value: "rank", default: false, emoji: emj.KC.rank },
+        { label: "Cambios de version", value: "ver", default: false, emoji: emj.KC.ver }
     ];
 
     const msgSendTypes = new StringSelectMenuBuilder().setCustomId("msgSendTypes")
-        .setMinValues(1).setMaxValues(5).setPlaceholder("Mantenimiento, PvP, Misiones...").setRequired(false)
+        .setMinValues(1).setMaxValues(7).setPlaceholder("Mantenimiento, PvP, Misiones...").setRequired(false)
         .addOptions(KancolleToDo.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
     const msgSend = new LabelBuilder().setLabel('Aviso silencioso!').setStringSelectMenuComponent(msgSendTypes);
 
     const ntfyTypes = new StringSelectMenuBuilder().setCustomId("ntfyTypes")
-        .setMinValues(1).setMaxValues(5).setPlaceholder("RECUERDA ASIGNAR UN ROL!!").setRequired(false)
+        .setMinValues(1).setMaxValues(7).setPlaceholder("RECUERDA ASIGNAR UN ROL!!").setRequired(false)
         .addOptions(KancolleToDo.map(l => new StringSelectMenuOptionBuilder().setLabel(l.label).setValue(l.value).setEmoji(l.emoji).setDefault(l.default)));
     const ntfy = new LabelBuilder().setLabel('Aviso con mención: Requiere un Rol!').setStringSelectMenuComponent(ntfyTypes);
 
@@ -118,6 +158,8 @@ async function enableModal(i: ChatInputCommandInteraction) {
             oem: ntfANDsnd(ntfy.oem, snd.oem),
             mnt: ntfANDsnd(ntfy.mnt, snd.mnt),
             mExp: ntfANDsnd(ntfy.mExp, snd.mExp),
+            rank: ntfANDsnd(ntfy.rank, snd.rank),
+            ver: ntfANDsnd(ntfy.ver, snd.ver)
         };
 
         await addBD(guild.id, cnfKC);
@@ -130,11 +172,12 @@ async function enableModal(i: ChatInputCommandInteraction) {
             .addFields(
                 { name: "Canal:", value: `<#${cnfKC.channel}>` },
                 { name: "Rol a notificar:", value: `${cnfKC.role ? `<@&${cnfKC.role}>` : "No asignado!!"}` },
-                { name: `${emojis.mante} Mantenimientos:`, value: `Aviso: ${cnfKC.mnt.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mnt.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.pvp} PvP, Ejercicios:`, value: `Aviso: ${cnfKC.pvp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.pvp.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.quest} Misiones:`, value: `Aviso: ${cnfKC.quest.av ? "✅" : "❌"} | Notificacion: ${cnfKC.quest.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.oem} Extra Operaciones:`, value: `Aviso: ${cnfKC.oem.av ? "✅" : "❌"} | Notificacion: ${cnfKC.oem.ntf ? "✅" : "❌"}` },
-                { name: `${emojis.mexp} Expediciones Mensuales:`, value: `Aviso: ${cnfKC.mExp.av ? "✅" : "❌"} | Notificacion: ${cnfKC.mExp.ntf ? "✅" : "❌"}` },
+                { name: `${emj.KC.mante} Mantenimientos:`, value: `Aviso: ${cnfKC.mnt.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.mnt.ntf ? emj.cmn.ok : emj.cmn.fail}` },
+                { name: `${emj.KC.pvp} PvP, Ejercicios:`, value: `Aviso: ${cnfKC.pvp.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.pvp.ntf ? emj.cmn.ok : emj.cmn.fail}` },
+                { name: `${emj.KC.quest} Misiones:`, value: `Aviso: ${cnfKC.quest.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.quest.ntf ? emj.cmn.ok : emj.cmn.fail}` },
+                { name: `${emj.KC.oem} Extra Operaciones:`, value: `Aviso: ${cnfKC.oem.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.oem.ntf ? emj.cmn.ok : emj.cmn.fail}` },
+                { name: `${emj.KC.mexp} Expediciones Mensuales:`, value: `Aviso: ${cnfKC.mExp.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.mExp.ntf ? emj.cmn.ok : emj.cmn.fail}` },
+                { name: `${emj.KC.rank} Senka.su Rank cut-off:`, value: `Aviso: ${cnfKC.rank.av ? emj.cmn.ok : emj.cmn.fail} | Notificacion: ${cnfKC.rank.ntf ? emj.cmn.ok : emj.cmn.fail}` }
             );
 
         await submitInt.editReply({ embeds: [emb] });
@@ -146,14 +189,14 @@ async function enableModal(i: ChatInputCommandInteraction) {
 
 // ==================================================== disable ==================================================== //
 async function disable(interacciones: ChatInputCommandInteraction, guild: Guild) {
+    await interacciones.deferReply({ flags: MessageFlags.Ephemeral });
     try {
-        await interacciones.deferReply({ flags: MessageFlags.Ephemeral });
         const cnf = await getKCConfig(guild.id);
         if (!cnf) {
             await interacciones.editReply(i18next.t("commands:kancolle.interacciones.error_no_config"));
             return;
         }
-        await delBD(guild.id);
+        await delKCBD(guild.id);
         interacciones.editReply(i18next.t("commands:kancolle.interacciones.activar_success"));
     } catch (err) {
         error(`Error ejecutando comando Kancolle: ${err}`);
@@ -163,8 +206,8 @@ async function disable(interacciones: ChatInputCommandInteraction, guild: Guild)
 
 // ==================================================== status ==================================================== //
 async function status(interacciones: ChatInputCommandInteraction, guild: Guild) {
+    await interacciones.deferReply({ flags: MessageFlags.Ephemeral });
     try {
-        await interacciones.deferReply({ flags: MessageFlags.Ephemeral });
         const cnfList = await getKCConfig(guild.id) as Kancolle[];
         if (!cnfList || cnfList.length === 0) {
             await interacciones.editReply(i18next.t("commands:kancolle.interacciones.error_no_config"));
@@ -175,8 +218,8 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
             .setTitle(i18next.t("commands:kancolle.interacciones.status_embed_title"))
             .addFields(
                 { name: i18next.t("commands:kancolle.interacciones.status_embed_field_basic"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_basic_value", { a1: `<#${cnf.channel}>`, a2: cnf.role ? `<@&${cnf.role}>` : "Ninguno!" }) },
-                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.av ? "✅" : "❌", a2: cnf.quest.av ? "✅" : "❌", a3: cnf.oem.av ? "✅" : "❌", a4: cnf.mnt.av ? "✅" : "❌", a5: cnf.mExp.av ? "✅" : "❌" }) },
-                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active_ntf"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.ntf ? "✅" : "❌", a2: cnf.quest.ntf ? "✅" : "❌", a3: cnf.oem.ntf ? "✅" : "❌", a4: cnf.mnt.ntf ? "✅" : "❌", a5: cnf.mExp.ntf ? "✅" : "❌" }) }
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.av ? emj.cmn.ok : emj.cmn.fail, a2: cnf.quest.av ? emj.cmn.ok : emj.cmn.fail, a3: cnf.oem.av ? emj.cmn.ok : emj.cmn.fail, a4: cnf.mnt.av ? emj.cmn.ok : emj.cmn.fail, a5: cnf.mExp.av ? emj.cmn.ok : emj.cmn.fail, a6: cnf.rank.av ? emj.cmn.ok : emj.cmn.fail }) },
+                { name: i18next.t("commands:kancolle.interacciones.status_embed_field_active_ntf"), value: i18next.t("commands:kancolle.interacciones.status_embed_field_active_value", { a1: cnf.pvp.ntf ? emj.cmn.ok : emj.cmn.fail, a2: cnf.quest.ntf ? emj.cmn.ok : emj.cmn.fail, a3: cnf.oem.ntf ? emj.cmn.ok : emj.cmn.fail, a4: cnf.mnt.ntf ? emj.cmn.ok : emj.cmn.fail, a5: cnf.mExp.ntf ? emj.cmn.ok : emj.cmn.fail, a6: cnf.rank.ntf ? emj.cmn.ok : emj.cmn.fail }) }
             )
             .setColor(0x00FF00);
 
@@ -188,9 +231,9 @@ async function status(interacciones: ChatInputCommandInteraction, guild: Guild) 
 }
 
 // ==================================================== resets ==================================================== //
-async function resrts(interacciones: ChatInputCommandInteraction) {
+async function resrts(interacciones: ChatInputCommandInteraction, isAllowed: boolean, guild: Guild, ch: GuildTextBasedChannel | null) {
     await interacciones.deferReply({ flags: MessageFlags.Ephemeral });
-    const everyone = interacciones.options.getBoolean("all") ?? false;
+
     const ltim = allLefts(), TZjp = 'Asia/Tokyo', TZutc = 'UTC', TZmx = 'America/Mexico_City';
     const nowTime = getNowJST();
 
@@ -253,38 +296,165 @@ async function resrts(interacciones: ChatInputCommandInteraction) {
         .addFields(fields)
         .setColor(0x00FF00)
         .setFooter({ text: `Kancolle Resets`, iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" });
-    if (!everyone) {
-        await interacciones.editReply({ embeds: [emb] });
-    } else {
-        try {
-            const ch = interacciones.channel as TextChannel;
-            if (ch && ch.isTextBased()) {
-                // AntiSpam
-                const tommer = checkCooldown(interacciones.guild!.id, "Kancolle")
-                const isAllowed = await hasPermission(interacciones, interacciones.commandName);
-                if (!isAllowed && tommer.onCooldown) { await interacciones.editReply({ content: `EL COMANDO ESTA EN CD: ${tommer.timeLeft} | Pide a un admin que lo ejecute!` }); return }
-                // Run
-                await interacciones.editReply({ content: "✅ " })
-                const msgResets = await ch.send({ embeds: [emb] });
-                if (!isAllowed) startCooldown(interacciones.guild!.id, "Kancolle");
-                msgDeleter({ msg: msgResets, userId: interacciones.user.id });
-            } else await interacciones.editReply({ content: i18next.t("commands:kancolle.interacciones.resrts_let_send_fail"), embeds: [emb] });
-        } catch (e) { await interacciones.editReply({ content: i18next.t("commands:kancolle.interacciones.resrts_let_send_fail"), embeds: [emb] }) }
+
+    const postCh = interacciones.options.getBoolean("post") ?? true;
+    if (postCh) {
+        if (!ch) { await interacciones.editReply({ content: `¡El canal no es válido para enviar el post!`, embeds: [emb] }); return; }
+
+        const tommer = checkCooldown(guild.id, "Kancolle");
+        const canSend = isAllowed || !tommer.onCooldown;
+        if (canSend) {
+            try {
+                const msgSent = await ch.send({ embeds: [emb] });
+                if (!isAllowed) startCooldown(guild.id, "Kancolle");
+                msgDeleter({ msg: msgSent, userId: interacciones.user.id });
+                await interacciones.editReply({ content: "Se envio la lista de Resets al canal." });
+                return;
+            } catch {
+                await interacciones.editReply({ content: `Algo falló al publicar la lista de Resets en el canal. Mostrando respuesta privada:`, embeds: [emb] }); return;
+            }
+        } else {
+            await interacciones.editReply({ content: `El comando está en Cooldown (${tommer.timeLeft}). Pide a un Admin que ejecute el comando para omitir el tiempo de espera.`, embeds: [emb] });
+            return;
+        }
     }
+    await interacciones.editReply({ embeds: [emb] });
+}
+
+// ==================================================== Ranks ==================================================== //
+async function rankServ(interacciones: ChatInputCommandInteraction, isAllowed: boolean, guild: Guild, ch: GuildTextBasedChannel | null) {
+    await interacciones.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const jstDate = new Date().toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+    let isActual = `## Hora JP actual: ${jstDate}`;
+
+    const fields: { name: string, value: string, inline?: boolean }[] = [];
+    const emb = new EmbedBuilder().setImage("https://i.imgur.com/ZzQLWQ6.png").setColor(0x00FF00)
+        .setFooter({ text: `Kancolle Rank`, iconURL: "https://upload.wikimedia.org/wikipedia/ru/0/02/Kantai_Collection_logo.png" });
+    const server = interacciones.options.getString("servidor") ?? null;
+    if (!server) {
+        const selServ = interacciones.options.getString("sauce") ?? "1";
+        if (selServ === "1") {
+            const dtaSenka = await senkaTables()
+            if (dtaSenka.length === 0) {
+                await interacciones.editReply({ content: "Sorry algo fallo al recuperar los datos de Senku.su :(" })
+                return;
+            }
+
+            for (const srv of dtaSenka) {
+                fields.push({
+                    name: `ID: ${srv.num} | Name: ${gimeName(srv.name)} \n> Actualizado: ${srv.isUpdate ? emj.cmn.ok : emj.cmn.fail} | ${srv.updatedIn} JP Time`,
+                    value: `**Top 1:** ${srv.top1}pts | **Top 5:** ${srv.top5}pts | **Top 20:** ${srv.top20}pts \n**Top 100:** ${srv.top100}pts | **Top 500:** ${srv.top500}pts`
+                });
+            };
+            emb.setDescription(`# Ranking servers! \n> ${isActual}\n\n Los cutoff son a las 15:00hrs y 03:00hrs! \nMostrando información de los ${dtaSenka.length} servers! \n \`Algunos servers toman su tiempo en actualizar!\``)
+                .addFields(fields).setTitle("DATOS DE SENKA.SU").setURL("https://senka.su/en");
+        } else {
+            const dtaBono = await rankServers();
+            if (!dtaBono.ok || !dtaBono.data) {
+                if (dtaBono.data) { isActual = `No pude obtener el mas reciente, JP hora ${dtaBono.date}`; }
+                else { await interacciones.editReply("No pude obtener la información de bonodere"); return; }
+            }
+
+            dtaBono.data.forEach((srv) => {
+                const updatedDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+                fields.push({
+                    name: `ID: ${srv.number} | Name: ${srv.jpName} (${srv.jpName}) \n> Actualizado: ${dtaBono.ok ? (srv.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${updatedDate} JP Time`,
+                    value: `**Top 1:** ${srv.cutoff[1]}pts | **Top 5:** ${srv.cutoff[5]}pts | **Top 20:** ${srv.cutoff[20]}pts \n **Top 100:** ${srv.cutoff[100]}pts | **Top 500:** ${srv.cutoff[500]}pts`
+                })
+            });
+
+            emb.setDescription(`# Ranking servers! \n> ${isActual}\n\n Los cutoff son a las 15:00hrs y 03:00hrs! \nMostrando información de los ${dtaBono.data.length} servers! \n \`Algunos servers toman su tiempo en actualizar!\``)
+                .addFields(fields).setTitle("DATOS DE BONODERE.FAMLURO.ES").setURL("https://bonodere.famluro.es/");
+        }
+    }
+    else {
+        const waitData = await rankServers();
+        if (!waitData.ok || !waitData.data) {
+            if (waitData.data) { isActual = `No pude obtener el mas reciente, JP hora ${waitData.date}`; }
+            else {
+                await interacciones.editReply("No pude obtener la información del Rank|Server.");
+                return;
+            }
+        }
+
+        const idNum = Number(server);
+        const dta = waitData.data.find((serv) => serv.number === idNum);
+        if (!dta) {
+            await interacciones.editReply("¡No encontré información del servidor especificado!");
+            return;
+        }
+
+        const updatedDate = new Date(dta.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+        const descSingle = `# Ranking de ${dta.jpName} (${dta.enName})! \n> ${isActual}\n\n Los cutoff son a las 15:00hrs y 03:00hrs!\n \`Algunos servers toman su tiempo en actualizar!\``;
+
+        const highestText = formatRecords(dta.records.higest);
+        const lowestText = formatRecords(dta.records.lowest);
+
+        emb.setDescription(descSingle).addFields(
+            {
+                name: `Actualizado: ${waitData.ok ? (dta.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${updatedDate} JP Time`,
+                value: `**TOP 1:** ${dta.cutoff[1]} pts\n**TOP 5:** ${dta.cutoff[5]} pts\n**TOP 20:** ${dta.cutoff[20]} pts\n**TOP 100:** ${dta.cutoff[100]} pts\n**TOP 500:** ${dta.cutoff[500]} pts`
+            },
+            { name: `📈 Histórico más Alto:`, value: highestText, inline: true },
+            { name: `📉 Histórico más Bajo:`, value: lowestText, inline: true }
+        );
+    }
+
+    const postCh = interacciones.options.getBoolean("post") ?? true;
+    if (postCh) {
+        if (!ch) { await interacciones.editReply({ content: `¡El canal no es válido para enviar el post!`, embeds: [emb] }); return; }
+
+        const tommer = checkCooldown(guild.id, "Kancolle");
+        const canSend = isAllowed || !tommer.onCooldown;
+        if (canSend) {
+            try {
+                const msgSent = await ch.send({ embeds: [emb] });
+                if (!isAllowed) startCooldown(guild.id, "Kancolle");
+                msgDeleter({ msg: msgSent, userId: interacciones.user.id });
+                await interacciones.editReply({ content: "Ranking del servidor enviado al canal." });
+                return;
+            } catch {
+                await interacciones.editReply({ content: `Algo falló al publicar el ranking en el canal. Mostrando respuesta privada:`, embeds: [emb] }); return;
+            }
+        } else {
+            await interacciones.editReply({ content: `El comando está en Cooldown (${tommer.timeLeft}). Pide a un Admin que ejecute el comando para omitir el tiempo de espera.`, embeds: [emb] });
+            return;
+        }
+    }
+    await interacciones.editReply({ embeds: [emb] });
 }
 
 // ===== aux ===== //
-export interface tunBoo { mnt: boolean; pvp: boolean; quest: boolean; oem: boolean; mExp: boolean; }
+export interface tunBoo { mnt: boolean; pvp: boolean; quest: boolean; oem: boolean; mExp: boolean; rank: boolean; ver: boolean }
 export interface exitValue { snd: tunBoo; ntfy: tunBoo; }
-export function turnIntoBoo(listSend: readonly string[] = [], listNtfy: readonly string[] = [], hasRole: boolean): exitValue {
+function turnIntoBoo(listSend: readonly string[] = [], listNtfy: readonly string[] = [], hasRole: boolean): exitValue {
     const mapBools = (lista: readonly string[]): tunBoo => ({
         mnt: lista.includes("mnt"),
         pvp: lista.includes("pvp"),
         quest: lista.includes("quest"),
         oem: lista.includes("oem"),
-        mExp: lista.includes("mExp")
+        mExp: lista.includes("mExp"),
+        rank: lista.includes("rank"),
+        ver: lista.includes("ver")
     });
 
-    const ntfyFalse: tunBoo = { mnt: false, pvp: false, quest: false, oem: false, mExp: false };
+    const ntfyFalse: tunBoo = { mnt: false, pvp: false, quest: false, oem: false, mExp: false, rank: false, ver: false };
     return { snd: mapBools(listSend || []), ntfy: hasRole ? mapBools(listNtfy || []) : ntfyFalse };
 }
+
+// ===== up/down ranks ===== //
+function formatRecords(recordsObj: Record<RankLevel, RecordEntry>): string {
+    const mesesRecord: Record<number, string> = {
+        0: "Enero", 1: "Febrero", 2: "Marzo", 3: "Abril", 4: "Mayo", 5: "Junio",
+        6: "Julio", 7: "Agosto", 8: "Septiembre", 9: "Octubre", 10: "Noviembre", 11: "Diciembre"
+    };
+    const levels: RankLevel[] = ['1', '5', '20', '100', '500'];
+    return levels.map(level => {
+        const item = recordsObj[level];
+        if (!item) return `**Top ${level}:** N/A`;
+        const nombreMes = mesesRecord[item.month] ?? `Mes ${item.month}`;
+        return `**Top ${level}:** ${item.value.toLocaleString()} pts *(${nombreMes} ${item.year})*`;
+    }).join('\n');
+}
+

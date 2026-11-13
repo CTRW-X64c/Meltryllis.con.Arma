@@ -1,6 +1,6 @@
-import { ApiHandler, pResult } from "../embedingSwitch";
+import { ApiHandler, pMSGin, pResult } from "../embedingSwitch";
 import urlStatusManager from "../domainChecker";
-import { error, debug } from "../../logging";
+import { error } from "../../logging";
 
 export class fakeApiFB implements ApiHandler {
     name = "FacebookFakeApi";
@@ -8,26 +8,23 @@ export class fakeApiFB implements ApiHandler {
     cDom: string | null = null;
     isAvailable(): boolean { return true; }
     isDomain(domain: string): boolean { return /(^|:\/\/|\.)(facebook|fb)\.com/.test(domain); }
-    async guildChk(domain: string, guildId: string | null, guildConfigs: Map<string, any>): Promise<boolean> {
+    async guildChk(domain: string, guildConfigs: Map<string, any>): Promise<boolean> {
         if (!domain) return false;
         const dta = guildConfigs.get("Facebook");
         if (dta) {
-            if (dta.enabled === false) {
-                debug(`El uso de Facebook fix está deshabilitado en este gremio: ${guildId}`, "ApiReplacement");
-                return false;
-            }
+            if (dta.enabled === false) return false;
             this.cDom = dta?.custom_url ?? null;
         }
         return true;
     }
 
-    async process(url: string): Promise<pResult> {
+    async process(pMsg: pMSGin): Promise<pResult> {
         try {
-            if (!url.includes("/share/")) { return { ok: false }; }
+            if (!pMsg.url.includes("/share/")) { return { ok: false }; }
             let fbDom = this.cDom || urlStatusManager.getActiveUrl("facebook");
             if (!fbDom) return { ok: false };
             fbDom = fbDom.replace(/^https?:\/\//, '');
-            const response = await fetch(url, {
+            const response = await fetch(pMsg.url, {
                 method: 'GET',
                 redirect: 'follow',
                 headers: {

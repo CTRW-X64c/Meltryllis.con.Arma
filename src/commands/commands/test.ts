@@ -1,138 +1,91 @@
 // src/Events-Commands/commands/test.ts
-import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, TextChannel, PermissionFlagsBits } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionsBitField, PermissionFlagsBits, Guild, TextBasedChannel } from "discord.js";
 import i18next from "i18next";
-import { error, debug } from "../../sys/logging";
+import { error } from "../../sys/logging";
 import { getConfigMap } from "../../sys/DB-Engine/links/ReplyBots";
 import { getGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
 import { rMetaList } from "../../sys/embedding/embedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
 import { checkAllDomains, buildDomainStatusEmbed } from "../../sys/zGears/neTools";
-import { checkCooldown, startCooldown } from "../../sys/zGears/auxiliares";
+import { checkCooldown, masterPerm, startCooldown } from "../../sys/zGears/auxiliares";
 import { getGuildLimits } from "../../sys/DB-Engine/links/noRules";
-import { embedezSFW, embedezNSFW } from "../../sys/embedding/domainChecker";
 
 export async function registerTestCommand(): Promise<SlashCommandBuilder[]> {
   const testCommand = new SlashCommandBuilder()
     .setName("test")
     .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("commands:test.slashBuilder.test_description"))
-    .addStringOption((option) =>
-      option
-        .setName("mode")
-        .setDescription(i18next.t("commands:test.slashBuilder.mode_description"))
-        .setRequired(false)
-        .addChoices(
-          { name: i18next.t("commands:test.slashBuilder.guild"), value: "channel" },
-          { name: i18next.t("commands:test.slashBuilder.channel"), value: "guild" },
-          { name: i18next.t("commands:test.slashBuilder.embed_config"), value: "embed" },
-          { name: i18next.t("commands:test.slashBuilder.mode_domainds"), value: "chekdimains" }
-        )
-    ) as SlashCommandBuilder;
-
-  return [testCommand];
+    .addStringOption((o) => o.setName("mode").setDescription(i18next.t("commands:test.slashBuilder.mode_description")).setRequired(false)
+      .addChoices(
+        { name: i18next.t("commands:test.slashBuilder.guild"), value: "masterperm" },
+        { name: i18next.t("commands:test.slashBuilder.channel"), value: "tstCh" },
+        { name: i18next.t("commands:test.slashBuilder.embed_config"), value: "embed" },
+        { name: "Configuracion de comportamiento!", value: "workhere" },
+        { name: i18next.t("commands:test.slashBuilder.mode_domainds"), value: "chekdimains" }
+      )
+    );
+  return [testCommand] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handleTestCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+  const { guild, channel } = interaction;
+  if (!guild) { await interaction.reply(i18next.t("common:Errores.noGuild")); return; }
+  if (!channel) { await interaction.reply(i18next.t("common:Errores.noChannel")); return; }
+
   try {
     const isAllowed = await hasPermission(interaction, interaction.commandName);
-    if (!isAllowed) {
-      await interaction.reply({
-        content: i18next.t("common:Errores.isAllowed"),
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
+    if (!isAllowed) { await interaction.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral, }); return; }
 
-    const mode = interaction.options.getString("mode") ?? "channel";
-    const configMap = await getConfigMap();
-    const baseEmbed = new EmbedBuilder()
-      .setTitle(i18next.t("commands:test.interacciones.title"));
-    const embeds: EmbedBuilder[] = [baseEmbed];
+    if (isRunning.get(guild.id)) { await interaction.reply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); return; };
+    isRunning.set(guild.id, true)
 
-    // Inicio de seccion switch para subcomandos
+    const mode = interaction.options.getString("mode") ?? "masterperm";
     switch (mode) {
-      case "channel":
-        await guildPermision(interaction, baseEmbed);
+      case "masterperm": // fix?
+        await guildPermision(interaction, channel, guild);
         break;
-
-      case "guild":
-        await allChannels(interaction, embeds, configMap);
+      case "tstCh": //fix
+        await allChannels(interaction, guild);
         break;
-
-      case "embed":
-        await ComEmbed(interaction, baseEmbed);
+      case "embed": // fix
+        await ComEmbed(interaction, guild);
         break;
-
+      case "workhere": // add
+        await workeHere(interaction, guild);
+        break;
       case "chekdimains":
         await ChekDomainsTest(interaction);
-        return;
-
-      default:
-        baseEmbed.setDescription(i18next.t("commands:test.interacciones.test_command_invalid_mode"))
-          .setColor("#ff0000");
         break;
     }
-    // Termino de seccion switch para subcomandos
-    await interaction.reply({ embeds: embeds, flags: MessageFlags.Ephemeral });
-    debug(`Comando /test ejecutado en modo: ${mode}`); //<=
+
   } catch (err) {
-    error(`Error al ejecutar comando /test: ${err}`); //<=
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({
-        content: i18next.t("commands:test.interacciones.test_command_invalid_mode"),
-        flags: MessageFlags.Ephemeral,
-      });
-    } else if (!interaction.replied) {
-      await interaction.editReply({
-        content: i18next.t("commands:test.interacciones.test_command_invalid_mode"),
-      });
-    }
-  }
+    error(`Error al ejecutar comando /test: ${err}`);
+    if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+    else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+  } finally { isRunning.delete(guild.id) }
 }
 
 /* ========================= Permisos Generales ========================= */
+async function guildPermision(interaction: ChatInputCommandInteraction, channel: TextBasedChannel, guild: Guild): Promise<void> {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-async function guildPermision(interaction: ChatInputCommandInteraction, embed: EmbedBuilder): Promise<void> {
-  const requiredPermissions = [
-    { name: i18next.t("commands:test.permisos.view_channel"), bit: PermissionsBitField.Flags.ViewChannel },
-    { name: i18next.t("commands:test.permisos.send_messages"), bit: PermissionsBitField.Flags.SendMessages },
-    { name: i18next.t("commands:test.permisos.embed_links"), bit: PermissionsBitField.Flags.EmbedLinks },
-    { name: i18next.t("commands:test.permisos.manage_messages"), bit: PermissionsBitField.Flags.ManageMessages },
-    { name: i18next.t("commands:test.permisos.read_message_history"), bit: PermissionsBitField.Flags.ReadMessageHistory },
-    { name: i18next.t("commands:test.permisos.add_reactions"), bit: PermissionsBitField.Flags.AddReactions },
-    { name: i18next.t("commands:test.permisos.role_manager"), bit: PermissionsBitField.Flags.ManageRoles },
-    { name: i18next.t("commands:test.permisos.channel_manager"), bit: PermissionsBitField.Flags.ManageChannels }
-  ];
+  const embed = new EmbedBuilder().setTitle("TEST DE PERMISOS GENERALES!");
+  const genPrm = masterPerm(guild, "viewCh|sendMsg|addlink|msgManager|readMsg|reactions|roles|chManager");
 
   const admin = [
     { name: i18next.t("commands:test.permisos.manage_guild"), bit: PermissionsBitField.Flags.ManageGuild },
     { name: i18next.t("commands:test.permisos.administrator"), bit: PermissionsBitField.Flags.Administrator }
   ];
 
-  const channel = interaction.channel as TextChannel;
   if (!channel || !("permissionsFor" in channel)) {
-    throw new Error(i18next.t("commands:test.interacciones.test_error_permission"));
+    await interaction.editReply({ content: i18next.t("commands:test.interacciones.test_error_permission") });
+    return;
   }
 
-  const botMember = interaction.guild?.members.me;
-  if (!botMember) {
-    throw new Error(i18next.t("commands:test.interacciones.test_error_permission_user"));
-  }
-
-  const permissions = channel.permissionsFor(botMember);
-  if (!permissions) {
-    throw new Error(i18next.t("commands:test.interacciones.test_error_verify_permission"));
-  }
-
+  const permissions = channel.permissionsFor(interaction.guild!.members.me!);
+  embed.setDescription(`Revisando los permisos generales. \n\`No aplican en canales privados\` \n\n ${genPrm.msg.join("\n")}`)
   embed
-    .setDescription(i18next.t("commands:test.interacciones.test_command_channel_description"))
-    .addFields(
-      requiredPermissions.map((perm) => ({
-        name: i18next.t("commands:test.interacciones.permission_name", { name: perm.name }),
-        value: permissions.has(perm.bit) ? i18next.t("commands:test.interacciones.status_allowed") : i18next.t("commands:test.interacciones.status_missing"),
-        inline: false,
-      }))
-    )
     .addFields(
       admin.map((perm) => ({
         name: i18next.t("commands:test.interacciones.permission_name", { name: perm.name }),
@@ -140,174 +93,95 @@ async function guildPermision(interaction: ChatInputCommandInteraction, embed: E
         inline: false,
       }))
     );
+
   embed.setFooter({ text: i18next.t("commands:test.interacciones.footer") });
   embed.setColor("#0300c8");
+
+  await interaction.editReply({ embeds: [embed] })
 }
 
 /* ========================= Todos los coanels ========================= */
+async function allChannels(interaction: ChatInputCommandInteraction, guild: Guild): Promise<void> {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-async function allChannels(interaction: ChatInputCommandInteraction, embeds: EmbedBuilder[], configMap: Map<string, Map<string, { enabled: boolean; replyBots: boolean }>>,): Promise<void> {
-  const guild = interaction.guild;
-  const textPermisison = [
-    { name: i18next.t("commands:test.permisos.view_channel"), bit: PermissionsBitField.Flags.ViewChannel },
-    { name: i18next.t("commands:test.permisos.send_messages"), bit: PermissionsBitField.Flags.SendMessages },
-    { name: i18next.t("commands:test.permisos.embed_links"), bit: PermissionsBitField.Flags.EmbedLinks },
-    { name: i18next.t("commands:test.permisos.manage_messages"), bit: PermissionsBitField.Flags.ManageMessages },
-    { name: i18next.t("commands:test.permisos.read_message_history"), bit: PermissionsBitField.Flags.ReadMessageHistory },
-    { name: i18next.t("commands:test.permisos.add_reactions"), bit: PermissionsBitField.Flags.AddReactions },
-  ];
+  const emb = new EmbedBuilder().setTitle("TEST DE PERMISOS POR CANAL!").setDescription("\`Solo se muestran los canales que no tengan los permisos necesarios!\`");
 
-  const voicePermision = [
-    { name: i18next.t("commands:test.permisos.view_channel"), bit: PermissionsBitField.Flags.ViewChannel },
-    { name: i18next.t("commands:test.permisos.connect_voice"), bit: PermissionsBitField.Flags.Connect }
-  ];
-
-  if (!guild) {
-    throw new Error(i18next.t("commands:test.interacciones.dont_gg"));
-  }
-
-  const textChannels = guild.channels.cache.filter(channel => channel.type === 0); // Canales de Texto, Excluye hilos
-  const voiceChannels = guild.channels.cache.filter(channel => channel.type === 2); // Canales de Voz
-  let globalPermissionsOk = true;
-
-  const channelsArray = [...textChannels.values(), ...voiceChannels.values()];
-  const chunkSize = 25;
-  const maxChannels = chunkSize * 10;
-  const channelsProcess = channelsArray.slice(0, maxChannels);
-
-  embeds[0].setDescription(i18next.t("commands:test.interacciones.test_command_guild_description"));
-
-  for (let i = 0; i < channelsProcess.length; i += chunkSize) {
-    const chunk = channelsProcess.slice(i, i + chunkSize);
-    let currentEmbed: EmbedBuilder;
-
-    if (i === 0) {
-      currentEmbed = embeds[0];
-    } else {
-      currentEmbed = new EmbedBuilder().setTitle(i18next.t("commands:test.interacciones.title") + ` (${Math.floor(i / chunkSize) + 1})`);
-      embeds.push(currentEmbed);
+  const listTxtCh: string[] = [];
+  const TxtCh = guild.channels.cache.filter(channel => channel.type === 0); // Canales de Texto, Excluye hilos
+  for (const [, tch] of TxtCh) {
+    const tCh = masterPerm(tch, "viewCh|sendMsg|addlink|msgManager|readMsg|reactions");
+    if (!tCh.ok) {
+      const missT = tCh.msg.flatMap(cnk => cnk.split("\n")).filter(x => x.includes("❌")).join("\n");
+      listTxtCh.push(`Canal: <#${tch.id}> le faltan los permisos: \n${missT}`);
     }
-
-    chunk.forEach(channel => {
-      const botMember = guild.members.me;
-      if (botMember && "permissionsFor" in channel) {
-        const permissions = channel.permissionsFor(botMember);
-
-        if (channel.type === 0) {
-          const permissionBits = textPermisison.map(p => p.bit);
-          const hasPerms = permissions?.has(permissionBits, false) ?? false;
-          if (!hasPerms) globalPermissionsOk = false;
-
-          const guildId = guild.id;
-          const channelId = channel.id;
-          const guildConfig = configMap.get(guildId);
-          const channelConfig = guildConfig?.get(channelId) ?? { enabled: true, replyBots: false };
-
-          currentEmbed.addFields({
-            name: `Canal: #${channel.name}`,
-            value: (hasPerms ? i18next.t("commands:test.interacciones.all_status_allowed") : i18next.t("commands:test.interacciones.missing_any_status")) +
-              `\n${i18next.t("commands:test.interacciones.working_here")}: ${channelConfig.enabled ? "✅" : "❌"}` +
-              `\n${i18next.t("commands:test.interacciones.reply_bots")}: ${channelConfig.replyBots ? "✅" : "❌"}`,
-            inline: false,
-          });
-
-        } else if (channel.type === 2) {
-          const permissionBits = voicePermision.map(p => p.bit);
-          const hasPerms = permissions?.has(permissionBits, false) ?? false;
-          if (!hasPerms) globalPermissionsOk = false;
-
-          currentEmbed.addFields({
-            name: `🔊 Voz: ${channel.name}`,
-            value: hasPerms ? i18next.t("commands:test.interacciones.all_status_allowed") : i18next.t("commands:test.interacciones.missing_any_status"),
-            inline: false,
-          });
-        }
-      }
-    });
   }
 
-  if (channelsProcess.length > maxChannels) {
-    embeds[embeds.length - 1].setFooter({ text: `⚠️ Mostrando primeros ${maxChannels} canales de ${channelsArray.length}.` });
+  const listVoiCh: string[] = [];
+  const VoiCh = guild.channels.cache.filter(channel => channel.type === 2); // Canales de Voz
+  for (const [, vch] of VoiCh) {
+    const vCh = masterPerm(vch, "viewCh|voiceConnect|chManager");
+    if (!vCh.ok) {
+      const missV = vCh.msg.flatMap(cnk => cnk.split("\n")).filter(x => x.includes("❌")).join("\n");
+      listVoiCh.push(`Canal: <#${vch.id}> le faltan los permisos: \n${missV}`);
+    }
   }
 
-  const color = globalPermissionsOk ? "#00ff00" : "#ff0000";
-  embeds.forEach(e => e.setColor(color));
-  embeds.forEach(e => e.setFooter({ text: i18next.t("commands:test.interacciones.footer") }));
+  emb.addFields(
+    { name: `Canales de texto:`, value: `${listTxtCh.length > 0 ? listTxtCh.join("\n") : "✅ Todos los canles sin problemas!"}` },
+    { name: `Canales de voz:`, value: `${listVoiCh.length > 0 ? listVoiCh.join("\n") : "✅ Todos los canles sin problemas!"}` }
+  );
+
+  emb.setFooter({ text: "Test de permisos de canales" }).setTimestamp().setColor(((listTxtCh.length + listVoiCh.length) < 1) ? 0x00ff00 : 0xff0000);
+
+  await interaction.editReply({ embeds: [emb] })
 }
 
 /* ========================= Embedes Set ========================= */
+async function ComEmbed(interaction: ChatInputCommandInteraction, guild: Guild): Promise<void> {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-async function ComEmbed(interaction: ChatInputCommandInteraction, embed: EmbedBuilder): Promise<void> {
-  const guildId = interaction.guild?.id;
-  if (!guildId) {
-    throw new Error(i18next.t("commands:test.interacciones.dont_gg"));
+  const items: string[] = [];
+  const rcc = await getGuildReplacementConfig(guild.id);
+  const keyList = rMetaList.map((lcl) => lcl.dbKey);
+  if (rcc && rcc.size > 0) {
+    rcc.forEach((dta, key) => {
+      let isApi = true;
+      if (keyList.includes(key)) isApi = false;
+      items.push(`> **${isApi ? `Api Embed: ${key}` : `Local Embed: ${key}`}**`
+        + "\n"
+        + `**Enable:** ${dta.enabled ? "✅" : "❌"}  ${isApi ? "" : ` | **Custom URL:** ${dta.custom_url ? dta.custom_url : "❌"}`} | Add: <@${dta.user_id}>`)
+    })
+  };
+
+  const embed = new EmbedBuilder().setTitle("CONFIGURACIONES DE REMPLAZO!").setColor(0xAA22AA)
+    .setDescription(`${items.length > 0 ? items.join("\n") : "No existen configuraciones en /embed"}`)
+    .setTimestamp().setFooter({ text: "Mostrando solo sitios configurados" });
+
+  interaction.editReply({ embeds: [embed] });
+}
+
+/* ========================= workHere ========================= */
+async function workeHere(interaction: ChatInputCommandInteraction, guild: Guild) {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  const configMap = await getConfigMap();
+  const gilConf = configMap.get(guild.id)
+
+  const items: string[] = [];
+  if (gilConf && gilConf.size > 0) {
+    gilConf.forEach((dta, ch) => {
+      items.push(`**Canal:** <#${ch}>` + "\n" + `***ReplyBots: ${dta.replyBots ? "✅" : "❌"} | Enable: ${dta.enabled ? "✅" : "❌"}***`)
+    })
   }
 
-  const replacementConfig = await getGuildReplacementConfig(guildId);
-  embed.setDescription(i18next.t("commands:test.interacciones.not_replacement"));
+  const emb = new EmbedBuilder().setTitle("CONFIGURACION DE CANALES!").setColor(0xAA0044)
+    .setDescription(`${items.length > 0 ? items.join("\n") : "No existe configuraciones para /work"}`)
+    .setTimestamp().setFooter({ text: "Mostrando solo canales configurados" });
 
-  const addCategoryFields = (title: string, lines: string[]) => {
-    if (lines.length === 0) return;
-
-    let currentText = "";
-    let partNumber = 1;
-
-    for (const line of lines) {
-      if (currentText.length + line.length + '\n'.length > 1000) {
-        embed.addFields({ name: `${title} (Pt. ${partNumber})`, value: currentText, inline: false });
-        currentText = line + "\n";
-        partNumber++;
-      } else {
-        currentText += line + "\n";
-      }
-    }
-    if (currentText.length > 0) {
-      embed.addFields({ name: partNumber > 1 ? `${title} (Pt. ${partNumber})` : title, value: currentText, inline: false });
-    }
-  };
-  /* Lista Locales */
-  const localLines: string[] = [];
-  rMetaList.forEach(meta => {
-    const config = replacementConfig.get(meta.name);
-    let status: string;
-    if (config === undefined) {
-      status = i18next.t("commands:test.interacciones.rem_list_1");
-    } else if (!config.enabled) {
-      status = i18next.t("commands:test.interacciones.rem_list_2");
-    } else if (config.custom_url) {
-      const userMention = config.user_id ? `<@${config.user_id}>` : i18next.t("commands:test.interacciones.unknown_user");
-      status = i18next.t("commands:test.interacciones.rem_list_3", { custom_url: config.custom_url, userMention });
-    } else {
-      status = i18next.t("commands:test.interacciones.rem_list_1");
-    }
-    localLines.push(`**${meta.name}:** \u200b \u200b \u200b${status}`);
-  });
-  addCategoryFields("🛠️ Reemplazos Locales", localLines);
-  /* Lista SFW */
-  const sfwLines: string[] = [];
-  embedezSFW.forEach(domain => {
-    const config = replacementConfig.get(domain);
-    const status = (config === undefined || config.enabled) ?
-      i18next.t("commands:test.interacciones.field_api_enabled") :
-      i18next.t("commands:test.interacciones.field_api_disabled");
-    sfwLines.push(`**${domain}:** \u200b \u200b \u200b${status}`);
-  });
-  addCategoryFields("🌐 API SFW", sfwLines);
-  /* Lista SFW */
-  const nsfwLines: string[] = [];
-  embedezNSFW.forEach(domain => {
-    const config = replacementConfig.get(domain);
-    const status = (config === undefined || config.enabled) ?
-      i18next.t("commands:test.interacciones.field_api_enabled") :
-      i18next.t("commands:test.interacciones.field_api_disabled");
-    nsfwLines.push(`**${domain}:** \u200b \u200b \u200b ${status}`);
-  });
-  addCategoryFields("🔞 API NSFW", nsfwLines);
-  embed.setColor(0x0099FF);
+  await interaction.editReply({ embeds: [emb] })
 }
 
 /* ========================= NeTest ========================= */
-
 export async function ChekDomainsTest(interaction: ChatInputCommandInteraction): Promise<void> {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   try {
@@ -332,11 +206,7 @@ export async function ChekDomainsTest(interaction: ChatInputCommandInteraction):
     const domainStatuses = await checkAllDomains();
     const embed = buildDomainStatusEmbed(domainStatuses);
 
-    await interaction.editReply({
-      content: null,
-      embeds: [embed]
-    });
-
+    await interaction.editReply({ embeds: [embed] });
   } catch (err: any) {
     await interaction.editReply({
       content: i18next.t("commands:test.interacciones.command_error_verificando", { a1: err.message }),

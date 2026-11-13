@@ -31,7 +31,7 @@ export async function tweEngine(cli: Client): Promise<void> {
         };
         // work
         for (const X of dta) {
-            const { id, guild_id, canal, xUser, lastPost, Domain, lang, onlyMedia } = X;
+            const { id, guild_id, canal, xUser, lastPost, lang, onlyMedia } = X;
             const idKch = `${guild_id}-${canal}`;
 
             let chToSend: GuildTextBasedChannel | null = null, dominio: string | null;
@@ -53,7 +53,7 @@ export async function tweEngine(cli: Client): Promise<void> {
             if (guild_id in kacheDom) { dominio = kacheDom[guild_id]; }
             else {
                 const gldCnfDom = await getGuildReplacementConfig(guild_id);
-                const hasCustom = Domain ? Domain : (gldCnfDom.get("Twitter | X")?.custom_url ?? null);
+                const hasCustom = gldCnfDom.get("Twitter | X")?.custom_url ?? null;
                 const localDomain = urlStatusManager.getActiveUrl("twitter") ?? null;
                 const outDom = hasCustom ? hasCustom : localDomain;
                 kacheDom[guild_id] = outDom; dominio = outDom;
@@ -105,16 +105,15 @@ async function msgSend(out: msgSendIn): Promise<void> {
                 if (freshMsg && !embOk) {
                     const x = new xTwitterCustom();
                     const useUrl = lisTweets[i];
-                    const tryMeltrys = await x.process((tl ? `${useUrl}/${tl}` : useUrl), freshMsg);
+                    const tryMeltrys = await x.process({ url: (tl ? `${useUrl}/${tl}` : useUrl), intCall: true });
                     try {
                         if (!tryMeltrys.ok || !tryMeltrys.pack) throw new Error("Fallo en respuesta de xTwitterCustom");
                         const packData = Object.values(tryMeltrys.pack[0])[0];
                         if (!packData.components || packData.components.length === 0) throw new Error("No data Pack xTwitterCustom");
                         await freshMsg.delete().catch(() => { });
                         if (packData) {
-                            const preMsg = await channel.send(`> ## Nuevo tweet de @${xUser} \n ***Usando Meltryllis Api***`)
-                            preMsg ? await preMsg.reply({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 }) :
-                                await channel.send({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 });
+                            const aMsg = await channel.send({ files: packData.files, components: packData.components, flags: MessageFlags.IsComponentsV2 })
+                            if (!aMsg) throw new Error("Fallo en respuesta de xTwitterCustom");
                         };
                     } catch (e) {
                         debug(`Fallo al usar MeltrysApi ${e}`, "BG.TwitterFollow")

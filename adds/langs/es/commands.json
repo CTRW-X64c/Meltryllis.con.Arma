@@ -1,22 +1,14 @@
 {
   "joinCreate": {
     "slashBuilder": {
-      "jointocreate_description": "Permite crear canales temporales de voz a partir de un canal de voz maestro",
-      "jointocreate_usage": "modo de configuración",
-      "join_chanel_set": "Selecciona el canal de voz a configurar",
-      "join_set": "set - \"Establece canal maestro\"",
-      "join_disable": "disable - \"Desactiva el sistema\"",
-      "join_status": "status - \"Muestra el estado del sistema\"",
-      "join_cleanup": "cleanup - \"Borra los canales temporales activos\""
+      "jointocreate_description": "Permite crear canales temporales de voz a partir de un canal de voz maestro"
     },
     "interacciones": {
-      "error_bot_permissions": "❌ No tengo los permisos requeridos para hacer esto 🥺​",
       "set_success": "✅ **Canal maestro establecido:** {{a1}}\nLos usuarios que se unan a este canal crearán automáticamente su propia sala temporal.",
       "set_error": "❌ Error al establecer el canal maestro",
       "error_not_configured": "❌ No hay configuración activa",
       "disable_success": "✅ /jointovoice  configuracion eliminada!! \nYa no se generarán canales de voz.",
       "disable_error": "❌ Error, no se pudo desactivar /jointovoice",
-      "status_error": "❌ No pude obtener el estatus de /jointovoice",
       "cleanup_confirm": "⚠️ Se limpiarán todos los canales de voz temporales!! \n 20 seg para confirmar",
       "cleanup_cancelled": "❌ **Cancelado**",
       "cleanup_result": "✅ **Limpieza completada**\n• Canales eliminados: {{a1}}\n• Errores: {{a2}}",
@@ -24,8 +16,7 @@
       "cleanup_error": "❌ Error al lipiar los canales de voz temporales",
       "existButon": "✅ No se realizo ningun cambio!! ",
       "disableButon": "/jointovoice {{a1}}",
-      "deleteTemp_success": "✅ Se eliminaron {{a1}} canles temporales!!",
-      "deleteTemp_fall": "❌ Error, algo fallo al eliminar los canales temporales!!"
+      "deleteTemp_success": "✅ Se eliminaron {{a1}} canles temporales!!"
     }
   },
   "cleanup": {
@@ -49,9 +40,8 @@
       "before": "antes",
       "after": "después",
       "filtered_by": "Filtrado por: **{{a1}}**",
-      "old_messages_warning": "No se pudieron borrar algunos mensaje muy viejos!!",
-      "breakdown": "👤 **Usuarios**: {{a1}}\n🤖 **Bots**: {{a2}}",
-      "error": "❌ Ocurrió un error al intentar eliminar los mensajes."
+      "old_messages_warning": "No se pudieron borrar algunos mensajes!! \n Antigüedad máxima de 14 días!!",
+      "breakdown": "👤 **Usuarios**: {{a1}}\n🤖 **Bots**: {{a2}}"
     }
   },
   "mussic": {
@@ -107,7 +97,6 @@
       "clear_description": "🗑️ Eliminar TODOS los permisos del servidor (cuidado)"
     },
     "interacciones": {
-      "command_error": "❌ Error al ejecutar el comando",
       "add_success": "✅ **{{a1}}** ({{a2}}) ahora puede usar {{a3}}",
       "add_error_01": "❌ No se puedo otorgar el permiso {{a2}} a {{a1}} ",
       "add_error": "❌ No se encontro rol/user con ese nombre!!",
@@ -290,18 +279,12 @@
     "slashBuilder": {
       "mangadex": "Permite seguir mangas de Mangadex",
       "mangadex_descripcion": "Comandos para seguir mangas de Mangadex",
-      "mangadex_seguir": "URL del manga que queires seguir",
-      "mangadex_canal": "Canal en el que se publicaran las updates",
-      "mangadex_idioma": "Idioma de lo capitulos que quieres seguir, puedes añadir otros 7.",
       "mangadex_lista_desc": "Lista de los mangas que estas siguiendo",
       "mangadex_dejar_desc": "Cancela el seguimiento del manga",
-      "mangadex_dejar_url": "ID del manga para dejar de seguir, USA /mangadex lista para ver los ID",
-      "mangadex_idioma_add": "Idioma adicional a publicar! "
+      "mangadex_dejar_url": "ID del manga para dejar de seguir, USA /mangadex lista para ver los ID"
     },
     "interacciones": {
       "command_error": "Ocurrió un error al ejecutar el comando.",
-      "reddit_canal_error": "Error en ejecutar el comando.",
-      "seguir_success": "Manga agregado correctamente",
       "seguir_existente_error": "No puedes añadir el mismo manga con el mismo idioma dos veces!",
       "seguir_error": "Ocurrio un error al intentar seguir el manga!",
       "lista_vacia": "No estas siguiendo ningun manga",
@@ -309,7 +292,6 @@
       "manga_embed_descripcion": "Mangas seguiendo: {{a1}} \n MANGA ID | TITULO DE MANGA | IDIOMA",
       "manga_embed_list_value": "Lista Vacia",
       "manga_embed_list_entry": "• 🆔: `{{a1}}` | `{{a2}}` | Idioma: {{a3}}",
-      "manga_embed_footer": "Mangadex & (MDRSS)[https://mdrss.tijlvdb.me]",
       "dejar_exito": "✅ Manga eliminado correctamente.!!",
       "dejar_fallo": "❌ No encontré ese manga en tu lista. Asegúrate de poner la URL exacta.",
       "error": "Ocurrió un error al ejecutar el comando.",
@@ -321,8 +303,6 @@
     "slashBuilder": {
       "command_reddit": "Seguir subreddits y usuarios de Reddit",
       "descripcion": "Añade la URL del Subreddit a seguir",
-      "seguir": "URL del Subreddit",
-      "canal": "Canal de Discord donde se publicarán los posts",
       "filtro": "Tipo de posts",
       "sin_filtro": "Sin filtro",
       "filtro_multimedia": "Solo Multimedia",
@@ -335,7 +315,7 @@
     "interacciones": {
       "subreddit_error": "❌ Pega la URL completa o r/subreddit",
       "duplicado": "`❌ Subreddir **{{a1}}** duplicado!!",
-      "seguir_success": "✅ ¡Siguiendo **{{a1}}**! en el canal {{a2}} Modo: {{a3}}. \n⚠️Canal SFW, los post NSFW seran marcado como espoiler! \nSi cambias el canal a NSFW deberas dar de alta de nuevo el subreddit|user para que los posts NSFW se publiquen sin espoiler.",
+      "seguir_success": "✅ ¡Siguiendo **{{a1}}**! en el canal {{a2}} Modo: {{a3}}. \n⚠️ Canal no NSFW, el contenido NSFW sera enviando como espoiler.",
       "seguir_success_nsfw": "✅ ¡Siguiendo **{{a1}}**! en el canal {{a2}} Modo: {{a3}}.",
       "seguir_error": "❌ Error al seguir, cehca el nombre del subreddit/user.\n Intenta copiar y pegar directamente la URL del navegador.",
       "url_invalida": "❌ URL o nombre de subreddit no válido.",
@@ -405,7 +385,7 @@
       "test_description": "Permissos, configuraciones y estado de los dominios",
       "mode_description": "Modo de chequeo",
       "guild": "Permisos generales en el Servidor",
-      "channel": "Funcionamiento por Canal",
+      "channel": "Check de permisos por canal!",
       "embed_config": "Embedding configuraciones",
       "mode_domainds": "Revisa el estado de los dominios"
     },
@@ -495,7 +475,6 @@
       "default": "Default - RESET DE CONFIGURACIONES!"
     },
     "interacciones": {
-      "failed": "Error al actualizar la configuracion.",
       "Api_default": "❌ Las Web que se muestran la url como www.tiktok.com, no tienen un estado por Default, Solo 'Habilitar'/'Deshabilitar'.",
       "Api_custom": "❌ Las Web de URL no se pueden customizar, Solo 'Habilitar'/'Deshabilitar'.",
       "Api_url_custom": "❌ Revisa tu URL, Ej. https://www.example.com | sub.example.com | sample.com",
@@ -620,21 +599,10 @@
     "slashBuilder": {
       "resets": "Muestra el listado de los resets!!",
       "activar": "Establece la configuracion para las notificaciones!!",
-      "activar_canal": "Canal donde mandar los avisos",
-      "activar_role": "Rol a mencionar en las notificaciones!",
-      "activar_pvp": "Notificar PvP",
-      "activar_quest": "Notificar Quests",
-      "activar_oem": "Notificar Extra Operaciones",
-      "activar_mantenimiento": "Notificar mantenimientos",
       "desactivar": "Desactiavar el envio de avisos",
       "status": "Muestra la configuracion actual",
       "post_4_all": "Postea para todos!!",
-      "activar_expedition": "Notificar expediciones mensuales",
-      "activar_pvp_av": "Mandar aviso de PvP!",
-      "activar_quest_av": "Mandar notificacion de quest!!",
-      "activar_oem_av": "Mandar aviso de Extra operaciones!",
-      "activar_expedition_av": "Mandar aviso de expediciones mensuales!!",
-      "activar_mantenimiento_av": "Mandar aviso de mantenimiento!!"
+      "rank": "Muestra la lista de Rank de los servidores"
     },
     "interacciones": {
       "error_ch_noValido": "❌ Debes especificar un canal valido!",
@@ -644,7 +612,7 @@
       "status_embed_field_active": "Configuracion de Avisos:",
       "status_embed_field_basic": "Configuracion base:",
       "status_embed_field_basic_value": "Canal: {{a1}} \nRol a notificar: {{a2}}",
-      "status_embed_field_active_value": "PvP (Ejercicios): {{a1}} \n Quests: {{a2}} \n Extra Operaciones: {{a3}} \n Mantenimiento: {{a4}} \n Expediciones Mensuales: {{a5}}",
+      "status_embed_field_active_value": "PvP (Ejercicios): {{a1}} \n Quests: {{a2}} \n Extra Operaciones: {{a3}} \n Mantenimiento: {{a4}} \n Expediciones Mensuales: {{a5}} \n Rank: {{a6}}",
       "resrts_let_statusStart": "Finalizado!",
       "resrts_let_statusStart_A": "En curso!!",
       "resrts_let_statusEnd": "Finaliza en {{a1}}",
@@ -660,9 +628,7 @@
       "emb_value_rank": "*Cutoff Diario: {{a1}}* \n> Todos los dias 02:00hrs \n*Cutoff Mensual: {{a2}}* \n> Ultimo dia del mes a las 22:00hrs.",
       "emb_value_oem": "*Extra Operaciones: {{a1}}* \n> Primero del mes, 00:00hrs. \n*Expediciones Mensuales: {{a2}}* \n > Los dias 15 del mes, 12:00hrs.",
       "emb_value_mante": "**⏰ Inicia:** {{a1}}\n **⏰ Termina:** {{a2}} \n",
-      "resrts_let_send_fail": "NO SE PUDO ENVIAR EL MENSAJE AL CANAL LOCAL!!",
       "status_embed_field_active_ntf": "Configuracion de Notificaciones:",
-      "error_nada_activado": "Debes activar almenos un tipo de aviso!!",
       "error_both_noValido": "❌ No seleccionaste ningun tipo de notificacion!! \n *** Las notificaciones con mencion requieren un Rol ***"
     },
     "bgProsses": {
@@ -697,15 +663,8 @@
       "siwtchNotify_mExp_uDesc": "**Las expediciones mensuales se han reiniciado!!**",
       "siwtchNotify_oem_desc_30m": "**Las EO se reiniciaran en 30 minutos!!**",
       "siwtchNotify_mExp_desc_30m": "**Las expediciones mensuales se van a reiniciar en 30 minutos!**",
-      "siwtchNotify_cutoff_title": "📊 Aviso de Ranking!!",
-      "siwtchNotify_cutoff_desc": "Cutoff Rank!!",
-      "siwtchNotify_cutoff_desc_m": "Cierre mensual del Rank!!",
       "siwtchNotify_mntStart_des": "Se ha anunciado un nuevo mantenimiento! \n Revisa las fechas!!",
-      "siwtchNotify_newMante_A": "INICIO: ",
-      "siwtchNotify_newMante_B": "TERMINO:",
       "siwtchNotify_nextReset_A_F": "Proximos resets:",
-      "siwtchNotify_drank_title": "🧮 Aviso Rank!!",
-      "siwtchNotify_drank_desc": "Cierre de puntos del rank!",
       "siwtchNotify_pvp_desc_30": "**Los Ejercicios (PvP) se reiniciaran en 30 minutos!!**",
       "siwtchNotify_quest_desc_30m": "**Reinicio de misiones en 30 minutos!!** \n Tipo de misiones que se reiniciaran: {{a1}}"
     }

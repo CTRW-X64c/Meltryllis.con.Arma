@@ -17,14 +17,28 @@ const ApiList = () => {
     embedezNSFW = embedingList["API_NSFW"]
         ? embedingList["API_NSFW"].split('|').map(y => y.trim())
         : [];
+    regenList();
     info(`Embedez Api ready con ${embedezSFW.length} SFW y ${embedezNSFW.length} NSFW sitios!!`, "embedingService");
 }
 
 // ======== local Api ======== //
 export const meltrillisApi: string[] = [
     "Meltrys.Pixiv",
-    "Meltrys.xTwitter"
+    "Meltrys.xTwitter",
+    "Meltrys.Reddit"
 ];
+
+// ======== lists ======== //
+export let masterList: { name: string, value: string }[] = [];
+export let isApiList: string[] = [];
+const regenList = () => {
+    const hostList = rMetaList.map((itm) => ({ name: "Remplacer: " + itm.name, value: itm.name }));
+    const sfwList = embedezSFW.map((itm) => ({ name: "Api.SFW: " + itm, value: itm }));
+    const nsfwList = embedezNSFW.map((itm) => ({ name: "Api.NSFW: " + itm, value: itm }));
+    const melList = meltrillisApi.map((itm) => ({ name: "Meltryllis.Api: " + itm, value: itm }));
+    masterList = [...hostList, ...sfwList, ...nsfwList, ...melList];
+    isApiList = [...embedezSFW, ...embedezNSFW, ...meltrillisApi];
+}
 
 // ======== core ======== //
 export const updateList = (s: string, d?: string) => {
@@ -106,6 +120,7 @@ export async function deletLast(s: string): Promise<boolean> {
 /* ================================================ Cheker de dominios ================================================ */
 class UrlStatusManager {
     private activeUrls: Map<string, string> = new Map();
+    private isPining: Map<string, boolean> = new Map();
     private readonly CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutos
 
     public start() {
@@ -128,30 +143,63 @@ class UrlStatusManager {
                 continue;
             }
 
-            const candidates = rawString.split('|').map(url => url.trim()).filter(url => url.length > 0);
+            if (this.isPining.get(meta.dbKey)) continue;
 
-            if (candidates.length <= 1) {
-                this.activeUrls.set(meta.dbKey, candidates[0]);
+            const embSites = rawString.split('|').map(url => url.trim()).filter(url => url.length > 0);
+            if (embSites.length === 0) continue;
+
+            const dft = embSites[embSites.length - 1];
+            const candidates = embSites.slice(0, -1);
+
+            if (candidates.length === 0) {
+                this.activeUrls.set(meta.dbKey, dft);
                 continue;
             }
 
             let foundWorking = false;
-
             for (const domain of candidates) {
                 const isUp = await this.checkDomain(domain);
                 if (isUp) {
-                    if (this.activeUrls.get(meta.dbKey) !== domain) {
-                        info(`✅ [${meta.name}] Cambiado a: ${domain}`);
+                    const actualDom = this.activeUrls.get(meta.dbKey) ?? `"Sin dominio"`;
+                    if (actualDom !== domain) {
+                        info(`✅ [${meta.name}]: Pasando de ${actualDom} a ${domain}`);
                     }
                     this.activeUrls.set(meta.dbKey, domain);
                     foundWorking = true;
-                    break; // Nos quedamos con la primera que sirva
+                    break;
                 }
             }
 
-            if (!foundWorking && candidates.length > 0) {
-                error(`⚠️ [${meta.name}] Todos los dominios están caídos. Usando default: ${candidates[0]}, "embedingService"`);
-                this.activeUrls.set(meta.dbKey, candidates[0]);
+            if (!foundWorking) {
+                error(`⚠️ [${meta.name}]: Todos los alternos caídos. Usando default (${dft}) e iniciando pings.`);
+                this.activeUrls.set(meta.dbKey, dft);
+                this.isPining.set(meta.dbKey, true);
+                // ping constante para rapida deteccion de up
+                this.fallDomaind({ domains: candidates, key: meta.dbKey })
+                    .catch((e) => { error(`[${meta.name}] Error en ping continuo | ${e.message}`); })
+                    .finally(() => { this.isPining.delete(meta.dbKey); });
+            }
+        }
+    }
+
+    private async fallDomaind(dta: { domains: string[], key: string }): Promise<void> {
+        let intento = 0;
+        const maxIntentos = 50;
+
+        while (intento < maxIntentos) {
+            for (const domain of dta.domains) {
+                intento++;
+
+                const upDomain = await this.checkDomain(domain);
+                if (upDomain) {
+                    this.activeUrls.set(dta.key, domain);
+                    info(`✅ [${dta.key}]: usando ${domain} después de ${intento} intentos`);
+                    return;
+                }
+
+                if (intento >= maxIntentos) throw new Error(`Se alcanzaron los ${maxIntentos} intentos sin respuesta en alternos para ${dta.key}.`);
+
+                await new Promise(resolve => setTimeout(resolve, 2_500));
             }
         }
     }

@@ -9,23 +9,65 @@ interface RedditApiResponse {
     };
     reason?: string;
 }
+// =========== add RedditPost =========== //
+interface RedditMMI {
+    status: string,
+    e: string, // 'Image' | 'AnimatedImage'
+    m: string, // 'image/jpg', 'image/png', 'image/gif'
+    id: string,
+    s: { x: number; y: number; u?: string; gif?: string; }
+}
 
-interface RedditPost {
-    title: string;
-    permalink: string;
-    post_hint?: string;
-    is_gallery?: boolean;
-    is_video?: boolean;
-    name: string;
-    pinned?: boolean;
-    stickied?: boolean;
-    over_18?: boolean;
+interface itemOrd {
+    media_id: string;
+    id: number
+}
+
+interface souceMedia {
+    oembed?: {
+        provider_url: string
+    },
+    reddit_video?: {
+        fallback_url?: string,
+        has_audio?: boolean,
+        is_gif?: boolean
+    },
+    type?: string
+}
+
+// =========== out Json =========== //
+export interface RedditPost {
+    title: string,
+    permalink: string,
+    post_hint?: string,
+    is_gallery?: boolean,
+    is_video?: boolean,
+    name: string,
+    pinned?: boolean,
+    stickied?: boolean,
+    over_18?: boolean,
+    /// ===== ///
+    ups?: number,
+    downs?: number,
+    upvote_ratio?: number,
+    selftext?: string,
+    subreddit_name_prefixed?: string,
+    url_overridden_by_dest?: string,
+    subreddit?: string,
+    media_metadata?: Record<string, RedditMMI>,
+    author?: string,
+    url?: string,
+    num_comments?: number,
+    gallery_data?: { items: itemOrd[] },
+    secure_media?: souceMedia | null,
 }
 
 const REDDIT_API_BASE = 'https://oauth.reddit.com';
 const REDDIT_AUTH_URL = 'https://www.reddit.com/api/v1/access_token';
 
-export class RedditApiClient {
+export type reddSouceApi = 'user' | 'subreddit';
+
+class RedditApiClient {
     private clientId: string;
     private clientSecret: string;
     private userAgent: string;
@@ -93,17 +135,31 @@ export class RedditApiClient {
         return response;
     }
 
-    public async getPosts(resourceName: string, resourceType: 'subreddit' | 'user' = 'subreddit', limit: number = 20): Promise<RedditApiResponse> {
+    public async getFeed(dta: { souce: string, type: reddSouceApi, limit: number }): Promise<RedditApiResponse> {
         let endpoint: string;
 
-        if (resourceType === 'user') {
-            endpoint = `/user/${resourceName}/submitted.json?limit=${limit}`;
+        if (dta.type === 'user') {
+            endpoint = `/user/${dta.souce}/submitted.json?limit=${dta.limit}`;
         } else {
-            endpoint = `/r/${resourceName}/new.json?limit=${limit}`;
+            endpoint = `/r/${dta.souce}/new.json?limit=${dta.limit}`;
         }
 
         const response = await this.fetchAuthenticated(endpoint);
+        if (!response) { throw new Error('Fallo al obtener el feed') };
         return response.json() as Promise<RedditApiResponse>;
+    }
+
+    public async getPost(dta: { souce: string, posUrl: string, type: reddSouceApi }): Promise<RedditApiResponse> {
+        let endpoint: string;
+        if (dta.type === 'user') {
+            endpoint = `/user/${dta.souce}/comments/${dta.posUrl}.json`;
+        } else {
+            endpoint = `/r/${dta.souce}/comments/${dta.posUrl}.json`;
+        }
+        const response = await this.fetchAuthenticated(endpoint);
+        const arrayRespond = await response.json() as RedditApiResponse[];
+        if (!arrayRespond || arrayRespond.length === 0) { throw new Error('No se encontro el post') }
+        return arrayRespond[0];
     }
 }
 

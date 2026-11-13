@@ -53,6 +53,15 @@ export async function updatePixi(guild: string, pixiUser: string, lstPostIllust:
     }
 }
 
+export async function erasePixi(guildo: string) {
+    const pool = await getPool();
+    try {
+        await pool.query(`DELETE FROM pixivdata WHERE guild_id = ?`, [guildo])
+    } catch (e) {
+        error(`Fallo borrar los seguidores de pixiv del servidor: ${guildo} ${e} `)
+    }
+}
+
 // ============================= commands ============================= //
 export async function addPixiFollow(dta: Omit<PixiData, "id" | "created_at" | "lstPostIllust" | "lstPostManga" | "lstPostNovel">) {
     const pool = await getPool()

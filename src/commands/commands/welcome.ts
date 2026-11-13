@@ -57,12 +57,18 @@ export async function fontsAutocomplete(interaction: AutocompleteInteraction) {
 }
 
 /* ============================================== Switch  ============================================== */
+const isRunning = new Map<string, boolean>()
 export async function handleWelcomeCommand(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    if (!interaction.guild) { await interaction.editReply({ content: i18next.t("common:Errores.noGuild") }); return };
+
     try {
         const isAllowed = await hasPermission(interaction, interaction.commandName);
         if (!isAllowed) { await interaction.editReply({ content: i18next.t("common:Errores.isAllowed") }); return }
-        if (!interaction.guild) { await interaction.editReply({ content: i18next.t("common:Errores.noGuild") }); return };
+
+        if (isRunning.get(interaction.guild.id)) { await interaction.editReply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }) }); return; };
+        isRunning.set(interaction.guild.id, true)
 
         const guildId = interaction.guild;
         switch (interaction.options.getSubcommand()) {
@@ -82,7 +88,11 @@ export async function handleWelcomeCommand(interaction: ChatInputCommandInteract
                 await interaction.editReply({ content: i18next.t("common.Errores.switchGeneral") });
                 break;
         }
-    } catch { }
+    } catch (e) {
+        error(`Error ejecutando comando post: ${e}`);
+        if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+        else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(interaction.guild.id) }
 }
 
 /* ============================================== Welcome preview ============================================== */

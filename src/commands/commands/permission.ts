@@ -1,7 +1,9 @@
 // src/Events-Commands/commands/permissions.ts
-import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, AutocompleteInteraction, 
-  /*Botones*/ ButtonBuilder, ButtonStyle, ActionRowBuilder, ButtonInteraction } from "discord.js";
-import { addCommandPermission, removeCommandPermission, listCommandPermissions, clearGuildPermissions, PermissionEntry } from "../../sys/DB-Engine/links/Permission"; 
+import {
+    ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder, MessageFlags, AutocompleteInteraction,
+  /*Botones*/ ButtonBuilder, ButtonStyle, ActionRowBuilder, ButtonInteraction
+} from "discord.js";
+import { addCommandPermission, removeCommandPermission, listCommandPermissions, clearGuildPermissions, PermissionEntry } from "../../sys/DB-Engine/links/Permission";
 import { error, info } from "../../sys/logging";
 import i18next from "i18next";
 
@@ -10,7 +12,7 @@ let commandChoices: { name: string, value: string }[] = [];
 
 export async function permisosAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const permlist = interaction.options.getFocused().toLowerCase();
-    const filtered = commandChoices.filter(choice => 
+    const filtered = commandChoices.filter(choice =>
         choice.name.toLowerCase().includes(permlist)
     );
     await interaction.respond(
@@ -32,107 +34,69 @@ export async function registerPermissionsCommand(commandsList: { name: string, d
         .setName("permisos")
         .setDescription(i18next.t("commands:permisos.slashBuilder.description"))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("añadir")
-                .setDescription(i18next.t("commands:permisos.slashBuilder.add_description"))
-                .addStringOption(option =>
-                    option.setName("comando")
-                        .setDescription(i18next.t("commands:permisos.slashBuilder.add_option_description"))
-                        .setRequired(true)
-                        .setAutocomplete(true))
-                .addRoleOption(option =>
-                    option.setName("rol")
-                        .setDescription(i18next.t("commands:permisos.slashBuilder.option_rol"))
-                        .setRequired(false))
-                .addUserOption(option =>
-                    option.setName("usuario")
-                        .setDescription(i18next.t("commands:permisos.slashBuilder.option_usuario"))
-                        .setRequired(false))
+        .addSubcommand(s => s.setName("añadir").setDescription(i18next.t("commands:permisos.slashBuilder.add_description"))
+            .addStringOption(o => o.setName("comando").setDescription(i18next.t("commands:permisos.slashBuilder.add_option_description")).setRequired(true).setAutocomplete(true))
+            .addRoleOption(o => o.setName("rol").setDescription(i18next.t("commands:permisos.slashBuilder.option_rol")).setRequired(false))
+            .addUserOption(o => o.setName("usuario").setDescription(i18next.t("commands:permisos.slashBuilder.option_usuario")).setRequired(false))
         )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("remover")
-                .setDescription(i18next.t("commands:permisos.slashBuilder.remove_description"))
-                .addStringOption(option =>
-                    option.setName("comando")
-                        .setDescription(i18next.t("commands:permisos.slashBuilder.remove_option_description"))
-                        .setRequired(true)
-                        .setAutocomplete(true))
-                .addRoleOption(option =>
-                    option.setName("rol")
-                        .setDescription(i18next.t("commands:permisos.slashBuilder.option_rol"))
-                        .setRequired(false))
-                .addUserOption(option =>
-                    option.setName("usuario")
-                        .setDescription(i18next.t("commands:permisos.slashBuilder.option_usuario"))
-                        .setRequired(false))
+        .addSubcommand(s => s.setName("remover").setDescription(i18next.t("commands:permisos.slashBuilder.remove_description"))
+            .addStringOption(o => o.setName("comando").setDescription(i18next.t("commands:permisos.slashBuilder.remove_option_description")).setRequired(true).setAutocomplete(true))
+            .addRoleOption(o => o.setName("rol").setDescription(i18next.t("commands:permisos.slashBuilder.option_rol")).setRequired(false))
+            .addUserOption(o => o.setName("usuario").setDescription(i18next.t("commands:permisos.slashBuilder.option_usuario")).setRequired(false))
         )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("lista")
-                .setDescription(i18next.t("commands:permisos.slashBuilder.list_description"))
-                .addStringOption(option =>
-                    option.setName("comando")
-                        .setDescription(i18next.t("commands:permisos.slashBuilder.list_option_description"))
-                        .setRequired(false)
-                        .setAutocomplete(true))
+        .addSubcommand(s => s.setName("lista").setDescription(i18next.t("commands:permisos.slashBuilder.list_description"))
+            .addStringOption(o => o.setName("comando").setDescription(i18next.t("commands:permisos.slashBuilder.list_option_description")).setRequired(false).setAutocomplete(true))
         )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("limpiar")
-                .setDescription(i18next.t("commands:permisos.slashBuilder.clear_description"))
+        .addSubcommand(s => s.setName("limpiar").setDescription(i18next.t("commands:permisos.slashBuilder.clear_description"))
         );
 
     return [permissions] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handlePermissionsCommand(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    const memberPermissions = interaction.memberPermissions;
-    const isAdmin = memberPermissions?.has(PermissionFlagsBits.Administrator) || interaction.guild?.ownerId === interaction.user.id; 
-    if (!isAdmin) {
-        await interaction.editReply({
-            content: i18next.t("common:Errores.isAdmin"),
-        });
-        return;
-    }
+    const { memberPermissions, guild, user } = interaction;
+    if (!guild) { await interaction.editReply(i18next.t("common:Errores.noGuild")); return; }
 
-    const subcommand = interaction.options.getSubcommand();
-    const guildId = interaction.guild!.id;
+    const isAdmin = memberPermissions?.has(PermissionFlagsBits.Administrator) || guild.ownerId === user.id;
+    if (!isAdmin) { await interaction.editReply({ content: i18next.t("common:Errores.isAdmin"), }); return; }
 
     try {
+        if (isRunning.get(guild.id)) { await interaction.editReply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }) }); return; };
+        isRunning.set(guild.id, true)
+
+        const subcommand = interaction.options.getSubcommand();
         switch (subcommand) {
             case "añadir":
-                await addPerm(interaction, guildId);
+                await addPerm(interaction, guild.id);
                 break;
             case "remover":
-                await removePerm(interaction, guildId);
+                await removePerm(interaction, guild.id);
                 break;
             case "lista":
-                await listPerm(interaction, guildId);
+                await listPerm(interaction, guild.id);
                 break;
             case "limpiar":
-                await clearPerms(interaction, guildId);
-                break;     
+                await clearPerms(interaction, guild.id);
+                break;
         }
     } catch (err) {
         error(`Error ejecutando comando Permisos: ${err}`);
-        await interaction.editReply({ content: i18next.t("commands:permisos.interacciones.command_error") });
-    }
+        if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+        else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guild.id) }
 }
 
 // =============== addPermisos =============== //
-
-
 async function addPerm(interaction: ChatInputCommandInteraction, guildId: string) {
     const targetRole = interaction.options.getRole("rol");
     const targetUser = interaction.options.getUser("usuario");
     const commandName = interaction.options.getString("comando", true);
 
     if (!targetRole && !targetUser) {
-        await interaction.editReply({ content: i18next.t("commands:permisos.interacciones.add_error")});
+        await interaction.editReply({ content: i18next.t("commands:permisos.interacciones.add_error") });
         return;
     }
 
@@ -146,10 +110,11 @@ async function addPerm(interaction: ChatInputCommandInteraction, guildId: string
 
     try {
         const success = await addCommandPermission(guildId, targetId, type, commandName, userGivePerm);
-            
+
         if (success) {
             await interaction.editReply({
-                content: i18next.t("commands:permisos.interacciones.add_success", { a1: name, a2: i18Type, a3: commandDisplay })});
+                content: i18next.t("commands:permisos.interacciones.add_success", { a1: name, a2: i18Type, a3: commandDisplay })
+            });
 
         } else {
             await interaction.editReply({
@@ -170,7 +135,7 @@ async function removePerm(interaction: ChatInputCommandInteraction, guildId: str
     const commandName = interaction.options.getString("comando", true);
 
     if (!targetRole && !targetUser) {
-        await interaction.editReply({ content: i18next.t("commands:permisos.interacciones.remove_error_target")});
+        await interaction.editReply({ content: i18next.t("commands:permisos.interacciones.remove_error_target") });
         return;
     }
 
@@ -181,7 +146,7 @@ async function removePerm(interaction: ChatInputCommandInteraction, guildId: str
 
     try {
         const removed = await removeCommandPermission(guildId, targetId, commandName);
-        
+
         if (removed) {
             await interaction.editReply({
                 content: i18next.t("commands:permisos.interacciones.remove_success", { a1: name, a2: commandDisplay }),
@@ -201,14 +166,14 @@ async function removePerm(interaction: ChatInputCommandInteraction, guildId: str
 
 async function listPerm(interaction: ChatInputCommandInteraction, guildId: string) {
     const commandFilter = interaction.options.getString("comando", false);
-    
+
     try {
         const permissions = await listCommandPermissions(guildId, commandFilter || undefined);
-        
+
         if (permissions.length === 0) {
-            const message = commandFilter 
+            const message = commandFilter
                 ? i18next.t("commands:permisos.interacciones.list_by_command", { a1: commandFilter })
-                : i18next.t("commands:permisos.interacciones.list_error");           
+                : i18next.t("commands:permisos.interacciones.list_error");
             await interaction.editReply({ content: message });
             return;
         }
@@ -220,18 +185,18 @@ async function listPerm(interaction: ChatInputCommandInteraction, guildId: strin
         if (commandFilter) {
             const commandPermissions = permissions.filter(p => p.command_name === commandFilter);
             const commandInfo = configurableCommands.find(cmd => cmd.name === commandFilter);
-            
+
             embed.setTitle(i18next.t("commands:permisos.interacciones.list_by_command_emb", { a1: commandFilter }));
-            
+
             if (commandInfo) {
                 embed.setDescription(`**${commandInfo.description}**`);
             }
-            
+
             const roles = commandPermissions.filter(p => p.target_type === 'ROLE');
             const users = commandPermissions.filter(p => p.target_type === 'USER');
-            
+
             let content = "";
-            
+
             if (roles.length > 0) {
                 const roleMentions = roles.map(r => `<@&${r.target_id}>` + ` - ${i18next.t("commands:permisos.interacciones.asig_por")}` + ` <@${r.user_give_perm}>`).join("\n  ");
                 let limitedRoleMentions = roleMentions;
@@ -240,7 +205,7 @@ async function listPerm(interaction: ChatInputCommandInteraction, guildId: strin
                 }
                 content += `• 👥 **${roles.length} rol(es):**\n  ${limitedRoleMentions}\n\n`;
             }
-            
+
             if (users.length > 0) {
                 const userMentions = users.map(u => `<@${u.target_id}>` + ` - ${i18next.t("commands:permisos.interacciones.asig_por")}` + ` <@${u.user_give_perm}>`).join("\n  ");
                 let limitedUserMentions = userMentions;
@@ -249,7 +214,7 @@ async function listPerm(interaction: ChatInputCommandInteraction, guildId: strin
                 }
                 content += `• 👤 **${users.length} usuario(s):**\n  ${limitedUserMentions}`;
             }
-            
+
             if (content) {
                 if (content.length > 1024) {
                     content = content.substring(0, 1021) + '...';
@@ -262,67 +227,67 @@ async function listPerm(interaction: ChatInputCommandInteraction, guildId: strin
             } else {
                 embed.setDescription(i18next.t("commands:permisos.interacciones.no_permissions"));
             }
-            
-            embed.setFooter({ 
+
+            embed.setFooter({
                 text: i18next.t("commands:permisos.interacciones.total_footer", { a1: commandPermissions.length })
             });
-            
+
         } else {
             embed.setTitle(i18next.t("commands:permisos.interacciones.list_all_command_emb"));
-            
+
             const groupedByCommand: Record<string, PermissionEntry[]> = {};
-            
+
             permissions.forEach(perm => {
                 if (!groupedByCommand[perm.command_name]) {
                     groupedByCommand[perm.command_name] = [];
                 }
                 groupedByCommand[perm.command_name].push(perm);
             });
-            
+
             const sortedCommandNames = Object.keys(groupedByCommand).sort();
-            
+
             let description = "";
             let totalCommands = 0;
             let totalPermissions = 0;
-            
+
             for (const commandName of sortedCommandNames) {
                 const commandPerms = groupedByCommand[commandName];
-                const commandInfo = configurableCommands.find(cmd => cmd.name === commandName);             
+                const commandInfo = configurableCommands.find(cmd => cmd.name === commandName);
                 const roles = commandPerms.filter(p => p.target_type === 'ROLE');
                 const users = commandPerms.filter(p => p.target_type === 'USER');
-                const commandDisplay = commandInfo 
+                const commandDisplay = commandInfo
                     ? `**/${commandInfo.name}** - ${commandInfo.description}`
                     : `**/${commandName}**`;
-                
+
                 description += `${commandDisplay}\n`;
-                
+
                 if (roles.length > 0) {
-                    const roleMentions = roles.slice(0, 3).map(r => `<@&${r.target_id}>` +  ` - ${i18next.t("commands:permisos.interacciones.asig_por")}` + ` <@${r.user_give_perm}>`).join(" ");
+                    const roleMentions = roles.slice(0, 3).map(r => `<@&${r.target_id}>` + ` - ${i18next.t("commands:permisos.interacciones.asig_por")}` + ` <@${r.user_give_perm}>`).join(" ");
                     const extraRoles = roles.length > 3 ? ` +${roles.length - 3} más` : '';
                     description += `• 👥 **${roles.length} rol(es):** ${roleMentions}${extraRoles}\n`;
                 }
-                
+
                 if (users.length > 0) {
-                    const userMentions = users.slice(0, 3).map(u => `<@${u.target_id}>` +  ` - ${i18next.t("commands:permisos.interacciones.asig_por")}` + ` <@${u.user_give_perm}>`).join(" ");
+                    const userMentions = users.slice(0, 3).map(u => `<@${u.target_id}>` + ` - ${i18next.t("commands:permisos.interacciones.asig_por")}` + ` <@${u.user_give_perm}>`).join(" ");
                     const extraUsers = users.length > 3 ? ` +${users.length - 3} más` : '';
                     description += `• 👤 **${users.length} usuario(s):** ${userMentions}${extraUsers}\n`;
                 }
-                
+
                 description += "\n";
-                
+
                 totalCommands++;
                 totalPermissions += commandPerms.length;
-                
+
                 if (description.length > 3500) {
                     description += `\n... y ${sortedCommandNames.length - totalCommands} comandos más (límite de caracteres)`;
                     break;
                 }
             }
-            
+
             embed.setDescription(description);
-            
-            embed.setFooter({ 
-                text: i18next.t("commands:permisos.interacciones.total_footer_complete", { a1: totalPermissions,a2: totalCommands })
+
+            embed.setFooter({
+                text: i18next.t("commands:permisos.interacciones.total_footer_complete", { a1: totalPermissions, a2: totalCommands })
             });
         }
 
@@ -350,7 +315,7 @@ async function clearPerms(interaction: ChatInputCommandInteraction, guildId: str
         .addComponents(cancelButton, confirmButton);
 
     const confirmMessage = i18next.t("commands:permisos.interacciones.cleanup_confirm");
-    
+
     await interaction.editReply({
         content: confirmMessage,
         components: [actionRow],
@@ -369,22 +334,22 @@ async function clearPerms(interaction: ChatInputCommandInteraction, guildId: str
             });
             return;
         }
-        
+
         if (buttonInteraction.customId === 'confirm_delete') {
             await buttonInteraction.deferUpdate();
             await clearGuildPermissions(guildId);
             await buttonInteraction.editReply({
                 content: i18next.t("commands:permisos.interacciones.cleanup_result"),
                 components: []
-            });     
+            });
             info(`Permisos limpiados en servidor ${guildId}`, "Permisos");
         }
     } catch (err) {
         if (err instanceof Error && err.message.includes('time')) {
             await interaction.editReply({
                 content: i18next.t("commands:permisos.interacciones.cleanup_timeout"),
-            components: []
-        });
+                components: []
+            });
         } else {
             error(`Error en limpieza: ${err}`, "Permisos");
             await interaction.editReply({

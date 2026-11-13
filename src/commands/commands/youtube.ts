@@ -1,5 +1,5 @@
 // src/Events-Commands/commands/youtube.ts
-import { Guild, GuildBasedChannel, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
+import { ChatInputCommandInteraction, Guild, GuildBasedChannel, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, } from "discord.js";
 import { addYouTubeFeed, getYouTubeFeeds, removeYouTubeFeed, YouTubeFeed } from "../../sys/DB-Engine/links/Youtube";
 import { extractVideoId } from "../../bgProcess/youtubeCheck";
 import { error, debug } from "../../sys/logging";
@@ -15,70 +15,39 @@ export async function registerYouTubeCommand() {
     .setName("youtube")
     .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
     .setDescription(i18next.t("commands:youtube.slashBuilder.youtube"))
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName("seguir")
-        .setDescription(i18next.t("commands:youtube.slashBuilder.descripcion"))
-        .addStringOption(option =>
-          option.setName("rss_url")
-            .setDescription(i18next.t("commands:youtube.slashBuilder.seguir"))
-            .setRequired(true)
-        )
-        .addChannelOption(option =>
-          option.setName("canal")
-            .addChannelTypes(0, 5, 10, 11, 12)
-            .setDescription(i18next.t("commands:youtube.slashBuilder.canal"))
-            .setRequired(true)
-        )
+    .addSubcommand(s => s.setName("seguir").setDescription(i18next.t("commands:youtube.slashBuilder.descripcion"))
+      .addStringOption(o => o.setName("rss_url").setDescription(i18next.t("commands:youtube.slashBuilder.seguir")).setRequired(true)
+      )
+      .addChannelOption(o => o.setName("canal").addChannelTypes(0, 5, 10, 11, 12).setDescription(i18next.t("commands:youtube.slashBuilder.canal")).setRequired(true)
+      )
     )
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName("lista")
-        .setDescription(i18next.t("commands:youtube.slashBuilder.lista"))
+    .addSubcommand(s => s.setName("lista").setDescription(i18next.t("commands:youtube.slashBuilder.lista"))
     )
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName("dejar")
-        .setDescription(i18next.t("commands:youtube.slashBuilder.dejar"))
-        .addStringOption(option =>
-          option.setName("id_canal")
-            .setDescription(i18next.t("commands:youtube.slashBuilder.id_canal"))
-            .setRequired(true)
-        )
+    .addSubcommand(s => s.setName("dejar").setDescription(i18next.t("commands:youtube.slashBuilder.dejar"))
+      .addStringOption(o => o.setName("id_canal").setDescription(i18next.t("commands:youtube.slashBuilder.id_canal")).setRequired(true)
+      )
     )
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName("test")
-        .setDescription(i18next.t("commands:youtube.slashBuilder.test"))
-        .addStringOption(option =>
-          option.setName("id_canal")
-            .setDescription(i18next.t("commands:youtube.slashBuilder.id_canal"))
-            .setRequired(true)
-        )
+    .addSubcommand(s => s.setName("test").setDescription(i18next.t("commands:youtube.slashBuilder.test"))
+      .addStringOption(o => o.setName("id_canal").setDescription(i18next.t("commands:youtube.slashBuilder.id_canal")).setRequired(true)
+      )
     );
-
   return [youtube] as SlashCommandBuilder[];
 }
 
-export async function handleYouTubeCommand(interaction: any) {
+const isRunning = new Map<string, boolean>()
+export async function handleYouTubeCommand(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const guild = interaction.guild;
-  if (!guild) {
-    await interaction.editReply(i18next.t("common:Errores.noGuild"));
-    return;
-  }
+  if (!guild) { await interaction.editReply(i18next.t("common:Errores.noGuild")); return; }
 
   const isAllowed = await hasPermission(interaction, interaction.commandName);
-  if (!isAllowed) {
-    await interaction.editReply({
-      content: i18next.t("common:Errores.isAllowed"),
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
+  if (!isAllowed) { await interaction.editReply({ content: i18next.t("common:Errores.isAllowed") }); return; }
 
   try {
+    if (isRunning.get(guild.id)) { await interaction.editReply({ content: i18next.t("common:Errores.isRunning", { a1: interaction.commandName }) }); return; };
+    isRunning.set(guild.id, true)
+
     const subcommand = interaction.options.getSubcommand();
     switch (subcommand) {
       case "seguir":
@@ -96,18 +65,19 @@ export async function handleYouTubeCommand(interaction: any) {
     }
   } catch (err) {
     error(`Error ejecutando comando YouTube: ${err}`);
-    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.error"), flags: MessageFlags.Ephemeral });
-  }
+    if (interaction.replied || interaction.deferred) { await interaction.editReply(i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName })); }
+    else { await interaction.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: interaction.commandName }) }); }
+  } finally { isRunning.delete(guild.id) }
 }
 
 // =============== SubSeguir =============== //
-async function seguirCanal(interaction: any, guild: Guild) {
-  const rssUrl = interaction.options.getString("rss_url");
-  const discordChannelInput = interaction.options.getChannel("canal");
-  const discordChannel = interaction.guild.channels.cache.get(discordChannelInput.id);
+async function seguirCanal(interaction: ChatInputCommandInteraction, guild: Guild) {
+  const rssUrl = interaction.options.getString("rss_url", true);
+  const discordChannelInput = interaction.options.getChannel("canal", true);
+  const discordChannel = interaction.guild!.channels.cache.get(discordChannelInput.id);
 
   if (!discordChannel || !discordChannel.isTextBased()) {
-    await interaction.editReply({ content: i18next.t("common:Errores.noChannel"), flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: i18next.t("common:Errores.noChannel") });
     return;
   }
 
@@ -123,46 +93,27 @@ async function seguirCanal(interaction: any, guild: Guild) {
   if (!testPerm.ok) { await interaction.editReply({ content: i18next.t("common:Errores.missing_permissions", { a1: `<#${discordChannel.id}>`, a2: testPerm.msg.join('\n') }) }); return; }
 
   if (!rssUrl.includes("youtube.com/feeds/videos.xml") || !rssUrl.includes("channel_id=")) {
-    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.rss_error"), flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.rss_error") });
     return;
   }
 
   try {
-
     const extractRRS = (rssUrl: string): string | null => {
       const match = rssUrl.match(/channel_id=([^&]+)/);
       return match ? match[1] : null;
     }
 
     const channelId = extractRRS(rssUrl);
-    if (!channelId) {
-      await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.rssID_error"), flags: MessageFlags.Ephemeral });
-      return;
-    }
-
+    if (!channelId) { await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.rssID_error") }); return; }
 
     const existingFeeds = await getYouTubeFeeds(guild.id);
     const alreadyFollowing = existingFeeds.find(feed => feed.youtube_channel_id === channelId);
+    if (alreadyFollowing) { await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.ya_sigueindo", { a1: alreadyFollowing.youtube_channel_name }) }); return; }
 
-    if (alreadyFollowing) {
-      await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.ya_sigueindo", { a1: alreadyFollowing.youtube_channel_name }), flags: MessageFlags.Ephemeral });
-      return;
-    }
-
-    await interaction.editReply({
-      content: "🔍 **Verificando el canal de YouTube...**",
-      ephemeral: true
-    });
+    await interaction.editReply({ content: "🔍 **Verificando el canal de YouTube...**", });
 
     const verification = await verifyYouTubeRss(rssUrl);
-
-    if (!verification.isValid) {
-      await interaction.editReply({
-        content: i18next.t("commands:youtube.interacciones.erro_verificar_canal", { a1: verification.error }),
-        ephemeral: true
-      });
-      return;
-    }
+    if (!verification.isValid) { await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.erro_verificar_canal", { a1: verification.error }), }); return; }
 
     const vChName = verification.channelName;
 
@@ -175,39 +126,27 @@ async function seguirCanal(interaction: any, guild: Guild) {
       last_video_id: null
     });
 
-    await interaction.editReply({
-      content: i18next.t("commands:youtube.interacciones.seguir_success", { a1: vChName, a2: discordChannel.toString() }),
-      flags: MessageFlags.Ephemeral
-    });
-
+    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.seguir_success", { a1: vChName, a2: discordChannel.toString() }), });
     debug(`Nuevo canal de YouTube seguido: ${vChName} (${channelId}) en servidor ${guild.id}`, "YouTubeCommand");
 
   } catch (err) {
     error(`Error siguiendo canal: ${err}`, "YouTubeCommand");
-    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.error"), flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.error") });
   }
 }
 
 // =============== SubLista =============== //
-async function listaCanales(interaction: any, guild: Guild) {
+async function listaCanales(interaction: ChatInputCommandInteraction, guild: Guild) {
   const feeds = await getYouTubeFeeds(guild.id);
-
-  if (feeds.length === 0) {
-    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.lista_vacia"), flags: MessageFlags.Ephemeral });
-    return;
-  }
+  if (feeds.length === 0) { await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.lista_vacia") }); return; }
 
   const feedsPorCanal = new Map<string, { canal: any, feeds: YouTubeFeed[] }>();
 
   for (const feed of feeds) {
     const clave = feed.channel_id;
-
     if (!feedsPorCanal.has(clave)) {
       const channel = guild.channels.cache.get(clave);
-      feedsPorCanal.set(clave, {
-        canal: channel,
-        feeds: []
-      });
+      feedsPorCanal.set(clave, { canal: channel, feeds: [] });
     }
     feedsPorCanal.get(clave)!.feeds.push(feed);
   }
@@ -231,90 +170,66 @@ async function listaCanales(interaction: any, guild: Guild) {
       const sufijo = listaCanales.length > TAMANO_BLOQUE ? ` (Parte ${Math.floor(i / TAMANO_BLOQUE) + 1})` : '';
       const nombreCampo = `#${urlchannel} - ${sufijo}`;
 
-      embed.addFields({
-        name: nombreCampo,
-        value: bloque || i18next.t("commands:youtube.interacciones.YT_embed_list_value"),
-        inline: false
-      });
+      embed.addFields({ name: nombreCampo, value: bloque || i18next.t("commands:youtube.interacciones.YT_embed_list_value"), inline: false });
     }
 
-    embed.setFooter({
-      text: i18next.t("commands:youtube.interacciones.YT_embed_footer")
-    });
+    embed.setFooter({ text: i18next.t("commands:youtube.interacciones.YT_embed_footer") });
 
-    await interaction.editReply({
-      embeds: [embed],
-      ephemeral: true
-    });
+    await interaction.editReply({ embeds: [embed], });
   }
 }
 
 // =============== SubDejar =============== //
-async function dejarCanal(interaction: any, guild: Guild) {
-  const youtubeChannelId = interaction.options.getString("id_canal");
+async function dejarCanal(interaction: ChatInputCommandInteraction, guild: Guild) {
+  const youtubeChannelId = interaction.options.getString("id_canal", true);
 
   try {
     const removed = await removeYouTubeFeed(guild.id, youtubeChannelId);
-
     if (removed) {
-      await interaction.editReply({ content: "✅ Canal eliminado correctamente. Ya no recibirás notificaciones de este canal.", flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: "✅ Canal eliminado correctamente. Ya no recibirás notificaciones de este canal." });
       debug(`Canal de YouTube eliminado: ${youtubeChannelId} del servidor ${guild.id}`, "YouTubeCommand");
     } else {
-      await interaction.editReply({ content: "❌ No se encontró el canal especificado. Usa `/youtube lista` para ver los canales que estás siguiendo.", flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: "❌ No se encontró el canal especificado. Usa `/youtube lista` para ver los canales que estás siguiendo." });
     }
   } catch (err) {
     error(`Error eliminando canal: ${err}`, "YouTubeCommand");
-    await interaction.editReply({ content: "❌ Error al eliminar el canal.", flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: "❌ Error al eliminar el canal." });
   }
 }
 
 // =============== SubTest =============== //
-async function testCanal(interaction: any, guild: Guild) {
-  const youtubeChannelId = interaction.options.getString("id_canal");
+async function testCanal(interaction: ChatInputCommandInteraction, guild: Guild) {
+  const youtubeChannelId = interaction.options.getString("id_canal", true);
 
   try {
     const feeds = await getYouTubeFeeds(guild.id);
     const feed = feeds.find(f => f.channel_id === youtubeChannelId);
+    if (!feed) { await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.canal_test_error") }); return; }
 
-    if (!feed) {
-      await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.canal_test_error"), flags: MessageFlags.Ephemeral });
-      return;
-    }
-
-    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.canal_test_buscando"), flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.canal_test_buscando") });
 
     const Parser = (await import("rss-parser")).default;
     const parser = new Parser();
+
     const rssFeed = await parser.parseURL(feed.rss_url);
-    if (!rssFeed.items || rssFeed.items.length === 0) {
-      await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.canal_test_novideos"), flags: MessageFlags.Ephemeral });
-      return;
-    }
+    if (!rssFeed.items || rssFeed.items.length === 0) { await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.canal_test_novideos") }); return; }
 
     const latestVideo = rssFeed.items[0];
     const videoId = extractVideoId(latestVideo);
     const videoUrl = latestVideo.link || `https://www.youtube.com/watch?v=${videoId}`;
     const channel = guild.channels.cache.get(feed.channel_id);
 
-    if (!channel || !channel.isTextBased()) {
-      await interaction.editReply({ content: i18next.t("common:Errores.noChannel"), flags: MessageFlags.Ephemeral });
-      return;
-    }
+    if (!channel || !channel.isTextBased()) { await interaction.editReply({ content: i18next.t("common:Errores.noChannel") }); return; }
 
-    await channel.send({
-      content: i18next.t("commands:youtube.interacciones.canal_pruebaUltimoVideo", { a1: feed.youtube_channel_name, a2: latestVideo.title, a3: videoUrl }),
-    });
+    await channel.send({ content: i18next.t("commands:youtube.interacciones.canal_pruebaUltimoVideo", { a1: feed.youtube_channel_name, a2: latestVideo.title, a3: videoUrl }), });
+
     const canalClickeable = `<#${feed.channel_id}>`;
-    await interaction.editReply({
-      content: i18next.t("commands:youtube.interacciones.canal_test_pass", { a1: feed.youtube_channel_name, a2: canalClickeable }),
-      flags: MessageFlags.Ephemeral
-    });
+    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.canal_test_pass", { a1: feed.youtube_channel_name, a2: canalClickeable }), });
 
     debug(`Prueba ejecutada para canal: ${feed.youtube_channel_name} en servidor ${guild.id}`, "YouTubeCommand");
-
   } catch (err) {
     error(`Error en prueba de canal: ${err}`, "YouTubeCommand");
-    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.error"), flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: i18next.t("commands:youtube.interacciones.error") });
   }
 }
 

@@ -4,6 +4,7 @@ import { apiEmbedez } from "./Apis/embedez"
 import { apiPixivCustom } from "./Apis/PixivAPI"
 import { fakeApiFB } from "./Apis/fbFakeApi"
 import { xTwitterCustom } from "./Apis/Alttwitter"
+import { redditMeltrys } from "./Apis/reddita"
 
 export interface contPack { [key: string]: { content?: string, embeds?: EmbedBuilder[], files?: AttachmentBuilder[], components?: ContainerBuilder[], isV2?: boolean } }
 export interface pResult {
@@ -12,20 +13,22 @@ export interface pResult {
     pack?: contPack[]
 }
 
+export interface pMSGin { url: string, message?: Message, isSpoiler?: boolean, intCall?: boolean }
 export interface ApiHandler {
     name: string;
     isAvailable(): boolean;
     isDomain(domain: string): boolean;
-    guildChk(domain: string, guildId: string, guildConfigs: Map<string, any>): Promise<boolean>;
-    process(url: string, message?: Message, spoiler?: boolean): Promise<pResult>;
+    guildChk(domain: string, guildConfigs: Map<string, any>, guildId?: string): Promise<boolean>;
+    process(pMsg: pMSGin): Promise<pResult>;
 }
 
 // =========== Registro de APIs =========== //
 const apiHandlers: ApiHandler[] = [
+    new redditMeltrys(),
     new apiEmbedez(),
     new apiPixivCustom(),
     new fakeApiFB(),
-    new xTwitterCustom()
+    new xTwitterCustom(),
 ];
 
 // =========== Procesador principal =========== //
@@ -35,11 +38,11 @@ export async function urlProcess(dta: urlData): Promise<pResult> {
         if (!apiHandler.isAvailable()) continue;
         if (!apiHandler.isDomain(dta.domain)) continue;
 
-        const shouldUse = await apiHandler.guildChk(dta.domain, dta.guild, dta.gConf);
+        const shouldUse = await apiHandler.guildChk(dta.domain, dta.gConf, dta.guild);
         if (!shouldUse) continue;
 
         try {
-            const apiResult = await apiHandler.process(dta.oURL, dta.msg, dta.isSpoiler);
+            const apiResult = await apiHandler.process({ url: dta.oURL, message: dta.msg, isSpoiler: dta.isSpoiler });
             if (apiResult.ok === true) return apiResult;
         } catch (err) {
             debug(`Error crítico en API ${apiHandler.name}: ${(err as Error).message}`, "Events.MessageCreate");

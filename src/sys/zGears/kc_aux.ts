@@ -2,18 +2,19 @@
 import i18next from "i18next";
 import { notifyKC, notifyType } from "../../bgProcess/KanCron";
 import { maint, updateKCmant } from "../DB-Engine/links/KancolleBD";
-import { debug, error } from "../logging";
+import { debug, error, warn } from "../logging";
 import { translate } from "@vitalets/google-translate-api";
-import emojis from '../../../adds/otros/emojis.json'
+import * as cheerio from 'cheerio';
+import emj from '../../../adds/otros/emojis.json'
 
 // ========================================================= fetchMaint ========================================================= //
 let kcTimmers = new Map<string, NodeJS.Timeout>();
-let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null };
-const idStart = `maintStart`, idEnd = `mntEnd`;
-const minuts = 60 * 1_000;
+let ntfMantData: ntfMant = { MaintDate: null, endMantDate: null, url: null, tweetInfo: null, version: null };
+const idStart = `mntStar`, idStarPre = 'mntStar24h', idEnd = `mntEnd`;
+const minuts = 60 * 1_000, HORA = 60 * minuts;
 
 interface TweetInfoTl { Orginal: string; isoES: string; isoEN: string }
-interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: TweetInfoTl | null };
+interface ntfMant { MaintDate: Date | null, endMantDate: Date | null, url: string | null, tweetInfo: TweetInfoTl | null, version: string | null };
 interface dataGit { MaintInfoLink: string, MaintStart: string, MaintEnd?: string }
 
 export async function mantChk() {
@@ -37,31 +38,32 @@ export async function mantChk() {
         maint.lastMaintStart = newMaintDate;
         maint.MaintEnd = endMantDate;
         maint.maintNotified = false;
-        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: false, lastNotificationTime: null, MaintEnd: endMantDate });
+        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: false, lastNotificationTime: null, MaintEnd: endMantDate, version: maint.version });
     }
 
     if ((lastEndTime && endMantTime) && lastEndTime !== endMantTime) {
         if (kcTimmers.has(idEnd)) kcTimmers.delete(idEnd)
         maint.MaintEnd = endMantDate;
-        await updateKCmant({ lastMaintStart: maint.lastMaintStart, maintNotified: maint.maintNotified, lastNotificationTime: maint.lastNotificationTime, MaintEnd: endMantDate });
+        await updateKCmant({ lastMaintStart: maint.lastMaintStart, maintNotified: maint.maintNotified, lastNotificationTime: maint.lastNotificationTime, MaintEnd: endMantDate, version: maint.version });
     }
 
     if (maint.maintNotified === false) {
         if (newMantTime < Date.now()) {
             debug(`🔧 Mantenimiento pasado detectado en BD. Marcando como notificado silenciosamente.`, "KancolleBD");
             maint.maintNotified = true;
-            await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: null, MaintEnd: endMantDate });
+            await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: null, MaintEnd: endMantDate, version: maint.version });
             return;
         }
 
-        const datTwet = await tweetKC.geTwiitter(processData.MaintInfoLink)
+        const datTwet = await tweetKC.geTwiitter(processData.MaintInfoLink);
         debug(`🔧 Anunciando nuevo mantenimiento a los servidores: ${newMaintStartStr}`, "KancolleBD");
-        ntfMantData = { MaintDate: newMaintDate, endMantDate: endMantDate, url: processData.MaintInfoLink, tweetInfo: datTwet };
-        notifyKC("newMante")
+        ntfMantData.MaintDate = newMaintDate; ntfMantData.endMantDate = endMantDate; ntfMantData.url = processData.MaintInfoLink; ntfMantData.tweetInfo = datTwet;
+        notifyKC("mntAviso");
         maint.maintNotified = true;
-        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: new Date(), MaintEnd: endMantDate });
+        await updateKCmant({ lastMaintStart: newMaintDate, maintNotified: true, lastNotificationTime: new Date(), MaintEnd: endMantDate, version: maint.version });
     }
-    if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd)) startMant();
+    if (!kcTimmers.has(idStart) || !kcTimmers.has(idEnd) || !kcTimmers.has(idStarPre)) { startMant().catch(() => null); }
+    getConstInfo().catch(() => null);
 }
 
 class tweetKC {
@@ -113,17 +115,42 @@ async function startMant() {
         if (!maint.lastMaintStart) return;
         const now = getNowJST(), INItime = JSTtoUTC(maint.lastMaintStart);
         if (!INItime) return;
-        const maintStart = INItime.getTime();
-        const leftStart = maintStart - now;
-        const HORA = 60 * minuts;
+        const mntStar = INItime.getTime();
+        const leftStart = mntStar - now;
 
-        if (leftStart > 0 && leftStart < (12 * HORA)) {
+        if (leftStart > 0 && leftStart < (4 * HORA)) {
             if (leftStart > HORA && !kcTimmers.has(idStart)) {
+                const mntStr = leftStart - HORA;
                 const timer1h = setTimeout(() => {
                     notifyKC(idStart);
                     kcTimmers.delete(idStart);
-                }, leftStart - HORA);
+                }, mntStr);
                 kcTimmers.set(idStart, timer1h);
+                debug(`[KanCron]: Establecido ${idStart} en ${Math.round(mntStr / minuts)} min`);
+            }
+        }
+
+        if (leftStart > 0 && leftStart < (14 * HORA)) { // pre Start12h
+            if (leftStart > (12 * HORA) && !kcTimmers.has(idStarPre)) {
+                const p12StrA = leftStart - (12 * HORA);
+                const timer24hS = setTimeout(() => {
+                    notifyKC(idStarPre);
+                    kcTimmers.delete(idStarPre);
+                }, p12StrA);
+                kcTimmers.set(idStarPre, timer24hS);
+                debug(`[KanCron]: Establecido ${idStarPre} en ${Math.round(p12StrA / minuts)} min`);
+            }
+        }
+
+        if (leftStart > 0 && leftStart < (8 * HORA)) { // pre Start6h
+            if (leftStart > (6 * HORA) && !kcTimmers.has(idStarPre)) {
+                const p12StrB = leftStart - (6 * HORA);
+                const timer24hS = setTimeout(() => {
+                    notifyKC(idStarPre);
+                    kcTimmers.delete(idStarPre);
+                }, p12StrB);
+                kcTimmers.set(idStarPre, timer24hS);
+                debug(`[KanCron]: Establecido ${idStarPre} en ${Math.round(p12StrB / minuts)} min`);
             }
         }
 
@@ -138,6 +165,7 @@ async function startMant() {
                         kcTimmers.delete(idEnd);
                     }, leftEnd);
                     kcTimmers.set(idEnd, endoMeinto);
+                    debug(`[KanCron]: Establecido ${idEnd} en ${Math.round(leftEnd / minuts)} min`);
                 }
             }
         }
@@ -147,23 +175,18 @@ async function startMant() {
 // ========================================================= Euxiliares ========================================================= //
 export function allLefts() {
     // Reglas mes: 1-31, 100 = ultimo dia del mes; Semana: domingo = 0 - sabado = 6, def= 1 lunes (1); Minutos: 0-59 def 0
-    const p0 = leftTimeConv({ type: 'daily', hours: [3, 15] });
-    const p1 = leftTimeConv({ type: 'daily', hours: 3 });
-    const p2 = leftTimeConv({ type: 'daily', hours: 15 });
-    const dQ = leftTimeConv({ type: 'daily', hours: 5 });
-    const wQ = leftTimeConv({ type: 'weekly', targetDay: 1, hours: 5 });
-    const mQ = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5 });
-    const qQ = leftTimeConv({ type: 'quarterly', targetDay: 1, hours: 5 });
-    const oem = leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0 });
-    const dPt = leftTimeConv({ type: 'daily', hours: [2, 14] });
-    const mPt = leftTimeConv({ type: 'monthly', targetDay: 100, hours: 22 });
-    const ex = leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12 });
-
     return {
-        pvp: turnDate(p0), pvp3h: turnDate(p1), pvp15h: turnDate(p2), oem: turnDate(oem),
-        dQuest: turnDate(dQ), wQuest: turnDate(wQ), mQuest: turnDate(mQ), qQuest: turnDate(qQ),
-        dPtCutof: turnDate(dPt), mPtCutof: turnDate(mPt),
-        mExp: turnDate(ex)
+        pvp: turnDate(leftTimeConv({ type: 'daily', hours: [3, 15] })), // PvP Dual
+        pvp3h: turnDate(leftTimeConv({ type: 'daily', hours: 3 })), // PvP 03:00
+        pvp15h: turnDate(leftTimeConv({ type: 'daily', hours: 15 })), // PvP 15:00
+        oem: turnDate(leftTimeConv({ type: 'monthly', targetDay: 1, hours: 0 })), // Extra Operaciones
+        dQuest: turnDate(leftTimeConv({ type: 'daily', hours: 5 })), // Misiones diarias
+        wQuest: turnDate(leftTimeConv({ type: 'weekly', targetDay: 1, hours: 5 })), // Misiones semanales
+        mQuest: turnDate(leftTimeConv({ type: 'monthly', targetDay: 1, hours: 5 })), // Misiones Mensuales
+        qQuest: turnDate(leftTimeConv({ type: 'quarterly', targetDay: 1, hours: 5 })), // Misiones trimestrales
+        dPtCutof: turnDate(leftTimeConv({ type: 'daily', hours: [2, 14] })), // Rank cutoof
+        mPtCutof: turnDate(leftTimeConv({ type: 'monthly', targetDay: 100, hours: 22 })), // Rank cutoof mensuales
+        mExp: turnDate(leftTimeConv({ type: 'monthly', targetDay: 15, hours: 12 })) // Expediciones mensuales
     };
 }
 
@@ -174,20 +197,20 @@ function aQuest() {
     const numDay = tokyoDate.getDate(); // 1 - 31
     const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
     // === msg === //
-    let aviso = `\n## ${emojis.Daily} DIARIAS!!`
-    if (dayOfWeek === 1) aviso += `\n## ${emojis.Weekly} SEMANALES!!`
-    if (numDay === 1) aviso += `\n## ${emojis.Monthly} MENSUALES!!`
-    if (numDay === 1 && [2, 5, 8, 11].includes(month)) aviso += `\n## ${emojis.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre
+    let aviso = `\n## ${emj.KC.Daily} DIARIAS!!`
+    if (dayOfWeek === 1) aviso += `\n## ${emj.KC.Weekly} SEMANALES!!`
+    if (numDay === 1) aviso += `\n## ${emj.KC.Monthly} MENSUALES!!`
+    if (numDay === 1 && [2, 5, 8, 11].includes(month)) aviso += `\n## ${emj.KC.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre
     return aviso;
 }
 
 function lQusty() {
-    const cmpDay = 23 * 60 * minuts; // Fix por chek de 24hrs
+    const cmpDay = 23 * HORA; // Fix por chek de 24hrs
     const now = getNowJST() + cmpDay, tokyoDate = new Date(now);
     const month = tokyoDate.getMonth(); // 0 = enero, 11 = diciembre
     // === msg === //
-    let aviso = `## PREAVISO DE RESET DE MISONES: \n\n# ${emojis.Monthly} MENSUALES!!`
-    if ([2, 5, 8, 11].includes(month)) aviso += `\n# ${emojis.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre 
+    let aviso = `## PREAVISO DE RESET DE MISONES: \n\n# ${emj.KC.Monthly} MENSUALES!!`
+    if ([2, 5, 8, 11].includes(month)) aviso += `\n# ${emj.KC.Quarterly} TRIMESTRALES (Quarterly)!!` //Marzo, Junio, Septiembre, Diciembre 
     return aviso;
 }
 
@@ -341,27 +364,28 @@ export async function fetchData(url: string) {
 // =================================================================================================================================== //
 // =========================================================== SitchNotify =========================================================== //
 // =================================================================================================================================== //
+interface fiDo { name: string, value: string, inline?: boolean };
 interface presetsKC {
     title: { A: string, B: string },
     desc: { ini: string, l30: string, l15: string, fn: string },
     urlPic: { A?: string, B?: string },
-    field: { name: string, value: string, inline?: boolean }[],
+    field: { A: fiDo[], B?: fiDo[] },
     mTimmer: number,
     ntfy: { ntf_30: boolean, ntf_15: boolean, ntf_end: boolean },
     url?: string,
-}
+};
 
-export function rawPreset(type: notifyType): presetsKC | null {
+export async function rawPreset(type: notifyType): Promise<presetsKC | null> {
     const rst = allLefts(), minuts = 60 * 1_000;
     let vlueTxt = i18next.t("commands:kancolle.bgProsses.siwtchNotify_vText", { a1: rst.pvp, a2: rst.oem, a3: rst.mExp, a4: rst.dQuest, a5: rst.wQuest, a6: rst.mQuest, a7: rst.qQuest, a8: rst.dPtCutof, a9: rst.mPtCutof });
     if (maint.lastMaintStart && (maint.lastMaintStart.getTime() > getNowJST())) {
         const resTime = maint.lastMaintStart.getTime() - getNowJST();
         const mantData = "\n" + "> Mantenimiento:" + "\n" + `**⏰ INICIA EN:** ${turnDate(resTime)}` + "\n\n"
-        if (type !== "maintStart") vlueTxt += mantData;
+        if (!["mntStar", "mntStar24h"].includes(type)) vlueTxt += mantData;
     }
     // ===== switch ===== //
     switch (type) {
-        case "pvp":
+        case "pvp": // Aviso PvPs
             const timePvp = leftTimeConv({ type: 'daily', hours: [3, 15] });
             return {
                 title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_title"), B: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_uTitle"), },
@@ -371,13 +395,13 @@ export function rawPreset(type: notifyType): presetsKC | null {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_desc_15"),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_pvp_uDesc"),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }] },
                 mTimmer: timePvp,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/rhaHOhq.png" }
             };
         // ======================================== QUEST ======================================== //
-        case "quest":
+        case "quest": // Aviso Diarias
             const timeQuest = leftTimeConv({ type: 'daily', hours: 5 });
             const tx = aQuest();
             return {
@@ -388,12 +412,12 @@ export function rawPreset(type: notifyType): presetsKC | null {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_desc_15", { a1: tx }),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_uDesc", { a1: tx }),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }] },
                 mTimmer: timeQuest,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/pJZdK4i.jpeg" }
             };
-        case "lQuest": // pre aviso lQuest
+        case "quest24h": // Aviso Mensuales/Quaterly
             const reset = lQusty()
             return {
                 title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_quest_title"), B: "TBA" },
@@ -401,7 +425,7 @@ export function rawPreset(type: notifyType): presetsKC | null {
                     ini: `${reset} \n\n ## > RESET EN 24 HRS`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }] },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.imgur.com/2pCJyiW.jpeg" }
@@ -417,19 +441,19 @@ export function rawPreset(type: notifyType): presetsKC | null {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_desc_15"),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_uDesc"),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }] },
                 mTimmer: timeOem,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/72A2KNE.png", }
             };
-        case "loem": // pre aviso OEM
+        case "oem24h": // pre aviso OEM
             return {
                 title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_oem_title"), B: "TBA" },
                 desc: {
                     ini: `# REINICIO EN 24 HRS!!`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }] },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://pbs.twimg.com/media/FOqFIkaXIAMbdMy.jpg" }
@@ -445,50 +469,43 @@ export function rawPreset(type: notifyType): presetsKC | null {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_desc_15"),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mExp_uDesc"),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }] },
                 mTimmer: timemExp,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
             };
-        case "lmExp": // pre aviso mExp
+        case "mExp24h": // pre aviso mExp
             return {
                 title: { A: "EXPEDICIONES MENSUALES!", B: "TBA" },
                 desc: {
                     ini: `# REINICIO EN 24 HRS!!`,
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }] },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.redd.it/pbl5gjzvaqy31.png" }
             }
         // ======================================== Mantenimiento ======================================== //
-        case "newMante":
-            if (!ntfMantData.MaintDate) return null;
-            const tokyoDate = getNowJST(), INItime = JSTtoUTC(ntfMantData.MaintDate), ENDtime = JSTtoUTC(ntfMantData.endMantDate);;
-            const left2start = INItime ? turnDate(INItime.getTime() - tokyoDate) : "TBA";
-            const lef2end = ENDtime ? turnDate(ENDtime.getTime() - tokyoDate) : "TBA";
-            const tim = mantDates(ntfMantData.MaintDate, ntfMantData.endMantDate)
+        case "mntStar24h": // preaviso 12hrs
+            const clkStr = JSTtoUTC(maint.lastMaintStart);
+            console.log(`mante pre aviso ${clkStr}`)
+            if (!clkStr) return null;
+            const strLtime = clkStr.getTime() - getNowJST();
+            const outSLT = turnDate(strLtime);
+
             return {
-                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: "TBA" },
+                title: { A: "MANTENIMIENTO!!", B: "TBA" },
                 desc: {
-                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntStart_des"), l30: "TBA", l15: "TBA", fn: "TBA"
+                    ini: `# EL MANTENIMIENTO INICIA EN ${outSLT.toUpperCase()}!!`,
+                    l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [
-                    { name: '> ***Tiempo restante:***', value: `⏰ INICIO: \`${left2start}\` \n⏰ TERMINO:  \`${lef2end}\`` },
-                    { name: "> ***🇯🇵 JST*** | ***GMT+9***", value: `📅 INICIO: \`${tim.sJP}\` \n📅 TERMINO: \`${tim.eJP}\`` },
-                    { name: "> ***🌐 UTC***", value: `📅 INICIO: \`${tim.sUTC}\` \n📅 TERMINO: \`${tim.eUTC} \`` },
-                    { name: "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***", value: `📅 INICO: \`${tim.sMX}\` \n📅 TERMINO: \`${tim.eMX}\`` },
-                    { name: "> ***Tweet del anuncio:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.Orginal : "No disponible!" },
-                    { name: "> ***Tweet traducido al Español:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoES : "No disponible!" },
-                    { name: "> ***Tweet traducido al Inglés:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoEN : "No disponible!" }
-                ],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }] },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
-                urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" },
-                url: ntfMantData.url ? ntfMantData.url : undefined
-            }
-        case "maintStart":
+                urlPic: { A: "https://i.imgur.com/zTF3hlZ.png" }
+            };
+        case "mntStar": // aviso inico
             const endRawDate = JSTtoUTC(maint.MaintEnd);
             const endDate = endRawDate ? new Date(endRawDate).toLocaleString('es-MX', { hour12: false }) : `\`TBA!\``;
             return {
@@ -499,24 +516,317 @@ export function rawPreset(type: notifyType): presetsKC | null {
                     l15: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntsStart_15"),
                     fn: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uDesc", { a1: endDate }),
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A"), value: vlueTxt }] },
                 mTimmer: 60 * minuts,
                 ntfy: { ntf_30: true, ntf_15: true, ntf_end: true, },
                 urlPic: { A: "https://i.imgur.com/zTF3hlZ.png", B: "https://i.imgur.com/ed3cVTh.png" }
             };
-        case "mntEnd":
+        case "mntAviso": // aviso de nuevo mante
+            if (!ntfMantData.MaintDate) return null;
+            const tokyoDate = getNowJST(), INItime = JSTtoUTC(ntfMantData.MaintDate), ENDtime = JSTtoUTC(ntfMantData.endMantDate);;
+            const left2start = INItime ? turnDate(INItime.getTime() - tokyoDate) : "TBA";
+            const lef2end = ENDtime ? turnDate(ENDtime.getTime() - tokyoDate) : "TBA";
+            const tim = mantDates(ntfMantData.MaintDate, ntfMantData.endMantDate)
+            return {
+                title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: "TBA" },
+                desc: {
+                    ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_mntStart_des"), l30: "TBA", l15: "TBA", fn: "TBA"
+                },
+                field: {
+                    A: [
+                        { name: '> ***Tiempo restante:***', value: `⏰ INICIO: \`${left2start}\` \n⏰ TERMINO:  \`${lef2end}\`` },
+                        { name: "> ***🇯🇵 JST*** | ***GMT+9***", value: `📅 INICIO: \`${tim.sJP}\` \n📅 TERMINO: \`${tim.eJP}\`` },
+                        { name: "> ***🌐 UTC***", value: `📅 INICIO: \`${tim.sUTC}\` \n📅 TERMINO: \`${tim.eUTC} \`` },
+                        { name: "> ***🇲🇽 MX_City*** | ***🇸🇻 SV*** | ***🇨🇷 CR*** | ***GMT-6***", value: `📅 INICO: \`${tim.sMX}\` \n📅 TERMINO: \`${tim.eMX}\`` },
+                        { name: "> ***Tweet del anuncio:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.Orginal : "No disponible!" },
+                        { name: "> ***Tweet traducido al Español:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoES : "No disponible!" },
+                        { name: "> ***Tweet traducido al Inglés:***", value: ntfMantData.tweetInfo ? ntfMantData.tweetInfo.isoEN : "No disponible!" }
+                    ]
+                },
+                mTimmer: 0,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" },
+                url: ntfMantData.url ? ntfMantData.url : undefined
+            }
+        case "mntEnd": // aviso fin mante
             return {
                 title: { A: i18next.t("commands:kancolle.bgProsses.siwtchNotify_1h_uTitle"), B: "TBA" },
                 desc: {
                     ini: i18next.t("commands:kancolle.bgProsses.siwtchNotify_endMant"),
                     l30: "TBA", l15: "TBA", fn: "TBA"
                 },
-                field: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }],
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset_A_F"), value: vlueTxt }] },
                 mTimmer: 0,
                 ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
                 urlPic: { A: "https://i.imgur.com/sInDmjs.jpeg" }
             };
+        case "rank":
+            const rank = leftTimeConv({ type: 'daily', hours: [3, 15], minutes: 0 })
+            const jpF = new Date().toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+            let isActual = `### Hora de actualizacion: ${jpF} JP Time`;
+            const newFields: { name: string, value: string, inline?: boolean }[] = [];
+            const senkDta = await senkaTables()
+            if (senkDta.length > 0) {
+                for (const sSnk of senkDta) {
+                    newFields.push(
+                        {
+                            name: `ID: ${sSnk.num} | Name: ${gimeName(sSnk.name)} \n> upDate: ${sSnk.isUpdate ? emj.cmn.ok : emj.cmn.fail} | Hora: ${sSnk.updatedIn}`,
+                            value: `**Top 1:** ${sSnk.top1}pts | **Top 5:** ${sSnk.top5}pts | **Top 20:** ${sSnk.top20}pts \n **Top 100:** ${sSnk.top100}pts | **Top 500:** ${sSnk.top500}pts`
+                        }
+                    )
+                }
+            }
+            else {
+                const dtaRnk = await rankServers();
+                if (!dtaRnk.ok || !dtaRnk.data) {
+                    if (dtaRnk.data) { isActual = ` > Cache: ${dtaRnk.date} JP time`; }
+                    else { return null }
+                }
+                for (const srv of dtaRnk.data) {
+                    const upDate = new Date(srv.lastModified).toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+                    newFields.push({
+                        name: `ID: ${srv.number} | Name: ${srv.jpName} (${srv.enName}) \n> Actual: ${dtaRnk.ok ? (srv.updated ? emj.cmn.ok : emj.cmn.fail) : emj.cmn.fail} | ${upDate} JP Time`,
+                        value: `**Top 1:** ${srv.cutoff[1]}pts | **Top 5:** ${srv.cutoff[5]}pts | **Top 20:** ${srv.cutoff[20]}pts \n **Top 100:** ${srv.cutoff[100]}pts | **Top 500:** ${srv.cutoff[500]}pts`
+                    });
+                }
+            }
+
+            return {
+                title: { A: `**Senka.su - Ranking Cutoff!!**`, B: "**Mostrando actualizacion de pts.**" },
+                desc: { ini: `## Ranking Cutoff!`, l30: "TBA", l15: "TBA", fn: (isActual + `\n **${emj.cmn.ok} = Puntaje actualizado.**` + `\n \`/kancolle rank\``) },
+                field: { A: [], B: newFields },
+                mTimmer: rank,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: true, },
+                urlPic: { A: "https://i.imgur.com/ZzQLWQ6.png" }
+            };
+        case "verntf":
+            if (!maint.version) return null
+            return {
+                title: { A: `**SE DETECTÓ UN CAMBIO DE VERSIÓN:** `, B: "TBA" },
+                desc: {
+                    ini: ntfMantData.version ? `## Nueva version: ${ntfMantData.version} ${emj.cmn.arrowR} ${maint.version}` : `## Nueva version: ${maint.version}`,
+                    l30: "TBA", l15: "TBA", fn: "TBA"
+                },
+                field: { A: [{ name: i18next.t("commands:kancolle.bgProsses.siwtchNotify_nextReset"), value: vlueTxt }] },
+                mTimmer: 0,
+                ntfy: { ntf_30: false, ntf_15: false, ntf_end: false, },
+                urlPic: {}
+            };
+        // ======================================== END ======================================== //
         default:
+            error("[KanCron]: ALGO LLEGO AL DEFAULT DEL SWITCH!!")
             return null;
     }
 };
+
+// =========================================================== RankData =========================================================== //
+interface rankKcheInt { date: number, info: SenkaData[] | BonodereData[] }
+const rankKche = new Map<string, rankKcheInt>();
+
+// ================ RankData(bonder) ================ //
+export type RankLevel = '1' | '5' | '20' | '100' | '500';
+type Cutoff = Record<RankLevel, number>;
+export interface RecordEntry {
+    value: number;
+    year: number;
+    month: number;
+}
+
+export interface BonodereData {
+    number: number;
+    enName: string;
+    jpName: string;
+    cutoff: Cutoff;
+    lastModified: string | Date;
+    updated: boolean;
+    records: {
+        higest: Record<RankLevel, RecordEntry>;
+        lowest: Record<RankLevel, RecordEntry>;
+    };
+}
+
+export async function rankServers(): Promise<{ ok: boolean, data: BonodereData[] | null, date?: string }> {
+    const namKch = "bonodere", bondTemp = rankKche.get(namKch);
+    const jstDate = new Date().toLocaleString("es-MX", { timeZone: 'Asia/Tokyo', hour12: false, timeStyle: 'short', dateStyle: 'short' });
+
+    try {
+        const getData = await fetch(`https://bonodere.famluro.es/api/misc/serverdata`, { method: 'GET' });
+        if (!getData.ok) return { ok: false, data: bondTemp?.info as BonodereData[] ?? null, date: jstDate };
+
+        const data = (await getData.json()) as BonodereData[];
+        rankKche.set(namKch, { date: 0, info: data });
+        return { ok: true, data };
+    } catch (error) {
+        return { ok: false, data: bondTemp?.info as BonodereData[] ?? null, date: jstDate };
+    }
+}
+
+// ================ RankData(senku) ================ //
+interface ServerStatus {
+    num: number;
+    name: string;
+    updatedIn: string;
+}
+
+interface ServerRanking {
+    serverName: string;
+    isUpdated: boolean;
+    top1: number;
+    top5: number;
+    top20: number;
+    top100: number;
+    top500: number;
+}
+
+export interface SenkaData {
+    num: number;
+    name: string;
+    isUpdate: boolean;
+    updatedIn: string;
+    top1: number;
+    top5: number;
+    top20: number;
+    top100: number;
+    top500: number;
+}
+
+export async function senkaTables(): Promise<SenkaData[]> {
+    const namKch = "senka", timeGet = Date.now(), senkTemp = rankKche.get(namKch);
+    if (senkTemp) {
+        if (senkTemp.date + (10 * minuts) > timeGet) { return senkTemp.info as SenkaData[]; }
+        rankKche.delete(namKch)
+    }
+
+    const senkData = await fetch("https://senka.su/en").catch(() => null);
+    if (!senkData || !senkData.ok) return [];
+
+    const html = await senkData.text();
+    const $ = cheerio.load(html);
+
+    const serverStatuses: ServerStatus[] = [];
+
+    $('.server-list .ant-table-tbody tr td').each((_, td) => {
+        const $a = $(td).find('.server a');
+        const href = $a.attr('href') || '';
+        const numMatch = href.match(/num=(\d+)/);
+
+        if (numMatch) {
+            const num = parseInt(numMatch[1], 10);
+            const rawText = $a.text().trim();
+            const name = rawText.replace(/^\[\d+\]\s*/, '');
+            const updatedIn = $(td).find('.server-status').text().trim();
+
+            serverStatuses.push({ num, name, updatedIn });
+        }
+    });
+
+    const serverRankings: ServerRanking[] = [];
+
+    $('.server-ranking .ant-table-tbody tr').each((_, tr) => {
+        const cells = $(tr).find('td');
+
+        if (cells.length >= 6) {
+            const firstCell = $(cells[0]);
+            const serverName = firstCell.attr('title')?.trim() || firstCell.text().trim();
+
+            const nameCellDiv = firstCell.find('.cell');
+            const isUpdated = nameCellDiv.hasClass('text-success'); // true si tiene text-success
+
+            const parseVal = (index: number) => {
+                const valText = $(cells[index]).find('.cell.val').text().trim();
+                return parseInt(valText, 10) || 0;
+            };
+
+            serverRankings.push({
+                serverName,
+                isUpdated,
+                top1: parseVal(1),
+                top5: parseVal(2),
+                top20: parseVal(3),
+                top100: parseVal(4),
+                top500: parseVal(5),
+            });
+        }
+    });
+
+    const rankingsByName = new Map(
+        serverRankings.map(r => [r.serverName.toLowerCase().trim(), r])
+    );
+
+    const combinedServers: SenkaData[] = serverStatuses.map((status, index) => {
+        const rank = rankingsByName.get(status.name.toLowerCase().trim()) ?? serverRankings[index];
+        return {
+            ...status,
+            isUpdate: rank?.isUpdated ?? false,
+            top1: rank?.top1 ?? 0,
+            top5: rank?.top5 ?? 0,
+            top20: rank?.top20 ?? 0,
+            top100: rank?.top100 ?? 0,
+            top500: rank?.top500 ?? 0,
+        };
+    });
+
+    rankKche.set(namKch, { date: timeGet, info: combinedServers })
+
+    return combinedServers;
+}
+
+// ================ vers ================ //
+async function getConstInfo() {
+    const res = await fetch("https://w00g.kancolle-server.com/gadget_html5/js/kcs_const.js").catch(() => null);
+    if (!res || !res.ok) return;
+
+    const src = await res.text();
+    const raw = (obj: string, key: string) => { // find dta
+        const m = src.match(new RegExp(`${obj}\\.${key}\\s*=\\s*([^;]+);`));
+        return m ? m[1].trim() : undefined;
+    };
+
+    const value = (obj: string, key: string) => { // extractor de dtos
+        const rw = raw(obj, key);
+        if (rw === undefined) return undefined;
+        if ((rw.startsWith('"') && rw.endsWith('"')) || (rw.startsWith("'") && rw.endsWith("'"))) { return rw.slice(1, -1); }
+
+        const nu = Number(rw);
+        return Number.isNaN(nu) ? rw : nu;
+    };
+
+    const flag = (obj: string, key: string) => { // bolaños
+        const vl = value(obj, key);
+        if (vl === undefined) return undefined;
+        return Number(vl) > 0;
+    };
+
+    const chkEmrg = flag("MaintenanceInfo", "IsEmergency")
+    const chkMante = flag("MaintenanceInfo", "IsDoing")
+    const chkDta = value("MaintenanceInfo", "EndDateTime")
+
+    const stngMante = chkMante ? `Aviso de mantenimiento ${chkEmrg ? " de emergencia!!" : "!!"}` : null;
+    if (stngMante) warn(`Out: ${stngMante} || Date: ${chkDta}`);
+
+    const verOut = value("VersionInfo", "scriptVesion")?.toString()
+    if (verOut !== undefined && verOut !== maint.version) {
+        ntfMantData.version = maint.version;
+        await updateKCmant({
+            lastMaintStart: maint.lastMaintStart,
+            maintNotified: maint.maintNotified,
+            lastNotificationTime: maint.lastNotificationTime,
+            MaintEnd: maint.MaintEnd,
+            version: verOut
+        });
+        notifyKC('verntf').catch(() => null)
+        debug(`[KanCron]: Se envio avios de "verntf"`);
+    }
+}
+
+// === aux === //
+export function gimeName(name: string) {
+    const srvFixName: Record<string, string> = {
+        /*1*/ "Yokosuka": "横须贺镇守府 (Yokosuka)", /*2*/ "Kure": "呉镇守府 (Kure)", /*3*/ "Sasebo": "佐世保镇守府 (Sasebo)", /*4*/ "Maizuru": " 舞鹤镇守府 (Maizuru)",
+        /*5*/ "Ominato": "大凑警备府 (Ominato)", /*6*/ "Truk": " トラック泊地 (Truk)", /*7*/ "Lingga": "リンガ泊地 (Lingga)", /*8*/ "Rabaul": "ラバウル基地 (Rabaul)",
+        /*9*/ "Shortland": " ショートランド泊地 (Shortland)", /*10*/ "Buin": "ブイン基地 (Buin)", /*11*/ "Tawi-Tawi": " タウイタウイ泊地 (Tawi-Tawi)", /*12*/ "Palau": "パラオ泊地 (Palau)",
+        /*13*/ "Brunei": "ブルネイ泊地 (Brunei)", /*14*/ "Hitokappu": "単冠湾泊地 (Hitokappu)", /*15*/ "Paramushir": "幌筵泊地 (Paramushir)", /*16*/ "Sukumo": "宿毛湾泊地 (Sukumo)",
+        /*17*/ "Kanoya": "鹿屋基地 (Kanoya)", /*18*/ "Iwagawa": "岩川基地 (Iwagawa)", /*19*/ "Saiki": "佐伯湾泊地 (Saiki)", /*20*/ "Hashirajima": "柱岛泊地 (Hashirajima)"
+    };
+    return srvFixName[name] ?? name;
+}

@@ -27,6 +27,7 @@ export function initLogger(environmentMode: EnvironmentMode): void {
       new winston.transports.File({ level: "info", format: fileFormat, filename: `${logDir}/info.log`, }),
       new winston.transports.File({ level: "debug", format: fileFormat, filename: `${logDir}/debug.log`, }),
       new winston.transports.File({ level: "warn", format: fileFormat, filename: `${logDir}/warn.log`, }),
+      new winston.transports.File({ level: "network", format: fileFormat, filename: `${logDir}/network.log`, })
     ],
   });
 }
@@ -59,4 +60,8 @@ export function info(msg: string, label?: string): void {
 
 export function debug(msg: string, label?: string): void {
   log("debug", msg, label);
+}
+
+export function network(msg: string, label?: string): void {
+  log("netwotk", msg, label)
 }

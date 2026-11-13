@@ -5,8 +5,9 @@ import getPool from "../DB-Engine/database";
 
 let statusList: { id: number, name: string }[] = [];
 let iClient: Client | null = null;
-let inter: NodeJS.Timeout | null = null;
-let tempTimeout: NodeJS.Timeout | null = null;
+let inter: NodeJS.Timeout | null = null; // master timmer 
+let tempTimeout: NodeJS.Timeout | null = null, actualStado: string | null = null; // estado ESCRITO temporal
+let timmGYRI: NodeJS.Timeout | null = null, actualGYRI: PresenceStatusData | null = null; // estado PRESENCIA temporal
 let timmer = Number(process.env.STATUS_TIME_MINUTOS) * 60 * 1000 || 30 * 60 * 1000;
 let defaultList = false;
 let countStatus = 0;
@@ -22,7 +23,8 @@ const setRandom = () => {
     type: ActivityType.Custom,
     state: randomStatus.name,
   });
-  info(`💭 Estado establecido: ${randomStatus.name}`, "setStatus");
+  actualStado = randomStatus.name;
+  info(`💭 Estado establecido: ${actualStado}`, "setStatus");
 };
 
 export async function startStatusRotation(client: Client): Promise<void> {
@@ -64,6 +66,7 @@ export function addTempStatus(name: string, duracion: number): boolean {
       type: ActivityType.Custom,
       state: name
     });
+    actualStado = name;
     if (inter) clearInterval(inter);
     if (tempTimeout) clearTimeout(tempTimeout);
 
@@ -140,6 +143,7 @@ export async function listStatus(interaccion: ChatInputCommandInteraction): Prom
   const embed = new EmbedBuilder()
     .setTitle("Lista de estados")
     .setDescription(list.map((s: any) => `**ID:** ${s.id} | **Estado:** ${s.name}`).join("\n"))
+    .setFooter({ text: `Estado actual: ${actualGYRI} | ${actualStado}` })
     .setColor(0x0000FF);
 
   await interaccion.editReply({ embeds: [embed] });
@@ -163,10 +167,14 @@ export async function deleteStatusBD(id: number): Promise<boolean> {
 
 export async function setiState(stat: PresenceStatusData, time: number): Promise<boolean> {
   if (!iClient) return false;
+  if (timmGYRI) { clearTimeout(timmGYRI); timmGYRI = null; }
   iClient.user?.setStatus(stat);
+  actualGYRI = stat;
   if (time !== 0) {
-    setTimeout(() => {
+    timmGYRI = setTimeout(() => {
       if (iClient) iClient.user?.setStatus('online');
+      actualGYRI = 'online';
+      timmGYRI = null;
     }, time * 60 * 1000);
   }
   return true;

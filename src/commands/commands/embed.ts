@@ -2,19 +2,14 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags, AutocompleteInteraction } from "discord.js";
 import i18next from "i18next";
 import { setGuildReplacementConfig } from "../../sys/DB-Engine/links/Embed";
-import { rMetaList } from "../../sys/embedding/embedingConfig";
 import { hasPermission } from "../../sys/zGears/mPermission";
+import { masterList, isApiList } from "../../sys/embedding/domainChecker";
 import { error } from "../../sys/logging";
-import { embedezSFW, embedezNSFW, meltrillisApi } from "../../sys/embedding/domainChecker";
 
 // --- Cambio para autocompletar 
 export async function embedAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const L = rMetaList.map((meta) => ({ name: "Remplacer: " + meta.name, value: meta.name }));
-    const eS = embedezSFW.map((domain) => ({ name: "Api.SFW: " + domain, value: domain }));
-    const eN = embedezNSFW.map((domain) => ({ name: "Api.NSFW: " + domain, value: domain }));
-    const mel = meltrillisApi.map((domain) => ({ name: "Meltryllis.Api: " + domain, value: domain }));
     const X = interaction.options.getFocused().toLowerCase();
-    const list = [...L, ...eS, ...eN, ...mel].filter(y => y.name.toLowerCase().includes(X));
+    const list = masterList.filter(y => y.name.toLowerCase().includes(X));
     await interaction.respond(list.slice(0, 25).map(c => ({ name: c.name, value: c.value })));
 }
 
@@ -23,64 +18,46 @@ export async function registerEmbedCommand(): Promise<SlashCommandBuilder[]> {
         .setName("embed")
         .setDescription(i18next.t("commands:embed.slashBuilder.embed_description"))
         .setDefaultMemberPermissions(PermissionFlagsBits.UseApplicationCommands)
-        .addSubcommand((subcommand) =>
-            subcommand
-                .setName("configurar")
-                .setDescription(i18next.t("commands:embed.slashBuilder.embed_config"))
-                .addStringOption((option) =>
-                    option
-                        .setName("sitio")
-                        .setDescription(i18next.t("commands:embed.slashBuilder.site_description"))
-                        .setRequired(true)
-                        .setAutocomplete(true)
+        .addSubcommand((s) =>
+            s.setName("configurar").setDescription(i18next.t("commands:embed.slashBuilder.embed_config"))
+                .addStringOption((o) => o.setName("sitio").setDescription(i18next.t("commands:embed.slashBuilder.site_description")).setRequired(true).setAutocomplete(true))
+                .addStringOption((o) => o.setName("modo").setDescription(i18next.t("commands:embed.slashBuilder.action_description")).setRequired(true)
+                    .addChoices(
+                        { name: i18next.t("commands:embed.slashBuilder.enable"), value: "enable" },
+                        { name: i18next.t("commands:embed.slashBuilder.disable"), value: "disable" },
+                        { name: i18next.t("commands:embed.slashBuilder.custom"), value: "custom" },
+                        { name: i18next.t("commands:embed.slashBuilder.default"), value: "default" }
+                    )
                 )
-                .addStringOption((option) =>
-                    option
-                        .setName("modo")
-                        .setDescription(i18next.t("commands:embed.slashBuilder.action_description"))
-                        .setRequired(true)
-                        .addChoices(
-                            { name: i18next.t("commands:embed.slashBuilder.enable"), value: "enable" },
-                            { name: i18next.t("commands:embed.slashBuilder.disable"), value: "disable" },
-                            { name: i18next.t("commands:embed.slashBuilder.custom"), value: "custom" },
-                            { name: i18next.t("commands:embed.slashBuilder.default"), value: "default" }
-                        )
-                )
-                .addStringOption((option) =>
-                    option
-                        .setName("personalizar")
-                        .setDescription(i18next.t("commands:embed.slashBuilder.custom_url"))
-                        .setRequired(false)
-                )
+                .addStringOption((o) => o.setName("personalizar").setDescription(i18next.t("commands:embed.slashBuilder.custom_url")).setRequired(false))
         );
     return [embedCommand] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promise<void> {
     await i.deferReply({ flags: MessageFlags.Ephemeral })
     const guildId = i.guild?.id;
-    if (!guildId) {
-        await i.editReply({ content: "Este comando solo se puede usar en un servidor." });
-        return;
-    }
+    if (!guildId) { await i.editReply({ content: "Este comando solo se puede usar en un servidor." }); return; }
 
     const isAllowed = await hasPermission(i, i.commandName);
-    if (!isAllowed) {
-        await i.editReply({ content: i18next.t("common:Errores.isAllowed") });
-        return;
-    }
-
-    const site = i.options.getString("sitio", true);
-    const modo = i.options.getString("modo", true);
-    const url = i.options.getString("personalizar", false);
-    const isApi = embedezNSFW.includes(site) || embedezSFW.includes(site) || meltrillisApi.includes(site);
-
-    let customUrl: string | null = null;
-    let enabled = true;
-    let userId: string | null = null;
-    let respuesta = "";
+    if (!isAllowed) { await i.editReply({ content: i18next.t("common:Errores.isAllowed") }); return; }
 
     try {
+        if (isRunning.get(guildId)) { await i.editReply({ content: i18next.t("common:Errores.isRunning", { a1: i.commandName }) }); return; };
+        isRunning.set(guildId, true)
+
+        const site = i.options.getString("sitio", true);
+        const modo = i.options.getString("modo", true);
+        const url = i.options.getString("personalizar", false);
+        const isApi = isApiList.includes(site);
+
+        let customUrl: string | null = null;
+        let enabled = true;
+        let userId: string | null = null;
+        let respuesta = "";
+
+
         switch (modo) {
             case "default":
                 if (isApi) { await i.editReply({ content: i18next.t("commands:embed.interacciones.Api_default") }); return; }
@@ -116,6 +93,7 @@ export async function handleEmbedCommand(i: ChatInputCommandInteraction): Promis
         await i.editReply({ content: respuesta });
     } catch (err) {
         error(`handleEmbedCommand()\tFallo para Guild: ${i.guildId}\tUsuario: ${i.user.id}\tError: ${err}`);
-        await i.editReply({ content: i18next.t("commands:embed.interacciones.failed"), });
-    }
+        if (i.replied || i.deferred) { await i.editReply(i18next.t("common:Errores.switch_catch_err", { a1: i.commandName })); }
+        else { await i.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: i.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guildId) }
 }

@@ -18,6 +18,7 @@ export async function registerFollowPixiCommand(): Promise<SlashCommandBuilder[]
     return [followPix] as SlashCommandBuilder[];
 }
 
+const isRunning = new Map<string, boolean>()
 export async function handlePixiFollowCommand(inter: ChatInputCommandInteraction) {
     const guild = inter.guild;
     if (!guild) { await inter.reply({ content: i18next.t("common:Errores.noGuild"), flags: MessageFlags.Ephemeral }); return };
@@ -26,6 +27,9 @@ export async function handlePixiFollowCommand(inter: ChatInputCommandInteraction
     if (!isAllowed) { await inter.reply({ content: i18next.t("common:Errores.isAllowed"), flags: MessageFlags.Ephemeral }); return };
 
     try {
+        if (isRunning.get(guild.id)) { await inter.reply({ content: i18next.t("common:Errores.isRunning", { a1: inter.commandName }), flags: MessageFlags.Ephemeral }); return; };
+        isRunning.set(guild.id, true)
+
         const subcommand = inter.options.getSubcommand();
         switch (subcommand) {
             case "seguir":
@@ -35,11 +39,13 @@ export async function handlePixiFollowCommand(inter: ChatInputCommandInteraction
             case "dejar":
                 removePixiModal(inter); break;
             default:
-                inter.editReply({ content: i18next.t("common:Errores.switchGeneral") })
+                inter.reply({ content: i18next.t("common:Errores.switchGeneral"), flags: MessageFlags.Ephemeral })
         }
     } catch (e: any) {
         error(`Comando: /followX SWITCH | Guild: ${inter.guild!.id} | Error: ${e.message}`);
-    }
+        if (inter.replied || inter.deferred) { await inter.editReply(i18next.t("common:Errores.switch_catch_err", { a1: inter.commandName })); }
+        else { await inter.reply({ content: i18next.t("common:Errores.switch_catch_err", { a1: inter.commandName }), flags: MessageFlags.Ephemeral }); }
+    } finally { isRunning.delete(guild.id) }
 }
 
 // ============================================================== AddUser ============================================================== //
