@@ -19,11 +19,8 @@ export class apiPixivCustom implements ApiHandler {
     }
 
     async process(pMsg: pMSGin): Promise<pResult> {
-        let ch: GuildTextBasedChannel | undefined = undefined;
-        if (pMsg.message && !pMsg.message.channel.isDMBased()) {
-            ch = pMsg.message.channel;
-            await ch.sendTyping();
-        }
+        const ch: GuildTextBasedChannel | null = (pMsg.message && !pMsg.message.channel.isDMBased()) ? pMsg.message.channel : null;
+        if (ch) await ch.sendTyping();
 
         const match = pMsg.url.match(/pixiv\.net\/(?:en\/)?artworks\/(\d+)/i);
         if (!match) return { ok: false };
