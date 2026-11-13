@@ -29,7 +29,7 @@ export class xTwitterCustom implements ApiHandler {
         if (!match) return { ok: false };
         const xId = match[1];
         // Typing
-        let ch: GuildTextBasedChannel | null = (pMsg.message && !pMsg.message.channel.isDMBased()) ? pMsg.message.channel : null;
+        const ch: GuildTextBasedChannel | null = (pMsg.message && !pMsg.message.channel.isDMBased()) ? pMsg.message.channel : null;
         if (ch) await ch.sendTyping();
         // url para
         const matchLang = pMsg.url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/\d+.*?\/([a-z]+)(?:\/|$)/i);
@@ -42,13 +42,12 @@ export class xTwitterCustom implements ApiHandler {
         if (!xData) return { ok: false };
         if (!xData.hasMedias && !xData.tweetDesc) return { ok: false };
         try {
-            let files: AttachmentBuilder[] = [], filesQuo: AttachmentBuilder[] = [], components: any[] = [];
+            const files: AttachmentBuilder[] = [], filesQuo: AttachmentBuilder[] = [], components: any[] = [];
             // Formato plano
             const TopTxt = `> ### ${emojis.int.user} ${xData.userName.length > 28 ? xData.userName.slice(0, 25) + `...` : xData.userName} ([@${xData.showName}](${xData.urlPost})) \n${xData.stats}`
             const BottomTxt = `${emojis.logos.twitter} ***X|Twitter • by Meltryllis Api *** `;
 
-            let tweDes = "";
-            let tweTl = "";
+            let tweDes = "", tweTl = "";
             if (xData.tweetDesc) {
                 tweDes = xData.tweetDesc;
                 if (!xData.tweetTl && tweDes.length > 2000) tweDes = tweDes.slice(0, 2000) + "...";
@@ -63,6 +62,7 @@ export class xTwitterCustom implements ApiHandler {
             if (tweTl.length > 0 && xData.tweetTl) {
                 textBlocks.push(`### 📄 Traducido al ${xData.tweetTl.oLng}:\n${tweTl}`);
             }
+
             if (tweDes.length > 0) {
                 if (tweTl.length > 0) { textBlocks.push(`### 📃 Texto original:\n> ${tweDes}`); }
                 else { textBlocks.push(tweDes); }
@@ -142,7 +142,7 @@ export class xTwitterCustom implements ApiHandler {
 
             components.push(container);
             // === filesitos === //
-            let outFiles: AttachmentBuilder[] = [];
+            const outFiles: AttachmentBuilder[] = [];
             if (files) outFiles.push(...files);
             if (wQuote && filesQuo) outFiles.push(...filesQuo);
             // out
@@ -302,10 +302,10 @@ class xTwitter {
     }
 
     private static async downMedias(dta: allMedia[]): Promise<mediosDta> {
-        const dtaMedia: { url: string, file?: AttachmentBuilder }[] = [];
-        let overFile = false;
+        if (dta.length === 0) return { dtaMedia: [], overFile: false }
 
-        if (dta.length === 0) return { dtaMedia, overFile }
+        const dtaMedia: { url: string, file?: AttachmentBuilder }[] = [];
+        const overFile = dta.filter((X) => X.type !== "photo").length > 4;
 
         const downMedia = async (downUrl: string) => {
             try {
@@ -341,8 +341,6 @@ class xTwitter {
             } catch (e: any) { error(`Erro en el procesa de descarga: ${e} | Causa: ${e.cause}`); return null }
         }
 
-        if (dta.filter((X) => X.type !== "photo").length > 4) { overFile = true }
-
         for (const inf of dta) {
             let downUrl = inf.url;
 
@@ -363,7 +361,7 @@ class xTwitter {
                     downUrl = sorted[x].url;
                 }
 
-                if (dta.length > 4) {
+                if (overFile) {
                     dtaMedia.push({ url: downUrl })
                     continue;
                 }
@@ -380,7 +378,7 @@ class xTwitter {
                 const trg = inf.url.match(/(?:video\.twimg\.com)\/tweet_video\/([\w-]+)/i);
                 const match = trg ? trg[1] : null;
 
-                if (dta.length > 4) {
+                if (overFile) {
                     downUrl = match ? `https://gif.fxtwitter.com/tweet_video/${match}.webp` : inf.url;
                     dtaMedia.push({ url: downUrl })
                     continue;
