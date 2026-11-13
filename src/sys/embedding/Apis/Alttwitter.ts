@@ -25,22 +25,18 @@ export class xTwitterCustom implements ApiHandler {
     }
 
     public async process(pMsg: pMSGin): Promise<pResult> {
-        let ch: GuildTextBasedChannel | undefined = undefined;
-        if (pMsg.message && !pMsg.message.channel.isDMBased()) {
-            ch = pMsg.message.channel;
-            await ch.sendTyping();
-        }
-        // url para
-        const matchLang = pMsg.url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/\d+.*?\/([a-z]+)(?:\/|$)/i);
-        const lang = matchLang ? matchLang[1].toLowerCase() : undefined;
-        let iLang: string | undefined = undefined;
-        if (lang && ["es", "en", "pt", "it", "ja", "ru"].includes(lang)) iLang = lang;
-        let wQuote = true;
-        if (pMsg.url.endsWith("/q") || pMsg.url.endsWith("/Q")) wQuote = false;
+        let ch: GuildTextBasedChannel | null = (pMsg.message && !pMsg.message.channel.isDMBased()) ? pMsg.message.channel : null;
+        if (ch) await ch.sendTyping();
         // chk
         const match = pMsg.url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
         if (!match) return { ok: false };
         const xId = match[1];
+        // url para
+        const matchLang = pMsg.url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/\d+.*?\/([a-z]+)(?:\/|$)/i);
+        const lang = matchLang ? matchLang[1].toLowerCase() : undefined;
+        const iLang = (lang && lang.length === 2) ? lang : undefined;
+        const wQuote = (pMsg.url.endsWith("/q") || pMsg.url.endsWith("/Q")) ? false : true;
+        const spoiler = pMsg.isSpoiler === true;
         // get dta
         const xData = await xTwitter.getTweetData(xId, iLang);
         if (!xData) return { ok: false };
@@ -122,7 +118,6 @@ export class xTwitterCustom implements ApiHandler {
             }
             // ensambler
             const parte = new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small);
-            const spoiler = pMsg.isSpoiler === true;
             const container = new ContainerBuilder();
             if (pMsg.intCall) container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`> ## Nuevo Post de @${xData.showName}`)).addSeparatorComponents(parte)
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(TopTxt + (xData.kchMedia.overFile ? `\n> En galerías con más de 5 videos puede mostrarse mal o no cargar!!` : ""))).addSeparatorComponents(parte);
