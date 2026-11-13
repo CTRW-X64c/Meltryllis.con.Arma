@@ -25,12 +25,12 @@ export class xTwitterCustom implements ApiHandler {
     }
 
     public async process(pMsg: pMSGin): Promise<pResult> {
-        let ch: GuildTextBasedChannel | null = (pMsg.message && !pMsg.message.channel.isDMBased()) ? pMsg.message.channel : null;
-        if (ch) await ch.sendTyping();
-        // chk
         const match = pMsg.url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
         if (!match) return { ok: false };
         const xId = match[1];
+        // Typing
+        let ch: GuildTextBasedChannel | null = (pMsg.message && !pMsg.message.channel.isDMBased()) ? pMsg.message.channel : null;
+        if (ch) await ch.sendTyping();
         // url para
         const matchLang = pMsg.url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/\d+.*?\/([a-z]+)(?:\/|$)/i);
         const lang = matchLang ? matchLang[1].toLowerCase() : undefined;
